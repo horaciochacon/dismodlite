@@ -62,7 +62,8 @@
 # ---- Validación de una tabla ----
 
 # Columnas clave (además del eje) de cada tabla: con el eje, identifican una fila.
-.DL_CLAVES_TABLA <- list(ancla = "medida", covariables = "covariable", betas = "covariable", severidad = "estado")
+.DL_CLAVES_TABLA <- list(ancla = "medida", covariables = "covariable", betas = "covariable", severidad = "estado",
+                         fuentes_gbd = c("componente", "nid"))
 
 # Tablas en las que las bandas de edad de un mismo grupo no pueden solaparse.
 .DL_TABLAS_SIN_SOLAPE <- c("poblacion", "ancla", "covariables", "severidad", "poblacion_detalle")
@@ -190,16 +191,6 @@
   data.table::setattr(out, "avisos", r$avisos)
   data.table::setattr(out, "class", c("dl_tabla", "data.table", "data.frame"))
   out
-}
-
-# Lee `x` (ruta a un CSV, carpeta de CSV o data.frame) como tabla `tabla` sin validar. Esta versión solo admite
-# tablas del contrato; los lectores de fuentes conocidas los agrega R/lectores.R.
-.dl_leer_fuente_tabla <- function(x, tabla, opciones = list()) {
-  if (is.data.frame(x)) return(data.table::as.data.table(x))
-  archivos <- if (dir.exists(x)) list.files(x, "[.]csv$", ignore.case = TRUE, full.names = TRUE) else x
-  data.table::rbindlist(fill = TRUE, lapply(archivos, function(f)
-    tryCatch(.dl_leer_csv(f, colClasses = "character", na.strings = "", tabla = tabla),
-             dl_error = function(e) .dl_stop("no se pudo leer la tabla %s: %s", tabla, e$detalle))))
 }
 
 #' Una tabla del contrato de insumos
