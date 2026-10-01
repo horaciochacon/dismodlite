@@ -75,3 +75,41 @@ test_that("errores de dl_severidad_desde_particion() en espa\u00f1ol y con el no
   expect_error(dl_severidad_desde_particion(withr::local_tempdir(), 9100L, rutas = r),
                "^dl_severidad_desde_particion\\(\\): se esperaba un \u00fanico CSV")
 })
+
+test_that("los pesos de un estado de GBD salen del catálogo del paquete", {
+  cat <- dismodlite:::.dl_catalogo_referencia("health_states")
+  e <- cat[1L]
+  sev <- data.table::data.table(causa = 1L, estado = e$healthstate_name, proporcion = 1, inferior = 1, superior = 1)
+  out <- dismodlite:::.dl_pesos_gbd(sev)
+  expect_identical(out$peso_discapacidad, as.numeric(e$dw_mean))
+  expect_identical(out$id_estado, as.integer(e$healthstate_id))
+})
+
+test_that("un estado propio sin pesos es un error que lo nombra", {
+  sev <- data.table::data.table(causa = 1L, estado = "Estado inventado", proporcion = 1, inferior = 1, superior = 1)
+  expect_error(dismodlite:::.dl_pesos_gbd(sev), "Estado inventado")
+})
+
+test_that("la partición de severidad da la tabla del contrato con los mismos números", {
+  completo <- system.file("extdata", "acs_peru_completo", package = "dismodlite")
+  corrida <- file.path(completo, "particion", "acs_v1")
+  rutas <- dl_rutas_ejemplo(9100, formato = "completo")
+  ref <- dl_severidad_desde_particion(corrida, causa = 9100, rutas = rutas)
+  t <- dismodlite:::.dl_severidad_contrato_desde_particion(corrida, causa = 9100,
+                                                          catalogos = file.path(completo, "catalogos"))
+  expect_identical(t$proporcion, ref$proportion)
+  expect_identical(t$id_estado, as.integer(ref$health_state_id))
+  expect_identical(t$peso_discapacidad, ref$dw_mean)
+})
+
+test_that("los pesos de GBD completan solo las filas sin peso y dejan los propios", {
+  cat <- dismodlite:::.dl_catalogo_referencia("health_states")
+  sev <- data.table::data.table(causa = 1L, estado = c(cat$healthstate_name_pretty[2L], "propio"),
+                                proporcion = c(0.5, 0.5), inferior = 0.4, superior = 0.6,
+                                peso_discapacidad = c(NA, 0.1), peso_inferior = c(NA, 0.05), peso_superior = c(NA, 0.2))
+  expect_no_warning(out <- dismodlite:::.dl_pesos_gbd(sev))
+  expect_identical(out$peso_discapacidad, c(as.numeric(cat$dw_mean[2L]), 0.1))
+  expect_identical(out$id_estado[1L], as.integer(cat$healthstate_id[2L]))
+  expect_true(is.na(out$id_estado[2L]))
+  expect_type(out$id_estado, "integer")
+})

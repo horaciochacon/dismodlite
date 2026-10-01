@@ -227,3 +227,56 @@ dl_severidad_desde_particion <- function(corrida, causa, rutas = dl_rutas(), bet
   data.table::setattr(out, "renormalizacion", renormalizada$s)
   out
 }
+
+# ---- Catálogos de GBD del paquete y la severidad del contrato ----
+
+# Catálogo de GBD 2023 de inst/referencia (`nombre`: health_states, sequelas o demograficos), leído una vez.
+.dl_catalogo_referencia <- function(nombre) {
+  archivo <- .dl_inst_archivo("referencia", sprintf("catalogo_%s_gbd2023.csv", nombre))
+  .dl_leer_memo(archivo, function(p) .dl_leer_csv(p, colClasses = "character"))
+}
+
+# Severidad del contrato con los pesos de discapacidad completos: los estados sin peso toman el de GBD (por id_estado,
+# o por nombre: healthstate_name o healthstate_name_pretty, sin distinguir mayúsculas); `catalogo` por defecto el del
+# paquete. Error con los estados sin peso que no son de GBD.
+.dl_pesos_gbd <- function(sev, catalogo = .dl_catalogo_referencia("health_states")) {
+  sev <- data.table::copy(sev)
+  # columnas ausentes con NA del tipo que recibirán (si no, asignar a un subconjunto de filas las fuerza a lógico);
+  # las presentes se llevan al mismo tipo (una columna vacía llega como lógica)
+  tipos <- list(id_estado = NA_integer_, peso_discapacidad = NA_real_, peso_inferior = NA_real_,
+                peso_superior = NA_real_)
+  for (cn in names(tipos)) {
+    if (!cn %in% names(sev)) sev[, (cn) := tipos[[cn]]]
+    else if (is.logical(sev[[cn]])) sev[, (cn) := rep(tipos[[cn]], .N)]
+  }
+  falta <- is.na(sev$peso_discapacidad)
+  if (!any(falta)) return(sev)
+  nombre <- tolower(trimws(sev$estado))
+  k <- match(as.character(sev$id_estado), catalogo$healthstate_id)
+  k[is.na(k)] <- match(nombre[is.na(k)], tolower(catalogo$healthstate_name))
+  k[is.na(k)] <- match(nombre[is.na(k)], tolower(catalogo$healthstate_name_pretty))
+  sin <- falta & is.na(k)
+  if (any(sin))
+    .dl_stop(paste0("severidad: el estado %s no trae peso_discapacidad y no es un estado de salud de GBD; escribe sus ",
+                    "tres pesos (peso_discapacidad, peso_inferior, peso_superior)"),
+             paste(unique(sev$estado[sin]), collapse = ", "))
+  sev[falta, `:=`(id_estado = as.integer(catalogo$healthstate_id[k[falta]]),
+                  peso_discapacidad = as.numeric(catalogo$dw_mean[k[falta]]),
+                  peso_inferior = as.numeric(catalogo$dw_lower[k[falta]]),
+                  peso_superior = as.numeric(catalogo$dw_upper[k[falta]]))]
+  sev[]
+}
+
+# Severidad del contrato de `causa` desde la corrida de partición `corrida` (los tres casos de
+# dl_severidad_desde_particion: la causa, una hija de `padre` o un componente de `secuelas`). `catalogos`: carpeta de
+# catálogos propia (opcional; por defecto los del paquete).
+.dl_severidad_contrato_desde_particion <- function(corrida, causa, padre = NULL, secuelas = NULL, catalogos = NULL) {
+  rutas <- dl_rutas(catalogos = catalogos %||% .dl_inst_archivo("referencia"))
+  s <- dl_severidad_desde_particion(corrida, causa = causa, rutas = rutas, padre = padre, secuelas = secuelas)
+  out <- data.table::data.table(causa = as.integer(s$cause_id), estado = as.character(s$health_state_id),
+                                id_estado = as.integer(s$health_state_id), proporcion = s$proportion,
+                                inferior = s$prop_lower, superior = s$prop_upper, peso_discapacidad = s$dw_mean,
+                                peso_inferior = s$dw_lower, peso_superior = s$dw_upper)
+  data.table::setattr(out, "componente", attr(s, "componente"))
+  out
+}
