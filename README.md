@@ -2,7 +2,7 @@
 <!-- README.md se genera desde README.Rmd: edita README.Rmd y vuelve a generarlo con
      rmarkdown::render("README.Rmd", output_format = "github_document"). -->
 
-# dismodlite
+# dismodlite <img src="man/figures/logo.png" align="right" height="139" alt="" />
 
 <!-- badges: start -->
 

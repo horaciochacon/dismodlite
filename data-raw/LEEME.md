@@ -23,6 +23,11 @@ Carpeta de desarrollo (excluida del paquete por `.Rbuildignore`). Todo se ejecut
   arnés de compatibilidad y escribe sus referencias en `tests/testthat/_referencia/` (sección «Arnés de
   compatibilidad»).
   `Rscript data-raw/referencia_legado.R [--salida <carpeta>] [--una-vez] [--escenarios E1,E5]`
+- `logo.R`: dibuja el logo del paquete (`man/figures/logo.png` y `man/figures/logo.svg`) con una figura real del
+  modelo: la prevalencia por edad del proyecto de ejemplo (curva nacional, su incertidumbre y las 25 curvas
+  departamentales de la cascada). Usa pkgload, ragg, showtext y sysfonts, que no van en DESCRIPTION, y descarga la
+  letra (IBM Plex Sans) de Google Fonts.
+  `Rscript data-raw/logo.R`
 
 ## Reproducibilidad
 
