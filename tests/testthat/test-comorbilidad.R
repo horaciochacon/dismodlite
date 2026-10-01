@@ -4,19 +4,19 @@
 # de severidad.
 
 # Factor esperado por sexo y banda del ancla: AVD / (prevalencia x suma de pi x DW), con las bandas finas 80+
-# agregadas a la 21 con pesos_80mas (como dl_insumos()) y el AVD del archivo por 100 000.
+# agregadas a la 21 con pesos_80mas (como dl_insumos()); la prevalencia y el AVD del archivo, en Rate por 100 000.
 factor_como_a_mano <- function(p, causa = 9100L, anio = 2023L) {
   w <- data.table::fread(p$pesos_80mas)
   banda <- function(f, escala) {
     d <- data.table::fread(f, colClasses = list(character = "location_id"))
-    d <- merge(d[cause_id == causa & year == anio & location_id == "123"], w, by = c("age_group_id", "sex_id"),
-               all.x = TRUE)
+    d <- merge(d[cause_id == causa & year == anio & location_id == "123" & metric_name == "Rate"], w,
+               by = c("age_group_id", "sex_id"), all.x = TRUE)
     d[age_group_id %in% c(30L, 31L, 32L, 235L), `:=`(val = sum(val * peso) / sum(peso), age_group_id = 21L),
       by = sex_id]
     unique(d[, list(sex_id, age_group_id, val = val / escala)])
   }
   sev <- data.table::fread(p$severidad)
-  m <- merge(banda(p$std_prior, 1), banda(p$std_yld, 1e5), by = c("sex_id", "age_group_id"),
+  m <- merge(banda(p$std_prior, 1e5), banda(p$std_yld, 1e5), by = c("sex_id", "age_group_id"),
              suffixes = c("_prev", "_avd"))
   m[, list(sex_id, age_group_id, esperado = val_avd / (val_prev * sum(sev$proportion * sev$dw_mean)))]
 }

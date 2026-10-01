@@ -135,14 +135,29 @@ api_legado <- function(entorno, perfiles = NULL) {
 # escenarios S del formato simple.
 api_nueva <- function(perfiles = system.file("perfiles", package = "dismodlite"), ns = asNamespace("dismodlite")) {
   g <- function(nombre) get(nombre, envir = ns, inherits = FALSE)
+  # La versión 0.2.2 leía la prevalencia del ancla en Percent; la nueva la lee en Rate (R/esquema.R,
+  # .dl_metrica_std). En el ejemplo sintético las dos son la misma proporción, pero Rate / 100 000 no siempre es el
+  # mismo número de punto flotante: para comparar con las referencias, la API nueva del arnés lee Percent, como
+  # quien reproduce una corrida anterior (anchor.metrica_prevalencia).
+  como_0_2_2 <- function(cfg) {
+    cfg$anchor$metrica_prevalencia <- list(valor = "Percent", procedencia = .ARNES$procedencia)
+    cfg
+  }
+  configuracion <- function(causa, carpeta_config = NULL, cambios = NULL)
+    como_0_2_2(g("dl_configuracion")(causa, carpeta_config, cambios))
+  proyecto <- function(...) {
+    p <- g("dl_proyecto")(...)
+    p$configuracion <- como_0_2_2(p$configuracion)
+    p
+  }
   list(
-    configuracion = g("dl_configuracion"), rutas = g("dl_rutas"), insumos = g("dl_insumos"),
+    configuracion = configuracion, rutas = g("dl_rutas"), insumos = g("dl_insumos"),
     opciones_mcmc = g("dl_opciones_mcmc"), ajustar = g("dl_ajustar"), ajustar_solo_prior = g("dl_ajustar_solo_prior"),
     cascada = g("dl_cascada"), validar_ancla = g("dl_validar_ancla"), factor_comorbilidad = g("dl_factor_comorbilidad"),
     avd = g("dl_avd"), etiquetas = g("dl_etiquetas"), sensibilidad = g("dl_sensibilidad"), resumir = g("dl_resumir"),
     exportar_corrida = g("dl_exportar_corrida"), reresumir_corrida = g("dl_reresumir_corrida"),
     sumar_hijas = g("dl_sumar_hijas"), consolidar = g("dl_consolidar"), limpiar_cache = g("dl_limpiar_cache"),
-    proyecto = g("dl_proyecto"),
+    proyecto = proyecto,
     perfil = function(version) file.path(perfiles, sprintf("perfil_%s.yaml", version)))
 }
 

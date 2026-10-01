@@ -480,13 +480,14 @@
     "persona-a\u00f1o"))
   unlist(lapply(c("prevalence", if (.dl_prior_usa_csmr(cfg)) "csmr"), function(slug) {
     med <- .dl_medida(slug)
+    met <- .dl_metrica_std(med, cfg)
     m <- a[measure_id == as.character(med$measure_id_gbd)]
-    mn <- m[metric_name == med$metric_std & location_id == .dl_loc_ancla(cfg)]
+    mn <- m[metric_name == met$metric_std & location_id == .dl_loc_ancla(cfg)]
     fs <- setdiff(unlist(cfg$sexos), as.integer(mn$sex_id[mn$year == anio]))
     hay <- mn$year[as.integer(mn$sex_id) %in% fs]                   # los años de los sexos que faltan
     if (nrow(mn) && !length(fs)) return(NULL)
     sprintf("ancla/ no trae la %s (measure_id %d, m\u00e9trica %s) de la causa %d %s%s%s", med$nombre_es,
-            med$measure_id_gbd, med$metric_std, cfg$cause_id,
+            med$measure_id_gbd, met$metric_std, cfg$cause_id,
             if (!nrow(mn)) sprintf("en la ubicaci\u00f3n %s (m\u00e9tricas que trae: %s; ubicaciones: %s)",
                                    .dl_loc_ancla(cfg), .dl_lista(m$metric_name, "ninguna"),
                                    .dl_lista(m$location_id, "ninguna"))

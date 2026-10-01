@@ -77,6 +77,7 @@
 .dl_materializar_medida <- function(cfg, slug, paths, archivo = NULL, cat_bandas = NULL, pesos = NULL,
                                     opcional = FALSE) {
   med <- .dl_medida(slug)
+  met <- .dl_metrica_std(med, cfg)
   archivo <- archivo %||% .dl_path(paths, med$path_key)
   pieza <- .dl_nombre_ruta(med$path_key)
   loc <- .dl_loc_ancla(cfg)
@@ -85,16 +86,16 @@
                        ubigeo = .dl_codigos_ubigeo_rutas(paths))
   # Año del ancla (years.ancla): sus filas entran reetiquetadas al año de ajuste, así todo lo que después filtra por
   # years.ajuste (cascada, reglas, resumen, corrida) no cambia.
-  std <- std0[cause_id == cfg$cause_id & metric_name == med$metric_std & location_id == loc &
+  std <- std0[cause_id == cfg$cause_id & metric_name == met$metric_std & location_id == loc &
               year %in% .dl_anio_ancla(cfg) & sex_id %in% unlist(cfg$sexos)]
   if (!nrow(std) && opcional) return(NULL)
   if (!nrow(std))
     .dl_stop(paste0("\u00ab%s\u00bb (`%s`) no tiene filas del ancla para la causa %d, la ubicaci\u00f3n %s, ",
                     "el a\u00f1o %d, los sexos %s y la m\u00e9trica \u00ab%s\u00bb"), basename(archivo), pieza,
              as.integer(cfg$cause_id), loc, .dl_anio_ancla(cfg), paste(unlist(cfg$sexos), collapse = " y "),
-             med$metric_std)
+             met$metric_std)
   std[, year := .dl_anio_ajuste(cfg)]
-  for (col in c("val", "lower", "upper")) std[[col]] <- std[[col]] / med$escala_std
+  for (col in c("val", "lower", "upper")) std[[col]] <- std[[col]] / met$escala_std
   meta <- list(cause_name = unique(std$cause_name), location_name = unique(std$location_name),
                round = as.character(unique(std$round)))
   if (any(lengths(meta) != 1L))

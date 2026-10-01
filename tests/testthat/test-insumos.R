@@ -225,9 +225,10 @@ test_that("betas materializa escala y rechaza haqi con beta grande en escala 0-1
 test_that("las bandas finas <5 del std se agregan a <5 years con peso por ancho de banda", {
   d <- withr::local_tempdir()
   std <- data.table::fread(rutas_nacional()$std_prior)
-  base <- std[sex_id == 1L & cause_id == 9100L & year == 2023L][1]   # una fila del ancla de la causa y año de ajuste
+  # una fila del ancla de la causa y año de ajuste, en la métrica que lee el paquete (Rate, por 100 000)
+  base <- std[sex_id == 1L & cause_id == 9100L & year == 2023L & metric_name == "Rate"][1]
   fila <- function(id, nm, v) { r <- data.table::copy(base); r[, `:=`(age_group_id = id, age_group_name = nm,
-    val = v, lower = v * 0.8, upper = v * 1.2)]; r }
+    val = v * 1e5, lower = v * 0.8e5, upper = v * 1.2e5)]; r }
   finas <- rbind(fila(2L, "0-6 days", 1e-6), fila(3L, "7-27 days", 1e-5), fila(388L, "1-5 months", 5e-5),
                  fila(389L, "6-11 months", 1e-4), fila(238L, "12-23 months", 2e-4), fila(34L, "2-4 years", 3e-4))
   data.table::fwrite(rbind(std, finas), file.path(d, "prior.csv"))
@@ -250,9 +251,10 @@ test_that("las bandas finas <5 del std se agregan a <5 years con peso por ancho 
 test_that("All ages y Age-standardized quedan fuera del ancla aunque edad_inicio sea 0", {
   d <- withr::local_tempdir()
   std <- data.table::fread(rutas_nacional()$std_prior)
-  base <- std[sex_id == 1L & cause_id == 9100L & year == 2023L][1]   # una fila del ancla de la causa y año de ajuste
-  agg <- data.table::copy(base)[, `:=`(age_group_id = 22L, age_group_name = "All ages", val = 0.005)]
-  ags <- data.table::copy(base)[, `:=`(age_group_id = 27L, age_group_name = "Age-standardized", val = 0.004)]
+  # una fila del ancla de la causa y año de ajuste, en la métrica que lee el paquete (Rate, por 100 000)
+  base <- std[sex_id == 1L & cause_id == 9100L & year == 2023L & metric_name == "Rate"][1]
+  agg <- data.table::copy(base)[, `:=`(age_group_id = 22L, age_group_name = "All ages", val = 500)]
+  ags <- data.table::copy(base)[, `:=`(age_group_id = 27L, age_group_name = "Age-standardized", val = 400)]
   data.table::fwrite(rbind(std, agg, ags), file.path(d, "prior.csv"))
   p <- rutas_nacional(); p$std_prior <- file.path(d, "prior.csv")
   cfg <- cfg9100(); cfg$edad_inicio <- 0; cfg$nudos_incidencia <- list(0, 40, 50, 60, 70, 80, 95)

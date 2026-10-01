@@ -1,3 +1,18 @@
+# dismodlite (en desarrollo)
+
+## Corrección: la prevalencia del ancla se lee en *Rate*
+
+* El paquete leía la prevalencia de las estimaciones de GBD en la métrica *Percent*, como si fuera la proporción de la
+  población. No lo es: GBD Results calcula ese *Percent* sobre las personas con alguna causa (la prevalencia de todas
+  las causas), no sobre la población, y supera a *Rate* / 100 000 en la inversa de esa prevalencia. En Perú 2023 la
+  diferencia es nula desde los 75 años, menor que 1 % entre los 20 y los 60, de 1,5 % a 6 % entre los 2 y los 19 y de
+  22 % a 37 % antes de los 2. En las causas cardiovasculares, el total de todas las edades baja entre 0,02 % y 2,4 %.
+  Ahora la prevalencia se lee en *Rate* / 100 000, como las demás medidas.
+* Las descargas de `ancla/` deben traer la prevalencia en *Rate*; si solo la traen en *Percent*, el mensaje lo dice.
+* `anchor.metrica_prevalencia: {valor: Percent, procedencia}` (en el formato simple, dentro de `avanzado:`) repite
+  la lectura anterior, para reproducir corridas hechas hasta la versión 1.0.0.
+* Los datos de ejemplo traen la prevalencia en las dos métricas.
+
 # dismodlite 1.0.0
 
 Primera versión como paquete independiente y en español. Los proyectos y los scripts de la versión 0.2.2 siguen

@@ -463,6 +463,12 @@ ancla_csv <- ancla[, list(acquisition_id = "sintetico_acs_v1", source = "gbd", r
                           sex_name = data.table::fifelse(sex_id == 1L, "Male", "Female"),
                           cause_id, cause_name = nombre_causa(cause_id), measure_id, measure_name, metric_id,
                           metric_name, val, lower, upper, ui_level = 0.95, medida)]
+# GBD Results publica la prevalencia en Rate (por 100 000: la proporción de la población, la que lee el paquete) y en
+# Percent (los casos sobre las personas con alguna causa; lo leían las versiones hasta la 1.0.0). En estos datos
+# sintéticos las dos son la misma proporción: Percent queda para reproducir las corridas anteriores con
+# anchor.metrica_prevalencia.
+ancla_csv <- rbind(ancla_csv, ancla_csv[medida == "prevalencia"][, `:=`(
+  metric_id = 3L, metric_name = "Rate", val = val * 1e5, lower = lower * 1e5, upper = upper * 1e5)])
 for (m in MEDIDAS_ANCLA$medida) escribir_csv(ancla_csv[medida == m][, medida := NULL], "ancla", paste0(m, ".csv"))
 
 pesos_80 <- poblacion[location_id == LOC_NACIONAL & year == 2023L & age_group_id %in% FINAS_80]
@@ -860,7 +866,9 @@ escribir_texto(c(
 # cuando el proyecto no trae catálogos. Son las mismas del catálogo del formato completo (sin las causas). Desde aquí,
 # ruta() escribe en inst/referencia.
 salida <- referencia
-unlink(salida, recursive = TRUE)
+# Solo se rehacen las dos tablas que escribe este script: inst/referencia guarda también config_simple.yaml y
+# columnas_simple.csv, que no salen de aquí.
+unlink(file.path(salida, c("catalogo_demograficos_gbd2023.csv", "etiquetas_es.csv")))
 escribir_texto(LINEAS_DEMOGRAFICOS, "catalogo_demograficos_gbd2023.csv")
 # La banda 80+ dice «80 años y más»; el formato completo conserva la etiqueta de la versión 0.2.2 («80 años a más»),
 # que llevan las salidas de sus referencias.

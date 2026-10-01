@@ -314,15 +314,13 @@ test_that("una descarga del ancla con otras ubicaciones (global, región) y ambo
   expect_identical(b$hash, insumos_dos_formatos(9100L)$simple$hash)
 })
 
-test_that("una prevalencia descargada en otra métrica (Rate) se pide en Percent; las demás causas no cambian", {
+test_that("una prevalencia descargada solo en Percent se pide en Rate; las demás causas no cambian", {
   a <- ancla_ejemplo()
-  k <- a$cause_id == "9101" & a$measure_id == "5"
-  for (cn in c("val", "lower", "upper")) a[k, (cn) := format(as.numeric(get(cn)) * 1e5, digits = 17)]
-  a[k, `:=`(metric_name = "Rate", metric_id = "3")]
+  a <- a[!(a$cause_id == "9101" & a$measure_id == "5" & a$metric_name == "Rate")]
   d <- copia_ejemplo()
   escribir_texto(a, d, "ancla", "sintetico_acs_v1.csv")
-  expect_error(dl_proyecto(d, 9101), paste0("ancla/ no trae la prevalencia \\(measure_id 5, métrica Percent\\) de la ",
-                                            "causa 9101 en la ubicación 123 \\(métricas que trae: Rate; ",
+  expect_error(dl_proyecto(d, 9101), paste0("ancla/ no trae la prevalencia \\(measure_id 5, métrica Rate\\) de la ",
+                                            "causa 9101 en la ubicación 123 \\(métricas que trae: Percent; ",
                                             "ubicaciones: 123\\)"))
   expect_identical(suppressMessages(dl_insumos(dl_proyecto(d, 9100)))$hash, insumos_dos_formatos(9100L)$simple$hash)
 })

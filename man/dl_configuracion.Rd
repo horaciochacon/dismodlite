@@ -187,6 +187,10 @@ del prior de la EMR (1: el prior tal cual).
 aguda; se descuenta de la mortalidad del ancla en el prior y el techo de la EMR (0).
 \item \code{anchor.gate_err_mediano}: \verb{\{valor, procedencia\}}: el error relativo mediano máximo entre la prevalencia
 ajustada y la del ancla con que se escribe la corrida (0.05).
+\item \code{anchor.metrica_prevalencia}: \verb{\{valor, procedencia\}}: la métrica en que se lee la prevalencia del ancla. \code{Rate}
+(por defecto) es la proporción de la población, por 100 000. \code{Percent} repite lo que hacían las versiones hasta la
+1.0.0 y sirve solo para reproducir sus corridas: en GBD Results divide los casos por las personas con alguna causa,
+no por la población, y sobrestima la prevalencia (menos de 1 \% en adultos, hasta 37 \% antes de los 2 años).
 \item \code{cascada.dx_fuera_de_banda}: en las edades sin grupo de edad del proxy, \code{cero} (sin diferencia con el valor
 nacional) o \code{vecina} (la del grupo más próximo, con procedencia) (\code{cero}).
 \item \code{cascada.dx_interpolacion}: entre los grupos de edad del proxy, \code{lineal} (interpolada entre sus puntos medios)

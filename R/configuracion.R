@@ -42,6 +42,7 @@
   "anchor.evidencia_ghdx",
   "anchor.modelo_variante", "anchor.componente", "anchor.componente.sequela_ids", "anchor.componente.motivo",
   "anchor.gate_err_mediano", "anchor.gate_err_mediano.valor", "anchor.gate_err_mediano.procedencia",
+  "anchor.metrica_prevalencia", "anchor.metrica_prevalencia.valor", "anchor.metrica_prevalencia.procedencia",
   "cascada", "cascada.kappa", "cascada.escala", "cascada.cota_warning",
   "cascada.heldout_anio", "cascada.heldout_anio.valor", "cascada.heldout_anio.procedencia",
   "cascada.dx_fuera_de_banda", "cascada.dx_fuera_de_banda.valor", "cascada.dx_fuera_de_banda.procedencia",
@@ -278,6 +279,10 @@ NULL
 #'   aguda; se descuenta de la mortalidad del ancla en el prior y el techo de la EMR (0).
 #' - `anchor.gate_err_mediano`: `{valor, procedencia}`: el error relativo mediano máximo entre la prevalencia
 #'   ajustada y la del ancla con que se escribe la corrida (0.05).
+#' - `anchor.metrica_prevalencia`: `{valor, procedencia}`: la métrica en que se lee la prevalencia del ancla. `Rate`
+#'   (por defecto) es la proporción de la población, por 100 000. `Percent` repite lo que hacían las versiones hasta la
+#'   1.0.0 y sirve solo para reproducir sus corridas: en GBD Results divide los casos por las personas con alguna causa,
+#'   no por la población, y sobrestima la prevalencia (menos de 1 % en adultos, hasta 37 % antes de los 2 años).
 #' - `cascada.dx_fuera_de_banda`: en las edades sin grupo de edad del proxy, `cero` (sin diferencia con el valor
 #'   nacional) o `vecina` (la del grupo más próximo, con procedencia) (`cero`).
 #' - `cascada.dx_interpolacion`: entre los grupos de edad del proxy, `lineal` (interpolada entre sus puntos medios)
@@ -465,6 +470,20 @@ NULL
   else bloque(cfg$anchor$gate_err_mediano, "anchor.gate_err_mediano", function(v) v > 0 && v < 1,
     "valor debe estar en (0, 1) (error relativo mediano m\u00e1ximo de anchor_identity; 0.05 por defecto)",
     "relajar el umbral de anchor_identity exige procedencia (decisi\u00f3n documentada)")
+  # Métrica de la prevalencia del ancla: Rate si no se declara (.dl_metrica_std). Percent reproduce las corridas de las
+  # versiones hasta la 1.0.0 y, como toda decisión que se aparta del valor por defecto, exige procedencia.
+  mp <- cfg$anchor$metrica_prevalencia
+  if (!is.null(mp)) {
+    if (!is.list(mp)) p("anchor.metrica_prevalencia", "debe ser un bloque {valor, procedencia}")
+    else {
+      if (!.dl_es_texto1(mp$valor) || !mp$valor %in% c("Rate", "Percent"))
+        p("anchor.metrica_prevalencia.valor",
+          "debe ser Rate (por defecto) o Percent (como las versiones hasta la 1.0.0)")
+      if (identical(mp$valor, "Percent") && (is.null(mp$procedencia) || !nzchar(mp$procedencia)))
+        p("anchor.metrica_prevalencia.procedencia",
+          "leer la prevalencia en otra m\u00e9trica exige procedencia (decisi\u00f3n documentada)")
+    }
+  }
   # Unidad de modelado distinta de la unidad de extracción: la configuración de una causa hija puede usar el YAML de
   # extracción de la causa padre. extraction.cause_id declara la causa de ese YAML y dl_insumos() lo cruza con su
   # meta.causa_gbd.

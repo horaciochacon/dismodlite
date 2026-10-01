@@ -90,8 +90,9 @@ IHME, en CSV, sin editar, con las columnas «ID y nombre». Se usan estas column
 exceso por defecto, \code{mortalidad_exceso.prior: desde_ancla}, o sin \code{mortalidad_exceso.techo}); 6 incidencia
 (opcional: la usa la comprobación de la incidencia implícita de \code{\link[=dl_validar_ancla]{dl_validar_ancla()}}); 3 AVD (hace falta para
 \code{\link[=dl_factor_comorbilidad]{dl_factor_comorbilidad()}}).
-\item \code{metric_name}: \code{Percent} para la prevalencia (una proporción entre 0 y 1; descárgala con esa métrica) y \code{Rate}
-(tasa por 100 000) para las demás medidas; las filas de otras métricas se ignoran.
+\item \code{metric_name}: \code{Rate} (tasa por 100 000) en todas las medidas, también la prevalencia; las filas de otras
+métricas se ignoran. El \code{Percent} de la prevalencia en GBD Results no es la proporción de la población: divide
+por las personas con alguna causa (ver \code{anchor.metrica_prevalencia} en \code{\link[=dl_configuracion]{dl_configuracion()}}).
 \item \code{location_id} y \code{location_name}: la ubicación; se usan las filas de \code{ubicacion_nacional}.
 \item \code{sex_id} (1 hombres, 2 mujeres), \code{age_id} y \code{age_name} (el grupo de edad de GBD), \code{cause_id} y \code{cause_name},
 \code{year}.

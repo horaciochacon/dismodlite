@@ -92,7 +92,7 @@ head(celdas[, c("location_id", "location_name", "sex_id", "age_group_name", "met
 ```
 
 `val` es la media de las simulaciones y `lower` y `upper`, sus cuantiles 2.5 % y 97.5 %. La prevalencia va como
-proporción (métrica `Percent`, entre 0 y 1); la incidencia y los AVD, como tasa por 100 000 (métrica `Rate`). Las
+proporción de la población, entre 0 y 1 (con la métrica `Percent`, como en las versiones anteriores); la incidencia y los AVD, como tasa por 100 000 (métrica `Rate`). Las
 filas de nivel 0 son las nacionales y las de nivel 1, las subnacionales:
 
 ```{r}

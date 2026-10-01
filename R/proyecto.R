@@ -290,8 +290,9 @@
 #'   exceso por defecto, `mortalidad_exceso.prior: desde_ancla`, o sin `mortalidad_exceso.techo`); 6 incidencia
 #'   (opcional: la usa la comprobación de la incidencia implícita de [dl_validar_ancla()]); 3 AVD (hace falta para
 #'   [dl_factor_comorbilidad()]).
-#' - `metric_name`: `Percent` para la prevalencia (una proporción entre 0 y 1; descárgala con esa métrica) y `Rate`
-#'   (tasa por 100 000) para las demás medidas; las filas de otras métricas se ignoran.
+#' - `metric_name`: `Rate` (tasa por 100 000) en todas las medidas, también la prevalencia; las filas de otras
+#'   métricas se ignoran. El `Percent` de la prevalencia en GBD Results no es la proporción de la población: divide
+#'   por las personas con alguna causa (ver `anchor.metrica_prevalencia` en [dl_configuracion()]).
 #' - `location_id` y `location_name`: la ubicación; se usan las filas de `ubicacion_nacional`.
 #' - `sex_id` (1 hombres, 2 mujeres), `age_id` y `age_name` (el grupo de edad de GBD), `cause_id` y `cause_name`,
 #'   `year`.

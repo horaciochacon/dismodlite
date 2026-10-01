@@ -140,8 +140,9 @@ Una o más descargas de la herramienta GBD Results del IHME (<https://vizhub.hea
 - **Medidas**: prevalencia (obligatoria), muertes (necesarias para el prior de la mortalidad en exceso por defecto
   y, sin `mortalidad_exceso.techo`, para su techo), AVD (calibran los AVD del modelo a los de GBD) e incidencia (la
   usa la validación).
-- **Métricas**: *Percent* para la prevalencia (una proporción entre 0 y 1) y *Rate* (por 100 000) para las demás.
-  Las filas de otras métricas se ignoran.
+- **Métricas**: *Rate* (por 100 000) en todas las medidas, también la prevalencia. Las filas de otras métricas se
+  ignoran. El *Percent* de la prevalencia no es la proporción de la población: GBD lo calcula sobre las personas con
+  alguna causa, así que la supera (menos de 1 % en adultos, hasta 37 % antes de los 2 años).
 - **Ubicación**: el país. Otras ubicaciones (global, regiones) se ignoran si se declara `ubicacion_nacional`.
 - **Edades**: los grupos quinquenales de GBD, incluidos 80-84, 85-89, 90-94 y 95+. Los grupos por debajo de
   `edad_inicio` y los de todas las edades o estandarizados se descartan.
@@ -369,7 +370,7 @@ de nuevo a `dl_nuevo_proyecto()` con la causa nueva. La guía
 Antes de correr:
 
 - [ ] `config.yaml` tiene `causa`, `anio` y `edad_inicio`, y `ubicacion_nacional` si el ancla trae varias ubicaciones.
-- [ ] `ancla/` tiene la descarga sin editar, con prevalencia en *Percent* y muertes en *Rate*, de los dos sexos, del
+- [ ] `ancla/` tiene la descarga sin editar, con todas las medidas en *Rate*, de los dos sexos, del
       año que se estima, con los grupos de 80 años y más.
 - [ ] `poblacion.csv` cubre todas las edades desde `edad_inicio`, los dos sexos, el año que se estima y todas las
       ubicaciones subnacionales; los códigos de ubicación se leen como texto.

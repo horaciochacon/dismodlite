@@ -152,8 +152,8 @@
 #'     `source`, `round`, `entity`, `method`, `location_id`, `location_name`, `location_level` (0 nacional, 1
 #'     subnacional), `year`, `age_group_id`, `age_group_name`, `sex_id`, `sex_name`, `cause_id`, `cause_name`,
 #'     `measure_id`, `measure_name`, `metric_id`, `metric_name`, `val` (la media de las simulaciones), `lower`,
-#'     `upper` y `ui_level`. La prevalencia es una proporción (`Percent`); la incidencia y los AVD, tasas por 100 000
-#'     (`Rate`).
+#'     `upper` y `ui_level`. La prevalencia es la proporción de la población, entre 0 y 1 (con la métrica 2,
+#'     `Percent`, como en las versiones anteriores); la incidencia y los AVD, tasas por 100 000 (`Rate`).
 #'   - `draws`: lista con una tabla ancha por medida (`prevalence`, `incidence`, `yld`): `location_id`, `sex_id`,
 #'     `age_group_id` y una columna por simulación (`draw_1`, `draw_2`, ...), en las unidades del modelo
 #'     (proporción o tasa por persona-año).

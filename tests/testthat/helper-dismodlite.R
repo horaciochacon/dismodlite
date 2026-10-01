@@ -54,7 +54,7 @@ escribir_texto <- function(x, ...) data.table::fwrite(x, file.path(...), eol = "
 # severidad.csv. El ancla es coherente con el modelo: la prevalencia de dl_edo() con una incidencia y una mortalidad en
 # exceso (EMR) que crecen con la edad (10 % más de incidencia en los hombres), promediada en cada banda; la mortalidad
 # es p x EMR, la incidencia i x (1 - p) y los AVD p x 0,037 (el peso de discapacidad medio de severidad.csv), por
-# 100 000 (Rate); la prevalencia va como proporción (Percent). Devuelve `d`.
+# 100 000 (Rate), como la prevalencia (la métrica que lee el paquete). Devuelve `d`.
 escribir_pais_ficticio <- function(d, causa, anio, config, nombre = "Enfermedad inventada") {
   dir.create(file.path(d, "ancla"), recursive = TRUE)
   writeLines(config, file.path(d, "config.yaml"))
@@ -66,12 +66,12 @@ escribir_pais_ficticio <- function(d, causa, anio, config, nombre = "Enfermedad 
     x <- data.table::data.table(b = banda, p = e$p, csmr = e$p * e$f, inc = e$i * (1 - e$p))
     x <- x[, list(p = mean(p), csmr = mean(csmr), inc = mean(inc)), by = b]
     data.table::data.table(sex_id = sx, b = rep(x$b, 4L), measure_id = rep(c(5L, 1L, 6L, 3L), each = nrow(x)),
-                           val = c(x$p, 1e5 * x$csmr, 1e5 * x$inc, 1e5 * 0.037 * x$p))
+                           val = c(1e5 * x$p, 1e5 * x$csmr, 1e5 * x$inc, 1e5 * 0.037 * x$p))
   }))
   medidas <- data.table::data.table(
     measure_id = c(5L, 1L, 6L, 3L),
     measure_name = c("Prevalence", "Deaths", "Incidence", "YLDs (Years Lived with Disability)"),
-    metric_id = c(2L, 3L, 3L, 3L), metric_name = c("Percent", "Rate", "Rate", "Rate"))
+    metric_id = c(3L, 3L, 3L, 3L), metric_name = c("Rate", "Rate", "Rate", "Rate"))
   a <- cbind(a, medidas[match(a$measure_id, medidas$measure_id), -"measure_id"], .BANDAS_FICTICIO[a$b])
   a[, `:=`(location_id = 999L, location_name = "Pa\u00eds ficticio", sex_name = c("Male", "Female")[sex_id],
            cause_id = causa, cause_name = nombre, year = anio, lower = val * 0.8, upper = val * 1.25)]
