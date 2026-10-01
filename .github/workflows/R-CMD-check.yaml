@@ -77,6 +77,13 @@ jobs:
           extra-packages: any::rcmdcheck
           needs: check
 
+      # En Windows, Quarto corre cada viñeta en su propia sesión de R, que no ve la librería temporal donde
+      # R CMD build instala el paquete: se instala antes en la librería del trabajo.
+      - name: Instalar el paquete (viñetas en Quarto, Windows)
+        if: runner.os == 'Windows'
+        shell: Rscript {0}
+        run: install.packages(".", repos = NULL, type = "source")
+
       - uses: r-lib/actions/check-r-package@v2
         env:
           _R_CHECK_DONTTEST_EXAMPLES_: ${{ !matrix.config.ligero }}
