@@ -67,9 +67,10 @@ test_that("el paquete instalado bajo una ruta con espacios y tildes resuelve sus
     # llamada a data.table::, ya filtra filas como data.table (con data.frame elegiría columnas)
     "m <- dismodlite:::.DL_MEDIDAS",
     "cat('data.table', dt_antes, 'data.table' %in% loadedNamespaces(), nrow(m[m$exporta]) == sum(m$exporta), '\\n')",
-    "stopifnot(startsWith(dismodlite:::.dl_pkg_dir(), normalizePath(file.path(lib, 'dismodlite'))))",
-    "stopifnot(startsWith(dismodlite:::.dl_schema_default_path(), normalizePath(lib)))",
-    "stopifnot(startsWith(normalizePath(dl_ejemplo()), normalizePath(lib)))",
+    # las rutas del paquete van con / también en Windows
+    "stopifnot(startsWith(dismodlite:::.dl_pkg_dir(), normalizePath(file.path(lib, 'dismodlite'), winslash = '/')))",
+    "stopifnot(startsWith(dismodlite:::.dl_schema_default_path(), normalizePath(lib, winslash = '/')))",
+    "stopifnot(startsWith(normalizePath(dl_ejemplo(), winslash = '/'), normalizePath(lib, winslash = '/')))",
     "esq <- dl_esquema()",
     "b <- dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE))",
     "cat('version', dl_version(), '\\n')",

@@ -5,8 +5,8 @@
 test_that("el paquete no lee la variable de entorno del repositorio anterior", {
   src <- system.file(package = "dismodlite")
   withr::local_envvar(DISMODLITE_DIR = withr::local_tempdir())
-  expect_identical(dismodlite:::.dl_pkg_dir(), normalizePath(src))
-  expect_true(startsWith(dismodlite:::.dl_schema_default_path(), normalizePath(src)))
+  expect_identical(dismodlite:::.dl_pkg_dir(), normalizePath(src, winslash = "/"))
+  expect_true(startsWith(dismodlite:::.dl_schema_default_path(), normalizePath(src, winslash = "/")))
   expect_identical(dl_version(), unname(read.dcf(system.file("DESCRIPTION", package = "dismodlite"),
                                                  fields = "Version")[1, 1]))
 })
