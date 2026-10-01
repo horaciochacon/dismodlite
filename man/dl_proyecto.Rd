@@ -4,247 +4,130 @@
 \alias{dl_proyecto}
 \title{Proyecto de una causa}
 \usage{
-dl_proyecto(carpeta, causa = NULL)
+dl_proyecto(carpeta = NULL, causa = NULL, ..., configuracion = NULL)
 }
 \arguments{
-\item{carpeta}{Carpeta del proyecto: la que tiene \code{config.yaml} o \verb{config/}.}
+\item{carpeta}{Carpeta del proyecto: la que tiene \code{config.yaml} o \verb{config/} (opcional si se dan \code{configuracion} y
+las tablas).}
 
-\item{causa}{Causa (\code{cause_id}, un entero); \code{NULL} si el proyecto tiene una sola.}
+\item{causa}{Causa (\code{cause_id}, un entero); \code{NULL} si el proyecto tiene una sola o la configuración la declara.}
+
+\item{...}{Tablas del contrato por su nombre (ver \link{dl_tablas}: \code{ubicaciones}, \code{poblacion}, \code{ancla}, \code{covariables},
+\code{betas}, \code{datos}, \code{severidad}, \code{fuentes_gbd}, \code{poblacion_detalle}): un \code{data.frame} o la ruta de un CSV o de una
+carpeta. Reemplazan a las de la carpeta.}
+
+\item{configuracion}{Ruta del YAML de la configuración o una lista con sus claves (opcional; por defecto, la de la
+carpeta).}
 }
 \value{
 Objeto de clase \code{dl_proyecto}: una lista con
 \itemize{
-\item \code{configuracion}: la configuración de la causa, de clase \code{dl_config}, como la de \code{\link[=dl_configuracion]{dl_configuracion()}}. En el
-formato simple trae \code{origen$por_defecto}: las claves tomadas por defecto, con su valor.
-\item \code{rutas}: las rutas de los insumos, de clase \code{dl_paths}, como las de \code{\link[=dl_rutas]{dl_rutas()}}. En el formato simple apuntan
-a la traducción, en la carpeta temporal de la sesión: en otra sesión, o después de cambiar la configuración o
-una tabla (la traducción anterior se borra), vuelve a llamar a \code{dl_proyecto()}.
-\item \code{carpeta}: la carpeta del proyecto.
-\item \code{formato}: \code{"simple"} o \code{"completo"}.
+\item \code{configuracion}: la configuración de la causa, de clase \code{dl_config}, como la de \code{\link[=dl_configuracion]{dl_configuracion()}}. Trae
+\code{origen$por_defecto}: las claves tomadas por defecto, con su valor.
+\item \code{rutas}: las rutas de los insumos, de clase \code{dl_paths}, como las de \code{\link[=dl_rutas]{dl_rutas()}}. Apuntan a la traducción, en
+la carpeta temporal de la sesión: en otra sesión, o después de cambiar la configuración o una tabla (la
+traducción anterior se borra), vuelve a llamar a \code{dl_proyecto()}.
+\item \code{carpeta}: la carpeta del proyecto (\code{NULL} sin carpeta).
+\item \code{formato}: \code{"simple"} (un proyecto con las tablas del contrato) o \code{"completo"} (el formato de la 0.2.2).
+\item \code{tablas}: las tablas del contrato, una lista nombrada de \code{\link[=dl_tabla]{dl_tabla()}} (\code{NULL} en el formato completo).
 }
 }
 \description{
-Lee la carpeta de un proyecto y devuelve, para una causa, su configuración y las rutas de sus insumos: todo lo que
-\code{\link[=dl_insumos]{dl_insumos()}} necesita (\code{dl_insumos(dl_proyecto(carpeta))}). Es la forma recomendada de empezar. La carpeta puede
-estar en el \strong{formato simple} (una configuración corta, las descargas de GBD Results y del GHDx tal cual y unas
-pocas tablas planas; ver las secciones de abajo) o en el \strong{formato completo} de la versión 0.2.2.
+Lee un proyecto y devuelve, para una causa, su configuración, sus tablas del contrato de insumos y las rutas de sus
+insumos: todo lo que \code{\link[=dl_insumos]{dl_insumos()}} necesita (\code{dl_insumos(dl_proyecto(carpeta))}). Es la forma recomendada de
+empezar.
 }
 \details{
-Un proyecto simple se traduce al formato completo, el que usa el resto del paquete: la configuración con
-\code{\link[=dl_configuracion]{dl_configuracion()}} y las tablas a una carpeta temporal de la sesión, que se reutiliza mientras no cambien. La
-traducción renombra columnas y agrega constantes (los números medidos pasan tal cual); solo calcula lo que sale de la
-población: el total nacional, la banda de 80 años y más (si no viene) y los pesos de sus bandas.
+Un proyecto es una configuración corta (sus claves en \code{\link[=dl_configuracion]{dl_configuracion()}}) y las tablas del contrato de insumos
+(ver \link{dl_tablas}). Hay dos puertas, en una sola función: las tablas se leen de la carpeta del proyecto por su nombre,
+o se pasan como argumentos (un \code{data.frame} o la ruta de un CSV o de una carpeta), y las dos se pueden mezclar: lo
+que se pasa reemplaza a lo de la carpeta.
 
-Un problema de forma de una tabla (una columna que falta, un sexo o un grupo de edad que no se reconoce, el año que
-se estima sin población, un CSV guardado desde Excel) detiene \code{dl_proyecto()}, con el archivo y la columna. Las
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{p <- dl_proyecto("mi_proyecto")                                  # todo desde la carpeta
+p <- dl_proyecto("mi_proyecto", poblacion = mi_pob)              # la carpeta + una tabla de R
+p <- dl_proyecto(configuracion = "config.yaml", ubicaciones = ubic,
+                 poblacion = mi_pob, ancla = "descargas/gbd_2023.csv")   # sin carpeta
+}\if{html}{\out{</div>}}
+
+Cada tabla pasa por su lector (las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten
+solas) y se valida sola; un problema de una tabla detiene \code{dl_proyecto()} con la tabla, la columna y las filas. Las
 reglas que cruzan tablas (la población nacional suma las subnacionales, los proxies cierran en el valor nacional, los
-datos tienen valores posibles) las comprueba \code{\link[=dl_insumos]{dl_insumos()}}; \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} lista todo sin detenerse.
+datos tienen valores posibles) las comprueba \code{\link[=dl_insumos]{dl_insumos()}}.
 
-\code{print()} muestra la causa, el año, los archivos que encontró, el modo subnacional y las claves de la configuración
+El proyecto se traduce al formato completo de la versión 0.2.2, el que usa el resto del paquete: la configuración y
+las tablas a una carpeta temporal de la sesión, que se reutiliza mientras no cambien. Los números leídos pasan tal
+cual; solo se calcula lo que sale de la población (el total nacional, si no viene) y la agrupación del ancla en las
+bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina).
+
+\code{print()} muestra la causa, el año, las tablas que encontró, el modo subnacional y las claves de la configuración
 que tomaron su valor por defecto.
 }
-\section{Formato simple}{
+\section{La carpeta del proyecto}{
 
 
 \if{html}{\out{<div class="sourceCode">}}\preformatted{mi_proyecto/
-  config.yaml        # la configuración: una causa (o config/<causa>.yaml, una por causa)
-  ancla/             # descargas de GBD Results (CSV), sin editar
-  poblacion.csv      # población por ubicación, año, sexo y edad
-  severidad.csv      # estados de salud (hacen falta para los AVD y para dl_correr())
-  covariables/       # descargas de covariables del GHDx (CSV), sin editar; si hay covariables
-  proxies.csv        # opcional: covariables por ubicación subnacional
-  datos.csv          # opcional: datos locales
-  pesos_80mas.csv    # opcional: pesos de las bandas de 80 años y más
+  config.yaml          # una causa; o config/<causa>.yaml, una por causa
+  ubicaciones.csv
+  poblacion.csv
+  ancla/               # cualquier CSV: descargas de GBD tal cual o tablas del contrato
+  covariables/         # descargas del GHDx y/o la tabla del contrato con los proxies
+  betas.csv
+  datos.csv
+  severidad.csv
+  fuentes_gbd/
+  poblacion_detalle.csv
 }\if{html}{\out{</div>}}
 
-Lo mínimo para armar los insumos y ajustar es la configuración (con \code{causa}, \code{anio} y \code{edad_inicio}; todas sus
-claves en \code{\link[=dl_configuracion]{dl_configuracion()}}), \verb{ancla/} y \code{poblacion.csv}: con eso se estima la causa en el país y, si la población
-trae ubicaciones subnacionales, en cada una con las tasas nacionales. \code{\link[=dl_correr]{dl_correr()}}, que calcula los años vividos con
-discapacidad (AVD), necesita también \code{severidad.csv}. \verb{covariables/} y \code{proxies.csv} agregan las diferencias entre
-ubicaciones subnacionales y \code{datos.csv}, los datos locales. Una tabla opcional con solo el encabezado es como si no
-estuviera (así quedan las plantillas de \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}}).
+Cada tabla es \verb{<tabla>.csv} o una carpeta \verb{<tabla>/} cuyos CSV se juntan (cada uno pasa por su lector). Las rutas
+no se declaran. Una tabla opcional ausente, o con solo el encabezado, no existe (así quedan las plantillas de
+\code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}}). Las obligatorias son \code{ubicaciones}, \code{poblacion} y \code{ancla}: con ellas se estima la causa en
+el país y, si hay ubicaciones subnacionales, en cada una con las tasas nacionales. \code{\link[=dl_correr]{dl_correr()}}, que calcula los
+años vividos con discapacidad (AVD), necesita también \code{severidad} (o \code{severidad.particion} en la configuración).
+\code{covariables} y \code{betas} agregan las diferencias entre ubicaciones subnacionales y \code{datos}, los datos locales. Las
+columnas de cada tabla, sus unidades y sus valores están en \link{dl_tablas}.
 
-Con varias causas, cada una tiene su configuración en \verb{config/<causa>.yaml} y comparten las tablas: \verb{ancla/} y
-\code{proxies.csv} traen las filas de todas (cada causa usa las suyas) y \code{datos.csv} y \code{severidad.csv} llevan la columna
-\code{causa}. Una causa que es la suma de otras las declara en \code{subtipos}; cada subtipo se corre por separado y sus
-corridas se suman con \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, con las rutas del proyecto de la causa padre. Una hija que queda fuera de
-la suma no pasa su corrida y se declara en \code{omitidas}, con el motivo, que queda en el manifiesto de la suma:
+Con varias causas, cada una tiene su configuración en \verb{config/<causa>.yaml} y comparten las tablas, que traen las
+filas de todas en la columna \code{causa} (sin ella, una fila vale para todas). Una causa que es la suma de otras las
+declara en \code{subtipos}; un subtipo sin betas propias usa las de su causa padre. Cada subtipo se corre por separado y
+sus corridas se suman con \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, con las rutas del proyecto de la causa padre:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{corridas <- vapply(c(1011, 1012), function(k) dl_correr(carpeta, k, semilla = 1)$dir, "")
 dl_sumar_hijas(corridas, causa = 1010, nombre = "suma", carpeta = file.path(carpeta, "resultados"),
                rutas = dl_proyecto(carpeta, 1010)$rutas,
                omitidas = list(list(cause_id = 1013, motivo = "sin datos suficientes")))
 }\if{html}{\out{</div>}}
-
-Las tablas son CSV en UTF-8 con coma como separador y punto decimal (desde Excel, «CSV UTF-8»), con los nombres de
-columna de abajo; las columnas de más se ignoran. Las edades de GBD y las etiquetas en español vienen con el paquete;
-los catálogos de causas y de ubicaciones y el registro de subtipos se derivan de la configuración y de las tablas.
-}
-
-\section{Archivos del formato simple}{
-
-\strong{\verb{ancla/}} (obligatoria). La estimación de referencia: una o más descargas de la herramienta GBD Results del
-IHME, en CSV, sin editar, con las columnas «ID y nombre». Se usan estas columnas:
-\itemize{
-\item \code{measure_id}: la medida. 5 prevalencia (obligatoria); 1 muertes (obligatoria con el prior de la mortalidad en
-exceso por defecto, \code{mortalidad_exceso.prior: desde_ancla}, o sin \code{mortalidad_exceso.techo}); 6 incidencia
-(opcional: la usa la comprobación de la incidencia implícita de \code{\link[=dl_validar_ancla]{dl_validar_ancla()}}); 3 AVD (hace falta para
-\code{\link[=dl_factor_comorbilidad]{dl_factor_comorbilidad()}}).
-\item \code{metric_name}: \code{Rate} (tasa por 100 000) en todas las medidas, también la prevalencia; las filas de otras
-métricas se ignoran. El \code{Percent} de la prevalencia en GBD Results no es la proporción de la población: divide
-por las personas con alguna causa (ver \code{anchor.metrica_prevalencia} en \code{\link[=dl_configuracion]{dl_configuracion()}}).
-\item \code{location_id} y \code{location_name}: la ubicación; se usan las filas de \code{ubicacion_gbd}.
-\item \code{sex_id} (1 hombres, 2 mujeres), \code{age_id} y \code{age_name} (el grupo de edad de GBD), \code{cause_id} y \code{cause_name},
-\code{year}.
-\item \code{val}, \code{lower} y \code{upper}: la estimación y su intervalo de incertidumbre del 95 \%.
-}
-
-Las filas de otras causas, ubicaciones (global, regiones), años, sexos (ambos sexos, \code{sex_id} 3) o métricas se
-ignoran: una descarga puede servir a todas las causas. Las bandas de 80-84, 85-89, 90-94 y 95 años y más se agregan a
-80 y más con los pesos de la población nacional; las bandas por debajo de \code{edad_inicio}, las de todas las edades o
-estandarizadas y las que valen 0 (GBD no modela la causa a esa edad) quedan fuera, con un mensaje. El nombre de cada
-archivo, sin la extensión, identifica la descarga en el manifiesto, y su año más reciente es la ronda de GBD que
-registran las salidas (\code{round}).
-
-\strong{\code{poblacion.csv}} (obligatorio). La población por ubicación, año, sexo y grupo de edad:
-\itemize{
-\item \code{location_id}: la ubicación. La de \code{ubicacion_gbd} es la nacional; cualquier otra es subnacional, con
-cualquier código (se lee como texto: \code{01}, \code{A} o \code{norte} valen igual).
-\item \code{location_name} (opcional): el nombre de la ubicación en las salidas; sin él, el código.
-\item \code{anio}: el año. Hace falta el año que se estima (\code{anio}), para cada sexo y, si el ancla trae las bandas de 80 años
-y más por separado, el del ancla (\code{ancla.anio}).
-\item \code{sexo}: \code{hombres} o \code{mujeres} (o 1 y 2).
-\item \code{edad_inicio} y \code{edad_fin}: los límites de un grupo de edad de GBD, en años, sin incluir \code{edad_fin}: 30 y 35
-para 30-34 años, 95 y 125 para 95 y más, 80 y 125 para 80 y más. En su lugar puede ir \code{age_group_id}, el
-identificador de GBD. Los grupos deben cubrir las edades del modelo desde \code{edad_inicio}.
-\item \code{poblacion}: el número de personas.
-}
-
-Las filas nacionales son opcionales: sin ellas, el total nacional de cada año, sexo y grupo de edad es la suma de las
-subnacionales; si vienen, deben ser esa suma. Sin la banda de 80 años y más, es la suma de 80-84, 85-89, 90-94 y 95+
-en cada ubicación, año y sexo. Las sumas son exactas con conteos enteros (15 cifras significativas). Un proyecto sin
-ubicaciones subnacionales trae solo las filas nacionales. Los pesos de las bandas de 80 años y más salen de la
-población nacional del año del ancla, por sexo (si faltan esas bandas, usa \code{pesos_80mas.csv}).
-
-\strong{\code{severidad.csv}} (hace falta para los AVD y para \code{\link[=dl_correr]{dl_correr()}}). Los estados de salud de cada causa:
-\itemize{
-\item \code{causa}: la causa (el archivo trae las de todas las causas del proyecto).
-\item \code{estado}: el nombre del estado de salud (por ejemplo, asintomático, leve, moderado).
-\item \code{id_estado} (opcional): el identificador del estado (el \code{health_state_id} de GBD); sin la columna, el orden en
-que aparece cada estado.
-\item \code{proporcion}, \code{proporcion_inferior} y \code{proporcion_superior}: la fracción de los casos prevalentes en el estado,
-con su intervalo del 95 \%; las de una causa suman 1.
-\item \code{peso_discapacidad}, \code{peso_inferior} y \code{peso_superior}: el peso de discapacidad del estado, entre 0 y 1, con su
-intervalo del 95 \% (0 en un estado asintomático).
-}
-
-\strong{\verb{covariables/}} (si la configuración declara \code{covariables}). Las descargas del GHDx de esas covariables, en CSV,
-sin editar, con las columnas \code{covariate_name_short} (el \code{nombre} en la configuración), \code{location_id}, \code{year_id},
-\code{sex_id} (1, 2 o 3 ambos sexos), \code{age_group_id}, \code{mean_value}, \code{lower_value} y \code{upper_value} (el valor y su
-intervalo del 95 \%, en las unidades del GHDx) y, si viene, \code{covariate_id}. Se leen solo las filas de la ubicación
-nacional, que deben estar (las de global o regiones no hacen falta).
-
-\strong{\code{proxies.csv}} (opcional). Los valores subnacionales de las covariables (los proxies): con ellos, la estimación
-subnacional (\code{subnacional.modo: covariables}) mueve las tasas nacionales en cada ubicación según su diferencia
-con el valor nacional. Solo las covariables declaradas con filas aquí producen esas diferencias.
-\itemize{
-\item \code{covariable}: el \code{nombre} de una covariable de la configuración (las de otras causas del proyecto no se usan).
-\item \code{location_id}: la ubicación subnacional (los códigos de \code{poblacion.csv}).
-\item \code{anio}: el año que se estima (\code{anio}); las filas de otros años no se usan.
-\item \code{sexo}: \code{hombres}, \code{mujeres} o \code{ambos} (o 1, 2, 3).
-\item \code{edad_inicio} y \code{edad_fin} (o \code{age_group_id}): el grupo de edad de GBD; vacías, o sin estas columnas, todas las
-edades.
-\item \code{valor} y \code{error_estandar}: el valor de la covariable en la ubicación y su error estándar, en la escala de la
-descarga del GHDx.
-}
-
-El promedio de las ubicaciones ponderado por su población (la de su sexo y su grupo de edad) debe ser el valor
-nacional de la covariable, el de \verb{covariables/} del año del ancla (el que se estima o, en una proyección, el
-anterior). Si los valores vienen de otra fuente, llévalos a ese valor antes: con los valores \code{v} y las poblaciones
-\code{w} de las ubicaciones y el valor nacional \code{X}, por desplazamiento \code{v + X - sum(w * v) / sum(w)}, o por escala
-\code{v * X / (sum(w * v) / sum(w))} (el error estándar se escala igual). Los números no se recalibran al leerlos: si no
-cierran, o si una ubicación no está en \code{poblacion.csv}, \code{\link[=dl_insumos]{dl_insumos()}} se detiene y lo explica. La comprobación es
-prácticamente exacta (el promedio y el valor nacional pueden diferir en menos de 1e-8): los valores recalibrados se
-escriben sin redondear (\code{write.csv()} guarda 15 cifras significativas), no redondeados en una hoja de cálculo.
-
-\strong{\code{datos.csv}} (opcional). Datos locales, una fila por dato:
-\itemize{
-\item \code{tipo}: \code{prevalencia_estudio} (prevalencia medida en un estudio o una encuesta), \code{incidencia}, \code{mortalidad}
-(mortalidad por la causa) o \code{prevalencia_registro} (prevalencia de un registro administrativo: se lee, pero nunca
-entra al ajuste; si \code{datos_en_ajuste} no está vacío, sus filas nacionales van con \code{excluir: TRUE} y un \code{motivo}).
-\item \code{causa} (opcional): la causa del dato; sin la columna, cada fila es de la causa que se lee.
-\item \code{location_id}: la ubicación nacional o una subnacional.
-\item \code{sexo}: \code{hombres} o \code{mujeres} (o 1 y 2). Una fila de ambos sexos no se usa: se divide por sexo.
-\item \code{edad_inicio} y \code{edad_fin}: el intervalo de edad del dato, en años, sin incluir \code{edad_fin} (cualquier
-intervalo, no solo los grupos de GBD; 125 para «y más»).
-\item \code{anio}, o \code{anio_inicio} y \code{anio_fin}: el año o los años del dato. Una fila nacional se usa solo si incluye
-\code{anio}, y una subnacional, si incluye \code{subnacional.anio_validacion}.
-\item \code{valor} y \code{error_estandar}: la prevalencia como proporción (entre 0 y 1) y la incidencia y la mortalidad como
-tasa por persona-año (no por 100 000); el error estándar, mayor que 0, en las mismas unidades.
-\item En lugar de \code{valor} y \code{error_estandar}, \code{casos} y \code{muestra}: personas con la enfermedad entre \code{muestra}
-personas examinadas (prevalencia: los casos no pueden superar la muestra), o casos nuevos o muertes en \code{muestra}
-personas-año (incidencia y mortalidad). Opcional, \code{muestra_efectiva} reemplaza a \code{muestra} (por ejemplo,
-corregida por el efecto de diseño).
-\item \code{excluir} (opcional, \code{TRUE} o \code{FALSE}) y \code{motivo}: \code{TRUE} deja fuera el dato (un valor atípico) y exige su motivo.
-\item \code{fuente} y \code{definicion} (opcionales): la fuente, que identifica el dato en el manifiesto, y la definición de caso.
-}
-
-Los mensajes nombran cada dato como \verb{fila_<n>}: la fila n de datos del archivo (la línea n + 1). Qué datos se usan:
-las filas nacionales del año que se estima (su año, o su rango de \code{anio_inicio} a \code{anio_fin}, incluye \code{anio})
-entran al ajuste si su tipo está en \code{datos_en_ajuste} y no se excluyen. Con \code{datos_en_ajuste} vacío (el valor por
-defecto), las filas nacionales no se usan, con un mensaje; con algún tipo, toda fila nacional de ese año que no se
-excluye debe ser de un tipo de \code{datos_en_ajuste}, o \code{\link[=dl_insumos]{dl_insumos()}} se detiene: las de otros tipos, incluidas las de
-\code{prevalencia_registro} (que no se puede poner en \code{datos_en_ajuste}), llevan \code{excluir: TRUE} y su \code{motivo}. Las filas
-subnacionales del año \code{subnacional.anio_validacion} no entran al ajuste: las de mortalidad validan las estimaciones
-subnacionales (ver \code{\link[=dl_validar_ancla]{dl_validar_ancla()}}). Las filas de la causa de otros años, las de ambos sexos y las que terminan
-antes de \code{edad_inicio} quedan fuera con un mensaje (una encuesta nacional de un año distinto del que se estima no
-entra al ajuste), y si con \code{datos_en_ajuste} no entra ninguna fila nacional, un mensaje lo dice.
-
-\strong{\code{pesos_80mas.csv}} (opcional). Solo si \code{poblacion.csv} no trae las bandas de 80-84, 85-89, 90-94 y 95 años y
-más del año del ancla: \code{age_group_id} (30, 31, 32 y 235), \code{sex_id} (1, 2) y \code{peso} (el peso relativo de la banda
-en su sexo; por ejemplo, su población).
 }
 
 \section{Formato completo}{
 
-Un proyecto es del formato completo si su configuración trae \code{schema: dismod_lite/v1}. Tiene \verb{config/<causa>.yaml},
-\verb{ancla/} con un CSV por medida (\code{prevalencia.csv}, \code{mortalidad.csv}, \code{incidencia.csv} y \code{avd.csv}, en el formato
-de las estimaciones), \verb{covariables/}, \code{extraccion.yaml} (las betas), \code{poblacion.csv}, \code{pesos_80mas.csv},
-\code{datos.csv}, \code{proxies_departamentales.csv}, \verb{severidad/<causa>.csv}, \verb{evidencia/}, \verb{registro/}, \verb{catalogos/} y, si
-hay una, la partición de severidad en \verb{particion/<corrida>/}. Cada tabla sigue el contrato \code{dismod_lite/v1} (ver
-\code{\link[=dl_esquema]{dl_esquema()}}). Solo este formato permite modelar un componente de una causa, derivar la severidad de una
-partición (\code{\link[=dl_severidad_desde_particion]{dl_severidad_desde_particion()}}) y usar el almacén de evidencia. El ejemplo en este formato:
+Un proyecto es del formato completo de la versión 0.2.2 si su configuración trae \code{schema: dismod_lite/v1}. Tiene
+\verb{config/<causa>.yaml}, \verb{ancla/} con un CSV por medida (\code{prevalencia.csv}, \code{mortalidad.csv}, \code{incidencia.csv} y
+\code{avd.csv}, en el formato de las estimaciones), \verb{covariables/}, \code{extraccion.yaml} (las betas), \code{poblacion.csv},
+\code{pesos_80mas.csv}, \code{datos.csv}, \code{proxies_departamentales.csv}, \verb{severidad/<causa>.csv}, \verb{evidencia/}, \verb{registro/},
+\verb{catalogos/} y, si hay una, la partición de severidad en \verb{particion/<corrida>/}. Cada tabla sigue el contrato
+\code{dismod_lite/v1} (ver \code{\link[=dl_esquema]{dl_esquema()}}); no recibe tablas en \code{...}. El ejemplo en este formato:
 \code{system.file("extdata", "acs_peru_completo", package = "dismodlite")}.
 }
 
 \examples{
-# el proyecto de ejemplo, en el formato simple
+# el proyecto de ejemplo
 p <- dl_proyecto(dl_ejemplo(), causa = 9100)
 p
 p$configuracion$origen$por_defecto
+p$tablas$poblacion
 
-# las primeras líneas de sus tablas
-readLines(dl_ejemplo("poblacion.csv"), n = 3)
-readLines(dl_ejemplo("proxies.csv"), n = 3)
-readLines(dl_ejemplo("datos.csv"), n = 3)
-readLines(dl_ejemplo("severidad.csv"), n = 3)
-
-# un proyecto mínimo: la configuración, el ancla y la población
-carpeta <- file.path(tempdir(), "mi_proyecto")
-dir.create(file.path(carpeta, "ancla"), recursive = TRUE)
-invisible(file.copy(dl_ejemplo("ancla", "sintetico_acs_v1.csv"), file.path(carpeta, "ancla")))
-invisible(file.copy(dl_ejemplo("poblacion.csv"), carpeta))
-writeLines(c("causa: 9101", "anio: 2023", "edad_inicio: 30"), file.path(carpeta, "config.yaml"))
-dl_proyecto(carpeta)
-unlink(carpeta, recursive = TRUE)
+# un proyecto mínimo sin carpeta: la configuración y las tablas obligatorias como argumentos
+p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
+                 ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"),
+                 ancla = dl_ejemplo("ancla"))
 \donttest{
 # el paso siguiente: los insumos
 b <- dl_insumos(p)
 }
 }
 \seealso{
-\code{\link[=dl_configuracion]{dl_configuracion()}} (las claves de la configuración), \code{\link[=dl_insumos]{dl_insumos()}} (el paso siguiente),
-\code{\link[=dl_ejemplo]{dl_ejemplo()}} (el proyecto de ejemplo), \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}} (crear la carpeta de un proyecto),
+\link{dl_tablas} (las tablas), \code{\link[=dl_configuracion]{dl_configuracion()}} (las claves de la configuración), \code{\link[=dl_insumos]{dl_insumos()}} (el paso
+siguiente), \code{\link[=dl_ejemplo]{dl_ejemplo()}} (el proyecto de ejemplo), \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}} (crear la carpeta de un proyecto),
 \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} (revisarla antes de correr) y \code{\link[=dl_correr]{dl_correr()}} (la corrida completa en una llamada).
 
 Funciones del proyecto:

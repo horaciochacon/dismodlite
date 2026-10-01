@@ -433,10 +433,10 @@
 #' Lo que falta se reporta donde hace falta: sin tabla de severidad, los insumos se arman igual y [dl_avd()] la pide;
 #' con datos locales en el ajuste y el ancla a peso completo, sin almacén de evidencia (`evidencia` de [dl_rutas()];
 #' obligatoria si la configuración declara `anchor.evidencia_ghdx`), un aviso de doble conteo; si ninguna fila nacional
-#' de `datos` entra al ajuste, un mensaje lo dice en su lugar. Con un proyecto simple
-#' (`dl_insumos(dl_proyecto(...))`), los mensajes citan sus claves y sus archivos (`datos_en_ajuste`, `proxies.csv`,
-#' ...) en lugar de los del formato completo; si su traducción ya no está (cambió la configuración o una tabla y se
-#' volvió a traducir, o es de otra sesión), un error pide volver a llamar a [dl_proyecto()].
+#' de `datos` entra al ajuste, un mensaje lo dice en su lugar. Con un proyecto (`dl_insumos(dl_proyecto(...))`), los
+#' mensajes citan sus claves y sus tablas (`datos_en_ajuste`, la tabla `covariables`, ...) en lugar de los del formato
+#' completo; si su traducción ya no está (cambió la configuración o una tabla y se volvió a traducir, o es de otra
+#' sesión), un error pide volver a llamar a [dl_proyecto()].
 #'
 #' @param configuracion Configuración de [dl_configuracion()], o un proyecto de [dl_proyecto()]: entonces `rutas`,
 #'   si no se da, son las del proyecto.
@@ -461,6 +461,8 @@
 #'     corridas lo registran;
 #'   - `rutas`: las rutas con que se armaron (no entran en el hash); las etapas siguientes las usan cuando no se les
 #'     pasan otras.
+#'   - `contrato`: con un proyecto de las tablas del contrato, esas tablas tal como se leyeron (`$tablas` de
+#'     [dl_proyecto()]; no entran en el hash).
 #' @seealso [dl_proyecto()] (el argumento habitual), [dl_ajustar()] (el paso siguiente), [dl_revisar_proyecto()]
 #'   (todos los problemas de un proyecto juntos) y [dl_congelar_insumos()] (las tablas en disco).
 #' @family insumos
@@ -483,13 +485,17 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
       .dl_stop(paste0("la traducci\u00f3n de este proyecto ya no est\u00e1 (cambi\u00f3 la configuraci\u00f3n o una ",
                       "tabla, o es de otra sesi\u00f3n): vuelve a llamar a dl_proyecto(\"%s\")"), configuracion$carpeta)
     if (missing(rutas)) rutas <- configuracion$rutas
+    contrato <- configuracion$tablas
     configuracion <- configuracion$configuracion
   }
   # una lista con cause_id también vale (la versión 0.2.2 no exigía la clase); otro objeto del paquete, no
   if (!is.list(configuracion) || is.null(configuracion$cause_id) ||
       (!inherits(configuracion, "dl_config") && any(names(.DL_DESCRIPCION_CLASES) %in% class(configuracion))))
     .dl_exigir_clase(configuracion, "dl_config", "configuracion", "dl_configuracion()")
-  .dl_en_simple(.dl_armar_insumos(configuracion, rutas), simple)
+  b <- .dl_en_simple(.dl_armar_insumos(configuracion, rutas), simple)
+  # las tablas del contrato del proyecto, tal como se leyeron (fuera del hash, que es el de las tablas de los insumos)
+  if (simple) b$contrato <- contrato
+  b
 }
 
 # Los insumos de la configuración `cfg` con las rutas `rutas` (dl_insumos()).

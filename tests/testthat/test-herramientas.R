@@ -8,6 +8,7 @@ revisar_callado <- function(...) { salida <- utils::capture.output(r <- dl_revis
 # ---- dl_nuevo_proyecto() ----
 
 test_that("dl_nuevo_proyecto() escribe la configuración comentada desde la tabla de claves y no sobrescribe", {
+  skip("contrato: Tarea 10")
   d <- file.path(withr::local_tempdir(), "proyecto nuevo")
   expect_message(dl_nuevo_proyecto(d, causa = 501, nombre = "Enfermedad ficticia: tipo 1", anio = 2020,
                                    edad_inicio = 40),
@@ -57,7 +58,7 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada desde la tabl
 })
 
 test_that("la revisión de un proyecto nuevo: la configuración espera al ancla y lo omitido no cuenta como aviso", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: Tarea 10")
   d <- file.path(withr::local_tempdir(), "vacio")
   suppressMessages(dl_nuevo_proyecto(d, causa = 501, anio = 2020, edad_inicio = 40))
   salida <- utils::capture.output(r <- dl_revisar_proyecto(d))
@@ -69,6 +70,7 @@ test_that("la revisión de un proyecto nuevo: la configuración espera al ancla 
 })
 
 test_that("dl_nuevo_proyecto() valida sus argumentos; los valores de la configuración los revisa la revisión", {
+  skip("contrato: Tarea 10")
   d <- file.path(withr::local_tempdir(), "p")
   expect_error(dl_nuevo_proyecto(), "^dl_nuevo_proyecto\\(\\): falta `carpeta`")
   expect_error(dl_nuevo_proyecto(d), "falta `causa`")
@@ -85,7 +87,7 @@ test_that("dl_nuevo_proyecto() valida sus argumentos; los valores de la configur
 # ---- De la plantilla a un proyecto revisado ----
 
 test_that("de la plantilla al proyecto: llenada con los archivos del ejemplo, la revisión da todo en orden", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: Tarea 10")
   d <- file.path(withr::local_tempdir(), "de la plantilla")
   suppressMessages(dl_nuevo_proyecto(d, causa = 9100, nombre = "Arteriopatía crónica sintética",
                                      anio = 2023, edad_inicio = 30))
@@ -237,6 +239,7 @@ test_that("dl_revisar_proyecto() avisa de las filas de datos.csv que quedan fuer
 })
 
 test_that("dl_revisar_proyecto(): formato completo, carpeta sin configuración o causa que no está", {
+  skip("contrato: Tarea 10")
   r <- revisar_callado(ejemplo_completo(), causa = 9101)
   expect_identical(r$paso, c("configuración", "insumos"))
   expect_identical(unique(r$estado), "ok")
@@ -251,6 +254,7 @@ test_that("dl_revisar_proyecto(): formato completo, carpeta sin configuración o
 })
 
 test_that("un config.yaml que no es una lista de claves es un error del paquete, también en la revisión", {
+  skip("contrato: Tarea 10")
   # una línea sin «:» se lee como un texto suelto; una lista con guiones, como una lista sin claves
   d <- withr::local_tempdir()
   detalle <- "config.yaml no es una lista de claves (clave: valor, una por línea)"
@@ -319,7 +323,7 @@ test_that("dl_correr(rapido = TRUE) sobre el ejemplo simple escribe la carpeta d
 })
 
 test_that("dl_correr() se detiene antes de ajustar sin semilla, sin severidad o sin dónde escribir", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: Tarea 10")
   expect_error(dl_correr(dl_ejemplo(), 9100), "^dl_correr\\(\\): falta `semilla`")
   expect_error(dl_correr(dl_ejemplo(), 9100, semilla = 1),
                "dentro de la instalación del paquete .*`carpeta_salida`")

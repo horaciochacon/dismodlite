@@ -14,7 +14,7 @@ test_that("dl_ejemplo devuelve rutas que existen y falla con un nombre desconoci
 })
 
 test_that("dl_ejemplo(copiar_en =) copia el proyecto entero en una carpeta nueva o vacía, y no sobrescribe", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   destino <- file.path(withr::local_tempdir(), "nueva", "mi proyecto")        # la crea, con las intermedias
   expect_identical(dl_ejemplo(copiar_en = destino), destino)
   expect_setequal(list.files(destino, recursive = TRUE), list.files(dl_ejemplo(), recursive = TRUE))
@@ -51,7 +51,7 @@ test_that("dl_ejemplo(copiar_en =) no escribe dentro de la instalación del paqu
 })
 
 test_that("dl_rutas_ejemplo(causa) arma los insumos de cada causa con la severidad de esa causa", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   for (k in 9100:9103) {
     b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(k), dl_rutas_ejemplo(k)))
     expect_s3_class(b, "dl_bundle")
@@ -60,7 +60,7 @@ test_that("dl_rutas_ejemplo(causa) arma los insumos de cada causa con la severid
 })
 
 test_that("dl_rutas_ejemplo exige la causa, la valida y acepta una configuraci\u00f3n", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   expect_error(dl_rutas_ejemplo(), "causa")
   expect_error(dl_rutas_ejemplo(9999L), "causa")
   expect_error(dl_rutas_ejemplo(9100L, anio = 2020L), "anio")
@@ -74,7 +74,7 @@ test_that("dl_rutas_ejemplo exige la causa, la valida y acepta una configuraci\u
 })
 
 test_that("dl_rutas_ejemplo: datos y proxies se quitan o se reemplazan, y ... cambia cualquier pieza", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   # en el formato completo, las mismas rutas que arma el arnés de compatibilidad con las claves de la versión 0.2.2
   expect_identical(dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo"),
                    rutas_acs(api_nueva(), ruta_acs(), 9100L, con_datos = FALSE, con_proxies = FALSE))
@@ -117,7 +117,7 @@ test_that("una ruta que falta o no existe se nombra con el argumento de dl_rutas
 })
 
 test_that("dl_configuracion_ejemplo lee la configuraci\u00f3n del ejemplo con cambios", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   cfg <- dl_configuracion_ejemplo(9101L, cambios = list(anchor = list(lambda = 0.5)))
   expect_s3_class(cfg, "dl_config")
   expect_identical(cfg$cause_id, 9101L)
@@ -126,7 +126,7 @@ test_that("dl_configuracion_ejemplo lee la configuraci\u00f3n del ejemplo con ca
 })
 
 test_that("la severidad de otra causa se detiene: un subtipo no toma la mezcla de la causa padre", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   expect_error(suppressMessages(dl_insumos(dl_configuracion_ejemplo(9101L, formato = "completo"),
                                            dl_rutas_ejemplo(9100L, formato = "completo"))),
                "severidad/9100[.]csv.*causa 9100 y la configuración es de la 9101.*dl_rutas_ejemplo\\(9101\\)")
@@ -135,7 +135,7 @@ test_that("la severidad de otra causa se detiene: un subtipo no toma la mezcla d
 })
 
 test_that("el año de la corrida lo fija la configuración; dl_rutas_ejemplo(anio =) solo lo comprueba", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   expect_error(suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, anio = 2019L))),
                "dl_rutas_ejemplo\\(anio = 2019\\).*del año 2023.*dl_configuracion_ejemplo\\(9100, anio = 2019\\)")
   c19 <- dl_configuracion_ejemplo(9100L, anio = 2019L)
@@ -152,7 +152,7 @@ test_that("el año de la corrida lo fija la configuración; dl_rutas_ejemplo(ani
 })
 
 test_that("causa, datos, proxies y ... se validan con mensajes de los ayudantes", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   # un cause_id que no es entero, con el mensaje de toda función (.dl_exigir_causa); uno entero que no es del ejemplo,
   # con las causas del ejemplo
   expect_error(dl_rutas_ejemplo(9100.7), "^dl_rutas_ejemplo\\(\\): `causa` debe ser un cause_id entero.*9100[.]7")
@@ -166,7 +166,7 @@ test_that("causa, datos, proxies y ... se validan con mensajes de los ayudantes"
 })
 
 test_that("las rutas de ejemplo no toman covariables_std de la variable de entorno DATA_ROOT", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   withr::local_envvar(DATA_ROOT = withr::local_tempdir())
   expect_null(dl_rutas_ejemplo(9100L)$cov_std)
   expect_true("cov_std" %in% names(dl_rutas_ejemplo(9100L)))
@@ -174,7 +174,7 @@ test_that("las rutas de ejemplo no toman covariables_std de la variable de entor
 })
 
 test_that("print de las rutas: cada pieza con su argumento de dl_rutas()", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   r <- dl_rutas_ejemplo(9100L, anio = 2019L, datos = FALSE)
   expect_output(print(r), "<dl_paths>")
   expect_output(print(r), "ancla_prevalencia +[^\n]*prevalencia[.]csv")
@@ -183,7 +183,7 @@ test_that("print de las rutas: cada pieza con su argumento de dl_rutas()", {
 })
 
 test_that("una ruta que falta nombra la función que llamó el usuario y el argumento de las rutas", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   completa <- dl_configuracion_ejemplo(9100L, formato = "completo")
   expect_error(dl_insumos(completa),
                "^dl_insumos\\(\\): falta la ruta de «evidencia» en `rutas`.*dl_rutas_ejemplo\\(causa\\)")

@@ -3,7 +3,7 @@
 # .dl_escribir_traduccion (R/proyecto.R) escribe en la carpeta temporal. Los números leídos se escriben con el texto
 # más corto que vuelve al mismo double (.dl_num_exacto); las sumas, como fwrite (.dl_num_texto), igual que la
 # traducción del formato simple de la 1.0.0. Una función pequeña por tabla (.dl_trad_<tabla>), con las columnas, su
-# orden y el orden de las filas de la función del formato simple de la que sale (R/formato_simple.R).
+# orden y el orden de las filas de la traducción de la 1.0.0 a la que reemplaza.
 #
 # Bandas de edad: el contrato las da como [edad_inicio, edad_fin) (banda abierta: edad_fin = .DL_EDAD_ABIERTA). Por
 # dentro, cada banda lleva un age_group_id: el del grupo de edad de GBD con esos límites o, si no lo es, uno sintético
@@ -34,7 +34,7 @@
 # Las tablas del contrato `tablas` para `cfg`, en el formato completo: ancla, poblacion, pesos_80 (solo con
 # anchor.agrupar_bandas_finas), cov, extraccion, proxies, datos, severidad, nombres_loc, más fuentes (list.csv), bandas
 # (las sintéticas, para el catálogo de edades y las etiquetas) e ids_covariable (covariable -> covariate_id). Cada paso
-# va por `paso(nombre, expr)`, como en .dl_traducir_tablas: un paso que falla deja NULL y los que lo necesitan no
+# va por `paso(nombre, expr)`, como en dl_revisar_proyecto(): un paso que falla deja NULL y los que lo necesitan no
 # corren.
 .dl_traducir_contrato <- function(tablas, cfg, paso = function(nombre, expr) expr) {
   x <- list()
@@ -126,7 +126,7 @@
 
 # ---- Población ----
 
-# poblacion -> la tabla poblacion del formato completo (.dl_poblacion_simple: mismas columnas y orden) y los nombres.
+# poblacion -> la tabla poblacion del formato completo (las columnas y el orden de la 1.0.0) y los nombres.
 # Sin filas nacionales, son la suma de las demás; con anchor.agrupar_bandas_finas, se agrega la banda 80+ (la suma de
 # 80-84 a 95+) si no viene, como en la versión 0.2.2. Las sumas se escriben como fwrite (exactas con conteos enteros).
 .dl_trad_poblacion <- function(tablas, cfg, bandas) {
@@ -163,9 +163,33 @@
        nombres = .dl_nombres_ubicaciones(tablas))
 }
 
+# Nivel de cada ubicación: 0 la nacional (la del ancla), 1 cualquier otra.
+.dl_nivel_simple <- function(location_id, cfg) ifelse(location_id == .dl_loc_ancla(cfg), 0L, 1L)
+
+
+# Pesos de las bandas de 80-84, 85-89, 90-94 y 95+ (age_group_id, sex_id, peso) desde la población nacional `pobl` del
+# año del ancla: la cuota de cada banda en el 80+ de su sexo, en los sexos para los que el ancla trae esas bandas.
+.dl_pesos_80_simple <- function(pobl, cfg, ancla) {
+  finas <- .DL_FINAS_80$ids
+  anio <- .dl_anio_ancla(cfg)
+  w <- pobl[location_level == 0L & year == as.character(anio) & age_group_id %in% finas]
+  w[, peso := as.numeric(val) / sum(as.numeric(val)), by = sex_id]
+  data.table::setorder(w[, orden := match(age_group_id, finas)], sex_id, orden)
+  a <- ancla[cause_id == as.character(cfg$cause_id) & location_id == .dl_loc_ancla(cfg) &
+             year == as.character(anio) & age_group_id %in% as.character(finas)]
+  sexos <- intersect(unlist(cfg$sexos), as.integer(a$sex_id))
+  falta <- setdiff(sexos, w[, .N, by = sex_id][N == length(finas)]$sex_id)
+  if (length(falta))
+    .dl_stop(paste0("el ancla trae las bandas de 80-84, 85-89, 90-94 y 95+ a\u00f1os y la poblaci\u00f3n nacional ",
+                    "de %d (el a\u00f1o del ancla) no las tiene para %s: hacen falta para agregarlas a 80+. ",
+                    "Agr\u00e9galas a la tabla poblacion"),
+             anio, .dl_nombres_sexo(falta))
+  w[, list(age_group_id, sex_id, peso)]
+}
+
 # ---- Ancla ----
 
-# ancla -> el ancla del formato completo (.dl_ancla_simple) de la causa de `cfg`, en la ubicación nacional. Sin
+# ancla -> el ancla del formato completo (.dl_ancla_completa) de la causa de `cfg`, en la ubicación nacional. Sin
 # anchor.agrupar_bandas_finas, en las bandas de la población (.dl_agrupar_menores_1 y .dl_agrupar_ancla); las bandas
 # enteramente por debajo de edad_inicio pasan tal cual, sin esas comprobaciones: dl_insumos() las deja fuera y lo dice.
 .dl_trad_ancla <- function(tablas, cfg, bandas) {
@@ -273,7 +297,7 @@
   N
 }
 
-# El ancla `a` (en el contrato) con las columnas del formato completo de .dl_ancla_simple, todas como texto. La
+# El ancla `a` (en el contrato) con las columnas del ancla del formato completo de la 1.0.0, todas como texto. La
 # métrica es «Contrato» (.DL_METRICA_CONTRATO: los valores ya están en proporción o por persona-año).
 .dl_ancla_completa <- function(a, cfg, tablas, bandas) {
   med <- .DL_MEDIDAS[match(.DL_MEDIDA_ANCLA[a$medida], .DL_MEDIDAS$slug)]
@@ -397,7 +421,7 @@
   se
 }
 
-# Filas subnacionales de covariables -> tabla cov_proxy (.dl_proxies_simple: mismas columnas y orden), las de las
+# Filas subnacionales de covariables -> tabla cov_proxy (las columnas y el orden de la 1.0.0), las de las
 # covariables con proxy en cfg$covariables y el año que se estima. ancla_ghdx: el valor nacional (año del ancla; mismo
 # sexo o ambos) de la covariable o de su valor_nacional_de (covariables[].sustituye), en que debe cerrar el promedio
 # ponderado (regla promedio_cierra_ancla); covariate_id_gbd es el id de esa misma covariable.
@@ -451,7 +475,7 @@
 
 # ---- Datos, severidad y fuentes ----
 
-# datos -> tabla datos (.dl_datos_simple: mismas columnas; dato_id «fila_<n>»): medida -> tipo_dato con el
+# datos -> tabla datos (las columnas de la 1.0.0; dato_id «fila_<n>»): medida -> tipo_dato con el
 # vocabulario de datos_en_ajuste (prevalencia_registro -> prev_admin), ubicacion -> location_id; sin causa, la de `cfg`.
 .dl_trad_datos <- function(tablas, cfg, nombres_loc) {
   d <- tablas$datos
@@ -485,7 +509,7 @@
     cita = ifelse(is.na(fuente), "datos.csv", fuente))
 }
 
-# severidad -> la tabla severidad de la causa (.dl_severidad_simple: mismas columnas), con los pesos de GBD de los
+# severidad -> la tabla severidad de la causa (las columnas de la 1.0.0), con los pesos de GBD de los
 # estados que no los traen (.dl_pesos_gbd); health_state_id: id_estado o el orden de aparición del estado. NULL si la
 # tabla no trae la causa. La severidad por edad o sexo la admite el contrato, pero el cálculo de AVD todavía no.
 .dl_trad_severidad <- function(tablas, cfg) {

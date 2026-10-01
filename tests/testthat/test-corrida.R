@@ -96,7 +96,7 @@ test_that("un resumen, un ajuste y unos AVD de corridas distintas no se exportan
 })
 
 test_that("insumos, corrida y re-resumen bajo una carpeta con espacios y tildes (Ana María/Mis análisis)", {
-  skip("contrato: se reescribe en la Tarea 8")
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   base <- file.path(withr::local_tempdir(), "Ana María", "Mis análisis")
   dir.create(file.path(base, "datos de ejemplo"), recursive = TRUE)
   expect_true(all(file.copy(c(dl_ejemplo(), ruta_acs()), file.path(base, "datos de ejemplo"), recursive = TRUE)))

@@ -1,7 +1,7 @@
 # Nombres de columnas que el código usa dentro de `[.data.table` (evaluación no estándar) y los símbolos especiales de
 # data.table (.N, .SD, .BY, :=). Declararlos evita las notas «no visible binding» de R CMD check.
 utils::globalVariables(c(
-  ".BY", ".N", ".SD", ":=", "N", "a0", "a1", "acquisition_id", "age_end", "age_group_id", "age_group_name", "age_id",
+  ".BY", ".I", ".N", ".SD", ":=", "N", "a0", "a1", "acquisition_id", "age_end", "age_group_id", "age_group_name", "age_id",
   "age_name", "age_start", "agregacion", "ancho", "B0", "B1", "anio", "banda", "beta_lower", "beta_upper", "canal", "causa", "causa_propia",
   "cause_id", "cause_name", "cause_name_es", "check", "cociente", "component_id", "contraccion", "covariable",
   "covariate_id", "covariate_id_proxy", "covariate_id_x", "covariate_name_short", "cubierto_ic95", "dato_id", "delta",

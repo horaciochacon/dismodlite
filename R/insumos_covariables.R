@@ -150,7 +150,8 @@
                       data.table::rbindlist(lapply(sust, function(cv) data.table::data.table(
                         covariate_name_short = cv$sustituye$covariate_name_short,
                         covariate_id = as.integer(cv$sustituye$covariate_id))))))
-  m <- merge(crudo[location_id == as.integer(loc)], ids, by = "covariate_name_short")
+  # la ubicación como texto: un código nacional que no es un número («P») también vale
+  m <- merge(crudo[as.character(location_id) == as.character(loc)], ids, by = "covariate_name_short")
   out <- data.table::data.table(
     covariate_id = as.integer(m$covariate_id), covariate_name_short = m$covariate_name_short,
     location_id = rep(loc, nrow(m)), year = as.integer(m$year_id), sex_id = as.integer(m$sex_id),

@@ -1,16 +1,19 @@
-# Un proyecto en el formato simple que no se parece al ejemplo: un país ficticio (location_id 999) con tres regiones
-# de códigos libres (A, B y C), una causa inventada (8001), una covariable de nombre inventado con sus valores por
-# región (proxies.csv) y un solo año (2021). Si algo del paquete supusiera el Perú (ubicación 123, departamentos de dos
-# dígitos, sus catálogos), el ejemplo o sus causas, esta corrida de punta a punta fallaría: ajuste nacional, cascada
-# por covariables, AVD y la carpeta de la corrida, con cadenas cortas. El otro caso, la estimación subnacional plana
-# (sin covariables) con la configuración mínima de tres claves, está en test-formato-simple.R (proyecto_ficticio()).
+# Un proyecto que no se parece al ejemplo: un país ficticio (location_id 999) con tres regiones de códigos libres (A, B
+# y C), una causa inventada (8001), una covariable de nombre inventado con su valor nacional (una descarga del GHDx) y
+# sus valores por región (la tabla covariables del contrato) y un solo año (2021). Si algo del paquete supusiera el
+# Perú (ubicación 123, departamentos de dos dígitos, sus catálogos), el ejemplo o sus causas, esta corrida de punta a
+# punta fallaría: ajuste nacional, cascada por covariables, AVD y la carpeta de la corrida, con cadenas cortas. El otro
+# caso, la estimación subnacional plana (sin covariables) con la configuración mínima de tres claves, está en
+# test-proyecto.R (proyecto_ficticio()).
 
 # Escribe el proyecto en `d`: el país ficticio de escribir_pais_ficticio() (helper-dismodlite.R) con la causa 8001 en
-# 2021 y una covariable, con su descarga del GHDx en covariables/ y sus valores por región en proxies.csv.
+# 2021, la beta de la covariable en betas.csv y, en covariables/, su descarga del GHDx (el valor nacional) y sus valores
+# por región (una tabla del contrato).
 escribir_proyecto_generico <- function(d) {
-  escribir_pais_ficticio(d, 8001L, 2021L, c("causa: 8001", "anio: 2021", "edad_inicio: 40", "covariables:",
-                                            "  - nombre: indice_inventado", "    efecto_sobre: prevalencia",
-                                            "    transformacion: log", "    beta: [0.5, 0.3, 0.7]"))
+  escribir_pais_ficticio(d, 8001L, 2021L, c("causa: 8001", "anio: 2021", "edad_inicio: 40"))
+  data.table::fwrite(data.table::data.table(covariable = "indice_inventado", efecto_sobre = "prevalencia",
+                                            transformacion = "log", beta = 0.5, inferior = 0.3, superior = 0.7),
+                     file.path(d, "betas.csv"))
   # covariable: valor nacional 50 (todas las edades, ambos sexos) y, por región, 40, 50 y el valor de C que hace que
   # el promedio ponderado por la población cierre en 50
   nacional <- 50
@@ -25,20 +28,19 @@ escribir_proyecto_generico <- function(d) {
   valor <- c(40, 50, NA)
   valor[3] <- (nacional * sum(w) - sum(w[1:2] * valor[1:2])) / w[3]
   data.table::fwrite(data.table::data.table(
-    covariable = "indice_inventado", location_id = c("A", "B", "C"), anio = 2021L, sexo = "ambos",
-    edad_inicio = NA_integer_, edad_fin = NA_integer_, valor = format(valor, digits = 17), error_estandar = 0.5),
-    file.path(d, "proxies.csv"))
+    covariable = "indice_inventado", ubicacion = c("A", "B", "C"), anio = 2021L, sexo = "ambos",
+    valor = format(valor, digits = 17), error_estandar = 0.5),
+    file.path(d, "covariables", "regiones.csv"))
   invisible(d)
 }
 
 test_that("un proyecto de otro pa\u00eds, con regiones y una covariable propias, corre de punta a punta", {
-  skip("contrato: se reescribe en la Tarea 8")
   d <- file.path(withr::local_tempdir(), "pa\u00eds ficticio")
   escribir_proyecto_generico(d)
 
   p <- dl_proyecto(d)
   expect_identical(p$formato, "simple")
-  expect_identical(p$configuracion$anchor$location_id, 999L)
+  expect_identical(.dl_loc_ancla(p$configuracion), "999")
   expect_identical(p$configuracion$origen$subnacional, "covariables")
   b <- suppressMessages(dl_insumos(p))
   expect_setequal(b$poblacion$location_id, c("999", "A", "B", "C"))

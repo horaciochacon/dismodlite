@@ -54,16 +54,20 @@ escribir_texto <- function(x, ...) data.table::fwrite(x, file.path(...), eol = "
   age_id = 13:21, edad_inicio = seq(40, 80, 5), edad_fin = c(seq(45, 80, 5), 125),
   age_name = c(sprintf("%d-%d years", seq(40, 75, 5), seq(44, 79, 5)), "80+ years"))
 
-# Proyecto simple de un país ficticio (location_id 999) con tres regiones de códigos libres (A, B y C), para probar que
-# nada del paquete supone el Perú. Escribe en `d` config.yaml (las líneas `config`), ancla/ (una descarga de GBD Results
-# de la causa `causa` llamada `nombre`, del año `anio`), poblacion.csv (solo las regiones: la nacional es su suma) y
-# severidad.csv. El ancla es coherente con el modelo: la prevalencia de dl_edo() con una incidencia y una mortalidad en
+# Proyecto de un país ficticio (location_id 999) con tres regiones de códigos libres (A, B y C), para probar que nada
+# del paquete supone el Perú. Escribe en `d` config.yaml (las líneas `config`), ubicaciones.csv (el país y sus
+# regiones), ancla/ (una descarga de GBD Results de la causa `causa` llamada `nombre`, del año `anio`, tal cual: la
+# convierte su lector), poblacion.csv (solo las regiones: la nacional es su suma; location_id es un alias de ubicacion)
+# y severidad.csv. El ancla es coherente con el modelo: la prevalencia de dl_edo() con una incidencia y una mortalidad en
 # exceso (EMR) que crecen con la edad (10 % más de incidencia en los hombres), promediada en cada banda; la mortalidad
 # es p x EMR, la incidencia i x (1 - p) y los AVD p x 0,037 (el peso de discapacidad medio de severidad.csv), por
 # 100 000 (Rate), como la prevalencia (la métrica que lee el paquete). Devuelve `d`.
 escribir_pais_ficticio <- function(d, causa, anio, config, nombre = "Enfermedad inventada") {
   dir.create(file.path(d, "ancla"), recursive = TRUE)
   writeLines(config, file.path(d, "config.yaml"))
+  data.table::fwrite(data.table::data.table(ubicacion = c("999", "A", "B", "C"),
+                                            nombre = c("Pa\u00eds ficticio", paste("Regi\u00f3n", c("A", "B", "C"))),
+                                            padre = c(NA, "999", "999", "999")), file.path(d, "ubicaciones.csv"))
   nudos <- c(40, 50, 60, 70, 80, 95)
   a <- data.table::rbindlist(lapply(1:2, function(sx) {
     e <- dl_edo(log(c(2, 4, 7, 11, 16, 20) * 1e-3 * (1 + 0.1 * (sx == 1L))), log(c(2, 2.5, 3.5, 5, 8, 12) * 1e-2),

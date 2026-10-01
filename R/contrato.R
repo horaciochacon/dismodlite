@@ -335,3 +335,46 @@ NULL
     c(sprintf("@section Tabla \\code{%s}:", tb), "\\ifelse{html}{", tabla, "}{", lista, "}")
   }))
 }
+
+# ---- Utilidades de las tablas ----
+
+# Filas de datos (líneas no vacías, sin el encabezado) del CSV `f` o de los CSV de la carpeta `f`, leyendo a lo sumo
+# `n` líneas de cada uno; 0 si no existe. Una tabla opcional sin filas es como si no estuviera (así sirve de plantilla).
+.dl_filas_csv <- function(f, n = -1L) {
+  if (dir.exists(f)) f <- list.files(f, "[.]csv$", ignore.case = TRUE, full.names = TRUE)
+  sum(vapply(f[file.exists(f)], function(a) max(0L, sum(grepl("[^[:space:]]", useBytes = TRUE,
+    readLines(a, n = n, warn = FALSE, encoding = "UTF-8"))) - 1L), 1L))
+}
+.dl_hay_filas <- function(archivo) .dl_filas_csv(archivo, 50L) > 0L
+
+# Números calculados -> su texto en data.table::fwrite (15 cifras): valen lo mismo que en un CSV del formato completo.
+.dl_num_texto <- function(x) {
+  if (!length(x)) return(character())
+  f <- tempfile(fileext = ".csv"); on.exit(unlink(f))
+  data.table::fwrite(list(x = x), f, eol = "\n", na = "NA")
+  out <- readLines(f)[-1L]
+  out[out == "NA"] <- NA_character_
+  out
+}
+
+# Números -> el texto más corto que vuelve exactamente al mismo número (15, 16 o 17 cifras significativas).
+.dl_num_exacto <- function(x) vapply(x, function(v) {
+  if (is.na(v)) return(NA_character_)
+  for (d in 15:17) { s <- format(v, digits = d); if (as.numeric(s) == v) return(s) }
+  s
+}, "", USE.NAMES = FALSE)
+
+# Grupos de edad de GBD (el catálogo de inst/referencia): age_group_id y límites [age_start, age_end).
+.dl_grupos_edad_referencia <- function()
+  .dl_bandas_catalogo(d = .dl_leer_memo(.dl_inst_archivo("referencia", "catalogo_demograficos_gbd2023.csv"),
+                                        function(p) .dl_leer_csv(p, colClasses = "character")))
+
+# Grupo de edad de GBD con los límites [inicio, fin), sin el estandarizado por edad; NA si no hay ninguno.
+.dl_grupo_edad <- function(inicio, fin) {
+  g <- .dl_grupos_edad_referencia()[age_group_id != .DL_BANDAS_AGREGADAS[["estandarizada"]]]
+  g$age_group_id[match(paste(as.numeric(inicio), as.numeric(fin)), paste(g$age_start, g$age_end))]
+}
+
+# Los valores de `v`, sin repetir y en orden, para un mensaje («2019, 2023»); `vacio` si no hay ninguno.
+.dl_lista <- function(v, vacio = "ninguno")
+  if (length(v)) paste(sort(unique(v), method = "radix"), collapse = ", ") else vacio
