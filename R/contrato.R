@@ -86,6 +86,10 @@
                 numero = suppressWarnings(as.numeric(x)),
                 entero = { v <- suppressWarnings(as.numeric(x)); ifelse(!is.na(v) & v == round(v), v, NA_real_) },
                 logico = as.logical(toupper(trimws(as.character(x)))))
+    # una columna exigida no puede tener celdas vac\u00edas (edad_fin vac\u00edo es la banda abierta)
+    vacias <- if (t$exige[i] == "si" && cn != "edad_fin") which(is.na(x))
+    if (length(vacias))
+      probs <- c(probs, sprintf("%s: la columna es obligatoria y hay celdas vac\u00edas (%s)", cn, .dl_filas_msg(vacias)))
     malos <- which(!is.na(x) & is.na(y))
     if (length(malos))
       probs <- c(probs, sprintf("%s: %s no es %s (%s)", cn, paste(utils::head(unique(x[malos]), 3L), collapse = ", "),
@@ -139,7 +143,8 @@
   grupo <- setdiff(claves, c("edad_inicio", "edad_fin"))
   if (all(c("edad_inicio", "edad_fin") %in% names(d)) && !length(faltan)) {
     abierta <- is.na(d$edad_fin) & !is.na(d$edad_inicio)
-    ultima <- d[, edad_inicio == max(edad_inicio, na.rm = TRUE), by = grupo]$V1
+    # filas de la banda de mayor edad_inicio de su grupo (por posición de fila, no en el orden de los grupos)
+    ultima <- seq_len(nrow(d)) %in% d[, .I[edad_inicio == max(edad_inicio, na.rm = TRUE)], by = grupo]$V1
     if (any(abierta & !ultima))
       p("edad_fin vac\u00edo (banda abierta) en una banda que no es la \u00faltima de su grupo (%s)",
         .dl_filas_msg(which(abierta & !ultima)))
@@ -295,24 +300,40 @@ dl_plantilla <- function(tabla, archivo = NULL) {
 #' Cada tabla es un CSV (o una carpeta de CSV) de la carpeta del proyecto con su nombre, o un `data.frame` que se pasa
 #' a [dl_proyecto()]. Las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten solas.
 #'
-#' @eval .dl_rd_tablas()
 #' @seealso [dl_tabla()], [dl_plantilla()], [dl_proyecto()].
 #' @family proyecto
 #' @name dl_tablas
 NULL
 
-# Sección Rd de ?dl_tablas: por tabla, sus columnas (tipo, si la exige, unidad y descripción).
+# Las columnas de cada tabla van en un bloque sin markdown (@noMd) para que el \ifelse{} de .dl_rd_tablas() llegue tal
+# cual al Rd (ver .dl_rd_config_simple() en R/configuracion.R); roxygen deja las secciones en el orden de sus bloques.
+
+#' @name dl_tablas
+#' @rdname dl_tablas
+#' @noMd
+#' @eval .dl_rd_tablas()
+NULL
+
+# Secciones Rd de ?dl_tablas: por tabla, sus columnas (tipo, si la exige, unidad y descripci\u00f3n). En HTML una tabla;
+# en texto y en PDF, donde las celdas de una tabla no se parten en l\u00edneas, una lista con lo mismo.
 .dl_rd_tablas <- function() {
   t <- .dl_tablas_ref()
-  # las llaves y la barra van escapadas; el % lo escapa roxygen (el markdown ya lo trata)
-  esc <- function(x) gsub("([{}\\\\])", "\\\\\\1", x)
+  # % abre un comentario en Rd y las llaves y la barra deben ir escapadas
+  esc <- function(x) gsub("([%{}\\\\])", "\\\\\\1", x)
+  tipo <- c(texto = "texto", numero = "n\u00famero", entero = "entero", logico = "l\u00f3gico")
   unlist(lapply(.DL_TABLAS, function(tb) {
     f <- t[t$tabla == tb, ]
-    filas <- sprintf("\\code{%s} \\tab %s \\tab %s \\tab %s\\cr", f$columna, f$tipo,
-                     ifelse(f$exige == "si", "s\u00ed", "no"), esc(paste0(f$descripcion,
-                       ifelse(nzchar(f$unidad), paste0(" (", f$unidad, ")"), ""))))
-    c(sprintf("@section Tabla \\code{%s}:", tb),
-      "\\tabular{llll}{", "\\strong{columna} \\tab \\strong{tipo} \\tab \\strong{exige} \\tab \\strong{qu\u00e9 es}\\cr",
-      filas, "}")
+    que <- esc(paste0(f$descripcion, ifelse(nzchar(f$unidad), paste0(" (", f$unidad, ")"), "")))
+    exige <- ifelse(f$exige == "si", "s\u00ed", "no")
+    tabla <- c("\\tabular{llll}{",
+               "\\strong{columna} \\tab \\strong{tipo} \\tab \\strong{exige} \\tab \\strong{qu\u00e9 es}\\cr",
+               sprintf("\\code{%s} \\tab %s \\tab %s \\tab %s\\cr", f$columna, tipo[f$tipo], exige, que),
+               "}")
+    lista <- c("\\describe{",
+               sprintf("\\item{\\code{%s}}{%s. %s%s.}", f$columna, que,
+                       paste0(toupper(substr(tipo[f$tipo], 1L, 1L)), substring(tipo[f$tipo], 2L)),
+                       ifelse(f$exige == "si", ", obligatoria", ", opcional")),
+               "}")
+    c(sprintf("@section Tabla \\code{%s}:", tb), "\\ifelse{html}{", tabla, "}{", lista, "}")
   }))
 }

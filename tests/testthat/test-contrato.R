@@ -83,3 +83,39 @@ test_that("dl_plantilla escribe el encabezado y una fila de ejemplo", {
   expect_s3_class(dl_plantilla("betas"), "data.frame")
   expect_error(dl_plantilla("proxies"), "tablas del contrato")
 })
+
+test_that("la banda abierta se juzga por fila: con los sexos intercalados la tabla es válida", {
+  d <- data.frame(ubicacion = "PE", anio = 2023L, sexo = c("hombres", "mujeres", "hombres", "mujeres"),
+                  edad_inicio = c(30, 30, 35, 35), edad_fin = c(35, 35, NA, NA), poblacion = c(100, 90, 50, 45))
+  t <- dl_tabla("poblacion", d)
+  expect_identical(t$edad_fin, c(35, 35, 125, 125))
+  # la abierta que no es la última de su grupo se sigue rechazando, también con los grupos intercalados
+  d$edad_fin <- c(NA, 35, NA, NA)
+  e <- expect_error(dl_tabla("poblacion", d), "abierta", class = "dl_error")
+  expect_match(conditionMessage(e), "fila\\(s\\) 2")
+})
+
+test_that("una celda vacía en una columna exigida es un problema (salvo edad_fin, la banda abierta)", {
+  d <- pob(); d$sexo <- c("hombres", NA)
+  e <- expect_error(dl_tabla("poblacion", d), class = "dl_error")
+  expect_match(conditionMessage(e), "sexo: la columna es obligatoria")
+  expect_match(conditionMessage(e), "fila\\(s\\) 3")
+  d <- pob(); d$sexo <- c("hombres", "")
+  expect_error(dl_tabla("poblacion", d), "sexo: la columna es obligatoria")
+  d <- pob(); d$poblacion <- c(100, NA)
+  e <- expect_error(dl_tabla("poblacion", d), class = "dl_error")
+  expect_match(conditionMessage(e), "poblacion: la columna es obligatoria")
+  expect_length(e$problemas, 1L)
+  # una columna opcional puede quedar vacía y edad_fin vacío sigue siendo la banda abierta
+  a <- data.frame(anio = 2023L, sexo = "hombres", edad_inicio = 30, edad_fin = NA, medida = "prevalencia",
+                  valor = 0.1, inferior = 0.05, superior = 0.2, nombre_causa = NA_character_)
+  expect_s3_class(dl_tabla("ancla", a), "dl_tabla")
+})
+
+test_that("la página ?dl_tablas se genera con tabla en HTML y lista en texto, con tildes en los tipos", {
+  rd <- dismodlite:::.dl_rd_tablas()
+  expect_true(any(grepl("\\ifelse{html}{", rd, fixed = TRUE)))
+  expect_true(any(grepl("\\item{\\code{poblacion}}", rd, fixed = TRUE)))
+  expect_true(any(grepl("número", rd)))
+  expect_false(any(grepl("\\tab numero \\tab", rd, fixed = TRUE)))
+})
