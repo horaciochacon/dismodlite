@@ -3,7 +3,7 @@
 
 test_that("los insumos guardan sus rutas fuera del hash y las etapas siguientes las usan por defecto", {
   x <- corrida_mini(); b <- x$insumos
-  expect_identical(b$rutas, dl_rutas_ejemplo(9100L, datos = FALSE))
+  expect_identical(b$rutas, dl_rutas_ejemplo(9100L, datos = FALSE, formato = "completo"))
   sin_rutas <- b; sin_rutas$rutas <- NULL
   expect_identical(dismodlite:::.dl_hash_bundle(sin_rutas, dismodlite:::.DL_TABLAS_BUNDLE)$hash, b$hash)
   r <- dl_resumir(list(fit = x$ajuste, yld = x$avd, bundle = b))

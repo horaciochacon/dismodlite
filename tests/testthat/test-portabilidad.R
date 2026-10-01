@@ -34,7 +34,6 @@ test_that("el paquete carga y expone dl_version()", {
 # Como ese proceso es nuevo, comprueba también que library(dismodlite) carga data.table antes de cualquier llamada
 # a data.table:: (dl_reresumir_corrida() como primera llamada de una sesión).
 test_that("el paquete instalado bajo una ruta con espacios y tildes resuelve sus archivos desde ahí", {
-  skip("contrato: se reescribe en la Tarea 8")
   skip_on_cran()
   lib <- file.path(withr::local_tempdir(), "mi carpeta Mar\u00eda", "librer\u00eda de R")
   dir.create(lib, recursive = TRUE)
@@ -73,7 +72,8 @@ test_that("el paquete instalado bajo una ruta con espacios y tildes resuelve sus
     "stopifnot(startsWith(dismodlite:::.dl_schema_default_path(), normalizePath(lib, winslash = '/')))",
     "stopifnot(startsWith(normalizePath(dl_ejemplo(), winslash = '/'), normalizePath(lib, winslash = '/')))",
     "esq <- dl_esquema()",
-    "b <- dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE))",
+    "b <- dl_insumos(dl_configuracion_ejemplo(9100L, formato = 'completo'),",
+    "                dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = 'completo'))",
     "cat('version', dl_version(), '\\n')",
     "cat('insumos', class(b)[1], nrow(b$prior_gbd) > 0, '\\n')"), guion)
   res <- suppressWarnings(system2(file.path(R.home("bin"), "Rscript"), c("--vanilla", shQuote(guion)),

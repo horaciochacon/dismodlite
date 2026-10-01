@@ -43,9 +43,8 @@ test_that("sin `registro`, dl_rutas() no apunta a ningún registro aunque haya v
 })
 
 test_that("una corrida no se registra si no se da `registro`", {
-  skip("contrato: se reescribe en la Tarea 8")
-  b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L),
-                                   dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE)))
+  b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"),
+                                   dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo")))
   f <- dl_ajustar(b, dl_opciones_mcmc(simulaciones = 10L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L),
                   semilla = 1L)
   y <- dl_avd(f, b, semilla = 1L)

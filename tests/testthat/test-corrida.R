@@ -184,9 +184,8 @@ test_that("las limitaciones de una corrida describen su cascada y su AVD sin tex
 })
 
 test_that("la limitación de una proyección nombra la población del año, y los proxies solo si hay cascada", {
-  skip("contrato: se reescribe en la Tarea 8")
   cfg <- dl_configuracion_ejemplo(9100L, cambios = list(years = list(ajuste = 2024L, ancla = list(
-    valor = 2023L, procedencia = "proyecci\u00f3n de prueba"))))
+    valor = 2023L, procedencia = "proyecci\u00f3n de prueba"))), formato = "completo")
   b <- list(poblacion = data.table::data.table(year = c(2023L, 2024L), acquisition_id = c("pob_2023", "pob_2024")))
   sin_casc <- dismodlite:::.dl_limitacion_ancla(cfg, b)
   expect_match(sin_casc, "^proyecci\u00f3n declarada \u2014 ancla .* de 2023 reetiquetada a 2024")
@@ -195,12 +194,13 @@ test_that("la limitación de una proyección nombra la población del año, y lo
                "poblaci\u00f3n \\(pob_2024\\) y los proxies subnacionales de la cascada")
   expect_false(grepl("proxies", dismodlite:::.dl_limitacion_ancla(cfg, b, list(modo = "plana"))))
   expect_false(grepl("INEI|ENDES|GBD", sin_casc))
-  expect_null(dismodlite:::.dl_limitacion_ancla(dl_configuracion_ejemplo(9100L), b))
+  expect_null(dismodlite:::.dl_limitacion_ancla(dl_configuracion_ejemplo(9100L, formato = "completo"), b))
 })
 
 test_that("la limitación de la mortalidad de validación de otro año dice qué hizo la corrida con ella", {
+  skip("contrato: el ejemplo se migra en la Tarea 9")
   x <- corrida_mini(); b <- x$insumos; cfg <- b$cfg   # el ejemplo declara el held-out de 2019 y ajusta 2023
-  expect_null(dismodlite:::.dl_limitacion_heldout(dl_configuracion_ejemplo(9100L, anio = 2019L)))
+  expect_null(dismodlite:::.dl_limitacion_heldout(dl_configuracion_ejemplo(9100L, anio = 2019L, formato = "completo")))
   sin_casc <- dismodlite:::.dl_limitacion_heldout(cfg)
   expect_match(sin_casc, paste0("^mortalidad subnacional de validación declarada de 2019 para una ",
                                 "corrida de 2023 \u2014 sin validación de amplitud \\(la corrida no trae la ",
@@ -224,7 +224,7 @@ test_that("la limitación de la mortalidad de validación de otro año dice qué
   res <- dl_resumir(list(fit = x$ajuste, yld = x$avd, bundle = b))
   nac <- unlist(dismodlite:::.dl_limitaciones_corrida(cfg, b, res, NULL, NULL, 0.05))
   expect_true(sin_casc %in% nac)
-  nac_2019 <- unlist(dismodlite:::.dl_limitaciones_corrida(dl_configuracion_ejemplo(9100L, anio = 2019L), b, res,
+  nac_2019 <- unlist(dismodlite:::.dl_limitaciones_corrida(dl_configuracion_ejemplo(9100L, anio = 2019L, formato = "completo"), b, res,
                                                            NULL, NULL, 0.05))
   expect_length(nac_2019, length(nac) - 1L)
 })

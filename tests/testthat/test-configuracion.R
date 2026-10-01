@@ -303,31 +303,29 @@ test_that("dl_configuracion sobre los configs del ejemplo reproduce la instantan
 
 # `cambios` (dl_configuracion): lo que utils::modifyList() ignoraría en silencio es un error o se aplica.
 test_that("cambios: una clave mal escrita es un error que sugiere la correcta", {
-  skip("contrato: se reescribe en la Tarea 8")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lamda = 0.5))),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lamda = 0.5)), formato = "completo"),
                "la clave `anchor.lamda` no existe.*quisiste decir `anchor.lambda`")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(medidas_entradas = "csmr")),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(medidas_entradas = "csmr"), formato = "completo"),
                "`medidas_entradas`.*quisiste decir `medidas_entrada`")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(componente = list(sequela_idss = 1L)))),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(componente = list(sequela_idss = 1L))), formato = "completo"),
                "anchor.componente.sequela_idss")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = "anchor.lambda=0.5"),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = "anchor.lambda=0.5", formato = "completo"),
                "`cambios` debe ser una lista con nombres")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(0.5)), "cada elemento lleva nombre")
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(0.5), formato = "completo"), "cada elemento lleva nombre")
   expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lambda = 0.5),
-                                                              anchor = list(rho_edad = 0))),
+                                                              anchor = list(rho_edad = 0)), formato = "completo"),
                "clave repetida")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(0.5))), "bloque con claves")
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(0.5)), formato = "completo"), "bloque con claves")
 })
 
 test_that("cambios: un valor suelto donde la configuración tiene un bloque es un error que muestra la forma", {
-  skip("contrato: se reescribe en la Tarea 8")
   expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = 0.5), formato = "completo"),
                paste0("`anchor` es un bloque con claves en la configuración, no un valor suelto: va como ",
                       "anchor \\{location, lambda"))
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(cascada = list(heldout_anio = 2019L))),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(cascada = list(heldout_anio = 2019L)), formato = "completo"),
                paste0("`cascada.heldout_anio` es un bloque con claves en la configuración, no un valor suelto: ",
                       "va como cascada.heldout_anio \\{valor, procedencia\\}"))
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(years = 2024L)), "`years` es un bloque con claves")
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(years = 2024L), formato = "completo"), "`years` es un bloque con claves")
   # las opciones de la cascada aceptan el valor suelto en lugar del bloque {valor, procedencia}
   d <- config_mut(function(y) { y$cascada$modo <- list(valor = "plana", procedencia = "prueba"); y })
   expect_identical(dl_configuracion(9100L, d, cambios = list(cascada = list(modo = "proxy")))$cascada$modo$valor,
@@ -335,12 +333,11 @@ test_that("cambios: un valor suelto donde la configuración tiene un bloque es u
 })
 
 test_that("cambios: una secuencia como lista sin nombres reemplaza a la del YAML", {
-  skip("contrato: se reescribe en la Tarea 8")
-  a <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = list("csmr"), anchor = list(lambda = 0.5)))
-  b <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = "csmr", anchor = list(lambda = 0.5)))
+  a <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = list("csmr"), anchor = list(lambda = 0.5)), formato = "completo")
+  b <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = "csmr", anchor = list(lambda = 0.5)), formato = "completo")
   expect_identical(a, b)
   tramos <- list(list(edad_inicio = 30, edad_fin = 50, valor = 0.1, fuente = "prueba"))
-  c1 <- dl_configuracion_ejemplo(9100L, cambios = list(remision = list(por_edad = tramos)))
+  c1 <- dl_configuracion_ejemplo(9100L, cambios = list(remision = list(por_edad = tramos)), formato = "completo")
   expect_identical(c1$remision$por_edad, tramos)
   # un segundo cambio de los tramos los reemplaza enteros (utils::modifyList() los ignoraría)
   tramos2 <- list(list(edad_inicio = 40, edad_fin = 60, valor = 0.2, fuente = "prueba"))

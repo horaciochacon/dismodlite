@@ -627,7 +627,7 @@ test_that("un ancla con bandas de edad que se solapan se detiene al armar los in
   a <- data.table::fread(ejemplo_completo("ancla", "prevalencia.csv"), colClasses = list(character = "location_id"))
   extra <- a[age_group_id == 15L][, `:=`(age_group_id = 25L, age_group_name = "50-69 years")]
   data.table::fwrite(rbind(a, extra), f)
-  expect_error(dl_insumos(cfg9100(), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, ancla_prevalencia = f)),
+  expect_error(dl_insumos(cfg9100(), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, ancla_prevalencia = f, formato = "completo")),
                "^dl_insumos\\(\\): «prevalencia.csv» \\(`ancla_prevalencia`\\) trae bandas de edad que se solapan")
 })
 

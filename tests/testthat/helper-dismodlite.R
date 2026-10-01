@@ -9,14 +9,15 @@ ejemplo_completo <- function(...) file.path(ruta_acs(), ...)
 # Las dos variantes de 9100 que usan las pruebas: el ajuste nacional puro (sin datos locales ni proxies
 # departamentales; las tablas datos y cov_proxy de los insumos quedan vacías) y el completo (datos.csv y
 # proxies_departamentales.csv).
-rutas_nacional <- function() { ejemplo_simple_pendiente(); dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE) }
-rutas_completas <- function() { ejemplo_simple_pendiente(); dl_rutas_ejemplo(9100L) }
+# Por ahora usan el ejemplo en el formato completo (los mismos números): el simple se migra a las tablas del contrato.
+rutas_nacional <- function() dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo")
+rutas_completas <- function() dl_rutas_ejemplo(9100L, formato = "completo")
 
-cfg9100 <- function() { ejemplo_simple_pendiente(); dl_configuracion_ejemplo(9100L) }
+cfg9100 <- function() dl_configuracion_ejemplo(9100L, formato = "completo")
 
 # El ejemplo simple (inst/extdata/acs_peru) todavía trae la configuración anterior (covariables y ubicacion_nacional):
-# hasta que se reescriba con las tablas del contrato, lo que lo usa se salta. Se quita con el ejemplo nuevo.
-ejemplo_simple_pendiente <- function() testthat::skip("contrato: se reescribe en la Tarea 8")
+# hasta que se migre a las tablas del contrato, lo que lo usa se salta. Se quita con el ejemplo nuevo.
+ejemplo_simple_pendiente <- function() testthat::skip("contrato: el ejemplo se migra en la Tarea 9")
 
 # 9100 con los datos locales en la verosimilitud: las tres medidas de datos.csv y lambda 0,5 (con csmr en el ajuste
 # el ancla no va a peso completo). El held-out departamental es el del config (2019, el año de los datos de nivel 1).
@@ -186,8 +187,8 @@ corrida_mini <- local({
   x <- NULL
   function() {
     if (is.null(x)) {
-      ejemplo_simple_pendiente()
-      b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE)))
+      b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"),
+                                       dl_rutas_ejemplo(9100L, datos = FALSE, formato = "completo")))
       o <- dl_opciones_mcmc(simulaciones = 10L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L)
       f <- dl_ajustar(b, o, semilla = 7L)
       f0 <- dl_ajustar_solo_prior(b, o, semilla = 7L, ajuste = f)
