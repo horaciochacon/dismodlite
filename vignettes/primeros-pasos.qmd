@@ -3,16 +3,21 @@ title: "Primeros pasos"
 description: >
   El proyecto de ejemplo de principio a fin: revisarlo, correrlo con dl_correr(), hacer el ajuste nacional paso a
   paso, leer los diagnósticos de convergencia y comparar la estimación con la curva verdadera.
-output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Primeros pasos}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+lang: es
+# Las ecuaciones como MathML: se ven en la guía instalada sin cargar nada de internet.
+html-math-method: mathml
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 7.5
+    fig.height: 3.4
+    dpi: 96
 ---
-
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5, fig.height = 3.4, dpi = 96)
-```
 
 ## Qué vas a aprender
 
@@ -37,7 +42,8 @@ nombres de los archivos; causa 9100, suma de tres subtipos: 9101, 9102 y 9103). 
 Perú, con sus 25 departamentos como ubicaciones subnacionales, pero ningún número describe a ese país. Como los datos
 se generaron a partir de curvas conocidas, al final podremos comprobar si el modelo las recupera.
 
-```{r archivos}
+```{r}
+#| label: archivos
 library(dismodlite)
 list.files(dl_ejemplo(), recursive = TRUE)
 ```
@@ -55,14 +61,17 @@ Los archivos, en breve (la guía [Preparar tus datos](preparar-datos.html) los d
 
 La configuración de la causa 9100 es corta:
 
-```{r config, comment = ""}
+```{r}
+#| label: config
+#| comment: ""
 cat(readLines(dl_ejemplo("config", "9100.yaml"), encoding = "UTF-8"), sep = "\n")
 ```
 
 `dl_proyecto()` lee la carpeta para una causa y muestra qué archivos encontró y qué claves de la configuración tomaron
 su valor por defecto (la lista completa de claves, con su significado, está en `?dl_configuracion`):
 
-```{r proyecto}
+```{r}
+#| label: proyecto
 proyecto <- dl_proyecto(dl_ejemplo(), causa = 9100)
 proyecto
 ```
@@ -74,7 +83,8 @@ completos con las reglas que cruzan tablas (por ejemplo, que la población nacio
 No se detiene en el primer problema: muestra una línea por comprobación, con `✓` si está en orden, `!` si es un aviso
 que conviene mirar y `✗` si es un error, junto con la corrección sugerida.
 
-```{r revisar}
+```{r}
+#| label: revisar
 dl_revisar_proyecto(dl_ejemplo(), causa = 9100)
 ```
 
@@ -90,7 +100,8 @@ Con `rapido = TRUE` es una **prueba**: cadenas cortas para comprobar en segundos
 fin. Aquí además se omite el análisis de sensibilidad (`sensibilidad = FALSE`), que es lo más lento, y la corrida se
 escribe en una carpeta temporal:
 
-```{r correr}
+```{r}
+#| label: correr
 salida <- file.path(tempdir(), "resultados")
 corrida <- dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
                      carpeta_salida = salida)
@@ -117,7 +128,8 @@ segunda). Si no, se detiene y dice qué cambiar.
 La corrida queda en `<carpeta_salida>/mod/dismod_lite/<run_id>/`, con `run_id` el nombre de la corrida (la fecha, un
 nombre corto y la versión). Sin `carpeta_salida`, se escribe en la carpeta `resultados/` del proyecto.
 
-```{r carpeta}
+```{r}
+#| label: carpeta
 corrida
 list.files(corrida$dir, recursive = TRUE)
 ```
@@ -137,7 +149,8 @@ se modelan, pero no se informan en las tablas; `dl_estimaciones()` (sección 6) 
 `edad_inicio`. Al leer la tabla conviene tratar `location_id` como texto, para que un código como `01` no se
 convierta en el número 1:
 
-```{r prevalencia-corrida}
+```{r}
+#| label: prevalencia-corrida
 archivo <- list.files(file.path(corrida$dir, "cause", "prevalence"), full.names = TRUE)
 tabla <- read.csv(archivo, colClasses = c(location_id = "character"), encoding = "UTF-8")
 columnas <- c("location_id", "location_name", "sex_id", "age_group_name", "val", "lower", "upper")
@@ -154,7 +167,8 @@ Cada paso de `dl_correr()` es también una función. Hacerlos a mano sirve para 
 mirar los resultados intermedios. Primero, los insumos: `dl_insumos()` lee todas las tablas del proyecto, las valida
 y las deja listas para el modelo.
 
-```{r insumos}
+```{r}
+#| label: insumos
 insumos <- dl_insumos(proyecto)
 insumos
 ```
@@ -171,7 +185,8 @@ El ajuste nacional se hace por sexo con cadenas de Markov (MCMC). `dl_opciones_m
 guardan y cuántas cadenas e iteraciones se corren. Aquí son las cadenas cortas de la prueba de arriba (las de
 `rapido = TRUE`):
 
-```{r ajuste}
+```{r}
+#| label: ajuste
 opciones <- dl_opciones_mcmc(simulaciones = 100, cadenas = 2, iteraciones = 2000, calentamiento = 1000)
 opciones
 ajuste <- dl_ajustar(insumos, opciones, semilla = 1)
@@ -193,7 +208,8 @@ El ajuste sale al instante porque ya lo hizo `dl_correr()`: los ajustes quedan g
 La tabla `ajuste$mcmc` los da por parámetro: el logaritmo de la incidencia (`logi_<edad>`) y de la mortalidad en
 exceso (`logf_<edad>`) en cada nudo, por sexo. Los peores primero:
 
-```{r mcmc}
+```{r}
+#| label: mcmc
 mcmc <- ajuste$mcmc
 head(mcmc[order(-mcmc$rhat), ], 5)
 ```
@@ -210,7 +226,8 @@ explica cómo elegirlas.
 Por defecto da la prevalencia (una proporción); también da la incidencia (casos nuevos por persona-año de toda la
 población) y la mortalidad en exceso (muertes por la enfermedad por persona-año de quienes la tienen):
 
-```{r estimaciones}
+```{r}
+#| label: estimaciones
 prevalencia <- dl_estimaciones(ajuste)
 head(prevalencia)
 incidencia <- dl_estimaciones(ajuste, "incidencia")
@@ -221,7 +238,8 @@ La curva verdadera del ejemplo está en `verdad.csv`: la prevalencia `p`, la inc
 enfermedad `i` y la mortalidad en exceso `f`, por edad simple. La incidencia de toda la población es `i (1 - p)`,
 la misma que da `dl_estimaciones()`.
 
-```{r verdad}
+```{r}
+#| label: verdad
 verdad <- read.csv(dl_ejemplo("verdad.csv"))
 verdad <- verdad[verdad$cause_id == 9100 & verdad$location_id == 123 & verdad$anio == 2023, ]
 verdad$incidencia <- verdad$i * (1 - verdad$p)
@@ -229,7 +247,8 @@ verdad$incidencia <- verdad$i * (1 - verdad$p)
 
 Una función pequeña dibuja una medida con su intervalo y la curva verdadera:
 
-```{r funcion-figura}
+```{r}
+#| label: funcion-figura
 dibujar <- function(estimacion, verdadera, titulo, escala = 100, unidad = "Prevalencia (%)", ymax = NULL) {
   ymax <- if (is.null(ymax)) escala * max(estimacion$superior, verdadera) else ymax
   plot(NA, xlim = range(estimacion$edad), ylim = c(0, ymax), xlab = "Edad (años)", ylab = unidad,
@@ -246,7 +265,9 @@ sinteticos <- function(texto) mtext(paste("Datos sintéticos:", texto), side = 1
                                     cex = 0.75, col = "grey35")
 ```
 
-```{r figura-prevalencia, fig.cap = "Prevalencia por edad y sexo, nivel nacional, 2023 (datos sintéticos)."}
+```{r}
+#| label: figura-prevalencia
+#| fig-cap: "Prevalencia por edad y sexo, nivel nacional, 2023 (datos sintéticos)."
 op <- par(mfrow = c(1, 2), mar = c(4, 4.2, 2.5, 1), oma = c(1.5, 0, 0, 0))
 ymax <- 100 * max(prevalencia$superior)
 for (sexo in 1:2) {
@@ -265,7 +286,9 @@ curva dentro de ella.
 
 Las tasas, para los hombres, por 1000 personas-año:
 
-```{r figura-tasas, fig.cap = "Incidencia y mortalidad en exceso de los hombres, nivel nacional, 2023 (datos sintéticos)."}
+```{r}
+#| label: figura-tasas
+#| fig-cap: "Incidencia y mortalidad en exceso de los hombres, nivel nacional, 2023 (datos sintéticos)."
 op <- par(mfrow = c(1, 2), mar = c(4, 4.2, 2.5, 1), oma = c(1.5, 0, 0, 0))
 hombres <- verdad$sex_id == 1
 dibujar(incidencia[incidencia$sex_id == 1, ], verdad$incidencia[hombres], "Incidencia",
@@ -289,7 +312,8 @@ de estas piezas.
 Unimos las estimaciones de prevalencia con la curva verdadera y medimos dos cosas: en qué fracción de las edades la
 curva verdadera cae dentro del intervalo, y la diferencia relativa entre la media y la verdad a algunas edades.
 
-```{r comparacion}
+```{r}
+#| label: comparacion
 comparacion <- merge(as.data.frame(prevalencia)[, c("sex_id", "edad", "media", "inferior", "superior")],
                      verdad[, c("sex_id", "edad", "p")], by = c("sex_id", "edad"))
 comparacion <- comparacion[comparacion$edad > 30, ]   # a los 30 años la prevalencia es 0 por construcción

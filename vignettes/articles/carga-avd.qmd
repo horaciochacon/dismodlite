@@ -3,11 +3,13 @@ title: "Carga: los años vividos con discapacidad"
 description: >
   De la prevalencia a los AVD: la tabla de severidad, los pesos de discapacidad, su incertidumbre, el factor de
   comorbilidad calibrado al ancla y los AVD por ubicación, en tasas y en conteos.
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 7
+    fig.height: 4.5
 ---
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
-```
 
 ## Qué vas a aprender
 
@@ -21,7 +23,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height
 El ejemplo es el proyecto sintético del paquete (la arteriopatía crónica sintética, causa 9100, en el Perú y sus
 departamentos). Todo vale igual para cualquier país y causa.
 
-```{r setup}
+```{r}
+#| label: setup
 library(dismodlite)
 library(data.table)
 ```
@@ -45,7 +48,8 @@ discapacidad por persona y año: por 100 000 da la tasa y por la población, el 
 `severidad.csv` trae, para cada causa, sus estados de salud con la proporción de los casos que está en cada uno y su
 peso de discapacidad, los dos con su intervalo del 95 %:
 
-```{r severidad}
+```{r}
+#| label: severidad
 severidad <- fread(dl_ejemplo("severidad.csv"), encoding = "UTF-8")
 severidad[causa == 9100]
 ```
@@ -60,7 +64,8 @@ Sin severidad no hay AVD: `dl_correr()` lo comprueba antes de ajustar y `dl_revi
 
 El peso medio por caso de la causa 9100, con los valores centrales:
 
-```{r peso-medio}
+```{r}
+#| label: peso-medio
 peso_medio <- severidad[causa == 9100, sum(proporcion * peso_discapacidad)]
 peso_medio
 ```
@@ -70,7 +75,8 @@ discapacidad.
 
 ## El ajuste y los AVD
 
-```{r ajuste}
+```{r}
+#| label: ajuste
 proyecto <- dl_proyecto(dl_ejemplo(), causa = 9100)
 insumos <- dl_insumos(proyecto)
 opciones <- dl_opciones_mcmc(simulaciones = 200, cadenas = 2, iteraciones = 6000, calentamiento = 2000,
@@ -87,7 +93,8 @@ comorbilidad solo si el ancla trae AVD).
 
 `dl_estimaciones()` resume los AVD por grupo de edad del ancla, por persona:
 
-```{r estimaciones}
+```{r}
+#| label: estimaciones
 estimaciones <- dl_estimaciones(avd)[location_id == "123"]
 estimaciones[, .(sex_id, age_group_id, por_100mil = round(1e5 * media, 1), inferior = round(1e5 * inferior, 1),
                  superior = round(1e5 * superior, 1))]
@@ -104,14 +111,17 @@ media, también, con un aviso.
 Sin el factor de comorbilidad, el cociente entre los AVD y la prevalencia de cada simulación es justamente su peso
 medio por caso, Σ~e~ π~k,e~ DW~k,e~:
 
-```{r peso-por-simulacion}
+```{r}
+#| label: peso-por-simulacion
 avd_sin_factor <- dl_avd(ajuste, insumos, comorbilidad = NULL, semilla = 1)
 peso_k <- avd_sin_factor$draws_yld[location_id == "123" & sex_id == 2 & age_group_id == 19][order(draw)]$val /
   avd_sin_factor$draws_prev_banda[location_id == "123" & sex_id == 2 & age_group_id == 19][order(draw)]$val
 summary(peso_k)
 ```
 
-```{r figura-peso, fig.height = 4}
+```{r}
+#| label: figura-peso
+#| fig-height: 4
 hist(peso_k, breaks = 25, col = "#c6dbef", border = "white", main = "Peso medio por caso en cada simulación",
      xlab = expression(sum(pi[e] ~ DW[e], e)), ylab = "Simulaciones", sub = "Datos sintéticos")
 abline(v = peso_medio, lwd = 2, col = "#cb181d")
@@ -121,7 +131,8 @@ legend("topright", "con los valores centrales", lwd = 2, col = "#cb181d", bty = 
 La renormalización mueve un poco la media de cada proporción; el desplazamiento queda en el resultado (y en
 `diagnostics/desplazamiento_splits.csv` de la corrida):
 
-```{r desplazamiento}
+```{r}
+#| label: desplazamiento
 avd$desplazamiento_splits
 ```
 
@@ -134,11 +145,14 @@ grupo: $\text{COMO}_b$ es el AVD de referencia dividido por el que daría la tab
 ancla, $p^{\text{ancla}}_b \sum_e \pi_e\, \text{DW}_e$ (la fórmula está en [El modelo](el-modelo.html#avd)).
 Necesita las filas de AVD (`measure_id` 3, como tasa) de la causa en `ancla/`.
 
-```{r como}
+```{r}
+#| label: como
 comorbilidad[, .(sex_id, age_group_id, factor = round(factor, 3))]
 ```
 
-```{r figura-como, fig.height = 4}
+```{r}
+#| label: figura-como
+#| fig-height: 4
 grupos <- insumos$prior_gbd[measure_id == 5 & sex_id == 1][order(age_start)]
 edades <- sub(" years", "", grupos$age_group_name)
 plot(seq_along(edades), comorbilidad[sex_id == 1][match(grupos$age_group_id, age_group_id)]$factor, type = "b",
@@ -166,7 +180,8 @@ la corrección por comorbilidad, los AVD quedan sobreestimados, y el manifiesto 
 
 La comparación con el AVD del ancla, grupo a grupo, con el factor y sin él:
 
-```{r ancla-avd}
+```{r}
+#| label: ancla-avd
 ancla <- fread(list.files(dl_ejemplo("ancla"), full.names = TRUE)[1])[
   measure_id == 3 & cause_id == 9100 & location_id == 123 & year == 2023 & sex_id == 2]
 # las bandas de 80 años y más se agregan a 80+ con la población nacional, como hace el paquete
@@ -179,7 +194,8 @@ sin_factor <- dl_estimaciones(avd_sin_factor)[location_id == "123" & sex_id == 2
 comparacion <- merge(comparacion, sin_factor[, .(age_group_id, sin_factor = media)], by = "age_group_id")
 ```
 
-```{r figura-ancla}
+```{r}
+#| label: figura-ancla
 posiciones <- seq_len(nrow(comparacion))
 plot(posiciones, 1e5 * comparacion$media, ylim = c(0, max(1e5 * c(comparacion$superior, comparacion$sin_factor))),
      pch = 19, col = "#08519c", xaxt = "n", xlab = "Grupo de edad", ylab = "AVD por 100 000",
@@ -202,7 +218,8 @@ Con una cascada, `dl_avd()` calcula los AVD de cada ubicación con su prevalenci
 son los nacionales. La suma de los AVD de las ubicaciones, en número, es la nacional, porque la cascada renormaliza la
 prevalencia (ver la guía [Estimación subnacional](desagregacion-subnacional.html)).
 
-```{r ubicaciones}
+```{r}
+#| label: ubicaciones
 cascada <- dl_cascada(ajuste, insumos, semilla = 1)
 avd_sub <- dl_avd(cascada, insumos, comorbilidad = comorbilidad, semilla = 1)
 # población por ubicación, sexo y grupo de edad del ancla (80+ = la suma de sus bandas)
@@ -218,7 +235,8 @@ c(nacional = numero[location_id == "123", mean(avd)], suma_de_ubicaciones = suma
 El número de AVD de cada ubicación (40 años y más, las edades del ancla; ambos sexos), con su intervalo, sale de las
 mismas simulaciones; las seis con más AVD:
 
-```{r numero-ubicaciones}
+```{r}
+#| label: numero-ubicaciones
 nombres <- unique(fread(dl_ejemplo("poblacion.csv"), colClasses = list(character = "location_id"))[
   , .(location_id, location_name)])
 resumen <- numero[, .(media = mean(avd), inferior = quantile(avd, 0.025), superior = quantile(avd, 0.975)),

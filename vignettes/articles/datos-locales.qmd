@@ -3,11 +3,13 @@ title: "Datos locales"
 description: >
   Qué hace el paquete con los datos locales, cuándo entran al ajuste (datos_en_ajuste) y qué filas entran, cómo
   evitar el doble conteo con ancla.peso, cómo entra cada dato y cómo excluir uno.
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 7
+    fig.height: 4.5
 ---
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
-```
 
 ## Qué vas a aprender
 
@@ -21,7 +23,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height
 El ejemplo es el proyecto sintético del paquete (la arteriopatía crónica sintética, causa 9100, en el Perú y sus
 departamentos). Todo vale igual para cualquier país.
 
-```{r setup}
+```{r}
+#| label: setup
 library(dismodlite)
 library(data.table)
 ```
@@ -38,7 +41,8 @@ El ejemplo trae datos nacionales de 2023 (mortalidad de un registro vital, un es
 muestra, una cohorte de incidencia con valor y error estándar, y un valor atípico ya excluido) y datos
 subnacionales de 2019 (mortalidad y prevalencia):
 
-```{r datos}
+```{r}
+#| label: datos
 datos <- fread(dl_ejemplo("datos.csv"), colClasses = list(character = "location_id"), encoding = "UTF-8")
 datos[, .(filas = .N, excluidas = sum(excluir)), by = .(tipo, nacional = location_id == "123", anio)]
 datos[location_id == "123" & tipo != "mortalidad",
@@ -52,7 +56,8 @@ nacionales se leen y se dejan fuera (un mensaje lo dice); las subnacionales del 
 se reservan para validar la estimación subnacional (ver la guía
 [Estimación subnacional](desagregacion-subnacional.html)).
 
-```{r sin-datos}
+```{r}
+#| label: sin-datos
 opciones <- dl_opciones_mcmc(simulaciones = 200, cadenas = 2, iteraciones = 8000, calentamiento = 4000,
                              nucleos = 4)
 insumos_ancla <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))
@@ -71,14 +76,16 @@ cuando el modelador lo decide, y entonces conviene bajar el peso del ancla.
 `datos_en_ajuste` lista los tipos de dato cuyas filas nacionales entran al ajuste. Para probarlo, una copia del
 proyecto de ejemplo en una carpeta temporal (en un proyecto propio basta con editar su configuración):
 
-```{r copiar}
+```{r}
+#| label: copiar
 con_datos <- dl_ejemplo(copiar_en = file.path(tempdir(), "con_datos"))
 ```
 
 Su configuración, `config/9100.yaml`, con los tres tipos en el ajuste (sin `covariables`, que no intervienen en el
 ajuste nacional):
 
-```{cat, engine.opts = list(file = file.path(con_datos, "config", "9100.yaml"), lang = "yaml")}
+```{cat}
+#| engine.opts: !expr list(file = file.path(con_datos, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
@@ -93,7 +100,8 @@ subnacional:
   anio_validacion: 2019
 ```
 
-```{r con-datos}
+```{r}
+#| label: con-datos
 insumos_peso1 <- dl_insumos(dl_proyecto(con_datos, causa = 9100))
 insumos_peso1$datos[, .N, by = .(tipo_dato, nacional = location_level == 0L, excluido = outlier)]
 ```
@@ -116,11 +124,13 @@ Qué filas entran:
 Si solo se quiere el estudio de prevalencia, las demás filas nacionales se excluyen con su motivo, o `dl_insumos()`
 se detiene y lo explica:
 
-```{r copiar-solo-prevalencia}
+```{r}
+#| label: copiar-solo-prevalencia
 solo_prevalencia <- dl_ejemplo(copiar_en = file.path(tempdir(), "solo_prevalencia"))
 ```
 
-```{cat, engine.opts = list(file = file.path(solo_prevalencia, "config", "9100.yaml"), lang = "yaml")}
+```{cat}
+#| engine.opts: !expr list(file = file.path(solo_prevalencia, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
@@ -135,7 +145,9 @@ subnacional:
   anio_validacion: 2019
 ```
 
-```{r solo-prevalencia, error = TRUE}
+```{r}
+#| label: solo-prevalencia
+#| error: true
 dl_insumos(dl_proyecto(solo_prevalencia, causa = 9100))
 ```
 
@@ -147,11 +159,13 @@ por λ = `ancla.peso`. Con λ = 1 el ancla pesa con su propia incertidumbre; con
 el doble, y los datos locales tienen más voz. La elección se anota en `notas`, que queda en el manifiesto de cada
 corrida:
 
-```{r copiar-peso}
+```{r}
+#| label: copiar-peso
 peso05 <- dl_ejemplo(copiar_en = file.path(tempdir(), "peso05"))
 ```
 
-```{cat, engine.opts = list(file = file.path(peso05, "config", "9100.yaml"), lang = "yaml")}
+```{cat}
+#| engine.opts: !expr list(file = file.path(peso05, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
@@ -172,7 +186,8 @@ notas:
   - "ancla.peso 0.5: el registro vital y el estudio de prevalencia ya informaron la estimación de referencia"
 ```
 
-```{r peso05}
+```{r}
+#| label: peso05
 insumos_peso05 <- dl_insumos(dl_proyecto(peso05, causa = 9100))
 ajuste_peso1 <- dl_ajustar(insumos_peso1, opciones, semilla = 1)
 ajuste_peso05 <- dl_ajustar(insumos_peso05, opciones, semilla = 1)
@@ -181,7 +196,9 @@ ajuste_peso05 <- dl_ajustar(insumos_peso05, opciones, semilla = 1)
 La prevalencia de las mujeres con las tres configuraciones, frente al ancla, al estudio de prevalencia y a la curva
 verdadera con la que se generaron los datos sintéticos:
 
-```{r figura-peso, fig.height = 5}
+```{r}
+#| label: figura-peso
+#| fig-height: 5
 prevalencia <- function(ajuste) dl_estimaciones(ajuste)[location_id == "123" & sex_id == 2 & edad >= 40]
 ancla <- insumos_ancla$prior_gbd[measure_id == 5 & sex_id == 2]
 estudio <- datos[location_id == "123" & tipo == "prevalencia_estudio" & sexo == "mujeres" & !excluir]
@@ -208,7 +225,8 @@ legend("topleft", c("verdad", "ancla (por grupo de edad)", "estudio de prevalenc
 
 La media y el ancho del intervalo del 95 % en algunas edades:
 
-```{r tabla-peso}
+```{r}
+#| label: tabla-peso
 resumen <- function(ajuste, nombre) prevalencia(ajuste)[edad %in% c(60, 70, 80, 90),
   .(ajuste = nombre, edad, media = round(100 * media, 2), ancho_ic = round(100 * (superior - inferior), 2))]
 tabla_peso <- dcast(rbind(resumen(ajuste_ancla, "solo ancla"), resumen(ajuste_peso1, "peso 1"),
@@ -217,7 +235,9 @@ tabla_peso <- dcast(rbind(resumen(ajuste_ancla, "solo ancla"), resumen(ajuste_pe
 tabla_peso
 ```
 
-```{r razon-anchos, include = FALSE}
+```{r}
+#| label: razon-anchos
+#| include: false
 # el ancho del intervalo con datos, como porcentaje del ancho con solo el ancla, en las edades de la tabla
 solo_ancla <- tabla_peso[["ancho_ic_solo ancla"]]
 razon <- 100 * c(tabla_peso[["ancho_ic_peso 1"]], tabla_peso[["ancho_ic_peso 0.5"]]) / c(solo_ancla, solo_ancla)
@@ -256,14 +276,17 @@ Un dato que no se quiere usar (un valor atípico, una definición de caso distin
 `excluir: TRUE` y su `motivo`, que queda registrado. En el ejemplo, un estudio de prevalencia de mujeres de 65 a 69
 años vale mucho más que sus vecinos y está excluido:
 
-```{r atipico}
+```{r}
+#| label: atipico
 datos[excluir == TRUE, .(tipo, sexo, edad_inicio, edad_fin, valor, error_estandar, motivo)]
 ```
 
 Con datos en el ajuste, un dato excluido sin motivo detiene `dl_insumos()`. Aquí, en la copia `peso05`, con el
 motivo borrado:
 
-```{r sin-motivo, error = TRUE}
+```{r}
+#| label: sin-motivo
+#| error: true
 datos_peso05 <- fread(file.path(peso05, "datos.csv"), colClasses = "character", encoding = "UTF-8")
 datos_peso05[excluir == "TRUE", motivo := NA]
 fwrite(datos_peso05, file.path(peso05, "datos.csv"))

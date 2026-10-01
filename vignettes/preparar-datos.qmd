@@ -3,16 +3,18 @@ title: "Preparar tus datos"
 description: >
   Cómo armar un proyecto propio para cualquier país y causa: cada archivo, sus columnas y unidades, de dónde se
   descarga, cómo revisarlo con dl_revisar_proyecto() y una lista de verificación antes de correr.
-output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{Preparar tus datos}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+lang: es
+# Las ecuaciones como MathML: se ven en la guía instalada sin cargar nada de internet.
+html-math-method: mathml
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
 ---
-
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-```
 
 ## Qué vas a aprender
 
@@ -65,7 +67,8 @@ decimal (en Excel, «CSV UTF-8»); las columnas de más se ignoran.
 las tablas (solo el encabezado) y un `LEEME.md` con los pasos. No sobrescribe nada. Para esta guía, la causa 9101 del
 ejemplo, en una carpeta temporal:
 
-```{r nuevo}
+```{r}
+#| label: nuevo
 library(dismodlite)
 carpeta <- file.path(tempdir(), "mi_proyecto")
 dl_nuevo_proyecto(carpeta, causa = 9101, nombre = "Arteriopatía crónica sintética de miembros inferiores",
@@ -75,7 +78,8 @@ list.files(carpeta, recursive = TRUE, include.dirs = TRUE)
 
 La revisión dice qué falta, con la corrección de cada problema:
 
-```{r revisar-vacio}
+```{r}
+#| label: revisar-vacio
 dl_revisar_proyecto(carpeta)
 ```
 
@@ -85,7 +89,9 @@ dl_revisar_proyecto(carpeta)
 sin comentar; las demás van comentadas (con `#`) y toman su valor por defecto. Para cambiar una, se quita el `#` de su
 línea y el de su bloque, respetando la sangría de dos espacios:
 
-```{r config, comment = ""}
+```{r}
+#| label: config
+#| comment: ""
 cat(readLines(file.path(carpeta, "config.yaml"), n = 22, encoding = "UTF-8"), sep = "\n")
 ```
 
@@ -93,7 +99,9 @@ Lo mínimo son `causa`, `anio` y `edad_inicio`. Cada clave, en el orden del arch
 entre paréntesis (la tabla sale de la misma definición que usa el paquete; `?dl_configuracion` agrega el tipo de cada
 clave y su lugar en el formato completo):
 
-```{r claves, echo = FALSE}
+```{r}
+#| label: claves
+#| echo: false
 claves <- yaml::read_yaml(system.file("referencia", "config_simple.yaml", package = "dismodlite"))$claves
 texto <- function(k, campo) if (is.null(k[[campo]])) "" else k[[campo]]
 por_defecto <- function(k) {
@@ -143,7 +151,8 @@ Una descarga puede traer varias causas y años: cada causa usa sus filas. Las co
 (5 prevalencia, 1 muertes, 6 incidencia, 3 AVD), `metric_name`, `location_id`, `location_name`, `sex_id`, `age_id`,
 `age_name`, `cause_id`, `cause_name`, `year`, `val`, `lower` y `upper`. La del ejemplo:
 
-```{r ancla}
+```{r}
+#| label: ancla
 ancla <- read.csv(dl_ejemplo("ancla", "sintetico_acs_v1.csv"), encoding = "UTF-8")
 head(ancla[, c("measure_name", "location_name", "sex_id", "age_name", "cause_id", "metric_name", "year", "val",
                "lower", "upper")], 3)
@@ -175,7 +184,8 @@ nacional es la suma de las subnacionales; si vienen, deben ser esa suma. Un proy
 trae solo las filas nacionales. Fuente habitual: las proyecciones del instituto nacional de estadística, o las
 estimaciones de población de GBD.
 
-```{r poblacion}
+```{r}
+#| label: poblacion
 poblacion <- read.csv(dl_ejemplo("poblacion.csv"), colClasses = c(location_id = "character"), encoding = "UTF-8")
 head(poblacion, 3)
 table(poblacion$anio)
@@ -195,7 +205,8 @@ Los pesos de discapacidad son los que publica GBD para cada estado de salud; las
 distribución de severidad de GBD para la causa o de estudios locales. Para esta guía, las filas de la causa 9101 del
 ejemplo:
 
-```{r severidad}
+```{r}
+#| label: severidad
 severidad <- read.csv(dl_ejemplo("severidad.csv"), encoding = "UTF-8")
 severidad[severidad$causa == 9101, ]
 write.csv(severidad[severidad$causa == 9101, ], file.path(carpeta, "severidad.csv"), row.names = FALSE,
@@ -204,7 +215,8 @@ write.csv(severidad[severidad$causa == 9101, ], file.path(carpeta, "severidad.cs
 
 Con el ancla, la población y la severidad, el proyecto ya está completo:
 
-```{r revisar-minimo}
+```{r}
+#| label: revisar-minimo
 invisible(file.copy(dl_ejemplo("ancla", "sintetico_acs_v1.csv"), file.path(carpeta, "ancla")))
 invisible(file.copy(dl_ejemplo("poblacion.csv"), carpeta, overwrite = TRUE))
 dl_revisar_proyecto(carpeta)
@@ -233,7 +245,8 @@ cambian el ajuste nacional**. Cada una necesita tres cosas:
    `lower_value` y `upper_value`, y solo las filas del país.
 3. Sus valores subnacionales en `proxies.csv`.
 
-```{r covariables}
+```{r}
+#| label: covariables
 cat(c("", "covariables:", "  - nombre: LDI_pc", "    efecto_sobre: prevalencia", "    transformacion: log",
       "    beta: [-0.21, -0.30, -0.12]"), file = file.path(carpeta, "config.yaml"), sep = "\n", append = TRUE)
 invisible(file.copy(dl_ejemplo("covariables", "LDI_PC.csv"), file.path(carpeta, "covariables")))
@@ -257,7 +270,8 @@ debe ser el valor nacional de la covariable, el de `covariables/`. Así la difer
 tiene sentido: las ubicaciones se reparten alrededor del valor nacional. Los valores de otra fuente casi nunca
 cierran. Por ejemplo, unos valores subnacionales en otra base de precios:
 
-```{r proxies-crudos}
+```{r}
+#| label: proxies-crudos
 proxies <- read.csv(dl_ejemplo("proxies.csv"), colClasses = c(location_id = "character"))
 proxies <- proxies[proxies$covariable == "LDI_pc" & proxies$anio == 2023, ]
 proxies$valor <- proxies$valor * 0.9                     # valores de otra fuente
@@ -273,7 +287,8 @@ las razones entre ubicaciones (lo que compara una covariable con transformación
 positivos, como el ingreso; el desplazamiento conserva las diferencias (lo que compara una `lineal`). Aquí, por
 escala, con la población de ambos sexos y todas las edades del año que se estima:
 
-```{r receta}
+```{r}
+#| label: receta
 poblacion_2023 <- poblacion[poblacion$anio == 2023, ]
 w <- tapply(poblacion_2023$poblacion, poblacion_2023$location_id, sum)[proxies$location_id]
 X <- covariable$mean_value[covariable$location_id == 123 & covariable$year_id == 2023]
@@ -312,7 +327,8 @@ Excel: con 4 decimales, el cierre ya falla.
 La incidencia y la mortalidad se comparan con las del modelo por persona-año de **toda** la población (no solo de
 quienes no tienen la enfermedad), como las publica GBD. Los datos del ejemplo, por tipo y nivel:
 
-```{r datos}
+```{r}
+#| label: datos
 datos <- read.csv(dl_ejemplo("datos.csv"), colClasses = c(location_id = "character"), encoding = "UTF-8")
 table(datos$tipo, ifelse(datos$location_id == "123", "nacional", "subnacional"))
 head(datos[datos$tipo == "prevalencia_estudio" & datos$location_id == "123",
@@ -326,7 +342,8 @@ explica la guía [Datos locales](https://horaciochacon.github.io/dismodlite/arti
 
 Un error frecuente es escribir la mortalidad por 100 000. La revisión lo detecta:
 
-```{r por-cien-mil}
+```{r}
+#| label: por-cien-mil
 dato <- data.frame(causa = 9101, tipo = "mortalidad", location_id = "123", sexo = "hombres", edad_inicio = 60,
                    edad_fin = 65, anio = 2023, valor = 45, error_estandar = 5, fuente = "registro vital")
 write.csv(dato, file.path(carpeta, "datos.csv"), row.names = FALSE)
@@ -368,7 +385,9 @@ Antes de correr:
       [Las dos compuertas](https://horaciochacon.github.io/dismodlite/articles/diagnostico-y-sensibilidad.html#compuertas)).
       Después, la corrida de producción sin `rapido`.
 
-```{r limpiar, include = FALSE}
+```{r}
+#| label: limpiar
+#| include: false
 unlink(carpeta, recursive = TRUE)
 ```
 

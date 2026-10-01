@@ -3,11 +3,13 @@ title: "Corridas, versiones y tablas consolidadas"
 description: >
   Qué hace dl_correr() y qué deja en la carpeta de una corrida, las versiones, volver a resumir sin ajustar,
   otro año y proyección (ancla.anio), el registro de corridas y las tablas consolidadas.
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 7
+    fig.height: 4.5
 ---
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
-```
 
 ## Qué vas a aprender
 
@@ -29,7 +31,8 @@ para publicar. Para la corrida de producción, y cuánto tarda, ver
 está dentro de la instalación del paquete, que no es un lugar para escribir, así que primero lo copiamos a una
 carpeta temporal, como harías para empezar un proyecto propio a partir del ejemplo:
 
-```{r copia}
+```{r}
+#| label: copia
 library(dismodlite)
 proyecto <- dl_ejemplo(copiar_en = file.path(tempdir(), "mi_proyecto"))
 list.files(proyecto)
@@ -37,7 +40,8 @@ list.files(proyecto)
 
 Una corrida de prueba de la causa 9100, sin el análisis de sensibilidad:
 
-```{r correr}
+```{r}
+#| label: correr
 corrida <- dl_correr(proyecto, causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE)
 corrida
 ```
@@ -62,7 +66,8 @@ Una corrida se escribe en `<carpeta_salida>/mod/dismod_lite/<run_id>/`. Por defe
 carpeta `resultados` del proyecto; con el argumento `carpeta_salida` se escribe en otra parte. `mod/dismod_lite/` es
 la subcarpeta fija de las corridas del modelo, la misma desde la versión 0.2.2.
 
-```{r arbol}
+```{r}
+#| label: arbol
 corrida$dir
 list.files(corrida$dir, recursive = TRUE)
 ```
@@ -78,7 +83,8 @@ list.files(corrida$dir, recursive = TRUE)
 
 Las estimaciones de cada medida son una tabla plana:
 
-```{r celdas}
+```{r}
+#| label: celdas
 celdas <- read.csv(file.path(corrida$dir, "cause", "prevalence", paste0(corrida$run_id, ".csv")),
                    colClasses = c(location_id = "character"))
 head(celdas[, c("location_id", "location_name", "sex_id", "age_group_name", "metric_name",
@@ -89,7 +95,9 @@ head(celdas[, c("location_id", "location_name", "sex_id", "age_group_name", "met
 proporción (métrica `Percent`, entre 0 y 1); la incidencia y los AVD, como tasa por 100 000 (métrica `Rate`). Las
 filas de nivel 0 son las nacionales y las de nivel 1, las subnacionales:
 
-```{r figura-celdas, fig.height = 6}
+```{r}
+#| label: figura-celdas
+#| fig-height: 6
 mujeres <- celdas[celdas$sex_id == 2 & celdas$age_group_id == 18, ]   # mujeres de 65 a 69 años
 nacional <- mujeres[mujeres$location_level == 0, ]
 subnacional <- mujeres[mujeres$location_level == 1, ]
@@ -109,7 +117,8 @@ par(op)
 Las simulaciones de cada celda están en `draws/`, con las mismas columnas de identificación y una columna por
 simulación:
 
-```{r simulaciones}
+```{r}
+#| label: simulaciones
 simulaciones <- read.csv(file.path(corrida$dir, "draws", "prevalence_2023.csv.gz"),
                          colClasses = c(location_id = "character"))
 dim(simulaciones)
@@ -118,7 +127,8 @@ names(simulaciones)[1:6]
 
 El manifiesto es un archivo YAML; se lee con el paquete `yaml`:
 
-```{r manifiesto}
+```{r}
+#| label: manifiesto
 manifiesto <- yaml::read_yaml(file.path(corrida$dir, "manifest.yaml"))
 names(manifiesto)
 str(manifiesto$params[c("seed", "draws", "chains", "iter", "warmup", "engine", "lambda", "rho", "kappa")])
@@ -162,7 +172,8 @@ mediana como valor central, y el re-resumen las lleva a la media y lo declara en
 
 Para validar las celdas nuevas necesita las rutas del proyecto (los catálogos de ubicaciones y edades):
 
-```{r reresumir}
+```{r}
+#| label: reresumir
 reresumen <- dl_reresumir_corrida(corrida$dir, carpeta = file.path(proyecto, "resultados"),
                                   rutas = dl_proyecto(proyecto, causa = 9100)$rutas)
 reresumen
@@ -171,7 +182,8 @@ str(reresumen$manifest$resumen)
 
 Con el mismo valor central, las estimaciones re-resumidas son las mismas:
 
-```{r reresumir-igual}
+```{r}
+#| label: reresumir-igual
 nuevas <- read.csv(file.path(reresumen$dir, "cause", "prevalence", paste0(reresumen$run_id, ".csv")),
                    colClasses = c(location_id = "character"))
 all.equal(nuevas[, c("val", "lower", "upper")], celdas[, c("val", "lower", "upper")])
@@ -194,7 +206,8 @@ del año anterior: `anio` es el año nuevo y `ancla.anio` el de la estimación d
 En el ejemplo, 2024 con el ancla de 2023; la configuración de la copia, `config/9100.yaml`, es la del ejemplo con
 esas dos claves (sin `sensibilidad`, `subtipos` ni `notas`, que aquí no intervienen):
 
-```{cat, engine.opts = list(file = file.path(proyecto, "config", "9100.yaml"), lang = "yaml")}
+```{cat}
+#| engine.opts: !expr list(file = file.path(proyecto, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2024
 edad_inicio: 30
@@ -224,7 +237,8 @@ subnacional:
   anio_validacion: 2019
 ```
 
-```{r proyeccion}
+```{r}
+#| label: proyeccion
 corrida_2024 <- dl_correr(proyecto, causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE)
 str(corrida_2024$manifest$params[c("year", "anio_ancla")])
 grep("proyecci", unlist(corrida_2024$manifest$limitaciones), value = TRUE)
@@ -238,7 +252,8 @@ esto el proyecto necesita la población y los proxies del año nuevo, y las cova
 
 Las corridas de la causa 9100 quedan así, una carpeta por corrida:
 
-```{r versiones}
+```{r}
+#| label: versiones
 list.files(file.path(proyecto, "resultados", "mod", "dismod_lite"))
 ```
 
@@ -261,7 +276,8 @@ que se escribe con un registro agrega una entrada al final, sin reescribir las a
 con su argumento `registro` (y `dl_exportar_corrida()`, si la corrida se arma paso a paso). Aquí, una corrida de
 prueba del subtipo 9101 en el formato completo:
 
-```{r registro}
+```{r}
+#| label: registro
 completo <- system.file("extdata", "acs_peru_completo", package = "dismodlite")
 raiz <- file.path(tempdir(), "corridas")
 dir.create(raiz)
@@ -281,7 +297,8 @@ anotan en el registro `dl_reresumir_corrida()` y `dl_sumar_hijas()`, con su argu
 `dl_consolidado_seleccionar()` lee el registro y elige, por causa y año, la corrida activa más reciente (por la
 fecha y la versión de su `run_id`); las demás siguen en el registro, pero no se eligen:
 
-```{r seleccionar}
+```{r}
+#| label: seleccionar
 proyecto_9101 <- dl_proyecto(completo, causa = 9101)
 seleccion <- dl_consolidado_seleccionar(registro, carpeta_corridas = raiz, rutas = proyecto_9101$rutas)
 as.data.frame(seleccion)[, c("cause_id", "year", "run_id")]
@@ -298,7 +315,8 @@ Encadena tres piezas que también se pueden llamar por separado: `dl_consolidado
 corridas elegidas, `dl_consolidado_conteos()` agrega los conteos (tasa × población de la corrida) y
 `dl_perfil_proyectar()` lleva la tabla canónica a la forma de un perfil.
 
-```{r consolidar}
+```{r}
+#| label: consolidar
 consolidado <- dl_consolidar(registro, carpeta = raiz,
                              perfil = system.file("perfiles", "perfil_v2.yaml", package = "dismodlite"),
                              maestro = file.path(completo, "registro", "master_gbd.csv"),
@@ -313,7 +331,8 @@ list.files(consolidado$dir, recursive = TRUE)
 - `manifest.yaml`: el perfil usado (con su sha256), las corridas de cada causa y año, los huecos (causa y año sin
   corrida, si se permiten con `permitir_huecos = TRUE`) y las limitaciones.
 
-```{r tabla-consolidada}
+```{r}
+#| label: tabla-consolidada
 tabla <- read.csv(file.path(consolidado$dir, "tablas", "prevalencia.csv"), colClasses = c(ubigeo = "character"))
 table(tabla$metrica)
 head(tabla[tabla$metrica == "Número", c("ubigeo", "departamento", "edad", "sexo_id", "valor", "inferior",
@@ -325,7 +344,8 @@ cada columna de salida, de qué columna de la tabla canónica sale y con qué fo
 `perfil_v1.yaml` (columnas en español; nombres de medida, métrica y edad del catálogo) y `perfil_v2.yaml` (todo en
 español). Este es el segundo:
 
-```{r perfil}
+```{r}
+#| label: perfil
 cat(readLines(system.file("perfiles", "perfil_v2.yaml", package = "dismodlite"), encoding = "UTF-8"),
     sep = "\n")
 ```

@@ -12,3 +12,6 @@
 ^\.Rproj\.user$
 ^.*\.Rcheck$
 ^dismodlite_.*\.tar\.gz$
+^vignettes/\.quarto$
+^vignettes/\.gitignore$
+^vignettes/_quarto\.ya?ml$

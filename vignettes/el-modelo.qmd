@@ -3,16 +3,21 @@ title: "El modelo"
 description: >
   Las ecuaciones detrás de cada número: el modelo enfermedad-muerte, las tasas por edad, el ancla, los priors, la
   verosimilitud de los datos, el muestreo, la estimación subnacional, los AVD y los supuestos.
-output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{El modelo}
-  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+lang: es
+# Las ecuaciones como MathML: se ven en la guía instalada sin cargar nada de internet.
+html-math-method: mathml
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 7.5
+    fig.height: 3.2
+    dpi: 96
 ---
-
-```{r setup, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5, fig.height = 3.2, dpi = 96)
-```
 
 ## Qué vas a aprender
 
@@ -111,7 +116,8 @@ suma 1 y en un nudo devuelve su valor. Como $\log i$ es lineal, $i$ crece o decr
 La función exportada `dl_edo()` hace exactamente esto: recibe $\log i$ y $\log f$ en los nudos, interpola, resuelve la
 ecuación y devuelve $p$, $i$ y $f$ en las edades enteras. Un ejemplo con valores inventados:
 
-```{r edo}
+```{r}
+#| label: edo
 library(dismodlite)
 nudos <- c(30, 40, 50, 60, 70, 80, 95)
 log_i <- log(c(0.5, 0.8, 1.5, 2.5, 4, 6, 7) / 1000)        # incidencia por persona-año
@@ -120,7 +126,9 @@ solucion <- dl_edo(log_i, log_f, nudos, edad_inicio = 30)
 str(solucion)
 ```
 
-```{r figura-edo, fig.cap = "Tasas en los nudos (puntos), su interpolación y la prevalencia que resulta (valores inventados)."}
+```{r}
+#| label: figura-edo
+#| fig-cap: "Tasas en los nudos (puntos), su interpolación y la prevalencia que resulta (valores inventados)."
 op <- par(mfrow = c(1, 2), mar = c(4, 4.2, 2.5, 1), oma = c(1.5, 0, 0, 0), las = 1)
 plot(solucion$edades, 1000 * solucion$f, type = "l", lwd = 2, col = "#eb6834", log = "y", ylim = c(0.4, 100),
      yaxt = "n", xlab = "Edad (años)", ylab = "Por 1000 personas-año", main = "Tasas (escala logarítmica)",
@@ -148,7 +156,8 @@ La ecuación de $p$ se integra con el método de Runge-Kutta de orden 4 (RK4), c
 exacta, $p(t) = i\,(E - 1) / (i\,E - f)$ con $E = e^{(i - f)\,t}$ y $t = a - a_0$. Sirve para ver la precisión del
 método:
 
-```{r precision}
+```{r}
+#| label: precision
 i <- 0.002; f <- 0.05
 solucion <- dl_edo(rep(log(i), 2), rep(log(f), 2), nudos = c(30, 95), edad_inicio = 30)
 t <- solucion$edades - 30
@@ -233,7 +242,9 @@ $L_{emr} = 0$ y solo queda la cota, con $\log f$ uniforme entre $\log f_{max} - 
 
 El prior del ejemplo, en muertes por 1000 personas-año con la enfermedad (`dl_prior_emr()`):
 
-```{r prior-emr, message = FALSE}
+```{r}
+#| label: prior-emr
+#| message: false
 insumos <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))
 prior <- dl_prior_emr(insumos)
 prior$f_por_mil <- round(1000 * exp(prior$mu_log), 1)
@@ -256,7 +267,8 @@ $$
   errores independientes entre edades, y tratarlos como independientes le daría más información de la que tiene. Con
   $\rho = 0.5$, la correlación entre bandas a una, dos y tres de distancia es 0.5, 0.25 y 0.125:
 
-```{r ar1}
+```{r}
+#| label: ar1
 rho <- 0.5
 round(rho^abs(outer(1:4, 1:4, "-")), 3)
 ```
@@ -267,7 +279,8 @@ round(rho^abs(outer(1:4, 1:4, "-")), 3)
 
 En el ejemplo, las bandas del ancla de los hombres:
 
-```{r ancla}
+```{r}
+#| label: ancla
 ancla <- insumos$prior_gbd
 ancla <- ancla[ancla$sex_id == 1 & ancla$measure_id == 5, c("age_start", "age_end", "val", "lower", "upper",
                                                              "sigma_log")]

@@ -15,8 +15,8 @@ URL: https://github.com/horaciochacon/dismodlite, https://horaciochacon.github.i
 BugReports: https://github.com/horaciochacon/dismodlite/issues
 Depends: R (>= 4.1)
 Imports: data.table, digest, jsonlite, parallel, stats, tools, utils, yaml
-Suggests: knitr, Rcpp, rmarkdown, testthat (>= 3.1.7), withr
-VignetteBuilder: knitr
+Suggests: knitr, quarto, Rcpp, rmarkdown, testthat (>= 3.1.7), withr
+VignetteBuilder: quarto
 Config/testthat/edition: 3
 Encoding: UTF-8
 Language: es

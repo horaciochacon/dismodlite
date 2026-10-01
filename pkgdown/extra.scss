@@ -1,0 +1,603 @@
+// Estilo del sitio de dismodlite, sobre el tema de pkgdown (Bootstrap 5 y bslib). La paleta y las tipografías
+// están en _pkgdown.yml (template.bslib); aquí, la barra de navegación, el ancho de lectura, el código, las
+// tablas, las figuras y el modo oscuro.
+
+// Paleta de la marca
+$dl-verde: #0E6B62;        // verde azulado profundo (color principal)
+$dl-verde-suave: #4FC2B3;  // verde azulado suave
+$dl-tinta: #16211E;        // tinta
+$dl-fondo: #F5F7F6;        // fondo claro
+$dl-ambar: #E0A030;        // acento, con mesura
+
+:root,
+[data-bs-theme="light"] {
+  --dl-codigo-bg: #FFFFFF;
+  --dl-menu-bg: #FFFFFF;
+  --dl-codigo-borde: #DCE4E1;
+  --dl-codigo-texto: #1E2B27;
+  --dl-codigo-linea: #{rgba($dl-verde, 0.08)};
+  --dl-tabla-cabecera: #{rgba($dl-verde, 0.07)};
+  --dl-tabla-borde: #DCE4E1;
+  --dl-figura-borde: #DCE4E1;
+  --dl-titulo: #{$dl-tinta};
+  --dl-suave: #55645F;
+  --dl-acento-linea: #{$dl-verde};
+}
+
+[data-bs-theme="dark"] {
+  --dl-codigo-bg: #0C1412;
+  --dl-menu-bg: #1A2522;
+  --dl-codigo-borde: #24332F;
+  --dl-codigo-texto: #D9E3DF;
+  --dl-codigo-linea: #{rgba($dl-verde-suave, 0.12)};
+  --dl-tabla-cabecera: #{rgba($dl-verde-suave, 0.10)};
+  --dl-tabla-borde: #2A3A36;
+  --dl-figura-borde: #2A3A36;
+  --dl-titulo: #EEF4F2;
+  --dl-suave: #9DB0AA;
+  --dl-acento-linea: #{$dl-verde-suave};
+}
+
+/* Texto ====================================================================== */
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1, h2, h3, h4, .h1, .h2, .h3, .h4 {
+  color: var(--dl-titulo);
+  letter-spacing: -0.005em;
+}
+
+h2, .h2 {
+  font-size: 1.65rem;
+  margin-top: 2.6rem;
+  margin-bottom: 0.9rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+h3, .h3 {
+  font-size: 1.28rem;
+  font-weight: 600;
+  margin-top: 1.9rem;
+  margin-bottom: 0.7rem;
+}
+
+h4, .h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.page-header {
+  border-bottom: 0;
+  margin-top: 2rem;
+  margin-bottom: 1.25rem;
+
+  h1 {
+    font-size: 2.35rem;
+    font-weight: 600;
+    line-height: 1.15;
+    margin-bottom: 0.6rem;
+  }
+
+  // Enlace al código fuente de la página
+  small {
+    font-size: 0.82rem;
+    color: var(--dl-suave);
+  }
+}
+
+// Una línea de acento bajo el título de cada página
+.page-header::after {
+  content: "";
+  display: block;
+  width: 3.5rem;
+  height: 3px;
+  margin-top: 0.85rem;
+  border-radius: 2px;
+  background: var(--dl-acento-linea);
+}
+
+strong, b {
+  font-weight: 600;
+}
+
+/* Enlaces: verde azulado; al pasar el cursor, el subrayado se vuelve ámbar ===== */
+
+main a:not(.anchor):not(.btn):not(.nav-link),
+aside a:not(.nav-link),
+footer a {
+  text-decoration-line: underline;
+  text-decoration-color: rgba(var(--bs-link-color-rgb), 0.35);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 150ms ease, color 150ms ease;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration-color: $dl-ambar;
+    text-decoration-thickness: 2px;
+  }
+}
+
+// Los nombres de funciones enlazados dentro del código no llevan subrayado fijo
+main pre a:not(.anchor),
+main code a {
+  text-decoration-color: transparent !important;
+
+  &:hover {
+    text-decoration-color: $dl-ambar !important;
+  }
+}
+
+/* Ancho de lectura =========================================================== */
+
+// El texto corrido se lee en una columna de unos 85 caracteres; el código, las tablas y las figuras usan todo el
+// ancho de la columna principal.
+@include media-breakpoint-up(md) {
+  .row > main {
+    max-width: 58rem;
+  }
+
+  // Menos margen ante la barra lateral, para que quepa junto a la columna principal, más ancha
+  .row > aside.col-md-3 {
+    margin-left: 0;
+  }
+
+  main > .section > p,
+  main > .section > ul,
+  main > .section > ol,
+  main > .section > dl,
+  main > .section > .section > p,
+  main > .section > .section > ul,
+  main > .section > .section > ol,
+  .template-home main p,
+  .template-home main ul,
+  .template-home main ol,
+  .template-article main p,
+  .template-article main li,
+  .template-quarto main p,
+  .template-quarto main li {
+    max-width: 46rem;
+  }
+
+  // ...salvo el párrafo que envuelve una figura, que se centra en toda la columna
+  main figure > p,
+  main .quarto-figure p,
+  main p:has(> img:only-child) {
+    max-width: none;
+  }
+}
+
+/* Barra de navegación ========================================================= */
+
+.navbar {
+  --bs-navbar-color: rgba(255, 255, 255, 0.84);
+  --bs-navbar-hover-color: #FFFFFF;
+  --bs-navbar-active-color: #FFFFFF;
+  --bs-navbar-brand-color: #FFFFFF;
+  --bs-navbar-brand-hover-color: #FFFFFF;
+  --bs-navbar-toggler-border-color: rgba(255, 255, 255, 0.35);
+  --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba%28255, 255, 255, 0.9%29' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), 0 6px 18px -12px rgba(0, 0, 0, 0.45);
+
+  .navbar-brand {
+    font-family: $headings-font-family;
+    font-weight: 600;
+    font-size: 1.35rem;
+    letter-spacing: 0.005em;
+  }
+
+  // Versión del paquete
+  .nav-text {
+    color: rgba(255, 255, 255, 0.68) !important;
+    font-family: $font-family-monospace;
+    font-size: 0.78rem;
+  }
+
+  .nav-link {
+    font-weight: 500;
+  }
+
+  .nav-item .nav-link:hover {
+    background: rgba(255, 255, 255, 0.12);
+  }
+
+  .nav-item.active .nav-link,
+  .nav-item .nav-link.active {
+    background: rgba(255, 255, 255, 0.16);
+    color: #FFFFFF;
+  }
+
+  // Menú desplegable de las guías
+  .dropdown-menu {
+    --bs-dropdown-bg: var(--dl-menu-bg);
+    --bs-dropdown-link-active-bg: #{$dl-verde};
+    --bs-dropdown-link-hover-bg: var(--dl-codigo-linea);
+    border: 1px solid var(--bs-border-color);
+    box-shadow: 0 12px 28px -12px rgba(0, 0, 0, 0.35);
+    padding: 0.4rem;
+    max-height: 80vh;
+  }
+
+  .dropdown-header {
+    font-family: $font-family-base;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--dl-suave);
+  }
+
+  .dropdown-item {
+    border-radius: 0.35rem;
+  }
+
+  input[type="search"] {
+    background-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.28);
+    color: #FFFFFF;
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    &:focus {
+      background-color: #FFFFFF;
+      color: $dl-tinta;
+      box-shadow: 0 0 0 0.2rem rgba($dl-ambar, 0.45);
+    }
+  }
+}
+
+[data-bs-theme="dark"] .navbar {
+  border-bottom: 1px solid rgba($dl-verde-suave, 0.28);
+  box-shadow: none;
+}
+
+/* Barra lateral y tabla de contenidos ========================================= */
+
+aside h2,
+#toc > h2 {
+  font-family: $font-family-base;
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--dl-suave);
+  border-bottom: 0;
+  margin-top: 1.75rem;
+  margin-bottom: 0.6rem;
+  padding-bottom: 0;
+}
+
+aside {
+  font-size: 0.95rem;
+}
+
+#toc > .nav {
+  border-left: 1px solid var(--bs-border-color);
+
+  a.nav-link {
+    font-size: 0.92rem;
+    line-height: 1.35;
+    color: var(--dl-suave);
+    border-radius: 0;
+    margin-left: -1px;
+    padding: 0.28rem 0.75rem;
+    border-left: 2px solid transparent;
+
+    &:hover,
+    &:focus {
+      background-color: transparent;
+      color: var(--bs-body-color);
+    }
+
+    &.active {
+      background-color: transparent;
+      color: var(--bs-link-color);
+      border-left-color: var(--bs-link-color);
+      font-weight: 600;
+    }
+  }
+
+  .nav a.nav-link {
+    margin-left: 0;
+    padding-left: 1.5rem;
+    font-size: 0.87rem;
+  }
+}
+
+/* Código ====================================================================== */
+
+pre,
+.sourceCode pre {
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  padding: 0.95rem 1.1rem;
+  margin-bottom: 1.25rem;
+  background-color: var(--dl-codigo-bg);
+  border: 1px solid var(--dl-codigo-borde);
+  border-radius: 0.6rem;
+}
+
+pre code {
+  color: var(--dl-codigo-texto);
+}
+
+// Código en línea: una pastilla discreta con el verde de la marca
+:not(pre) > code {
+  font-size: 0.86em;
+  padding: 0.08em 0.3em;
+  border-radius: 0.3rem;
+  color: #0B5A52;
+  background-color: rgba($dl-verde, 0.075);
+  overflow-wrap: break-word;
+  hyphens: none;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+[data-bs-theme="dark"] :not(pre) > code {
+  color: #8FDCCF;
+  background-color: rgba($dl-verde-suave, 0.12);
+}
+
+// En los títulos el código conserva el tamaño del título
+h1 code, h2 code, h3 code, h4 code {
+  font-size: 0.88em;
+}
+
+// Botón de copiar
+.btn-copy-ex {
+  border-radius: 0.4rem;
+}
+
+// Colores del resaltado (modo claro): verde azulado, ámbar oscuro y ciruela sobre tinta
+pre code span.fu { color: #0E6B62; }                                       // funciones
+pre code span.st, pre code span.ch, pre code span.ss, pre code span.vs { color: #96530F; }  // textos
+pre code span.dv, pre code span.fl, pre code span.bn, pre code span.cn { color: #8A3C78; }  // números y constantes
+pre code span.kw, pre code span.cf { color: #8A3C78; font-weight: 500; }  // palabras clave
+pre code span.at { color: #2D5C88; }                                        // nombres de argumentos
+pre code span.op, pre code span.sc { color: #4A5955; }                     // operadores
+pre code span.va { color: #1E2B27; }
+pre code span.co { color: #5E6F6A; font-style: normal; }                   // comentarios y resultados
+pre code span.do, pre code span.cv, pre code span.wa { color: #5E6F6A; }
+pre code span.al, pre code span.er { color: #B3261E; }
+
+// Modo oscuro (más específico que el tema oscuro de pkgdown, que se agrega después)
+html[data-bs-theme="dark"] {
+  pre,
+  .sourceCode pre {
+    background-color: var(--dl-codigo-bg);
+  }
+
+  pre code { color: var(--dl-codigo-texto); }
+  pre code span.fu { color: #4FC2B3; }
+  pre code span.st, pre code span.ch, pre code span.ss, pre code span.vs { color: #E6B566; }
+  pre code span.dv, pre code span.fl, pre code span.bn, pre code span.cn { color: #DDA6D2; }
+  pre code span.kw, pre code span.cf { color: #DDA6D2; font-weight: 500; }
+  pre code span.at { color: #93BEE6; }
+  pre code span.op, pre code span.sc { color: #AFBDB8; }
+  pre code span.va { color: #D9E3DF; }
+  pre code span.co { color: #8FA19B; font-style: normal; }
+  pre code span.do, pre code span.cv, pre code span.wa { color: #8FA19B; }
+  pre code span.al, pre code span.er { color: #FF8A80; }
+}
+
+/* Tablas ====================================================================== */
+
+main table {
+  font-size: 0.93rem;
+  line-height: 1.45;
+  margin: 1.25rem 0 1.75rem;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--dl-tabla-borde);
+  border-radius: 0.6rem;
+  background-color: var(--dl-codigo-bg);
+  width: auto;
+  max-width: 100%;
+
+  // En las tablas de las guías las celdas tienen aire y sin rayas
+  th,
+  td {
+    padding: 0.55rem 0.85rem;
+    vertical-align: top;
+    border-bottom: 1px solid var(--dl-tabla-borde);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  thead th {
+    background-color: var(--dl-tabla-cabecera);
+    font-weight: 600;
+    color: var(--dl-titulo);
+    border-bottom: 1px solid var(--dl-tabla-borde);
+    white-space: nowrap;
+  }
+
+  thead tr:first-child th:first-child { border-top-left-radius: 0.6rem; }
+  thead tr:first-child th:last-child { border-top-right-radius: 0.6rem; }
+}
+
+main .table > :not(caption) > * > * {
+  padding: 0.55rem 0.85rem;
+}
+
+main .table {
+  --bs-table-bg: transparent;
+  --bs-table-striped-bg: transparent;
+  --bs-table-hover-bg: var(--dl-codigo-linea);
+  --bs-table-color: var(--bs-body-color);
+  --bs-table-border-color: var(--dl-tabla-borde);
+}
+
+/* Figuras ===================================================================== */
+
+// Las figuras de R tienen fondo blanco; en los dos modos se muestran como una tarjeta, con sus colores originales
+// (el texto de las guías se refiere a ellos: «la línea azul», «la línea naranja»).
+main figure,
+.cell-output-display .quarto-figure {
+  margin: 1.5rem 0 2rem;
+}
+
+main figure img,
+.cell-output-display img,
+main img.r-plt,
+main p > img[src*="README"] {
+  background-color: #FFFFFF;
+  border: 1px solid var(--dl-figura-borde);
+  border-radius: 0.6rem;
+  padding: 0.35rem;
+}
+
+main figcaption {
+  margin-top: 0.7rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--dl-suave);
+  text-align: center;
+  max-width: 42rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+[data-bs-theme="dark"] {
+  img.r-plt,
+  pre .r-plt.img img,
+  .cell-output-display img,
+  .html-widget {
+    filter: brightness(0.93);
+  }
+
+  pre img {
+    opacity: 1;
+  }
+}
+
+/* Citas y notas =============================================================== */
+
+main blockquote {
+  margin: 1.5rem 0;
+  padding: 0.85rem 1.15rem;
+  border-left: 4px solid $dl-ambar;
+  border-radius: 0 0.5rem 0.5rem 0;
+  background-color: rgba($dl-ambar, 0.08);
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* Listas de verificación ====================================================== */
+
+ul.task-list {
+  padding-left: 1.4rem;
+
+  li {
+    margin-bottom: 0.35rem;
+  }
+
+  li input[type="checkbox"] {
+    accent-color: $dl-verde;
+  }
+}
+
+/* Página de inicio ============================================================ */
+
+.template-home {
+  .page-header h1 {
+    font-size: 2.8rem;
+  }
+
+  // La primera frase del README, como entradilla
+  main > .section.level1 > p:first-of-type,
+  main > div > p:first-of-type {
+    font-size: 1.18rem;
+    line-height: 1.55;
+    color: var(--dl-suave);
+  }
+}
+
+// Insignias del README en la barra lateral
+.dev-status img {
+  height: 20px;
+}
+
+/* Índice de la referencia y de las guías ===================================== */
+
+.template-reference-index,
+.template-article-index {
+  main h2 {
+    font-size: 1.4rem;
+    margin-top: 2.25rem;
+  }
+
+  main h2 + p,
+  main .section-desc {
+    color: var(--dl-suave);
+    max-width: 46rem;
+  }
+
+  dl {
+    margin-top: 0.75rem;
+  }
+
+  dt {
+    margin-top: 0.6rem;
+  }
+
+  dt code,
+  dt a {
+    font-weight: 600;
+  }
+
+  // Los títulos enlazados, sin subrayado hasta pasar el cursor
+  dt a {
+    text-decoration-color: transparent !important;
+
+    &:hover {
+      text-decoration-color: $dl-ambar !important;
+    }
+  }
+
+  dd {
+    color: var(--dl-suave);
+    margin-bottom: 0.55rem;
+  }
+}
+
+// Página de una función: el nombre de cada argumento en la letra del código
+.template-reference-topic {
+  dl > dt {
+    font-family: $font-family-monospace;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--bs-link-color);
+    margin-top: 0.9rem;
+  }
+
+  dl > dd {
+    padding-left: 1.25rem;
+    margin-top: 0.15rem;
+  }
+}
+
+/* Pie de página =============================================================== */
+
+footer {
+  margin-top: 3.5rem;
+  padding-top: 1.25rem;
+  padding-bottom: 1rem;
+  font-size: 0.86rem;
+  color: var(--dl-suave);
+  border-top: 1px solid var(--bs-border-color);
+}

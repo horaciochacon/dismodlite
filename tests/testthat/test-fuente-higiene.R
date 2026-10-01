@@ -30,10 +30,11 @@ tokens_r <- function(archivo) {
   pd[pd$terminal, c("line1", "token", "text")]
 }
 
-# Archivos que ve el usuario: el código, los archivos instalados, la ayuda, las guías y la portada del paquete.
+# Archivos que ve el usuario: el código, los archivos instalados, la ayuda, las guías (Quarto), el estilo del sitio
+# y la portada del paquete.
 archivos_visibles <- function(r) {
-  arch <- c(list.files(file.path(r, c("R", "inst", "vignettes", "man")), recursive = TRUE, full.names = TRUE,
-                       pattern = "[.](R|Rmd|Rd|yaml|yml|md|csv|cpp)$"),
+  arch <- c(list.files(file.path(r, c("R", "inst", "vignettes", "man", "pkgdown")), recursive = TRUE,
+                       full.names = TRUE, pattern = "[.](R|Rmd|qmd|Rd|yaml|yml|md|csv|cpp|scss|css)$"),
             file.path(r, c("README.Rmd", "README.md", "DESCRIPTION", "NEWS.md", "_pkgdown.yml")))
   arch[file.exists(arch)]
 }
@@ -82,7 +83,7 @@ test_that("sin términos prohibidos ni jerga interna en el código, la ayuda, la
 
 test_that("sin términos prohibidos en los nombres de archivos y carpetas", {
   r <- raiz_fuente(); skip_if(is.null(r), "solo desde el código fuente")
-  rel <- list.files(file.path(r, c("R", "inst", "vignettes", "man")), recursive = TRUE, include.dirs = TRUE)
+  rel <- list.files(file.path(r, c("R", "inst", "vignettes", "man", "pkgdown")), recursive = TRUE, include.dirs = TRUE)
   hallazgos <- character()
   for (p in names(.PROHIBIDOS)) {
     n <- grep(p, rel, perl = TRUE, value = TRUE)

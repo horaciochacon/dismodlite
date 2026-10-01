@@ -3,6 +3,36 @@ lang: es
 
 template:
   bootstrap: 5
+  # Interruptor de modo claro y oscuro en la barra de navegación; el resaltado del código tiene una versión para cada
+  # modo, con los colores de la marca encima (pkgdown/extra.scss).
+  light-switch: true
+  theme: a11y-light
+  theme-dark: a11y-dark
+  # Paleta y tipografías del paquete. El resto del estilo (barra, código, tablas, figuras) está en
+  # pkgdown/extra.scss.
+  bslib:
+    primary: "#0E6B62"
+    fg: "#16211E"
+    bg: "#F5F7F6"
+    secondary: "#55645F"
+    warning: "#E0A030"
+    body-bg-dark: "#111917"
+    body-color-dark: "#D9E3DF"
+    body-secondary-bg-dark: "#1A2522"
+    body-tertiary-bg-dark: "#151F1C"
+    border-color-dark: "#2A3A36"
+    link-color-dark: "#4FC2B3"
+    link-hover-color-dark: "#7FD8CB"
+    navbar-light-bg: "#0E6B62"
+    navbar-dark-bg: "#0B1412"
+    base_font: {google: "Source Sans 3"}
+    heading_font: {google: "Source Serif 4"}
+    code_font: {google: "IBM Plex Mono"}
+    font-size-base: 1.0625rem
+    line-height-base: 1.65
+    headings-font-weight: 600
+    border-radius: 0.5rem
+    pkgdown-nav-height: 64px
 
 home:
   title: "dismodlite: carga de enfermedad por edad, sexo y ubicación subnacional"
@@ -11,10 +41,21 @@ home:
     modelo enfermedad-muerte anclado en una estimación de referencia, y los desagrega a las ubicaciones
     subnacionales de un país.
 
+footer:
+  structure:
+    left: [desarrollado]
+    right: [construido]
+  components:
+    desarrollado: >
+      Desarrollado por Horacio Chacón. Licencia
+      [MIT](https://horaciochacon.github.io/dismodlite/LICENSE.html).
+    construido: >
+      Sitio construido con [pkgdown](https://pkgdown.r-lib.org/) y [Quarto](https://quarto.org/).
+
 navbar:
   structure:
     left: [primeros_pasos, guias, reference, news]
-    right: [search, github]
+    right: [search, github, lightswitch]
   components:
     primeros_pasos:
       text: Primeros pasos

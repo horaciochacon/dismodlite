@@ -3,11 +3,13 @@ title: "Estimación subnacional"
 description: >
   Cómo se lleva la estimación nacional a regiones, departamentos o provincias: covariables y proxies, la fuerza
   kappa, la renormalización, el modo plano, la validación con datos reservados y la escala de una covariable.
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 7
+    fig.height: 4.5
 ---
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
-```
 
 ## Qué vas a aprender
 
@@ -22,7 +24,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height
 El ejemplo es el proyecto sintético del paquete: una enfermedad ficticia, la arteriopatía crónica sintética (causa
 9100), en el Perú y sus 25 departamentos. Todo vale igual para cualquier país y cualquier nivel subnacional.
 
-```{r setup}
+```{r}
+#| label: setup
 library(dismodlite)
 library(data.table)
 ```
@@ -60,7 +63,8 @@ proyecto:
 
 La configuración de la causa 9100 declara tres covariables y el año de los datos reservados para validar:
 
-```{r config}
+```{r}
+#| label: config
 cat(readLines(dl_ejemplo("config", "9100.yaml"), encoding = "UTF-8"), sep = "\n")
 ```
 
@@ -78,7 +82,8 @@ ubicaciones, ponderado por su población, debe ser el valor nacional de la covar
 [Preparar tus datos](preparar-datos.html#cierre) explica ese requisito de cierre y cómo recalibrar valores de otra
 fuente.
 
-```{r proxies}
+```{r}
+#| label: proxies
 proxies <- fread(dl_ejemplo("proxies.csv"), colClasses = list(character = "location_id"))
 proxies[anio == 2023 & location_id == "01" & (is.na(edad_inicio) | edad_inicio == 40)]
 ```
@@ -88,7 +93,8 @@ HAQ, para ambos sexos y todas las edades.
 
 ### El ajuste nacional
 
-```{r ajuste}
+```{r}
+#| label: ajuste
 proyecto <- dl_proyecto(dl_ejemplo(), causa = 9100)
 proyecto$configuracion$origen$subnacional
 insumos <- dl_insumos(proyecto)
@@ -108,7 +114,8 @@ nacional: actúan solo en la estimación subnacional.
 `dl_cascada()` hace los cuatro pasos de arriba sobre cada simulación del ajuste (en una corrida completa, la llama
 `dl_correr()`):
 
-```{r cascada}
+```{r}
+#| label: cascada
 cascada <- dl_cascada(ajuste, insumos, semilla = 1)
 cascada
 ```
@@ -128,7 +135,8 @@ La guía [El modelo](el-modelo.html#subnacional) da cada paso con su ecuación.
 Las diferencias quedan en `cascada$dX`, por simulación, ubicación, sexo, grupo de edad y covariable. Su media por
 ubicación muestra quién está por encima y por debajo del país:
 
-```{r dx}
+```{r}
+#| label: dx
 diferencias <- cascada$dX[, .(dX = mean(dX)), by = .(location_id, covariate_name_short)]
 dcast(diferencias, location_id ~ covariate_name_short, value.var = "dX")[1:6]
 ```
@@ -141,7 +149,8 @@ mortalidad en exceso.
 `dl_estimaciones()` da la media y el intervalo de cada ubicación, sexo y edad. Como los datos son sintéticos,
 `verdad.csv` trae las curvas verdaderas de cada ubicación, con las que podemos comparar:
 
-```{r a-los-70}
+```{r}
+#| label: a-los-70
 verdad <- fread(dl_ejemplo("verdad.csv"), colClasses = list(character = "location_id"))
 verdad70 <- verdad[cause_id == 9100 & anio == 2023 & sex_id == 2 & edad == 70, .(location_id, verdad = p)]
 nombres <- unique(fread(dl_ejemplo("poblacion.csv"), colClasses = list(character = "location_id"))[
@@ -157,7 +166,9 @@ nacional70 <- prevalencia_70[location_id == "123"]
 prevalencia_70 <- prevalencia_70[location_id != "123"][order(media)]
 ```
 
-```{r figura-ubicaciones, fig.height = 6}
+```{r}
+#| label: figura-ubicaciones
+#| fig-height: 6
 op <- par(mar = c(5, 9, 3, 1))
 filas <- seq_len(nrow(prevalencia_70))
 plot(100 * prevalencia_70$media, filas, yaxt = "n", pch = 19, col = "#08519c",
@@ -184,7 +195,9 @@ prevalencia (y la incidencia poblacional, *i* (1 − *p*)) de todas las ubicacio
 nacionales divididos por la suma de los casos de las ubicaciones, así que después suman exactamente los nacionales.
 Los factores quedan en `cascada$renorm`:
 
-```{r renorm, fig.height = 4}
+```{r}
+#| label: renorm
+#| fig-height: 4
 factores <- cascada$renorm[medida == "prevalence" & sex_id == 2]
 grupos <- insumos$bandas_pobl[, .(age_group_id, edades = ifelse(age_end >= 125, paste0(age_start, "+"),
                                                                  paste0(age_start, "-", age_end - 1)))]
@@ -199,7 +212,8 @@ Un factor cerca de 1 dice que los desplazamientos casi se compensan entre ubicac
 proxies cierran en el valor nacional. Suele quedar algo por debajo de 1: desplazamientos que se compensan en escala
 log suben un poco el promedio en la escala de las tasas. Se puede comprobar la suma en un grupo y una simulación:
 
-```{r comprobar-renorm}
+```{r}
+#| label: comprobar-renorm
 # mujeres de 70 a 74 años (age_group_id 19), simulación 1
 poblacion_70 <- insumos$poblacion[sex_id == 2 & age_group_id == 19, .(location_id, poblacion = val)]
 prevalencia_simulacion1 <- cascada$draws_q[sex_id == 2 & draw == 1 & edad >= 70 & edad < 75,
@@ -222,7 +236,8 @@ el observado.
 κ no cambia el ajuste nacional, así que para ver su efecto basta con repetir la cascada; `dl_cascada()` lo acepta
 como argumento:
 
-```{r kappa05}
+```{r}
+#| label: kappa05
 cascada05 <- dl_cascada(ajuste, insumos, kappa = 0.5, semilla = 1)
 ```
 
@@ -236,13 +251,15 @@ solo por la población. Sirve cuando no hay covariables con valores subnacionale
 una limitación. Para probarlo, una copia del proyecto de ejemplo en una carpeta temporal (en un proyecto propio basta
 con editar su configuración):
 
-```{r copiar-plano}
+```{r}
+#| label: copiar-plano
 plano <- dl_ejemplo(copiar_en = file.path(tempdir(), "plano"))
 ```
 
 Su configuración, `config/9100.yaml`: la del ejemplo sin las covariables, que no hacen falta, y con `modo: plano`:
 
-```{cat, engine.opts = list(file = file.path(plano, "config", "9100.yaml"), lang = "yaml")}
+```{cat}
+#| engine.opts: !expr list(file = file.path(plano, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
@@ -256,7 +273,8 @@ subnacional:
   anio_validacion: 2019
 ```
 
-```{r plano}
+```{r}
+#| label: plano
 insumos_plano <- dl_insumos(dl_proyecto(plano, causa = 9100))
 ajuste_plano <- dl_ajustar(insumos_plano, opciones, semilla = 1)
 cascada_plano <- dl_cascada(ajuste_plano, insumos_plano, semilla = 1)
@@ -270,7 +288,9 @@ El factor de renormalización es 1: la población subnacional ya suma la naciona
 La prevalencia de cada ubicación relativa a la nacional (mujeres, 70 años), con κ = 1, κ = 0.5 y el modo plano,
 frente a la verdad:
 
-```{r figura-kappa, fig.height = 6}
+```{r}
+#| label: figura-kappa
+#| fig-height: 6
 relativa <- function(cascada) {
   estimaciones <- a_los_70(cascada)
   estimaciones[, .(location_id, rel = media / media[location_id == "123"])][location_id != "123"]
@@ -311,7 +331,8 @@ gradiente predicho tiene la amplitud del observado; mayor que 1, que el predicho
 demasiado marcado. La **correlación de rangos** (Spearman) mide si el orden de las ubicaciones es el correcto. Las
 columnas `_std` repiten el cálculo con tasas estandarizadas por edad, un punto por ubicación.
 
-```{r validacion}
+```{r}
+#| label: validacion
 columnas <- c("sex_id", "kappa", "pendiente", "pendiente_lower", "pendiente_upper", "spearman",
               "pendiente_std", "n_departamentos")
 validacion <- dl_validar_ancla(ajuste, insumos, cascada = cascada)
@@ -366,11 +387,13 @@ Olvidar la escala es un error frecuente justamente con este índice, y el paquet
 0-100, una ubicación 20 puntos por encima del país tendría su tasa multiplicada por exp(20 × β), casi 0 con
 β = −1.2. Una copia del ejemplo con esa β y sin la escala:
 
-```{r copiar-escala}
+```{r}
+#| label: copiar-escala
 sin_escala <- dl_ejemplo(copiar_en = file.path(tempdir(), "sin_escala"))
 ```
 
-```{cat, engine.opts = list(file = file.path(sin_escala, "config", "9100.yaml"), lang = "yaml")}
+```{cat}
+#| engine.opts: !expr list(file = file.path(sin_escala, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
@@ -389,7 +412,9 @@ subnacional:
   anio_validacion: 2019
 ```
 
-```{r escala-haqi, error = TRUE}
+```{r}
+#| label: escala-haqi
+#| error: true
 dl_insumos(dl_proyecto(sin_escala, causa = 9100))
 ```
 

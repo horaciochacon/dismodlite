@@ -3,11 +3,13 @@ title: "Diagnóstico y sensibilidad"
 description: >
   Convergencia (R-hat, ESS, aceptación), las dos compuertas de una corrida, la validación contra el ancla, las
   etiquetas, la sensibilidad a λ, ρ y κ, y cuánto tarda una corrida de producción con cada motor.
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 7
+    fig.height: 4
 ---
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4)
-```
 
 ## Qué vas a aprender
 
@@ -23,14 +25,16 @@ ajuste (`datos_en_ajuste`) y el ancla pesa la mitad (`ancla.peso: 0.5`), para qu
 λ tengan algo que mostrar. Las cadenas son cortas para que la guía corra en segundos; los números de una corrida de
 producción aparecen en el texto.
 
-```{r copiar}
+```{r}
+#| label: copiar
 library(dismodlite)
 proyecto <- dl_ejemplo(copiar_en = file.path(tempdir(), "proyecto_diagnostico"))
 ```
 
 Su configuración, `config/9100.yaml`:
 
-```{cat, engine.opts = list(file = file.path(proyecto, "config", "9100.yaml"), lang = "yaml")}
+```{cat}
+#| engine.opts: !expr list(file = file.path(proyecto, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
@@ -65,7 +69,8 @@ notas:
   - ancla.peso 0.5 porque los datos locales pueden haber informado la estimación de referencia.
 ```
 
-```{r insumos}
+```{r}
+#| label: insumos
 insumos <- dl_insumos(dl_proyecto(proyecto, causa = 9100))
 ```
 
@@ -76,7 +81,8 @@ logaritmo de la incidencia (log i) y de la mortalidad en exceso (log f) en los n
 ejemplo, 14 por sexo. Un ajuste corto, de 4 cadenas (con `nucleos = 4`, que las corre en paralelo con el mismo
 resultado):
 
-```{r ajuste}
+```{r}
+#| label: ajuste
 opciones <- dl_opciones_mcmc(simulaciones = 200, cadenas = 4, iteraciones = 3000, calentamiento = 1000,
                              nucleos = 4)
 ajuste <- dl_ajustar(insumos, opciones, semilla = 1)
@@ -86,7 +92,8 @@ ajuste
 `ajuste$mcmc` trae, por sexo y parámetro, el R-hat y el tamaño efectivo de muestra, calculados con las simulaciones
 que guarda cada cadena después del calentamiento:
 
-```{r mcmc}
+```{r}
+#| label: mcmc
 head(ajuste$mcmc)
 ```
 
@@ -97,7 +104,9 @@ head(ajuste$mcmc)
 
 Las fórmulas están en `?dl_rhat` y `?dl_ess`. Con cadenas tan cortas, varios parámetros no llegan:
 
-```{r figura-mcmc, fig.height = 5}
+```{r}
+#| label: figura-mcmc
+#| fig-height: 5
 mcmc <- as.data.frame(ajuste$mcmc)
 mcmc <- mcmc[order(mcmc$sex_id, mcmc$parametro), ]
 etiqueta <- paste(ifelse(mcmc$sex_id == 1, "H", "M"), mcmc$parametro)
@@ -117,7 +126,8 @@ par(op)
 En rojo, los parámetros que no pasan (H: hombres, M: mujeres). La tasa de aceptación de cada cadena y bloque
 (bloque 1: log i; bloque 2: log f), después del calentamiento, está en `ajuste$aceptacion`:
 
-```{r aceptacion}
+```{r}
+#| label: aceptacion
 summary(ajuste$aceptacion$tasa)
 ```
 
@@ -139,7 +149,8 @@ alargarlo.
 Con las cadenas cortas de arriba, la corrida se detiene en la primera, con un mensaje que dice qué hacer (el ajuste
 no se repite: `dl_correr()` lo toma de la caché de la sesión):
 
-```{r compuerta}
+```{r}
+#| label: compuerta
 tryCatch(dl_correr(proyecto, causa = 9100, semilla = 1, opciones = opciones,
                    carpeta_salida = file.path(tempdir(), "resultados")),
          error = function(e) cat(conditionMessage(e), "\n"))
@@ -172,7 +183,8 @@ y la corrida lo registra entre sus limitaciones.
 Con una estimación subnacional (`cascada`) y mortalidad subnacional reservada para validar en `datos.csv` (las filas
 subnacionales del año `subnacional.anio_validacion`), agrega la **validación de amplitud**:
 
-```{r validar}
+```{r}
+#| label: validar
 cascada <- dl_cascada(ajuste, insumos, semilla = 1)
 validacion <- dl_validar_ancla(ajuste, insumos, cascada = cascada)
 attr(validacion, "resumen")
@@ -184,7 +196,8 @@ dentro del intervalo del 95 % del modelo. Aquí el error de la prevalencia es
 ajuste y la mitad del peso del ancla, la prevalencia se aparta del ancla, y eso es justamente lo que vigila la
 segunda compuerta. Banda por banda:
 
-```{r figura-validar}
+```{r}
+#| label: figura-validar
 op <- par(mfrow = c(1, 2), mar = c(5.5, 4.5, 3, 1))
 for (comprobacion in c("anchor_identity", "implied_incidence")) {
   validacion_medida <- validacion[validacion$check == comprobacion, ]
@@ -201,7 +214,8 @@ par(op)
 Cada punto es una banda de edad; sobre la diagonal, el modelo y el ancla coinciden. La amplitud compara, por sexo, el
 gradiente subnacional predicho con el observado en la mortalidad reservada, que nunca entró al ajuste:
 
-```{r amplitud}
+```{r}
+#| label: amplitud
 amplitud <- attr(validacion, "amplitud")
 as.data.frame(amplitud)[, c("sex_id", "kappa", "pendiente", "pendiente_lower", "pendiente_upper", "spearman",
                             "n_departamentos")]
@@ -237,7 +251,8 @@ c depende de la correlación por edad del ancla (ρ), así que se recalcula con 
 el ρ que la dio (`rho_usado`). Las celdas subnacionales no tienen parámetros propios: heredan la etiqueta de su celda
 nacional.
 
-```{r etiquetas}
+```{r}
+#| label: etiquetas
 ajuste_prior <- dl_ajustar_solo_prior(insumos, opciones, semilla = 1, ajuste = ajuste)
 etiquetas <- dl_etiquetas(ajuste, ajuste_prior, insumos, semilla = 1,
                           opciones = dl_opciones_mcmc(simulaciones = 200, cadenas = 2, iteraciones = 3000,
@@ -249,7 +264,8 @@ table(etiquetas$etiqueta[etiquetas$location_id == "123"])
 en el ajuste (`datos_en_ajuste` vacío, como en el ejemplo sin cambios), el ajuste solo con el ancla es el mismo
 ajuste y todas las celdas son `prior-driven`.
 
-```{r figura-etiquetas}
+```{r}
+#| label: figura-etiquetas
 bandas <- as.data.frame(insumos$bandas_catalogo)[, c("age_group_id", "age_start", "age_end")]
 bandas$nombre <- ifelse(bandas$age_end >= 125, paste0(bandas$age_start, "+"),
                         paste0(bandas$age_start, "-", bandas$age_end - 1))
@@ -279,7 +295,8 @@ el ancla y sus etiquetas) por cada par (λ, ρ) y una estimación subnacional po
 `sensibilidad` en la configuración (sin ella, λ ∈ {0.25, 0.5, 1}, ρ ∈ {0, 0.5, 0.9} y κ ∈ {0.5, 1}: 9 ajustes).
 Aquí, una grilla pequeña con cadenas cortas, repartida en tres procesos (`procesos = 3`, con el mismo resultado):
 
-```{r sensibilidad}
+```{r}
+#| label: sensibilidad
 sensibilidad <- dl_sensibilidad(insumos, grilla = list(lambda = c(0.25, 0.5, 1), rho = 0.5, kappa = c(0.5, 1)),
                                 semilla = 1, procesos = 3,
                                 opciones = dl_opciones_mcmc(simulaciones = 200, cadenas = 2, iteraciones = 3000,
@@ -294,7 +311,9 @@ cociente entre la prevalencia de la ubicación y la nacional. El detalle por ubi
 `attr(sensibilidad, "departamental")` (nombres de la versión 0.2.2; ver
 [los nombres anteriores](corridas-y-consolidado.html#nombres-anteriores)).
 
-```{r figura-sensibilidad, fig.height = 4.5}
+```{r}
+#| label: figura-sensibilidad
+#| fig-height: 4.5
 sensibilidad_lambda <- merge(as.data.frame(sensibilidad[sensibilidad$sex_id == 2 & sensibilidad$kappa == 1, ]),
                              bandas, by = "age_group_id")
 lambdas <- sort(unique(sensibilidad_lambda$lambda))
@@ -333,7 +352,8 @@ que λ casi no mueve la prevalencia: cambia sobre todo el ancho de su intervalo,
 a peso completo (λ = 1). El ancho relativo promedio del intervalo del 95 % ((superior − inferior) / valor), por λ y
 sexo:
 
-```{r ancho}
+```{r}
+#| label: ancho
 sensibilidad$ancho <- (sensibilidad$upper - sensibilidad$lower) / sensibilidad$val
 aggregate(ancho ~ lambda + sex_id, data = as.data.frame(sensibilidad[sensibilidad$kappa == 1, ]), FUN = mean)
 ```

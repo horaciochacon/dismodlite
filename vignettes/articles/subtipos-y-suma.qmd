@@ -4,11 +4,13 @@ description: >
   Varias causas en un proyecto, una causa que es la suma de sus subtipos, dl_sumar_hijas() (con subtipos
   omitidos), la comparación con el ajuste directo de la causa padre y, en el formato completo, componentes y
   severidad desde una partición.
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
+    fig.width: 7
+    fig.height: 4.5
 ---
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
-```
 
 ## Qué vas a aprender
 
@@ -23,7 +25,8 @@ knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height
 El ejemplo es el proyecto sintético del paquete: una enfermedad ficticia, la arteriopatía crónica sintética (causa
 9100), que es la suma de tres subtipos (9101, 9102 y 9103), en el Perú y sus departamentos.
 
-```{r setup}
+```{r}
+#| label: setup
 library(dismodlite)
 library(data.table)
 ```
@@ -33,7 +36,8 @@ library(data.table)
 Un proyecto con una causa tiene `config.yaml`. Con varias, cada causa tiene su configuración en
 `config/<causa>.yaml` y todas comparten las tablas del proyecto:
 
-```{r archivos}
+```{r}
+#| label: archivos
 list.files(dl_ejemplo(), recursive = TRUE)
 ```
 
@@ -44,7 +48,8 @@ list.files(dl_ejemplo(), recursive = TRUE)
 
 `dl_revisar_proyecto()` sin `causa` revisa todas:
 
-```{r revisar}
+```{r}
+#| label: revisar
 revision <- dl_revisar_proyecto(dl_ejemplo())
 ```
 
@@ -52,13 +57,15 @@ revision <- dl_revisar_proyecto(dl_ejemplo())
 
 La configuración de la causa padre lista sus subtipos:
 
-```{r config-padre}
+```{r}
+#| label: config-padre
 cat(readLines(dl_ejemplo("config", "9100.yaml"), encoding = "UTF-8"), sep = "\n")
 ```
 
 y cada subtipo tiene su configuración, con su propio techo de la mortalidad en exceso:
 
-```{r config-hija}
+```{r}
+#| label: config-hija
 cat(readLines(dl_ejemplo("config", "9101.yaml"), encoding = "UTF-8"), sep = "\n")
 ```
 
@@ -74,7 +81,9 @@ Tres reglas:
 Cada subtipo es una corrida completa. Aquí, corridas de prueba (`rapido = TRUE`, con cadenas algo más largas que las
 de prueba y en paralelo con `nucleos = 4`) en una carpeta temporal; para publicar, `rapido = FALSE`:
 
-```{r subtipos, message = FALSE}
+```{r}
+#| label: subtipos
+#| message: false
 salida <- file.path(tempdir(), "resultados")
 opciones <- dl_opciones_mcmc(simulaciones = 200, cadenas = 2, iteraciones = 6000, calentamiento = 2000,
                              nucleos = 4)
@@ -95,7 +104,8 @@ cada medida (prevalencia, incidencia y AVD), suma las simulaciones de los subtip
 los cuantiles de esa suma, nunca de sumar los límites. Necesita las rutas del proyecto de la causa padre (el registro
 de subtipos y los nombres de las ubicaciones):
 
-```{r suma}
+```{r}
+#| label: suma
 rutas_padre <- dl_proyecto(dl_ejemplo(), causa = 9100)$rutas
 suma <- dl_sumar_hijas(corridas, causa = 9100, nombre = "suma-subtipos", carpeta = salida, rutas = rutas_padre)
 suma
@@ -107,7 +117,8 @@ Antes de escribir nada comprueba que las corridas sean exactamente los subtipos 
 año del ancla, ronda de GBD, número de simulaciones y celdas. La corrida de la suma no tiene diagnósticos ni
 etiquetas propios: están en las de los subtipos, que su manifiesto cita. Sus limitaciones lo dicen:
 
-```{r limitaciones}
+```{r}
+#| label: limitaciones
 unlist(suma$manifest$limitaciones)
 ```
 
@@ -120,7 +131,8 @@ Si un subtipo no se puede estimar (por ejemplo, no hay datos suficientes), la su
 falta se declara en `omitidas`, con su motivo. La suma queda por debajo de la causa padre en la parte de ese subtipo,
 y el manifiesto lo registra:
 
-```{r omitidas}
+```{r}
+#| label: omitidas
 suma2 <- dl_sumar_hijas(corridas[1:2], causa = 9100, nombre = "suma-sin-renovascular", carpeta = salida,
                         rutas = rutas_padre,
                         omitidas = list(list(cause_id = 9103, motivo = "subtipo sin datos suficientes (ejemplo)")))
@@ -133,14 +145,17 @@ Sin `omitidas`, pasar solo dos corridas es un error: la suma no deja fuera un su
 
 La causa padre también se puede ajustar directamente, con su propia ancla:
 
-```{r padre, message = FALSE}
+```{r}
+#| label: padre
+#| message: false
 directa <- dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
                      opciones = opciones, carpeta_salida = salida)
 ```
 
 Las celdas de cada corrida están en `cause/<medida>/`; la prevalencia va como proporción:
 
-```{r celdas}
+```{r}
+#| label: celdas
 celdas <- function(corrida) {
   archivo <- list.files(file.path(corrida, "cause", "prevalence"), full.names = TRUE)
   fread(archivo, colClasses = list(character = "location_id"))[location_id == "123"]
@@ -153,7 +168,8 @@ comparacion <- merge(celdas(directa$dir)[, .(sex_id, age_group_id, age_group_nam
 
 Y las anclas: la de la causa padre y la suma de las de sus subtipos, de la misma descarga.
 
-```{r anclas}
+```{r}
+#| label: anclas
 ancla <- fread(list.files(dl_ejemplo("ancla"), full.names = TRUE)[1])
 ancla <- ancla[measure_id == 5 & year == 2023 & location_id == 123]
 anclas <- dcast(ancla[, .(sex_id, age_id, padre = cause_id == 9100, val)], sex_id + age_id ~ padre,
@@ -166,7 +182,8 @@ En este ejemplo el ancla de la causa padre es, grupo a grupo, la suma de las de 
 no serlo, y conviene mirarlo con este mismo cálculo antes de comparar. Las dos estimaciones de la prevalencia
 nacional de las mujeres, en porcentaje, con el ancho de su intervalo del 95 %:
 
-```{r tabla-suma}
+```{r}
+#| label: tabla-suma
 comparacion[sex_id == 2, .(age_group_name, directa = round(100 * directa, 2), suma = round(100 * suma, 2),
                            ancho_directa = round(100 * (directa_sup - directa_inf), 2),
                            ancho_suma = round(100 * (suma_sup - suma_inf), 2))]
@@ -192,7 +209,8 @@ Dos casos de uso necesitan el **formato completo** (el de la versión 0.2.2, con
 partición. El ejemplo
 en ese formato está en `acs_peru_completo`:
 
-```{r completo}
+```{r}
+#| label: completo
 completo <- system.file("extdata", "acs_peru_completo", package = "dismodlite")
 list.files(file.path(completo, "particion", "acs_v1"), recursive = TRUE)
 ```
@@ -204,7 +222,8 @@ estados de salud (una fila por secuela o por estado, con su proporción e interv
 `dl_severidad_desde_particion()` arma la tabla de severidad (proporciones por estado y pesos de discapacidad del
 catálogo de estados de salud), sin escribirla a mano:
 
-```{r severidad-particion}
+```{r}
+#| label: severidad-particion
 rutas_9101 <- dl_rutas_ejemplo(9101, formato = "completo")
 particion <- file.path(completo, "particion", "acs_v1")
 severidad_9101 <- dl_severidad_desde_particion(particion, causa = 9101, rutas = rutas_9101)
@@ -214,7 +233,8 @@ severidad_9101[, .(health_state_id, proportion, prop_lower, prop_upper, dw_mean)
 Si la partición es la de la causa padre (reparte la prevalencia del padre entre las secuelas de todos sus subtipos),
 `padre` toma las secuelas del subtipo y las divide por su cuota:
 
-```{r severidad-desde-padre}
+```{r}
+#| label: severidad-desde-padre
 desde_padre <- dl_severidad_desde_particion(particion, causa = 9101, rutas = rutas_9101, padre = 9100)
 desde_padre[, .(health_state_id, proportion, dw_mean)]
 attr(desde_padre, "cuota_hija")      # la parte de la prevalencia del padre que es del subtipo
@@ -234,7 +254,8 @@ con las secuelas que lo forman (`anchor.componente.sequela_ids`) y la severidad 
 prevalencia del ancla por la fracción de la prevalencia que es del componente, y el AVD de referencia por su fracción
 de AVD:
 
-```{r componente}
+```{r}
+#| label: componente
 configuracion <- dl_configuracion(9101, file.path(completo, "config"), cambios = list(
   anchor = list(componente = list(sequela_ids = c(91012, 91013),
                                   motivo = "ejemplo: solo los estados sintomáticos")),

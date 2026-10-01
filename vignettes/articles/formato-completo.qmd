@@ -3,11 +3,11 @@ title: "El formato completo"
 description: >
   El formato de la versión 0.2.2, para proyectos anteriores y casos que el formato simple no cubre: su carpeta,
   su configuración, el bloque avanzado, el argumento cambios y los nombres anteriores de las funciones.
+knitr:
+  opts_chunk:
+    collapse: true
+    comment: "#>"
 ---
-
-```{r, include = FALSE}
-knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
-```
 
 ## Qué vas a aprender
 
@@ -47,7 +47,8 @@ Los componentes y la severidad desde una partición se tratan en la guía [Subti
 El ejemplo en el formato completo es `acs_peru_completo`: el mismo proyecto de `dl_ejemplo()`, con los mismos
 números (datos sintéticos).
 
-```{r carpeta}
+```{r}
+#| label: carpeta
 library(dismodlite)
 completo <- system.file("extdata", "acs_peru_completo", package = "dismodlite")
 list.files(completo)
@@ -72,7 +73,8 @@ list.files(completo)
 Las columnas de cada tabla del contrato se consultan con `dl_esquema()` y `dl_esquema_tabla()`; por ejemplo, las de
 los datos locales:
 
-```{r esquema}
+```{r}
+#| label: esquema
 esquema <- dl_esquema()
 esquema
 names(dl_esquema_tabla(esquema, "datos")$columnas)
@@ -85,7 +87,8 @@ corrida.
 
 ## La configuración
 
-```{r config}
+```{r}
+#| label: config
 cat(readLines(file.path(completo, "config", "9100.yaml"), encoding = "UTF-8"), sep = "\n")
 ```
 
@@ -103,7 +106,9 @@ Lo que la distingue de una configuración simple:
 
 Cada clave simple tiene su lugar en el formato completo:
 
-```{r claves, echo = FALSE}
+```{r}
+#| label: claves
+#| echo: false
 claves <- yaml::read_yaml(system.file("referencia", "config_simple.yaml", package = "dismodlite"))$claves
 sin_clave <- c(nombre = "el catálogo de causas y las etiquetas en español",
                subtipos = "`registro/master_gbd.csv` (los hijos de la causa)",
@@ -123,7 +128,8 @@ Los valores por defecto, los valores admitidos y la descripción de cada clave e
 La forma corta es la misma que en el formato simple: `dl_proyecto()` reconoce el formato por la configuración y
 busca cada pieza con los nombres de la carpeta del ejemplo.
 
-```{r proyecto}
+```{r}
+#| label: proyecto
 proyecto <- dl_proyecto(completo, causa = 9100)
 proyecto
 ```
@@ -133,7 +139,8 @@ Si la carpeta tiene otra estructura (por ejemplo, el ancla en una carpeta de par
 la configuración y las rutas por separado. `dl_rutas()` recibe cada pieza por su nombre; las que no se dan quedan
 vacías:
 
-```{r rutas}
+```{r}
+#| label: rutas
 configuracion <- dl_configuracion(9100, file.path(completo, "config"))
 configuracion
 rutas <- dl_rutas(
@@ -168,7 +175,8 @@ constantes, y solo calcula lo que sale de la población (el total nacional y los
 sigue es el mismo código. El mismo ajuste sobre el ejemplo en los dos formatos, con la misma semilla, da las mismas
 simulaciones, bit a bit:
 
-```{r mismos-numeros}
+```{r}
+#| label: mismos-numeros
 opciones <- dl_opciones_mcmc(simulaciones = 100, cadenas = 2, iteraciones = 2000, calentamiento = 1000)
 ajuste_completo <- dl_ajustar(insumos, opciones, semilla = 1)
 ajuste_simple <- dl_ajustar(dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100)), opciones, semilla = 1)
@@ -188,11 +196,13 @@ sobre la traducción, y pasa por la misma validación. Por ejemplo, para aceptar
 ajustada y la del ancla (con su procedencia) y usar más subpasos por año al resolver el modelo, en una copia del
 proyecto de ejemplo:
 
-```{r copiar}
+```{r}
+#| label: copiar
 avanzado <- dl_ejemplo(copiar_en = file.path(tempdir(), "proyecto_avanzado"))
 ```
 
-```{cat, engine.opts = list(file = file.path(avanzado, "config", "9100.yaml"), lang = "yaml")}
+```{cat}
+#| engine.opts: !expr list(file = file.path(avanzado, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
@@ -207,7 +217,8 @@ avanzado:
     gate_err_mediano: {valor: 0.08, procedencia: el ancla tiene pocas bandas de edad}
 ```
 
-```{r avanzado}
+```{r}
+#| label: avanzado
 configuracion_avanzada <- dl_proyecto(avanzado, causa = 9100)$configuracion
 configuracion_avanzada$nsub
 str(configuracion_avanzada$anchor$gate_err_mediano)
@@ -215,7 +226,8 @@ str(configuracion_avanzada$anchor$gate_err_mediano)
 
 Una clave que no existe se detiene con un mensaje que la nombra y sugiere la más parecida:
 
-```{cat, engine.opts = list(file = file.path(avanzado, "config", "9100.yaml"), lang = "yaml")}
+```{cat}
+#| engine.opts: !expr list(file = file.path(avanzado, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
@@ -226,7 +238,9 @@ avanzado:
     lambda: 0.5
 ```
 
-```{r avanzado-error, error = TRUE}
+```{r}
+#| label: avanzado-error
+#| error: true
 dl_proyecto(avanzado, causa = 9100)
 ```
 
@@ -248,7 +262,8 @@ Las claves más útiles en `avanzado` (la lista completa, con sus valores por de
 archivo, también con claves del formato completo y también sobre una configuración simple. Sirve para probar
 variantes desde un script:
 
-```{r cambios}
+```{r}
+#| label: cambios
 configuracion_05 <- dl_configuracion(9100, file.path(dl_ejemplo(), "config"),
                                      cambios = list(anchor = list(lambda = 0.5)))
 configuracion_05$anchor$lambda
@@ -280,7 +295,8 @@ funcionando, con sus argumentos originales, para que los scripts existentes no c
 Cada nombre anterior llama a la función nueva y da el mismo resultado; los dos comparten la caché de ajustes de la
 sesión:
 
-```{r nombres-anteriores}
+```{r}
+#| label: nombres-anteriores
 ajuste_anterior <- dl_fit(insumos, opts = dl_mcmc_opts(draws = 100, chains = 2, iter = 2000, warmup = 1000),
                           seed = 1)
 identical(ajuste_anterior$draws_q, ajuste_completo$draws_q)
