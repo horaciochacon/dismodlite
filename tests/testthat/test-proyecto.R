@@ -137,6 +137,59 @@ test_that("un subtipo sin betas propias usa las de su causa padre (subtipos en l
   expect_identical(suppressMessages(dl_insumos(hija))$betas$covariate_name_short, "indice")
 })
 
+# Una corrida de partición de severidad mínima en `d` (particion/mini): la causa 302 de GBD con sus cuatro secuelas y
+# sus estados de salud del catálogo del paquete (665 -> 355, 666 -> 356, 667 -> 357, 668 -> 540), con proporciones
+# 0,6, 0,25, 0,1 y 0,05.
+escribir_particion_mini <- function(d) {
+  base <- data.table::data.table(run_id = "mini", source = "gbd", round = 2023L, method = "severity_split",
+                                 location_id = "999", location_name = "Pa\u00eds ficticio", location_level = 0L,
+                                 year = 2020L, age_group_id = 22L, age_group_name = "All ages", sex_id = 3L,
+                                 sex_name = "Both", cause_id = 302L, cause_name = "diarrheal_diseases",
+                                 measure_id = 900001L, measure_name = "Proportion", metric_id = 2L, metric_name = "Percent",
+                                 val = c(0.6, 0.25, 0.1, 0.05), ui_level = 0.95)[, `:=`(lower = val * 0.9, upper = val * 1.1)]
+  for (e in c("cause_sequela", "cause_health_state")) {
+    x <- data.table::copy(base)[, entity := e]
+    if (e == "cause_sequela") x[, `:=`(sequela_id = 665:668, sequela_name = paste0("s", 665:668))]
+    else x[, `:=`(health_state_id = c(355L, 356L, 357L, 540L), health_state_name = paste0("e", 1:4))]
+    dir.create(file.path(d, "particion", "mini", e, "proportion"), recursive = TRUE)
+    data.table::fwrite(x, file.path(d, "particion", "mini", e, "proportion", "mini.csv"))
+  }
+  invisible(d)
+}
+
+test_that("severidad.particion: la severidad sale de la partición y componente.secuelas escala la prevalencia", {
+  config <- c("causa: 302", "anio: 2020", "edad_inicio: 40", "severidad:", "  particion: particion/mini")
+  d <- escribir_particion_mini(escribir_pais_ficticio(file.path(withr::local_tempdir(), "pf"), 302L, 2020L, config))
+  unlink(file.path(d, "severidad.csv"))
+  p <- dl_proyecto(d)
+  expect_identical(p$rutas$severity_split, normalizePath(file.path(d, "particion", "mini"), winslash = "/"))
+  b <- suppressMessages(dl_insumos(p))
+  expect_setequal(b$severidad$health_state_id, c(355L, 356L, 357L, 540L))
+  expect_null(b$componente)
+  # el componente de las secuelas 665 y 666: su severidad y la prevalencia del ancla por 0,85
+  writeLines(c(config, "componente:", "  secuelas: [665, 666]"), file.path(d, "config.yaml"))
+  pc <- dl_proyecto(d)
+  bc <- suppressMessages(dl_insumos(pc))
+  expect_setequal(bc$severidad$health_state_id, c(355L, 356L))
+  expect_equal(bc$componente$fraccion_prevalencia, 0.85)
+  prev <- function(x) x$prior_gbd[measure_id == 5L][order(sex_id, age_group_id)]$val
+  expect_equal(prev(bc), prev(b) * 0.85)
+})
+
+test_that("dos proyectos con la configuración como lista no se borran la traducción; el aviso dice qué hacer", {
+  d <- proyecto_ficticio()
+  t <- tablas_de(d, c("ubicaciones", "poblacion", "ancla", "severidad"))
+  p1 <- do.call(dl_proyecto, c(list(configuracion = list(causa = 501L, anio = 2020L, edad_inicio = 40L)), t))
+  p2 <- do.call(dl_proyecto, c(list(configuracion = list(causa = 501L, anio = 2020L, edad_inicio = 40L,
+                                                         ancla = list(peso = 0.5))), t))
+  expect_s3_class(suppressMessages(dl_insumos(p1)), "dl_bundle")
+  expect_s3_class(suppressMessages(dl_insumos(p2)), "dl_bundle")
+  expect_false(identical(p1$rutas$poblacion, p2$rutas$poblacion))
+  unlink(dirname(p1$rutas$poblacion), recursive = TRUE)
+  expect_error(dl_insumos(p1), paste0("ya no est\u00e1 .*vuelve a llamar a dl_proyecto\\(\\) con la misma ",
+                                      "configuraci\u00f3n y las mismas tablas"))
+})
+
 # ---- La traducción y su caché ----
 
 test_that("la traducción se reutiliza mientras no cambia lo que traduce; la nueva borra la anterior", {

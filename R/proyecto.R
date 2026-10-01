@@ -154,10 +154,9 @@
   list(ubicacion_gbd = s[["ubicacion_gbd"]],
        metrica_prevalencia = .dl_valor_en(s, "avanzado.anchor.metrica_prevalencia.valor") %||% "Rate")
 
-# La tabla severidad desde la partición que declara la configuración `s` (severidad.particion, relativa a `base`, la
-# carpeta del proyecto), con la causa padre (severidad.padre) y las secuelas del componente (componente.secuelas).
-.dl_severidad_particion <- function(s, causa, base) {
-  corrida <- file.path(base, .dl_valor_en(s, "severidad.particion"))
+# La tabla severidad desde la corrida de partición `corrida` (la de severidad.particion de la configuración `s`), con
+# la causa padre (severidad.padre) y las secuelas del componente (componente.secuelas).
+.dl_severidad_particion <- function(s, causa, corrida) {
   secuelas <- unlist(.dl_valor_en(s, "componente.secuelas"))
   padre <- .dl_valor_en(s, "severidad.padre")
   sev <- .dl_severidad_contrato_desde_particion(corrida, causa, padre = if (!is.null(padre)) as.integer(padre),
@@ -200,16 +199,22 @@
 
 # La configuración validada y las tablas del proyecto de la causa `causa`: las tablas (de `dadas` o de `carpeta`), la
 # severidad de la partición si la configuración la declara, el contexto que la configuración toma de ellas y su
-# traducción (.dl_config_simple, con `cambios`). `base`: la carpeta de las rutas relativas de la configuración.
+# traducción (.dl_config_simple, con `cambios`); y la carpeta de esa partición (`particion`, o NULL), que dl_insumos()
+# necesita para las fracciones de un componente. `base`: la carpeta de las rutas relativas de la configuración.
 .dl_preparar_contrato <- function(s, archivo, causa, carpeta, dadas = list(), cambios = NULL,
                                   base = carpeta %||% .dl_raiz_proyecto(archivo)) {
   if (!is.list(s) || is.null(names(s)))
     .dl_stop_config_simple(archivo, "el archivo no es una lista de claves (clave: valor, una por l\u00ednea)")
   causas <- .dl_causas_config(carpeta, s, causa)
   tablas <- .dl_tablas_proyecto(carpeta, dadas, .dl_opciones_lectores(s))
-  if (!is.null(.dl_valor_en(s, "severidad.particion"))) tablas$severidad <- .dl_severidad_particion(s, causa, base)
+  particion <- .dl_valor_en(s, "severidad.particion")
+  if (!is.null(particion)) {
+    particion <- normalizePath(file.path(base, particion), winslash = "/", mustWork = FALSE)
+    tablas$severidad <- .dl_severidad_particion(s, causa, particion)
+  }
   ctx <- .dl_contexto_tablas(tablas, causa, .dl_padre_de(causas, causa))
-  list(cfg = .dl_config_simple(s, archivo, causa, ctx, cambios), tablas = tablas, causas = causas)
+  list(cfg = .dl_config_simple(s, archivo, causa, ctx, cambios), tablas = tablas, causas = causas,
+       particion = particion)
 }
 
 # ---- La traducción de un proyecto ----
@@ -279,6 +284,9 @@
   edades <- file.path(destino, pieza$catalogos, cat_arch$demograficos)
   dir.create(dirname(edades), recursive = TRUE, showWarnings = FALSE)
   file.copy(.dl_inst_archivo("referencia", "catalogo_demograficos_gbd2023.csv"), edades)
+  # los de las particiones de severidad (los mismos con que se leyó la tabla severidad de una partición)
+  for (k in c("health_states", "sequelas"))
+    file.copy(.dl_inst_archivo("referencia", cat_arch[[k]]), file.path(destino, pieza$catalogos, cat_arch[[k]]))
   b <- x$bandas
   if (nrow(b))
     data.table::fwrite(b[, list(tabla = "age_group", id = age_group_id, name = nombre, slug = .dl_slugify(nombre),
@@ -304,15 +312,15 @@
 # Rutas del proyecto traducido para `cfg` (`tablas`: las del contrato; `causas`: .dl_causas_config), en la carpeta
 # temporal <proyecto>_<causa>_<clave>. <clave> resume lo que se traduce: la versión del paquete, la configuración
 # traducida, las causas y el contenido de las tablas, sin su origen (las dos puertas comparten la traducción). `donde`
-# identifica el proyecto: su carpeta o, sin ella, la configuración. Una traducción nueva borra las anteriores del
+# identifica el proyecto (.dl_proyecto_contrato): su carpeta, el archivo de su configuración o un resumen de la lista. Una traducción nueva borra las anteriores del
 # mismo proyecto y causa, y sus lecturas memorizadas.
 .dl_traducir_proyecto <- function(donde, cfg, tablas, causas) {
   traducida <- cfg
   traducida$origen[c("archivo", "betas")] <- NULL   # la ruta de la configuración; las betas van en las tablas
   contenido <- lapply(tablas, function(t) digest::digest(lapply(t, identity)))   # sin sus atributos
   clave <- digest::digest(list(dl_version(), traducida, causas, contenido), algo = "xxhash64")
-  prefijo <- sprintf("%s_%d_", digest::digest(normalizePath(donde, winslash = "/", mustWork = FALSE),
-                                              algo = "xxhash64"), cfg$cause_id)
+  if (dir.exists(donde)) donde <- normalizePath(donde, winslash = "/")
+  prefijo <- sprintf("%s_%d_", digest::digest(donde, algo = "xxhash64"), cfg$cause_id)
   raiz <- file.path(tempdir(), "dismodlite_proyectos")
   destino <- file.path(raiz, paste0(prefijo, clave))
   if (!file.exists(file.path(destino, "listo"))) {
@@ -469,7 +477,7 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL)
   .dl_proyecto_de(carpeta %||% .dl_raiz_proyecto(cf$archivo), dl_configuracion(cf$causa, cf$archivo))
 }
 
-# La configuración que lee dl_proyecto(): list(s, archivo, causa, simple). Sin `configuracion`, la de `causa` en la
+# La configuración que lee dl_proyecto(): list(s, archivo, causa, simple, origen: la lista dada o NULL). Sin `configuracion`, la de `causa` en la
 # carpeta (.dl_configs_proyecto y .dl_elegir_configs); con ella, su archivo o la lista misma. La causa es la pedida o,
 # sin ella, la que declara la configuración.
 .dl_config_a_leer <- function(carpeta, causa, configuracion) {
@@ -490,16 +498,21 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL)
     if (!.dl_es_entero1(v)) .dl_stop("%s no declara `causa` (el identificador de la causa)", basename(archivo))
     causa <- as.integer(v)
   }
-  list(s = s, archivo = archivo, causa = causa, simple = !.dl_es_config_completa(s))
+  list(s = s, archivo = archivo, causa = causa, simple = !.dl_es_config_completa(s),
+       origen = if (is.list(configuracion)) configuracion)
 }
 
 # El proyecto de las tablas del contrato: la configuración y las tablas (.dl_preparar_contrato) y las rutas de su
-# traducción (.dl_traducir_proyecto), identificada por la carpeta o, sin ella, por la configuración.
+# traducción (.dl_traducir_proyecto), más la partición de severidad si la configuración la declara. La traducción se
+# identifica por la carpeta o, sin ella, por el archivo de la configuración o el contenido de la lista.
 .dl_proyecto_contrato <- function(carpeta, cf, dadas) {
   pre <- .dl_preparar_contrato(cf$s, cf$archivo, cf$causa, carpeta, dadas)
-  structure(list(configuracion = pre$cfg,
-                 rutas = .dl_traducir_proyecto(carpeta %||% cf$archivo, pre$cfg, pre$tablas, pre$causas),
-                 carpeta = carpeta, formato = "simple", tablas = pre$tablas), class = "dl_proyecto")
+  donde <- carpeta %||% if (is.list(cf$origen)) sprintf("configuracion_%s", digest::digest(cf$origen))
+                        else normalizePath(cf$archivo, winslash = "/")
+  rutas <- .dl_traducir_proyecto(donde, pre$cfg, pre$tablas, pre$causas)
+  if (!is.null(pre$particion)) rutas["severity_split"] <- list(pre$particion)
+  structure(list(configuracion = pre$cfg, rutas = rutas, carpeta = carpeta, formato = "simple", tablas = pre$tablas),
+            class = "dl_proyecto")
 }
 
 # El proyecto del formato completo de `carpeta` con la configuración `cfg`: sus rutas, sin tablas del contrato.

@@ -483,7 +483,9 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
   if (inherits(configuracion, "dl_proyecto")) {
     if (simple && !file.exists(file.path(dirname(configuracion$rutas$poblacion), "listo")))
       .dl_stop(paste0("la traducci\u00f3n de este proyecto ya no est\u00e1 (cambi\u00f3 la configuraci\u00f3n o una ",
-                      "tabla, o es de otra sesi\u00f3n): vuelve a llamar a dl_proyecto(\"%s\")"), configuracion$carpeta)
+                      "tabla, o es de otra sesi\u00f3n): vuelve a llamar a %s"),
+               if (is.null(configuracion$carpeta)) "dl_proyecto() con la misma configuraci\u00f3n y las mismas tablas"
+               else sprintf("dl_proyecto(\"%s\")", configuracion$carpeta))
     if (missing(rutas)) rutas <- configuracion$rutas
     contrato <- configuracion$tablas
     configuracion <- configuracion$configuracion
