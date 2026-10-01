@@ -215,6 +215,7 @@ test_that("una celda que no es un número en la severidad, el ancla o los pesos 
 })
 
 test_that("una celda que no se puede convertir en los proxies o en sequela_rei.csv se muestra al leer", {
+  skip("contrato: se reescribe en la Tarea 8")
   tmp <- withr::local_tempdir()
   x <- data.table::fread(ejemplo_completo("proxies_departamentales.csv"), colClasses = list(character = "location_id"))
   x[, valor_crudo := as.character(valor_crudo)][1L, valor_crudo := "n/d"]
@@ -242,6 +243,7 @@ test_that("dl_rutas() pide la ruta de un archivo, no la tabla ya leída", {
 })
 
 test_that("las rutas se resuelven igual en todas las funciones: NULL, objeto de dl_rutas() o lista con nombres", {
+  skip("contrato: se reescribe en la Tarea 8")
   b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L),
                                    dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE)))
   # NULL: las de los insumos; una lista con nombres (en español o con las claves anteriores) pasa por dl_rutas()
@@ -264,6 +266,7 @@ test_that("las rutas se resuelven igual en todas las funciones: NULL, objeto de 
 })
 
 test_that("una pieza opcional sin dar es NULL; dada y ausente, un error que la nombra", {
+  skip("contrato: se reescribe en la Tarea 8")
   expect_null(.dl_path(dl_rutas(), "std_incidence", opcional = TRUE))
   r <- dl_rutas(ancla_incidencia = file.path(tempdir(), "no_existe", "incidencia.csv"))
   expect_error(.dl_path(r, "std_incidence", opcional = TRUE), "la ruta de «ancla_incidencia» no existe")

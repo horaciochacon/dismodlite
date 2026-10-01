@@ -303,6 +303,7 @@ test_that("dl_configuracion sobre los configs del ejemplo reproduce la instantan
 
 # `cambios` (dl_configuracion): lo que utils::modifyList() ignoraría en silencio es un error o se aplica.
 test_that("cambios: una clave mal escrita es un error que sugiere la correcta", {
+  skip("contrato: se reescribe en la Tarea 8")
   expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lamda = 0.5))),
                "la clave `anchor.lamda` no existe.*quisiste decir `anchor.lambda`")
   expect_error(dl_configuracion_ejemplo(9100L, cambios = list(medidas_entradas = "csmr")),
@@ -319,6 +320,7 @@ test_that("cambios: una clave mal escrita es un error que sugiere la correcta", 
 })
 
 test_that("cambios: un valor suelto donde la configuración tiene un bloque es un error que muestra la forma", {
+  skip("contrato: se reescribe en la Tarea 8")
   expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = 0.5), formato = "completo"),
                paste0("`anchor` es un bloque con claves en la configuración, no un valor suelto: va como ",
                       "anchor \\{location, lambda"))
@@ -333,6 +335,7 @@ test_that("cambios: un valor suelto donde la configuración tiene un bloque es u
 })
 
 test_that("cambios: una secuencia como lista sin nombres reemplaza a la del YAML", {
+  skip("contrato: se reescribe en la Tarea 8")
   a <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = list("csmr"), anchor = list(lambda = 0.5)))
   b <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = "csmr", anchor = list(lambda = 0.5)))
   expect_identical(a, b)

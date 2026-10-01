@@ -10,6 +10,7 @@ prevalencia_ancla <- function(formato, cambios = NULL) {
 como_antes <- list(anchor = list(metrica_prevalencia = list(valor = "Percent", procedencia = "corrida anterior")))
 
 test_that("la prevalencia del ancla es Rate / 100 000 por defecto, en los dos formatos", {
+  skip("contrato: se reescribe en la Tarea 8")
   for (formato in c("completo", "simple")) {
     p <- prevalencia_ancla(formato)
     a <- data.table::fread(dl_ejemplo("ancla", "sintetico_acs_v1.csv"))

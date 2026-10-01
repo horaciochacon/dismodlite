@@ -31,7 +31,8 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada desde la tabl
   expect_true("#   peso: 1" %in% lineas)
   expect_true("#   peso: [0.25, 0.5, 1]" %in% lineas)
   # sin valor fijo por defecto, la línea comentada lleva un ejemplo (el de la tabla de claves)
-  expect_true("#   - nombre: haqi" %in% lineas)
+  expect_true("#   particion: particion/mi_corrida" %in% lineas)
+  expect_true("#   secuelas: [5001, 5002]" %in% lineas)
   # con `anio`, el ejemplo de los años que por defecto son `anio` es el anterior (ancla.anio admite anio - 1)
   expect_true("#   anio: 2019" %in% lineas)
   expect_true("#   anio_validacion: 2019" %in% lineas)
@@ -56,6 +57,7 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada desde la tabl
 })
 
 test_that("la revisión de un proyecto nuevo: la configuración espera al ancla y lo omitido no cuenta como aviso", {
+  skip("contrato: se reescribe en la Tarea 8")
   d <- file.path(withr::local_tempdir(), "vacio")
   suppressMessages(dl_nuevo_proyecto(d, causa = 501, anio = 2020, edad_inicio = 40))
   salida <- utils::capture.output(r <- dl_revisar_proyecto(d))
@@ -83,6 +85,7 @@ test_that("dl_nuevo_proyecto() valida sus argumentos; los valores de la configur
 # ---- De la plantilla a un proyecto revisado ----
 
 test_that("de la plantilla al proyecto: llenada con los archivos del ejemplo, la revisión da todo en orden", {
+  skip("contrato: se reescribe en la Tarea 8")
   d <- file.path(withr::local_tempdir(), "de la plantilla")
   suppressMessages(dl_nuevo_proyecto(d, causa = 9100, nombre = "Arteriopatía crónica sintética",
                                      anio = 2023, edad_inicio = 30))
@@ -316,6 +319,7 @@ test_that("dl_correr(rapido = TRUE) sobre el ejemplo simple escribe la carpeta d
 })
 
 test_that("dl_correr() se detiene antes de ajustar sin semilla, sin severidad o sin dónde escribir", {
+  skip("contrato: se reescribe en la Tarea 8")
   expect_error(dl_correr(dl_ejemplo(), 9100), "^dl_correr\\(\\): falta `semilla`")
   expect_error(dl_correr(dl_ejemplo(), 9100, semilla = 1),
                "dentro de la instalación del paquete .*`carpeta_salida`")

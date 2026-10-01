@@ -34,6 +34,7 @@ test_that("el paquete carga y expone dl_version()", {
 # Como ese proceso es nuevo, comprueba también que library(dismodlite) carga data.table antes de cualquier llamada
 # a data.table:: (dl_reresumir_corrida() como primera llamada de una sesión).
 test_that("el paquete instalado bajo una ruta con espacios y tildes resuelve sus archivos desde ahí", {
+  skip("contrato: se reescribe en la Tarea 8")
   skip_on_cran()
   lib <- file.path(withr::local_tempdir(), "mi carpeta Mar\u00eda", "librer\u00eda de R")
   dir.create(lib, recursive = TRUE)

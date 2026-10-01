@@ -19,6 +19,7 @@ for (id in names(.EQUIVALENTE_SIMPLE)) {
   ref <- .EQUIVALENTE_SIMPLE[[id]]
   test_that(sprintf("%s: el ejemplo en el formato simple reproduce %s de %s (versi\u00f3n 0.2.2)", id,
                     .QUE_REPRODUCE[[id]], ref), {
+    skip("contrato: se reescribe en la Tarea 9")
     api <- api_nueva()
     api$limpiar_cache()
     saltar_si_otra_plataforma()

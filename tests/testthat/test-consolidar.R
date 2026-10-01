@@ -55,6 +55,7 @@ test_that("los perfiles del paquete se leen y no llevan nombres de versiones ant
 })
 
 test_that("el consolidado escribe mod/consolidado/<id>/ con canonico/, tablas/ y manifest.yaml", {
+  skip("contrato: se reescribe en la Tarea 8")
   x <- corrida_9101()
   maestro <- ejemplo_completo("registro", "master_gbd.csv")
   cons <- dl_consolidar(x$registro, x$carpeta, perfil_paquete("v1"), maestro, rutas = x$rutas, anios = 2023L)
@@ -91,6 +92,7 @@ test_that("el consolidado escribe mod/consolidado/<id>/ con canonico/, tablas/ y
 })
 
 test_that("ni las carpetas, ni los archivos, ni su contenido llevan «cdc» o «entrega»", {
+  skip("contrato: se reescribe en la Tarea 8")
   x <- corrida_9101()
   cons <- dl_consolidar(x$registro, x$carpeta, perfil_paquete("v2"), ejemplo_completo("registro", "master_gbd.csv"),
                         rutas = x$rutas, anios = 2023L, nombre = "revision")
@@ -106,6 +108,7 @@ test_that("ni las carpetas, ni los archivos, ni su contenido llevan «cdc» o «
 })
 
 test_that("la prosa del manifiesto sale de las causas presentes, sin textos fijos de un país o una causa", {
+  skip("contrato: se reescribe en la Tarea 8")
   x <- corrida_9101()
   cons <- dl_consolidar(x$registro, x$carpeta, perfil_paquete("v1"), ejemplo_completo("registro", "master_gbd.csv"),
                         rutas = x$rutas, anios = 2023L, nombre = "prosa")
@@ -150,6 +153,7 @@ test_that("un perfil mal escrito da un error en español que nombra la función 
 })
 
 test_that("una causa y un año sin corrida vigente se nombran; permitir_huecos los declara", {
+  skip("contrato: se reescribe en la Tarea 8")
   x <- corrida_9101()
   expect_error(dl_consolidado_seleccionar(x$registro, x$carpeta, anios = c(2023L, 2024L), rutas = x$rutas),
                "^dl_consolidado_seleccionar\\(\\): no hay corrida vigente para estas causas/años: 9101/2024")

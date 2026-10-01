@@ -164,15 +164,6 @@
   }
   for (k in t$clave[t$defecto == "obligatoria" & !grepl("[.[]", t$clave)])
     if (is.null(s[[k]])) p(k, sprintf("falta (obligatoria): %s", t$descripcion[t$clave == k]))
-  # la escala solo interviene con la transformación lineal: con log o logit, otro valor que 1 no haría nada
-  covs <- s[["covariables"]]
-  for (i in seq_along(covs)) {
-    cv <- covs[[i]]
-    if (is.list(cv) && .dl_es_numero1(cv[["escala"]]) && as.numeric(cv[["escala"]]) != 1 &&
-        .dl_es_texto1(cv[["transformacion"]]) && cv[["transformacion"]] != "lineal")
-      p(sprintf("covariables[%d].escala", i),
-        sprintf("solo vale con transformacion: lineal (con %s no interviene): qu\u00edtala", cv[["transformacion"]]))
-  }
   probs
 }
 
@@ -222,7 +213,7 @@
     stats::setNames(sub("[]", "[\\1]", k$clave, fixed = TRUE),
                     exacta(paste0(gsub("\\[\\]", "\\\\[([0-9]+)\\\\]", punto(k$destino)), "(?:[.]valor)?"))),
     stats::setNames(sprintf("%s, columna %s", col$archivo, col$columna),
-                    exacta(paste0(names(tablas)[match(col$archivo, tablas)], "[.]", col$destino))),
+                    exacta(sprintf("%s[.]%s", names(tablas)[match(col$archivo, tablas)], col$destino))),
     stats::setNames(tablas, exacta(paste("la tabla", names(tablas)))),
     stats::setNames(paste0("\\1", tablas, ":"), sprintf("(?m)^(\\s*-?\\s*)%s:", names(tablas))),
     stats::setNames(rutas, sprintf("(?:`%s`|\u00ab%s\u00bb)(?: de dl_rutas\\(\\))?", names(rutas), names(rutas))),
@@ -238,47 +229,41 @@
   if (all(n == round(n))) as.integer(n) else n
 }
 
-# Configuración completa (sin validar) desde la simple `s` de `archivo` y lo que se toma del proyecto (`contexto`), con
-# `origen`: formato, archivo, nombre, modo subnacional, covariables y claves tomadas por defecto (con su valor).
+# Configuración completa (sin validar) desde la simple `s` de `archivo` y lo que se toma del proyecto (`contexto`):
+#   ubicacion (el código nacional), nombre, betas (la tabla betas de la causa, ya resuelta para un subtipo),
+#   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es) e
+#   ids_covariable (covariable -> covariate_id, para valor_nacional_de).
+# `origen`: formato, archivo, nombre, modo subnacional, betas y claves tomadas por defecto (con su valor); y las
+# unidades: «contrato», las de las tablas del proyecto (proporción o por persona-año, sin conversión; .dl_metrica_std).
 .dl_traducir_config_simple <- function(s, archivo, contexto) {
   t <- .dl_claves_simple()
   dado <- function(clave) .dl_valor_en(s, clave)
   val <- function(clave) dado(clave) %||% t$valor[[match(clave, t$clave)]]
   voc <- function(clave, x) unname(.dl_vocabulario_simple(clave)[as.character(unlist(x))])
   num <- function(x) { u <- unlist(x); if (is.numeric(u)) as.numeric(u) else x }
-  ubicacion <- s[["ubicacion_nacional"]] %||% contexto$ubicacion
-  # un subtipo usa las betas de su causa padre (así lo exige dl_sumar_hijas()): las toma o las declara iguales
-  betas <- function(cs) lapply(cs, function(cv) list(cv$nombre, cv$efecto_sobre, cv$transformacion,
-                                                      as.numeric(unlist(cv$beta)), as.numeric(cv[["escala"]] %||% 1)))
-  if (!is.null(contexto$padre) && length(s[["covariables"]]) &&
-      !identical(betas(s[["covariables"]]), betas(contexto$covariables_padre)))
-    .dl_stop_config_simple(archivo, sprintf(paste0(
-      "covariables: la causa es un subtipo de la %d y sus covariables no son las de la causa padre (un subtipo usa ",
-      "las betas del padre): quita `covariables`, y toma las del padre, o decl\u00e1ralas iguales"), contexto$padre))
-  covs <- s[["covariables"]] %||% contexto$covariables_padre %||% list()
-  nombres <- vapply(covs, function(cv) cv[["nombre"]], "")
-  # las declaradas con filas en proxies.csv (un proxies.csv que no se pudo leer da su error al leer la tabla)
-  con_proxy <- if (identical(contexto$proxies, NA)) seq_along(nombres) else which(nombres %in% contexto$proxies)
+  ubicacion <- contexto$ubicacion
+  # una fila por covariable de la tabla betas: transformaciones[k]; las que tienen filas subnacionales, además un proxy
+  betas <- contexto$betas
+  nombres <- if (is.null(betas)) character() else betas$covariable
+  con_proxy <- which(nombres %in% contexto$covariables_subnacionales)
   modo <- dado("subnacional.modo") %||%
     if (length(con_proxy)) "covariables" else if (isTRUE(contexto$subnacional)) "plano" else "no"
   if (modo == "plano" && identical(contexto$subnacional, FALSE))
-    .dl_stop_config_simple(archivo, paste0("subnacional.modo: es plano y poblacion.csv no trae ubicaciones ",
+    .dl_stop_config_simple(archivo, paste0("subnacional.modo: es plano y la tabla poblacion no trae ubicaciones ",
                                            "subnacionales: agr\u00e9galas o usa subnacional.modo: no"))
   if (modo != "covariables") con_proxy <- integer()
   else if (!length(con_proxy))
     .dl_stop_config_simple(archivo, sprintf(paste0(
-      "subnacional.modo: es covariables y ninguna covariable declarada (%s) tiene filas en proxies.csv (trae: %s): ",
-      "revisa los nombres o usa subnacional.modo: plano (las tasas nacionales en cada ubicaci\u00f3n)"),
-      .dl_lista(nombres, "ninguna"), .dl_lista(contexto$proxies, "ninguna")))
+      "subnacional.modo: es covariables y ninguna covariable de la tabla betas (%s) tiene filas subnacionales en la ",
+      "tabla covariables (trae: %s): revisa los nombres o usa subnacional.modo: plano (las tasas nacionales en cada ",
+      "ubicaci\u00f3n)"), .dl_lista(nombres, "ninguna"), .dl_lista(contexto$covariables_subnacionales, "ninguna")))
   nudos <- unlist(dado("nudos")) %||% .dl_nudos_defecto(s[["edad_inicio"]])
   pd <- t[!grepl("\\[\\]", t$clave) & nzchar(t$defecto) & t$defecto != "obligatoria", c("clave", "defecto")]
   pd <- pd[vapply(pd$clave, function(k) is.null(dado(k)), NA), ]
-  reglas <- c(nombre = contexto$nombre, ubicacion_nacional = format(ubicacion), subnacional.modo = modo,
+  reglas <- c(nombre = contexto$nombre, ubicacion_gbd = format(ubicacion), subnacional.modo = modo,
               nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
   por_defecto <- stats::setNames(ifelse(pd$clave %in% names(reglas), reglas[pd$clave],
                                         ifelse(pd$defecto == "anio", format(s[["anio"]]), pd$defecto)), pd$clave)
-  if (length(covs) && !length(s[["covariables"]]))
-    por_defecto[["covariables"]] <- sprintf("las de la causa padre (%d)", contexto$padre)
   prior <- val("mortalidad_exceso.prior")
   techo <- dado("mortalidad_exceso.techo")
   proc <- .DL_PROCEDENCIA_SIMPLE
@@ -293,30 +278,43 @@
                   if (prior == "plano") list(tipo_procedencia = proc),
                   if (!is.null(techo)) list(cota = c(0, num(techo)), fuente_cota = proc)),
     nudos_incidencia = nudos, sigma_suavidad = num(val("incidencia.suavidad")),
-    anchor = list(location_id = ubicacion, lambda = num(val("ancla.peso")),
-                  rho_edad = num(val("ancla.correlacion_edad")), medidas = "prevalence"),
+    # agrupar_bandas_finas: un proyecto trae las bandas como son (las finas de 80 a\u00f1os y m\u00e1s no se agrupan)
+    anchor = c(list(location_id = ubicacion, lambda = num(val("ancla.peso")),
+                    rho_edad = num(val("ancla.correlacion_edad")), medidas = "prevalence",
+                    agrupar_bandas_finas = FALSE),
+               if (length(dado("componente.secuelas")))
+                 list(componente = list(sequela_ids = as.integer(unlist(dado("componente.secuelas"))),
+                                        motivo = proc))),
     medidas_entrada = if (length(s[["datos_en_ajuste"]])) voc("datos_en_ajuste", s[["datos_en_ajuste"]]) else list(),
     # escala y cota_warning: los valores de la cascada del formato completo, sin clave simple
     cascada = c(list(kappa = num(val("subnacional.kappa")), escala = "natural", cota_warning = 0.5),
                 if (!is.null(dado("subnacional.anio_validacion")))
                   list(heldout_anio = list(valor = dado("subnacional.anio_validacion"), procedencia = proc)),
                 if (modo == "plano") list(modo = list(valor = "plana", procedencia = proc))),
-    # la transformación la declara el usuario: la regla que la busca en el nombre publicado no aplica
-    transformaciones = lapply(covs, function(cv) c(list(
-      covariate_name_short = cv[["nombre"]], transformacion = cv[["transformacion"]], procedencia = proc,
-      escala = num(cv[["escala"]] %||% t$valor[[match("covariables[].escala", t$clave)]]), escala_procedencia = proc,
-      token_exento = TRUE), if (isTRUE(cv[["escala_confirmada"]])) list(escala_confirmada = TRUE))),
-    # proxies: covariate_id_proxy por la posición de la covariable en `covariables` (900101, 900102, ...)
-    covariables = lapply(con_proxy, function(k) list(
-      covariate_name_short = nombres[k], proxy = list(covariate_id_proxy = 900100L + k, justificacion = proc))),
+    # la transformaci\u00f3n la declara la tabla betas: la regla que la busca en el nombre publicado no aplica; la escala
+    # es 1 si la fila no la trae (solo interviene con la transformaci\u00f3n lineal)
+    transformaciones = lapply(seq_along(nombres), function(k) c(list(
+      covariate_name_short = nombres[k], transformacion = betas$transformacion[k], procedencia = proc,
+      escala = if (is.na(betas$escala[k] %||% NA)) 1 else as.numeric(betas$escala[k]), escala_procedencia = proc,
+      token_exento = TRUE), if (isTRUE(betas$escala_confirmada[k])) list(escala_confirmada = TRUE))),
+    # proxies: covariate_id_proxy por la posici\u00f3n de la covariable en la tabla betas (900101, 900102, ...), ids
+    # internos que el usuario no ve; valor_nacional_de: el valor nacional que ancla el proxy es el de otra covariable
+    covariables = lapply(con_proxy, function(k) c(list(
+      covariate_name_short = nombres[k], proxy = list(covariate_id_proxy = 900100L + k, justificacion = proc)),
+      if (!is.na(betas$valor_nacional_de[k] %||% NA))
+        list(sustituye = list(covariate_id = contexto$ids_covariable[[betas$valor_nacional_de[k]]],
+                              covariate_name_short = betas$valor_nacional_de[k], procedencia = proc)))),
     extraction = if (!is.null(contexto$padre))
       list(cause_id = contexto$padre, motivo = sprintf("subtipo de la causa %d", contexto$padre)),
-    severidad = list(fuente = "tabla", procedencia = proc),
+    severidad = if (!is.null(dado("severidad.particion")))
+                  c(list(fuente = "mod", run_id = basename(dado("severidad.particion")), procedencia = proc),
+                    if (!is.null(dado("severidad.padre"))) list(padre = as.integer(dado("severidad.padre"))))
+                else list(fuente = "tabla", procedencia = proc),
     sensibilidad = list(lambda = num(val("sensibilidad.peso")), rho = num(val("sensibilidad.correlacion_edad")),
                         kappa = num(val("sensibilidad.kappa"))),
     decisiones = if (length(s[["notas"]])) as.character(unlist(s[["notas"]])),
     origen = list(formato = "simple", archivo = archivo, nombre = s[["nombre"]] %||% contexto$nombre,
-                  subnacional = modo, covariables = covs, por_defecto = por_defecto))
+                  subnacional = modo, unidades = "contrato", betas = betas, por_defecto = por_defecto))
   Filter(Negate(is.null), cfg)
 }
 

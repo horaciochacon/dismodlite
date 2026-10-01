@@ -93,7 +93,7 @@ exceso por defecto, \code{mortalidad_exceso.prior: desde_ancla}, o sin \code{mor
 \item \code{metric_name}: \code{Rate} (tasa por 100 000) en todas las medidas, también la prevalencia; las filas de otras
 métricas se ignoran. El \code{Percent} de la prevalencia en GBD Results no es la proporción de la población: divide
 por las personas con alguna causa (ver \code{anchor.metrica_prevalencia} en \code{\link[=dl_configuracion]{dl_configuracion()}}).
-\item \code{location_id} y \code{location_name}: la ubicación; se usan las filas de \code{ubicacion_nacional}.
+\item \code{location_id} y \code{location_name}: la ubicación; se usan las filas de \code{ubicacion_gbd}.
 \item \code{sex_id} (1 hombres, 2 mujeres), \code{age_id} y \code{age_name} (el grupo de edad de GBD), \code{cause_id} y \code{cause_name},
 \code{year}.
 \item \code{val}, \code{lower} y \code{upper}: la estimación y su intervalo de incertidumbre del 95 \%.
@@ -108,7 +108,7 @@ registran las salidas (\code{round}).
 
 \strong{\code{poblacion.csv}} (obligatorio). La población por ubicación, año, sexo y grupo de edad:
 \itemize{
-\item \code{location_id}: la ubicación. La de \code{ubicacion_nacional} es la nacional; cualquier otra es subnacional, con
+\item \code{location_id}: la ubicación. La de \code{ubicacion_gbd} es la nacional; cualquier otra es subnacional, con
 cualquier código (se lee como texto: \code{01}, \code{A} o \code{norte} valen igual).
 \item \code{location_name} (opcional): el nombre de la ubicación en las salidas; sin él, el código.
 \item \code{anio}: el año. Hace falta el año que se estima (\code{anio}), para cada sexo y, si el ancla trae las bandas de 80 años

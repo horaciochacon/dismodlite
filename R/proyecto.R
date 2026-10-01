@@ -84,28 +84,29 @@
 }
 
 # Lo que la traducción de la configuración simple `s` toma de la carpeta `proyecto`: la ubicación nacional y el nombre
-# (del ancla, si no los declara; sus errores llevan su tabla, prior_gbd), la causa padre y sus covariables, las
-# covariables con filas en proxies.csv y si la población es subnacional. Un proxies.csv o un poblacion.csv que no se
-# puede leer no detiene la configuración: su error lo da la lectura de la tabla (proxies NA: se suponen todas).
+# (del ancla, si no los declara; sus errores llevan su tabla, prior_gbd), la causa padre, las covariables con filas en
+# proxies.csv (covariables_subnacionales) y si la población es subnacional. Un proxies.csv o un poblacion.csv que no se
+# puede leer no detiene la configuración: su error lo da la lectura de la tabla. Todavía no trae `betas` ni
+# `ids_covariable`: la configuración nueva ya no declara covariables.
 .dl_contexto_proyecto <- function(proyecto, s, causa) {
   ctx <- list()
   cf <- .dl_configs_proyecto(proyecto)
   padre <- which(vapply(cf$subtipos, function(h) causa %in% h, NA))[1L]
-  if (!is.na(padre)) ctx[c("padre", "covariables_padre")] <- list(cf$causa[padre], cf$covariables[[padre]])
-  if ((is.null(s[["ubicacion_nacional"]]) || is.null(s[["nombre"]])) && dir.exists(file.path(proyecto, "ancla"))) {
+  if (!is.na(padre)) ctx$padre <- cf$causa[padre]
+  if ((is.null(s[["ubicacion_gbd"]]) || is.null(s[["nombre"]])) && dir.exists(file.path(proyecto, "ancla"))) {
     de_causa <- tryCatch(.dl_ancla_de_causa(.dl_ancla_simple(proyecto), causa),
                          dl_error = function(e) .dl_stop(.dl_detalle(e), campos = list(tabla = "prior_gbd")))
     locs <- unique(de_causa$location_id)
-    if (is.null(s[["ubicacion_nacional"]]) && length(locs) != 1L)
+    if (is.null(s[["ubicacion_gbd"]]) && length(locs) != 1L)
       .dl_stop(paste0("no se puede saber la ubicaci\u00f3n nacional: el ancla trae la causa %d en las ubicaciones %s. ",
-                      "Declara ubicacion_nacional (el location_id de GBD del pa\u00eds) en la configuraci\u00f3n"),
+                      "Declara ubicacion_gbd (el location_id de GBD del pa\u00eds) en la configuraci\u00f3n"),
                causa, paste(locs, collapse = ", "))
     if (length(locs) == 1L) ctx$ubicacion <- as.integer(locs)
     ctx$nombre <- unique(de_causa$cause_name)[1L]
   }
-  ubicacion <- s[["ubicacion_nacional"]] %||% ctx$ubicacion
+  ubicacion <- s[["ubicacion_gbd"]] %||% ctx$ubicacion
   if (is.null(ubicacion))
-    .dl_stop(paste0("falta ubicacion_nacional (el location_id de GBD del pa\u00eds) y el proyecto no tiene ancla/ ",
+    .dl_stop(paste0("falta ubicacion_gbd (el location_id de GBD del pa\u00eds) y el proyecto no tiene ancla/ ",
                     "de donde tomarla"))
   # los valores de la columna `cn` de una tabla del proyecto (NULL sin filas; NA si no se puede leer), memorizados
   columna <- function(archivo, cn) {
@@ -114,7 +115,8 @@
       tryCatch(.dl_leer_memo(f, function(p) unique(.dl_leer_simple(p)[[cn]]), variante = cn),
                dl_error = function(e) NA)
   }
-  ctx$proxies <- columna("proxies.csv", "covariable")
+  cs <- columna("proxies.csv", "covariable")
+  ctx$covariables_subnacionales <- if (is.null(cs) || identical(cs, NA)) character() else cs
   pb <- columna("poblacion.csv", "location_id")
   if (!identical(pb, NA)) ctx$subnacional <- any(pb != as.character(ubicacion))
   ctx
@@ -293,7 +295,7 @@
 #' - `metric_name`: `Rate` (tasa por 100 000) en todas las medidas, también la prevalencia; las filas de otras
 #'   métricas se ignoran. El `Percent` de la prevalencia en GBD Results no es la proporción de la población: divide
 #'   por las personas con alguna causa (ver `anchor.metrica_prevalencia` en [dl_configuracion()]).
-#' - `location_id` y `location_name`: la ubicación; se usan las filas de `ubicacion_nacional`.
+#' - `location_id` y `location_name`: la ubicación; se usan las filas de `ubicacion_gbd`.
 #' - `sex_id` (1 hombres, 2 mujeres), `age_id` y `age_name` (el grupo de edad de GBD), `cause_id` y `cause_name`,
 #'   `year`.
 #' - `val`, `lower` y `upper`: la estimación y su intervalo de incertidumbre del 95 %.
@@ -306,7 +308,7 @@
 #' registran las salidas (`round`).
 #'
 #' **`poblacion.csv`** (obligatorio). La población por ubicación, año, sexo y grupo de edad:
-#' - `location_id`: la ubicación. La de `ubicacion_nacional` es la nacional; cualquier otra es subnacional, con
+#' - `location_id`: la ubicación. La de `ubicacion_gbd` es la nacional; cualquier otra es subnacional, con
 #'   cualquier código (se lee como texto: `01`, `A` o `norte` valen igual).
 #' - `location_name` (opcional): el nombre de la ubicación en las salidas; sin él, el código.
 #' - `anio`: el año. Hace falta el año que se estima (`anio`), para cada sexo y, si el ancla trae las bandas de 80 años

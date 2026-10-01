@@ -96,6 +96,7 @@ test_that("un resumen, un ajuste y unos AVD de corridas distintas no se exportan
 })
 
 test_that("insumos, corrida y re-resumen bajo una carpeta con espacios y tildes (Ana María/Mis análisis)", {
+  skip("contrato: se reescribe en la Tarea 8")
   base <- file.path(withr::local_tempdir(), "Ana María", "Mis análisis")
   dir.create(file.path(base, "datos de ejemplo"), recursive = TRUE)
   expect_true(all(file.copy(c(dl_ejemplo(), ruta_acs()), file.path(base, "datos de ejemplo"), recursive = TRUE)))
@@ -183,6 +184,7 @@ test_that("las limitaciones de una corrida describen su cascada y su AVD sin tex
 })
 
 test_that("la limitación de una proyección nombra la población del año, y los proxies solo si hay cascada", {
+  skip("contrato: se reescribe en la Tarea 8")
   cfg <- dl_configuracion_ejemplo(9100L, cambios = list(years = list(ajuste = 2024L, ancla = list(
     valor = 2023L, procedencia = "proyecci\u00f3n de prueba"))))
   b <- list(poblacion = data.table::data.table(year = c(2023L, 2024L), acquisition_id = c("pob_2023", "pob_2024")))

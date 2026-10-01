@@ -25,8 +25,9 @@ Objeto de clase \code{dl_config}: la configuración validada, en el formato comp
 \code{anchor}, \code{medidas_entrada}, \code{cascada}, \code{transformaciones}, \code{covariables}, \code{severidad}, \code{sensibilidad},
 \code{decisiones} y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave simple
 sale cada una). La de una configuración simple trae además \code{origen}: \code{formato} (\code{"simple"}), \code{archivo}, \code{nombre}
-(el de la causa), \code{subnacional} (el modo subnacional: \code{covariables}, \code{plano} o \code{no}), \code{covariables} (las
-declaradas) y \code{por_defecto} (las claves tomadas por defecto, con su valor, como texto).
+(el de la causa), \code{subnacional} (el modo subnacional: \code{covariables}, \code{plano} o \code{no}), \code{unidades}
+(\code{"contrato"}: las tablas del proyecto ya vienen en las unidades del modelo), \code{betas} (la tabla \code{betas} de la
+causa) y \code{por_defecto} (las claves tomadas por defecto, con su valor, como texto).
 }
 \description{
 Lee la configuración de una causa, le aplica los \code{cambios} y valida todos los campos. Lee los dos formatos: el
@@ -36,41 +37,40 @@ de una configuración completa citan la ruta del campo (\code{config.anchor.lamb
 }
 \section{Formato simple}{
 
-Lo mínimo son tres claves: \code{causa}, \code{anio} y \code{edad_inicio} (y \code{ubicacion_nacional}, el \code{location_id} de GBD del
-país, si el ancla trae más de una ubicación). Todo lo demás tiene un valor por defecto, que \code{\link[=dl_proyecto]{dl_proyecto()}}
-muestra y cada corrida registra. Un ejemplo con una covariable, datos locales en el ajuste y subtipos:
+Lo mínimo son tres claves: \code{causa}, \code{anio} y \code{edad_inicio} (y \code{ubicacion_gbd}, el \code{location_id} de GBD del
+país, si las descargas traen más de una ubicación y el código nacional de \code{ubicaciones} no es su \code{location_id}).
+Todo lo demás tiene un valor por defecto, que \code{\link[=dl_proyecto]{dl_proyecto()}} muestra y cada corrida registra. Las covariables
+con efecto y sus betas no se declaran aquí: son la tabla \code{betas} del proyecto (ver \link{dl_tablas}). Un ejemplo con
+datos locales en el ajuste, una partición de severidad y subtipos:
 
 \if{html}{\out{<div class="sourceCode yaml">}}\preformatted{causa: 1234
 nombre: Enfermedad de ejemplo
 anio: 2023
 edad_inicio: 30
-ubicacion_nacional: 130
+ubicacion_gbd: 130
 ancla:
   peso: 0.5                  # los datos locales ya informaron la estimación de referencia
 nudos: [30, 40, 50, 60, 70, 80, 95]
 mortalidad_exceso:
   techo: 0.25                # por persona-año
-datos_en_ajuste: [prevalencia_estudio, mortalidad]
-covariables:
-  - nombre: haqi             # covariate_name_short de la descarga del GHDx
-    efecto_sobre: mortalidad_exceso
-    transformacion: lineal
-    beta: [-0.012, -0.018, -0.006]   # media e intervalo del 95 \% publicados
+datos_en_ajuste: [prevalencia, mortalidad]
+severidad:
+  particion: particion/mi_corrida   # carpeta de la corrida de partición, relativa al proyecto
+  padre: 1230                       # la causa cuya partición reparte las secuelas
+componente:
+  secuelas: [5001, 5002]            # las secuelas que forman el componente que se modela
 subtipos: [1235, 1236, 1237]
 notas:
   - ancla.peso 0.5 porque el estudio de prevalencia entró a la estimación de referencia.
 }\if{html}{\out{</div>}}
 
-Las claves con punto van dentro de su bloque (\code{ancla.peso} es \verb{peso:} bajo \verb{ancla:}) y las de \code{covariables[]} son
-las de cada registro de la lista \code{covariables}. Una covariable actúa solo en la estimación subnacional: con sus
-valores por ubicación en \code{proxies.csv}, la diferencia de log i (o de log f, con \code{efecto_sobre: mortalidad_exceso}) de cada ubicación es \code{beta} por su diferencia con el valor nacional; el ajuste nacional no
-cambia. \code{escala} multiplica esa diferencia antes de la beta, solo con \code{transformacion: lineal} (con \code{log} o
-\code{logit} no interviene y debe ser 1): con una beta estimada con la covariable en 0-1 y una descarga del GHDx en
-0-100, \code{escala: 0.01}; \code{escala_confirmada: true} confirma, en cambio, una beta lineal de haqi grande por punto de
-0-100 (sin ella, \code{\link[=dl_insumos]{dl_insumos()}} la rechaza por increíble). \verb{avanzado:} pasa claves del formato completo tal cual
-y se aplica al final (para expertos). El bloque \code{subnacional} también se puede llamar \code{departamentos}, su nombre
-anterior. La carpeta del proyecto y sus archivos: ver \code{\link[=dl_proyecto]{dl_proyecto()}}. Todas las claves, con su valor por
-defecto, están en la tabla de la sección siguiente.
+Las claves con punto van dentro de su bloque (\code{ancla.peso} es \verb{peso:} bajo \verb{ancla:}). Las covariables actúan solo
+en la estimación subnacional: con sus valores por ubicación en la tabla \code{covariables}, la diferencia de log i (o de
+log f, con \code{efecto_sobre: mortalidad_exceso} en la tabla \code{betas}) de cada ubicación es \code{beta} por su diferencia con
+el valor nacional; el ajuste nacional no cambia. \verb{avanzado:} pasa claves del formato completo tal cual y se aplica
+al final (para expertos). El bloque \code{subnacional} también se puede llamar \code{departamentos}, su nombre anterior. La
+carpeta del proyecto y sus archivos: ver \code{\link[=dl_proyecto]{dl_proyecto()}}. Todas las claves, con su valor por defecto, están en la
+tabla de la sección siguiente.
 }
 
 \section{Claves de la configuración simple}{
@@ -85,7 +85,7 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \code{anio} \tab entero \tab Año que se estima. Ejemplo: \code{2023}. \tab obligatoria \tab \code{years.ajuste} \cr
 \code{sexos} \tab lista de textos \tab Sexos que se estiman: hombres y mujeres (o sus códigos 1 y 2); una causa de un solo sexo lleva solo ese. Ejemplo: \code{[mujeres]}. \tab \code{[hombres, mujeres]} \tab \code{sexos} \cr
 \code{edad_inicio} \tab número \tab Primera edad del modelo, en años; ahí la prevalencia es 0. Ejemplo: \code{30}. \tab obligatoria \tab \code{edad_inicio} \cr
-\code{ubicacion_nacional} \tab entero \tab location_id de GBD del país (por ejemplo 130, México): el de las filas nacionales del ancla y de las covariables. Hace falta si el ancla trae otras ubicaciones (global, regiones). Ejemplo: \code{130}. \tab la única ubicación de la causa en el ancla \tab \code{anchor.location_id} \cr
+\code{ubicacion_gbd} \tab entero \tab location_id de GBD del país: el de las filas nacionales de las descargas de GBD Results y del GHDx. Hace falta solo si las descargas traen varias ubicaciones y el código nacional de ubicaciones.csv no es su location_id. Ejemplo: \code{130}. \tab el código nacional de ubicaciones.csv, si es un location_id de las descargas; o la única ubicación \tab  \cr
 \code{ancla.peso} (λ) \tab número \tab Peso de la estimación de referencia, en (0, 1]: 1 la toma a peso completo; menos (por ejemplo 0.5) si los datos locales que entran al ajuste ya informaron esa estimación. Ejemplo: \code{0.5}. \tab \code{1} \tab \code{anchor.lambda} \cr
 \code{ancla.correlacion_edad} (ρ) \tab número \tab Correlación entre las bandas de edad vecinas del ancla, en [0, 1). Ejemplo: \code{0.8}. \tab \code{0.5} \tab \code{anchor.rho_edad} \cr
 \code{ancla.anio} \tab entero \tab Año de la estimación de referencia cuando no es \code{anio}: a lo sumo un año antes, para proyectar el último año publicado (por ejemplo 2023 con anio 2024). Ejemplo: \code{2023}. \tab el valor de \code{anio} \tab \code{years.ancla} \cr
@@ -94,15 +94,11 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \code{mortalidad_exceso.prior} \tab texto \tab Prior de la mortalidad en exceso (EMR): desde_ancla (por edad, de las muertes y la prevalencia del ancla) o plano (sin prior por edad, solo el techo). Ejemplo: \code{plano}. \tab \code{desde_ancla} \tab \code{emr_prior.tipo} \cr
 \code{mortalidad_exceso.techo} \tab número \tab Techo de la EMR, un número > 0, por persona-año. Ejemplo: \code{0.25}. \tab 3 veces la EMR máxima del ancla \tab \code{emr_prior.cota} \cr
 \code{remision} \tab número \tab Remisión, un número >= 0, por persona-año (0 es una causa crónica). Ejemplo: \code{0.1}. \tab \code{0} \tab \code{remision.valor} \cr
-\code{datos_en_ajuste} \tab lista de textos \tab Tipos de datos.csv cuyas filas nacionales entran al ajuste: prevalencia_estudio, incidencia, mortalidad. Ejemplo: \code{[prevalencia_estudio, mortalidad]}. \tab ninguno: las nacionales no se usan; las subnacionales de mortalidad validan \tab \code{medidas_entrada} \cr
-\code{covariables} \tab lista de registros \tab Covariables con efecto, un registro por covariable con las claves covariables[].* de abajo. Actúan solo en la estimación subnacional y solo las que tienen filas en proxies.csv: mueven las tasas nacionales de cada ubicación según su diferencia con el valor nacional (por subnacional.kappa). El ajuste nacional no cambia. Un subtipo usa las betas de su causa padre: sin covariables, toma las del padre; si las declara, deben ser las mismas. \tab sin valor \tab \code{transformaciones} \cr
-\code{covariables[].nombre} \tab texto \tab covariate_name_short de la covariable en la descarga del GHDx (covariables/). Ejemplo: \code{haqi}. \tab obligatoria \tab \code{transformaciones[].covariate_name_short} \cr
-\code{covariables[].efecto_sobre} \tab texto \tab Parámetro sobre el que actúa: prevalencia o incidencia (las dos mueven log i, la incidencia) o mortalidad_exceso (mueve log f, la EMR). Ejemplo: \code{mortalidad_exceso}. \tab obligatoria \tab \code{extraccion.yaml: covariables_gbd[].parametro} \cr
-\code{covariables[].transformacion} \tab texto \tab Transformación de la covariable en la regresión publicada: log, lineal o logit. Ejemplo: \code{lineal}. \tab obligatoria \tab \code{transformaciones[].transformacion} \cr
-\code{covariables[].beta} \tab lista de números \tab Coeficiente publicado: \code{[media, inferior, superior]}, con su intervalo del 95 \%, o un número (beta fija). Es el cambio de log i (o de log f) por unidad de la covariable transformada: la diferencia de log i de una ubicación es beta por la diferencia entre su valor y el nacional (por escala). Ejemplo: \code{[-0.012, -0.018, -0.006]}. \tab obligatoria \tab \code{extraccion.yaml: covariables_gbd[].beta_valor} \cr
-\code{covariables[].escala} \tab número \tab Multiplica la diferencia de la covariable antes de la beta: 0.01 si la beta se estimó con la covariable en 0-1 y la descarga viene en 0-100. Solo con transformacion: lineal; con log o logit no interviene (en log, una escala se cancelaría de todos modos) y debe ser 1. Ejemplo: \code{0.01}. \tab \code{1} \tab \code{transformaciones[].escala} \cr
-\code{covariables[].escala_confirmada} \tab lógico \tab true confirma una beta lineal de haqi de 0.1 o más en valor absoluto con escala 1 (por punto del índice en 0-100). Sin la confirmación, dl_insumos() la rechaza: con la descarga en 0-100, 20 puntos de diferencia multiplicarían la tasa por exp(20 × beta), casi 0, y lo probable es que falte escala: 0.01. \tab \code{false} \tab \code{transformaciones[].escala_confirmada} \cr
-\code{subnacional.modo} \tab texto \tab Estimación subnacional: covariables (gradiente por proxies.csv), plano (las tasas nacionales en cada ubicación) o no (sin estimación subnacional). Ejemplo: \code{plano}. \tab covariables si alguna covariable declarada tiene filas en proxies.csv; si no, plano si la población trae otras ubicaciones; si no, no \tab \code{cascada.modo} \cr
+\code{datos_en_ajuste} \tab lista de textos \tab Tipos de la tabla datos cuyas filas nacionales entran al ajuste: prevalencia (de estudios; también se admite prevalencia_estudio), incidencia, mortalidad. Ejemplo: \code{[prevalencia, mortalidad]}. \tab ninguno: las nacionales no se usan; las subnacionales de mortalidad validan \tab \code{medidas_entrada} \cr
+\code{severidad.particion} \tab texto \tab Carpeta de una corrida de partición de severidad, relativa al proyecto. La tabla severidad de la causa sale de ella (con los pesos de discapacidad de GBD) en vez de la tabla severidad. Ejemplo: \code{particion/mi_corrida}. \tab sin valor \tab \code{severidad.run_id} \cr
+\code{severidad.padre} \tab entero \tab Causa padre cuya partición reparte las secuelas de esta causa (la causa es una hija dentro de la partición del padre). Solo con severidad.particion. Ejemplo: \code{1010}. \tab sin valor \tab \code{severidad.padre} \cr
+\code{componente.secuelas} \tab lista de enteros \tab Secuelas que forman el componente que se modela: el ancla se escala a su fracción de prevalencia y la severidad es la del componente. Necesita severidad.particion. Ejemplo: \code{[5001, 5002]}. \tab sin valor \tab \code{anchor.componente.sequela_ids} \cr
+\code{subnacional.modo} \tab texto \tab Estimación subnacional: covariables (gradiente por las covariables de la tabla betas), plano (las tasas nacionales en cada ubicación) o no (sin estimación subnacional). Ejemplo: \code{plano}. \tab covariables si alguna covariable de la tabla betas tiene filas subnacionales en la tabla covariables; si no, plano si la población trae otras ubicaciones; si no, no \tab \code{cascada.modo} \cr
 \code{subnacional.kappa} (κ) \tab número \tab Fuerza del efecto subnacional de las covariables, en (0, 1]. Ejemplo: \code{0.5}. \tab \code{1} \tab \code{cascada.kappa} \cr
 \code{subnacional.anio_validacion} \tab entero \tab Año de los datos subnacionales de datos.csv reservados para validar. Ejemplo: \code{2019}. \tab el valor de \code{anio} \tab \code{cascada.heldout_anio} \cr
 \code{sensibilidad.peso} (λ) \tab lista de números \tab Valores de ancla.peso del análisis de sensibilidad. Ejemplo: \code{[0.5, 1]}. \tab \code{[0.25, 0.5, 1]} \tab \code{sensibilidad.lambda} \cr
@@ -119,7 +115,7 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \item{\code{anio}}{Año que se estima. Ejemplo: \code{2023}. Entero, obligatoria. Formato completo: \code{years.ajuste}.}
 \item{\code{sexos}}{Sexos que se estiman: hombres y mujeres (o sus códigos 1 y 2); una causa de un solo sexo lleva solo ese. Ejemplo: \code{[mujeres]}. Lista de textos; por defecto, \code{[hombres, mujeres]}. Formato completo: \code{sexos}.}
 \item{\code{edad_inicio}}{Primera edad del modelo, en años; ahí la prevalencia es 0. Ejemplo: \code{30}. Número, obligatoria. Formato completo: \code{edad_inicio}.}
-\item{\code{ubicacion_nacional}}{location_id de GBD del país (por ejemplo 130, México): el de las filas nacionales del ancla y de las covariables. Hace falta si el ancla trae otras ubicaciones (global, regiones). Ejemplo: \code{130}. Entero; por defecto, la única ubicación de la causa en el ancla. Formato completo: \code{anchor.location_id}.}
+\item{\code{ubicacion_gbd}}{location_id de GBD del país: el de las filas nacionales de las descargas de GBD Results y del GHDx. Hace falta solo si las descargas traen varias ubicaciones y el código nacional de ubicaciones.csv no es su location_id. Ejemplo: \code{130}. Entero; por defecto, el código nacional de ubicaciones.csv, si es un location_id de las descargas; o la única ubicación.}
 \item{\code{ancla.peso} (\eqn{\lambda}{λ})}{Peso de la estimación de referencia, en (0, 1]: 1 la toma a peso completo; menos (por ejemplo 0.5) si los datos locales que entran al ajuste ya informaron esa estimación. Ejemplo: \code{0.5}. Número; por defecto, \code{1}. Formato completo: \code{anchor.lambda}.}
 \item{\code{ancla.correlacion_edad} (\eqn{\rho}{ρ})}{Correlación entre las bandas de edad vecinas del ancla, en [0, 1). Ejemplo: \code{0.8}. Número; por defecto, \code{0.5}. Formato completo: \code{anchor.rho_edad}.}
 \item{\code{ancla.anio}}{Año de la estimación de referencia cuando no es \code{anio}: a lo sumo un año antes, para proyectar el último año publicado (por ejemplo 2023 con anio 2024). Ejemplo: \code{2023}. Entero; por defecto, el valor de \code{anio}. Formato completo: \code{years.ancla}.}
@@ -128,15 +124,11 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \item{\code{mortalidad_exceso.prior}}{Prior de la mortalidad en exceso (EMR): desde_ancla (por edad, de las muertes y la prevalencia del ancla) o plano (sin prior por edad, solo el techo). Ejemplo: \code{plano}. Texto; por defecto, \code{desde_ancla}. Formato completo: \code{emr_prior.tipo}.}
 \item{\code{mortalidad_exceso.techo}}{Techo de la EMR, un número > 0, por persona-año. Ejemplo: \code{0.25}. Número; por defecto, 3 veces la EMR máxima del ancla. Formato completo: \code{emr_prior.cota}.}
 \item{\code{remision}}{Remisión, un número >= 0, por persona-año (0 es una causa crónica). Ejemplo: \code{0.1}. Número; por defecto, \code{0}. Formato completo: \code{remision.valor}.}
-\item{\code{datos_en_ajuste}}{Tipos de datos.csv cuyas filas nacionales entran al ajuste: prevalencia_estudio, incidencia, mortalidad. Ejemplo: \code{[prevalencia_estudio, mortalidad]}. Lista de textos; por defecto, ninguno: las nacionales no se usan; las subnacionales de mortalidad validan. Formato completo: \code{medidas_entrada}.}
-\item{\code{covariables}}{Covariables con efecto, un registro por covariable con las claves covariables[].* de abajo. Actúan solo en la estimación subnacional y solo las que tienen filas en proxies.csv: mueven las tasas nacionales de cada ubicación según su diferencia con el valor nacional (por subnacional.kappa). El ajuste nacional no cambia. Un subtipo usa las betas de su causa padre: sin covariables, toma las del padre; si las declara, deben ser las mismas. Lista de registros; por defecto, sin valor. Formato completo: \code{transformaciones}.}
-\item{\code{covariables[].nombre}}{covariate_name_short de la covariable en la descarga del GHDx (covariables/). Ejemplo: \code{haqi}. Texto, obligatoria. Formato completo: \code{transformaciones[].covariate_name_short}.}
-\item{\code{covariables[].efecto_sobre}}{Parámetro sobre el que actúa: prevalencia o incidencia (las dos mueven log i, la incidencia) o mortalidad_exceso (mueve log f, la EMR). Ejemplo: \code{mortalidad_exceso}. Texto, obligatoria. Formato completo: \code{extraccion.yaml: covariables_gbd[].parametro}.}
-\item{\code{covariables[].transformacion}}{Transformación de la covariable en la regresión publicada: log, lineal o logit. Ejemplo: \code{lineal}. Texto, obligatoria. Formato completo: \code{transformaciones[].transformacion}.}
-\item{\code{covariables[].beta}}{Coeficiente publicado: \code{[media, inferior, superior]}, con su intervalo del 95 \%, o un número (beta fija). Es el cambio de log i (o de log f) por unidad de la covariable transformada: la diferencia de log i de una ubicación es beta por la diferencia entre su valor y el nacional (por escala). Ejemplo: \code{[-0.012, -0.018, -0.006]}. Lista de números, obligatoria. Formato completo: \code{extraccion.yaml: covariables_gbd[].beta_valor}.}
-\item{\code{covariables[].escala}}{Multiplica la diferencia de la covariable antes de la beta: 0.01 si la beta se estimó con la covariable en 0-1 y la descarga viene en 0-100. Solo con transformacion: lineal; con log o logit no interviene (en log, una escala se cancelaría de todos modos) y debe ser 1. Ejemplo: \code{0.01}. Número; por defecto, \code{1}. Formato completo: \code{transformaciones[].escala}.}
-\item{\code{covariables[].escala_confirmada}}{true confirma una beta lineal de haqi de 0.1 o más en valor absoluto con escala 1 (por punto del índice en 0-100). Sin la confirmación, dl_insumos() la rechaza: con la descarga en 0-100, 20 puntos de diferencia multiplicarían la tasa por exp(20 × beta), casi 0, y lo probable es que falte escala: 0.01. Lógico; por defecto, \code{false}. Formato completo: \code{transformaciones[].escala_confirmada}.}
-\item{\code{subnacional.modo}}{Estimación subnacional: covariables (gradiente por proxies.csv), plano (las tasas nacionales en cada ubicación) o no (sin estimación subnacional). Ejemplo: \code{plano}. Texto; por defecto, covariables si alguna covariable declarada tiene filas en proxies.csv; si no, plano si la población trae otras ubicaciones; si no, no. Formato completo: \code{cascada.modo}.}
+\item{\code{datos_en_ajuste}}{Tipos de la tabla datos cuyas filas nacionales entran al ajuste: prevalencia (de estudios; también se admite prevalencia_estudio), incidencia, mortalidad. Ejemplo: \code{[prevalencia, mortalidad]}. Lista de textos; por defecto, ninguno: las nacionales no se usan; las subnacionales de mortalidad validan. Formato completo: \code{medidas_entrada}.}
+\item{\code{severidad.particion}}{Carpeta de una corrida de partición de severidad, relativa al proyecto. La tabla severidad de la causa sale de ella (con los pesos de discapacidad de GBD) en vez de la tabla severidad. Ejemplo: \code{particion/mi_corrida}. Texto; por defecto, sin valor. Formato completo: \code{severidad.run_id}.}
+\item{\code{severidad.padre}}{Causa padre cuya partición reparte las secuelas de esta causa (la causa es una hija dentro de la partición del padre). Solo con severidad.particion. Ejemplo: \code{1010}. Entero; por defecto, sin valor. Formato completo: \code{severidad.padre}.}
+\item{\code{componente.secuelas}}{Secuelas que forman el componente que se modela: el ancla se escala a su fracción de prevalencia y la severidad es la del componente. Necesita severidad.particion. Ejemplo: \code{[5001, 5002]}. Lista de enteros; por defecto, sin valor. Formato completo: \code{anchor.componente.sequela_ids}.}
+\item{\code{subnacional.modo}}{Estimación subnacional: covariables (gradiente por las covariables de la tabla betas), plano (las tasas nacionales en cada ubicación) o no (sin estimación subnacional). Ejemplo: \code{plano}. Texto; por defecto, covariables si alguna covariable de la tabla betas tiene filas subnacionales en la tabla covariables; si no, plano si la población trae otras ubicaciones; si no, no. Formato completo: \code{cascada.modo}.}
 \item{\code{subnacional.kappa} (\eqn{\kappa}{κ})}{Fuerza del efecto subnacional de las covariables, en (0, 1]. Ejemplo: \code{0.5}. Número; por defecto, \code{1}. Formato completo: \code{cascada.kappa}.}
 \item{\code{subnacional.anio_validacion}}{Año de los datos subnacionales de datos.csv reservados para validar. Ejemplo: \code{2019}. Entero; por defecto, el valor de \code{anio}. Formato completo: \code{cascada.heldout_anio}.}
 \item{\code{sensibilidad.peso} (\eqn{\lambda}{λ})}{Valores de ancla.peso del análisis de sensibilidad. Ejemplo: \code{[0.5, 1]}. Lista de números; por defecto, \code{[0.25, 0.5, 1]}. Formato completo: \code{sensibilidad.lambda}.}

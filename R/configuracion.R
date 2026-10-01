@@ -149,41 +149,39 @@
 #' de una configuración completa citan la ruta del campo (`config.anchor.lambda`, ...).
 #'
 #' @section Formato simple:
-#' Lo mínimo son tres claves: `causa`, `anio` y `edad_inicio` (y `ubicacion_nacional`, el `location_id` de GBD del
-#' país, si el ancla trae más de una ubicación). Todo lo demás tiene un valor por defecto, que [dl_proyecto()]
-#' muestra y cada corrida registra. Un ejemplo con una covariable, datos locales en el ajuste y subtipos:
+#' Lo mínimo son tres claves: `causa`, `anio` y `edad_inicio` (y `ubicacion_gbd`, el `location_id` de GBD del
+#' país, si las descargas traen más de una ubicación y el código nacional de `ubicaciones` no es su `location_id`).
+#' Todo lo demás tiene un valor por defecto, que [dl_proyecto()] muestra y cada corrida registra. Las covariables
+#' con efecto y sus betas no se declaran aquí: son la tabla `betas` del proyecto (ver [dl_tablas]). Un ejemplo con
+#' datos locales en el ajuste, una partición de severidad y subtipos:
 #' ```yaml
 #' causa: 1234
 #' nombre: Enfermedad de ejemplo
 #' anio: 2023
 #' edad_inicio: 30
-#' ubicacion_nacional: 130
+#' ubicacion_gbd: 130
 #' ancla:
 #'   peso: 0.5                  # los datos locales ya informaron la estimación de referencia
 #' nudos: [30, 40, 50, 60, 70, 80, 95]
 #' mortalidad_exceso:
 #'   techo: 0.25                # por persona-año
-#' datos_en_ajuste: [prevalencia_estudio, mortalidad]
-#' covariables:
-#'   - nombre: haqi             # covariate_name_short de la descarga del GHDx
-#'     efecto_sobre: mortalidad_exceso
-#'     transformacion: lineal
-#'     beta: [-0.012, -0.018, -0.006]   # media e intervalo del 95 % publicados
+#' datos_en_ajuste: [prevalencia, mortalidad]
+#' severidad:
+#'   particion: particion/mi_corrida   # carpeta de la corrida de partición, relativa al proyecto
+#'   padre: 1230                       # la causa cuya partición reparte las secuelas
+#' componente:
+#'   secuelas: [5001, 5002]            # las secuelas que forman el componente que se modela
 #' subtipos: [1235, 1236, 1237]
 #' notas:
 #'   - ancla.peso 0.5 porque el estudio de prevalencia entró a la estimación de referencia.
 #' ```
-#' Las claves con punto van dentro de su bloque (`ancla.peso` es `peso:` bajo `ancla:`) y las de `covariables[]` son
-#' las de cada registro de la lista `covariables`. Una covariable actúa solo en la estimación subnacional: con sus
-#' valores por ubicación en `proxies.csv`, la diferencia de log i (o de log f, con `efecto_sobre:
-#' mortalidad_exceso`) de cada ubicación es `beta` por su diferencia con el valor nacional; el ajuste nacional no
-#' cambia. `escala` multiplica esa diferencia antes de la beta, solo con `transformacion: lineal` (con `log` o
-#' `logit` no interviene y debe ser 1): con una beta estimada con la covariable en 0-1 y una descarga del GHDx en
-#' 0-100, `escala: 0.01`; `escala_confirmada: true` confirma, en cambio, una beta lineal de haqi grande por punto de
-#' 0-100 (sin ella, [dl_insumos()] la rechaza por increíble). `avanzado:` pasa claves del formato completo tal cual
-#' y se aplica al final (para expertos). El bloque `subnacional` también se puede llamar `departamentos`, su nombre
-#' anterior. La carpeta del proyecto y sus archivos: ver [dl_proyecto()]. Todas las claves, con su valor por
-#' defecto, están en la tabla de la sección siguiente.
+#' Las claves con punto van dentro de su bloque (`ancla.peso` es `peso:` bajo `ancla:`). Las covariables actúan solo
+#' en la estimación subnacional: con sus valores por ubicación en la tabla `covariables`, la diferencia de log i (o de
+#' log f, con `efecto_sobre: mortalidad_exceso` en la tabla `betas`) de cada ubicación es `beta` por su diferencia con
+#' el valor nacional; el ajuste nacional no cambia. `avanzado:` pasa claves del formato completo tal cual y se aplica
+#' al final (para expertos). El bloque `subnacional` también se puede llamar `departamentos`, su nombre anterior. La
+#' carpeta del proyecto y sus archivos: ver [dl_proyecto()]. Todas las claves, con su valor por defecto, están en la
+#' tabla de la sección siguiente.
 #'
 #' @param causa Identificador de la causa (`cause_id`).
 #' @param carpeta_config La carpeta que tiene la configuración (`<causa>.yaml`, o `config.yaml` en un proyecto simple
@@ -199,8 +197,9 @@
 #'   `anchor`, `medidas_entrada`, `cascada`, `transformaciones`, `covariables`, `severidad`, `sensibilidad`,
 #'   `decisiones` y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave simple
 #'   sale cada una). La de una configuración simple trae además `origen`: `formato` (`"simple"`), `archivo`, `nombre`
-#'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano` o `no`), `covariables` (las
-#'   declaradas) y `por_defecto` (las claves tomadas por defecto, con su valor, como texto).
+#'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano` o `no`), `unidades`
+#'   (`"contrato"`: las tablas del proyecto ya vienen en las unidades del modelo), `betas` (la tabla `betas` de la
+#'   causa) y `por_defecto` (las claves tomadas por defecto, con su valor, como texto).
 #' @seealso [dl_proyecto()] (la carpeta del proyecto y sus archivos), [dl_nuevo_proyecto()] (una configuración
 #'   comentada con todas las claves), [dl_configuracion_ejemplo()] y [dl_insumos()] (el paso siguiente).
 #' @family configuración

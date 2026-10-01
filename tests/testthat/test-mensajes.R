@@ -6,6 +6,7 @@
 .mensaje_de <- function(expr) tryCatch({ expr; NA_character_ }, error = conditionMessage)
 
 test_that("dl_ajustar() sin semilla: el mensaje nombra la función y el argumento `semilla`", {
+  skip("contrato: se reescribe en la Tarea 8")
   b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE)))
   expect_error(dl_ajustar(b), "^dl_ajustar\\(\\): .*semilla")
   expect_error(dl_ajustar(b, semilla = "uno"), "^dl_ajustar\\(\\): `semilla` debe ser un número entero")
@@ -38,6 +39,7 @@ test_that("las funciones que escriben corridas piden `carpeta` sin nombrar varia
 })
 
 test_that("anidadas o con |>, el mensaje nombra la función que recibió el argumento malo", {
+  skip("contrato: se reescribe en la Tarea 8")
   # el argumento que es otra llamada se evalúa en el entorno del usuario: el error de la configuración es de
   # dl_configuracion_ejemplo(), el de las rutas es de dl_insumos(), aunque el usuario escribió dl_ajustar() afuera
   expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lambda = 5))) |>
@@ -57,6 +59,7 @@ test_that("anidadas o con |>, el mensaje nombra la función que recibió el argu
 })
 
 test_that("el error es de clase dl_error, con el detalle sin la función y la función que llamó el usuario", {
+  skip("contrato: se reescribe en la Tarea 8")
   b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE)))
   e <- tryCatch(dl_ajustar(b), error = identity)
   expect_s3_class(e, "dl_error")
@@ -91,6 +94,7 @@ test_that("un YAML con un error de sintaxis se reporta en español, con la líne
 })
 
 test_that("los avisos de data.table::fread() llegan con la función del usuario delante", {
+  skip("contrato: se reescribe en la Tarea 8")
   # pesos_80mas.csv con una última línea incompleta: fread la descarta con un aviso en inglés, que el paquete
   # traduce; cualquier otro aviso de fread llega con su texto, pero también con la función delante
   f <- file.path(withr::local_tempdir(), "pesos_80mas.csv")

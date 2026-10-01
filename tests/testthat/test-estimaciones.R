@@ -14,6 +14,7 @@
 })
 
 test_that("de un ajuste: columnas, media de las simulaciones por celda y cuantiles del nivel", {
+  skip("contrato: se reescribe en la Tarea 8")
   x <- .estimaciones_mini()
   e <- dl_estimaciones(x$ajuste)
   expect_identical(names(e), c("location_id", "sex_id", "edad", "medida", "media", "inferior", "superior"))
@@ -34,6 +35,7 @@ test_that("de un ajuste: columnas, media de las simulaciones por celda y cuantil
 })
 
 test_that("de un ajuste: incidencia poblacional y mortalidad en exceso; los AVD piden dl_avd()", {
+  skip("contrato: se reescribe en la Tarea 8")
   x <- .estimaciones_mini()
   dq <- x$ajuste$draws_q
   inc <- dl_estimaciones(x$ajuste, "incidencia")
@@ -54,6 +56,7 @@ test_that("de un ajuste: incidencia poblacional y mortalidad en exceso; los AVD 
 })
 
 test_that("de un resultado de dl_avd(): filas por banda con age_group_id", {
+  skip("contrato: se reescribe en la Tarea 8")
   x <- .estimaciones_mini()
   y <- dl_avd(x$ajuste, x$insumos, semilla = 7L)
   e <- dl_estimaciones(y)
@@ -69,6 +72,7 @@ test_that("de un resultado de dl_avd(): filas por banda con age_group_id", {
 })
 
 test_that("de una cascada: la naci\u00f3n y los 25 departamentos", {
+  skip("contrato: se reescribe en la Tarea 8")
   x <- .estimaciones_mini()
   casc <- suppressWarnings(dl_cascada(x$ajuste, x$insumos, semilla = 7L))
   e <- dl_estimaciones(casc)

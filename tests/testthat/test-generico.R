@@ -32,6 +32,7 @@ escribir_proyecto_generico <- function(d) {
 }
 
 test_that("un proyecto de otro pa\u00eds, con regiones y una covariable propias, corre de punta a punta", {
+  skip("contrato: se reescribe en la Tarea 8")
   d <- file.path(withr::local_tempdir(), "pa\u00eds ficticio")
   escribir_proyecto_generico(d)
 

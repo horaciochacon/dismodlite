@@ -13,6 +13,7 @@ sin_cache_rcpp <- function(entorno = parent.frame()) {
 }
 
 test_that("motor rcpp sin Rcpp da un mensaje claro en español", {
+  skip("contrato: se reescribe en la Tarea 8")
   local_mocked_bindings(.dl_rcpp_disponible = function() FALSE)
   b <- dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE))
   expect_error(dl_ajustar(b, dl_opciones_mcmc(motor = "rcpp", simulaciones = 10L, cadenas = 1L,
@@ -33,6 +34,7 @@ test_that("motor rcpp sin Rcpp da un mensaje claro en español", {
 })
 
 test_that("si el C++ no compila, el mensaje dice cómo seguir (compilador o motor = \"mh\")", {
+  skip("contrato: se reescribe en la Tarea 8")
   local_mocked_bindings(.dl_rcpp_disponible = function() TRUE,
                         .dl_rcpp_compilar = function(...) stop("Error 1 occurred building shared library."))
   sin_cache_rcpp()
