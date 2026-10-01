@@ -98,3 +98,6 @@ funcionando y, con los mismos insumos, la misma semilla y las mismas opciones, d
 
 * Ayuda en español para cada función, con ejemplos que corren sobre el proyecto de ejemplo, y guías que explican
   el modelo, cómo preparar los datos y cada etapa de una corrida.
+* Las guías están escritas en Quarto y el sitio tiene un diseño propio, con modo claro y oscuro.
+* Logo del paquete: la prevalencia por edad del proyecto de ejemplo, con la curva nacional y las 25
+  subnacionales (`data-raw/logo.R`).

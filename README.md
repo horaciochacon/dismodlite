@@ -7,7 +7,7 @@
 <!-- badges: start -->
 
 [![R-CMD-check](https://github.com/horaciochacon/dismodlite/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/horaciochacon/dismodlite/actions/workflows/R-CMD-check.yaml)
-[![Sitio](https://img.shields.io/badge/sitio-pkgdown-2a78d6)](https://horaciochacon.github.io/dismodlite/)
+[![Sitio](https://img.shields.io/badge/sitio-pkgdown-0E6B62)](https://horaciochacon.github.io/dismodlite/)
 [![Licencia:
 MIT](https://img.shields.io/badge/licencia-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 <!-- badges: end -->
