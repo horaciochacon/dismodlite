@@ -117,7 +117,10 @@ causa, \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}.
 Funciones del proyecto:
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_nuevo_proyecto}()},
+\code{\link{dl_plantilla}()},
 \code{\link{dl_proyecto}()},
-\code{\link{dl_revisar_proyecto}()}
+\code{\link{dl_revisar_proyecto}()},
+\code{\link{dl_tabla}()},
+\code{\link{dl_tablas}}
 }
 \concept{proyecto}

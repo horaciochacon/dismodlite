@@ -74,7 +74,10 @@ comparar).
 Funciones del proyecto:
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
+\code{\link{dl_plantilla}()},
 \code{\link{dl_proyecto}()},
-\code{\link{dl_revisar_proyecto}()}
+\code{\link{dl_revisar_proyecto}()},
+\code{\link{dl_tabla}()},
+\code{\link{dl_tablas}}
 }
 \concept{proyecto}

@@ -58,3 +58,261 @@
 # Sexo en el contrato: «hombres», «mujeres» o «ambos» desde cualquiera de las formas de .DL_SEXOS_CONTRATO; NA si no
 # es ninguna.
 .dl_sexo_contrato <- function(x) unname(.DL_SEXOS_CONTRATO[tolower(trimws(as.character(x)))])
+
+# ---- Validación de una tabla ----
+
+# Columnas clave (además del eje) de cada tabla: con el eje, identifican una fila.
+.DL_CLAVES_TABLA <- list(ancla = "medida", covariables = "covariable", betas = "covariable", severidad = "estado")
+
+# Tablas en las que las bandas de edad de un mismo grupo no pueden solaparse.
+.DL_TABLAS_SIN_SOLAPE <- c("poblacion", "ancla", "covariables", "severidad", "poblacion_detalle")
+
+# Filas para un mensaje: «filas 2, 5, 7» (como mucho 5), contando la del encabezado como 1.
+.dl_filas_msg <- function(i) sprintf("fila(s) %s%s", paste(utils::head(i + 1L, 5L), collapse = ", "),
+                                     if (length(i) > 5L) sprintf(" y %d m\u00e1s", length(i) - 5L) else "")
+
+# Convierte las columnas de `d` al tipo de tablas.csv. Devuelve list(d, problemas).
+.dl_tipar_tabla <- function(d, tabla) {
+  t <- .dl_tablas_ref()
+  t <- t[t$tabla == tabla & t$columna %in% names(d), ]
+  probs <- character()
+  for (i in seq_len(nrow(t))) {
+    cn <- t$columna[i]
+    x <- d[[cn]]
+    if (is.factor(x)) x <- as.character(x)
+    if (is.character(x)) x[!nzchar(trimws(x))] <- NA_character_
+    y <- switch(t$tipo[i],
+                texto = trimws(as.character(x)),
+                numero = suppressWarnings(as.numeric(x)),
+                entero = { v <- suppressWarnings(as.numeric(x)); ifelse(!is.na(v) & v == round(v), v, NA_real_) },
+                logico = as.logical(toupper(trimws(as.character(x)))))
+    malos <- which(!is.na(x) & is.na(y))
+    if (length(malos))
+      probs <- c(probs, sprintf("%s: %s no es %s (%s)", cn, paste(utils::head(unique(x[malos]), 3L), collapse = ", "),
+                                c(texto = "texto", numero = "un n\u00famero", entero = "un entero",
+                                  logico = "true o false")[[t$tipo[i]]], .dl_filas_msg(malos)))
+    if (t$tipo[i] == "entero") y <- as.integer(y)
+    data.table::set(d, j = cn, value = y)
+  }
+  list(d = d, problemas = probs)
+}
+
+# TRUE donde [inicio, fin) es un grupo de edad de GBD (las bandas de menos de un año no son de años enteros).
+.dl_es_banda_gbd <- function(inicio, fin) !is.na(.dl_grupo_edad(inicio, fin))
+
+# Problemas y avisos de la tabla `d` (ya normalizada y tipada) de `tabla`.
+.dl_problemas_tabla <- function(d, tabla) {
+  t <- .dl_tablas_ref()
+  t <- t[t$tabla == tabla, ]
+  probs <- character()
+  avisos <- character()
+  p <- function(...) probs <<- c(probs, sprintf(...))
+  faltan <- setdiff(t$columna[t$exige == "si"], names(d))
+  if (length(faltan)) p("faltan las columnas %s (trae: %s)", paste(faltan, collapse = ", "),
+                        paste(names(d), collapse = ", "))
+  if ("sexo" %in% names(d)) {
+    s <- .dl_sexo_contrato(d$sexo)
+    malos <- which(!is.na(d$sexo) & is.na(s))
+    if (length(malos)) p("sexo: %s no es hombres, mujeres ni ambos (%s)", d$sexo[malos[1L]], .dl_filas_msg(malos))
+    data.table::set(d, j = "sexo", value = s)
+  }
+  for (i in which(t$columna %in% names(d))) {
+    cn <- t$columna[i]
+    x <- d[[cn]]
+    if (nzchar(t$valores_alias[i])) {
+      va <- strsplit(strsplit(t$valores_alias[i], "|", fixed = TRUE)[[1L]], "=", fixed = TRUE)
+      for (par in va) x[x %in% par[1L]] <- par[2L]
+      data.table::set(d, j = cn, value = x)
+    }
+    if (nzchar(t$vocabulario[i])) {
+      voc <- strsplit(t$vocabulario[i], "|", fixed = TRUE)[[1L]]
+      malos <- which(!is.na(x) & !x %in% voc)
+      if (length(malos)) p("%s: %s no es uno de %s (%s)", cn, x[malos[1L]], paste(voc, collapse = ", "),
+                           .dl_filas_msg(malos))
+    }
+    if (nzchar(t$minimo[i]) && any(x < as.numeric(t$minimo[i]), na.rm = TRUE))
+      p("%s: hay valores menores que %s (%s)", cn, t$minimo[i], .dl_filas_msg(which(x < as.numeric(t$minimo[i]))))
+    if (nzchar(t$maximo[i]) && any(x > as.numeric(t$maximo[i]), na.rm = TRUE))
+      p("%s: hay valores mayores que %s (%s)", cn, t$maximo[i], .dl_filas_msg(which(x > as.numeric(t$maximo[i]))))
+  }
+  claves <- intersect(c(.DL_EJE, .DL_CLAVES_TABLA[[tabla]]), names(d))
+  grupo <- setdiff(claves, c("edad_inicio", "edad_fin"))
+  if (all(c("edad_inicio", "edad_fin") %in% names(d)) && !length(faltan)) {
+    abierta <- is.na(d$edad_fin) & !is.na(d$edad_inicio)
+    ultima <- d[, edad_inicio == max(edad_inicio, na.rm = TRUE), by = grupo]$V1
+    if (any(abierta & !ultima))
+      p("edad_fin vac\u00edo (banda abierta) en una banda que no es la \u00faltima de su grupo (%s)",
+        .dl_filas_msg(which(abierta & !ultima)))
+    data.table::set(d, which(abierta), "edad_fin", .DL_EDAD_ABIERTA)
+    malas <- which(d$edad_inicio >= d$edad_fin)
+    if (length(malas)) p("edad_inicio debe ser menor que edad_fin (%s)", .dl_filas_msg(malas))
+    no_enteras <- which((d$edad_inicio != round(d$edad_inicio) | d$edad_fin != round(d$edad_fin)) &
+                          !.dl_es_banda_gbd(d$edad_inicio, d$edad_fin))
+    if (length(no_enteras))
+      p("las bandas de edad son de a\u00f1os enteros (salvo los grupos de edad de GBD): %s", .dl_filas_msg(no_enteras))
+    if (tabla %in% .DL_TABLAS_SIN_SOLAPE) {
+      orden <- d[, .I[order(edad_inicio)], by = grupo]$V1
+      x <- d[orden]
+      solapa <- x[, c(FALSE, utils::head(edad_fin, -1L) > utils::tail(edad_inicio, -1L)), by = grupo]$V1
+      if (any(solapa)) p("hay bandas de edad que se solapan en un mismo grupo (%s)", .dl_filas_msg(orden[solapa]))
+    }
+  }
+  if (tabla != "datos" && length(claves) && !length(faltan)) {
+    rep <- which(duplicated(d[, claves, with = FALSE]))
+    if (length(rep)) p("filas repetidas en %s (%s)", paste(claves, collapse = ", "), .dl_filas_msg(rep))
+  }
+  prev <- if (tabla %in% c("ancla", "datos") && all(c("medida", "valor") %in% names(d)))
+    which(d$medida %in% "prevalencia" & d$valor > 1)
+  if (length(prev))
+    avisos <- c(avisos, sprintf("prevalencia mayor que 1 (%s): \u00bfest\u00e1 por 100 000? El contrato la pide en proporci\u00f3n",
+                                .dl_filas_msg(prev)))
+  list(d = d, problemas = probs, avisos = avisos)
+}
+
+# Tabla del contrato `tabla` validada desde `d` (de `origen`, un texto para los mensajes): nombres, tipos y reglas de
+# una tabla sola. Error con todos los problemas juntos (campos: tabla, problemas).
+.dl_tabla_contrato <- function(d, tabla, origen) {
+  d <- .dl_normalizar_nombres(d, tabla)
+  ti <- .dl_tipar_tabla(d, tabla)
+  r <- .dl_problemas_tabla(ti$d, tabla)
+  probs <- c(ti$problemas, r$problemas)
+  if (length(probs))
+    .dl_stop("la tabla %s tiene %d problema(s):\n%s\n  origen: %s", tabla, length(probs),
+             paste0("  - ", probs, collapse = "\n"), origen, campos = list(tabla = tabla, problemas = probs))
+  out <- r$d[, intersect(.dl_columnas_contrato(tabla), names(r$d)), with = FALSE]
+  data.table::setattr(out, "tabla", tabla)
+  data.table::setattr(out, "origen", origen)
+  data.table::setattr(out, "avisos", r$avisos)
+  data.table::setattr(out, "class", c("dl_tabla", "data.table", "data.frame"))
+  out
+}
+
+# Lee `x` (ruta a un CSV, carpeta de CSV o data.frame) como tabla `tabla` sin validar. Esta versión solo admite
+# tablas del contrato; los lectores de fuentes conocidas los agrega R/lectores.R.
+.dl_leer_fuente_tabla <- function(x, tabla, opciones = list()) {
+  if (is.data.frame(x)) return(data.table::as.data.table(x))
+  archivos <- if (dir.exists(x)) list.files(x, "[.]csv$", ignore.case = TRUE, full.names = TRUE) else x
+  data.table::rbindlist(fill = TRUE, lapply(archivos, function(f)
+    tryCatch(.dl_leer_csv(f, colClasses = "character", na.strings = "", tabla = tabla),
+             dl_error = function(e) .dl_stop("no se pudo leer la tabla %s: %s", tabla, e$detalle))))
+}
+
+#' Una tabla del contrato de insumos
+#'
+#' Lee, convierte y valida una tabla del contrato de insumos (ver [dl_tablas]): una ruta a un CSV, una carpeta de CSV
+#' o un `data.frame`. Si el archivo es una descarga de GBD Results o del GHDx, la convierte primero con su lector.
+#' Sirve para preparar las tablas en R y comprobar que están bien antes de armar el proyecto.
+#'
+#' @param tabla Nombre de la tabla: una de las de [dl_tablas].
+#' @param x Ruta a un CSV, carpeta de CSV o `data.frame` (también un tibble).
+#' @param ubicacion_gbd `location_id` de GBD del país, para leer descargas de GBD o del GHDx que traen varias
+#'   ubicaciones (opcional).
+#' @param metrica_prevalencia Métrica de la prevalencia en una descarga de GBD Results: `"Rate"` (por defecto) o
+#'   `"Percent"` (solo para reproducir corridas anteriores a la 1.0.1).
+#' @return Un `data.table` con clase `dl_tabla`: las columnas del contrato, con sus tipos, el sexo en palabras y las
+#'   bandas abiertas con `edad_fin` 125. Atributos: `tabla`, `origen` y `avisos`.
+#' @seealso [dl_tablas] (el contrato), [dl_plantilla()], [dl_proyecto()].
+#' @family proyecto
+#' @examples
+#' pob <- data.frame(ubicacion = "01", anio = 2023, sexo = c("hombres", "mujeres"),
+#'                   edad_inicio = 30, edad_fin = 35, poblacion = c(1200, 1300))
+#' dl_tabla("poblacion", pob)
+#' # una descarga de GBD Results, tal cual
+#' dl_tabla("ancla", dl_ejemplo("ancla"))
+#' @export
+dl_tabla <- function(tabla, x, ubicacion_gbd = NULL, metrica_prevalencia = "Rate") {
+  tabla <- .dl_exigir_tabla(tabla)
+  origen <- if (is.data.frame(x)) "argumento `x` (data.frame)" else .dl_exigir_ruta_tabla(x)
+  d <- .dl_leer_fuente_tabla(x, tabla, list(ubicacion_gbd = ubicacion_gbd, metrica_prevalencia = metrica_prevalencia))
+  .dl_tabla_contrato(d, tabla, origen)
+}
+
+# `tabla` es el nombre de una tabla del contrato.
+.dl_exigir_tabla <- function(tabla) {
+  if (!.dl_es_texto1(tabla) || !tabla %in% .DL_TABLAS)
+    .dl_stop("`tabla` debe ser una de las tablas del contrato: %s", paste(.DL_TABLAS, collapse = ", "))
+  tabla
+}
+
+# `x` es la ruta de un archivo o carpeta que existe.
+.dl_exigir_ruta_tabla <- function(x) {
+  if (!.dl_es_texto1(x) || !file.exists(x))
+    .dl_stop("`x` debe ser un data.frame o la ruta de un CSV o de una carpeta que exista; es %s",
+             .dl_describir_objeto(x))
+  x
+}
+
+#' Plantilla de una tabla del contrato
+#'
+#' La tabla vacía con sus columnas (las que exige y las opcionales más usadas) y una fila de ejemplo. Con `archivo`,
+#' la escribe como CSV.
+#'
+#' @param tabla Nombre de la tabla (ver [dl_tablas]).
+#' @param archivo Ruta del CSV que se escribe (opcional).
+#' @return La plantilla (`data.frame`); con `archivo`, invisible.
+#' @seealso [dl_tablas], [dl_tabla()], [dl_nuevo_proyecto()].
+#' @family proyecto
+#' @examples
+#' dl_plantilla("covariables")
+#' @export
+dl_plantilla <- function(tabla, archivo = NULL) {
+  tabla <- .dl_exigir_tabla(tabla)
+  ej <- .DL_EJEMPLOS_PLANTILLA[[tabla]]
+  d <- as.data.frame(ej, stringsAsFactors = FALSE)
+  if (is.null(archivo)) return(d)
+  data.table::fwrite(d, archivo, na = "")
+  invisible(d)
+}
+
+# Una fila de ejemplo de cada tabla (genérica: ubicaciones con códigos de ejemplo). Las columnas en el orden de
+# tablas.csv: las que exige y las opcionales de uso común.
+.DL_EJEMPLOS_PLANTILLA <- list(
+  ubicaciones = list(ubicacion = c("PAIS", "R01"), nombre = c("Pa\u00eds", "Regi\u00f3n 1"), padre = c(NA, "PAIS")),
+  poblacion = list(ubicacion = "R01", anio = 2023L, sexo = "mujeres", edad_inicio = 40, edad_fin = 45,
+                   poblacion = 12500),
+  ancla = list(causa = 1234L, anio = 2023L, sexo = "mujeres", edad_inicio = 40, edad_fin = 45, medida = "prevalencia",
+               valor = 0.012, inferior = 0.009, superior = 0.016),
+  covariables = list(ubicacion = "R01", anio = 2023L, covariable = "haqi", valor = 61.2, error_estandar = 1.4,
+                     fuente = "proxy: indicador de ejemplo"),
+  betas = list(causa = 1234L, covariable = "haqi", efecto_sobre = "mortalidad_exceso", transformacion = "lineal",
+               escala = 1, beta = -0.012, inferior = -0.018, superior = -0.006, fuente = "ap\u00e9ndice de GBD"),
+  datos = list(causa = 1234L, ubicacion = "R01", anio = 2023L, sexo = "mujeres", edad_inicio = 40, edad_fin = 45,
+               medida = "prevalencia", valor = 0.011, error_estandar = 0.002, fuente = "encuesta de ejemplo"),
+  severidad = list(causa = 1234L, estado = "Estado leve", proporcion = 0.6, inferior = 0.5, superior = 0.7,
+                   peso_discapacidad = 0.02, peso_inferior = 0.012, peso_superior = 0.031),
+  fuentes_gbd = list(causa = 1234L, ubicacion = "PAIS", componente = "no_fatal", nid = 123456L),
+  poblacion_detalle = list(anio = 2023L, sexo = "mujeres", edad_inicio = 80, edad_fin = 85, poblacion = 30500))
+
+#' El contrato de insumos
+#'
+#' Las tablas que dismodlite necesita para estimar una causa. Todas comparten un **eje**: `causa`, `ubicacion`,
+#' `anio`, `sexo`, `edad_inicio` y `edad_fin`. Una columna del eje que no viene significa que la tabla no varía en
+#' esa dimensión: sin `causa`, vale para todas las causas; sin `ubicacion`, es la nacional; sin `anio`, todos los
+#' años; sin `sexo`, ambos sexos; sin las edades, todas las edades. Las unidades son fijas: la prevalencia y las
+#' proporciones en proporción (0 a 1), la incidencia, la mortalidad y los AVD por persona-año, la población en
+#' personas. Las bandas de edad son `[edad_inicio, edad_fin)` en años enteros; `edad_fin` vacío es la banda abierta.
+#'
+#' Cada tabla es un CSV (o una carpeta de CSV) de la carpeta del proyecto con su nombre, o un `data.frame` que se pasa
+#' a [dl_proyecto()]. Las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten solas.
+#'
+#' @eval .dl_rd_tablas()
+#' @seealso [dl_tabla()], [dl_plantilla()], [dl_proyecto()].
+#' @family proyecto
+#' @name dl_tablas
+NULL
+
+# Sección Rd de ?dl_tablas: por tabla, sus columnas (tipo, si la exige, unidad y descripción).
+.dl_rd_tablas <- function() {
+  t <- .dl_tablas_ref()
+  # las llaves y la barra van escapadas; el % lo escapa roxygen (el markdown ya lo trata)
+  esc <- function(x) gsub("([{}\\\\])", "\\\\\\1", x)
+  unlist(lapply(.DL_TABLAS, function(tb) {
+    f <- t[t$tabla == tb, ]
+    filas <- sprintf("\\code{%s} \\tab %s \\tab %s \\tab %s\\cr", f$columna, f$tipo,
+                     ifelse(f$exige == "si", "s\u00ed", "no"), esc(paste0(f$descripcion,
+                       ifelse(nzchar(f$unidad), paste0(" (", f$unidad, ")"), ""))))
+    c(sprintf("@section Tabla \\code{%s}:", tb),
+      "\\tabular{llll}{", "\\strong{columna} \\tab \\strong{tipo} \\tab \\strong{exige} \\tab \\strong{qu\u00e9 es}\\cr",
+      filas, "}")
+  }))
+}

@@ -19,3 +19,67 @@ test_that("el sexo se escribe en palabras o con su código", {
   expect_identical(dismodlite:::.dl_sexo_contrato(c("Hombres", "2", "ambos", "Male", " female ", "x")),
                    c("hombres", "mujeres", "ambos", "hombres", "mujeres", NA))
 })
+
+pob <- function(...) data.frame(ubicacion = "PE", anio = 2023L, sexo = "hombres", edad_inicio = c(30, 35),
+                                edad_fin = c(35, NA), poblacion = c(100, 50), ...)
+
+test_that("dl_tabla valida y devuelve la tabla en el contrato", {
+  t <- dl_tabla("poblacion", pob())
+  expect_s3_class(t, "dl_tabla")
+  expect_identical(t$edad_fin, c(35, 125))
+  expect_identical(attr(t, "tabla"), "poblacion")
+  expect_match(attr(t, "origen"), "data.frame")
+})
+
+test_that("dl_tabla junta todos los problemas de una tabla en un solo error", {
+  d <- pob()
+  d$sexo <- c("hombres", "x")
+  d$poblacion <- c("100", "muchos")
+  e <- expect_error(dl_tabla("poblacion", d), class = "dl_error")
+  expect_match(conditionMessage(e), "sexo")
+  expect_match(conditionMessage(e), "poblacion")
+  expect_length(e$problemas, 2L)
+})
+
+test_that("las bandas de edad: solapes, no enteras y abierta que no es la última", {
+  d <- pob(); d$edad_inicio <- c(30, 33)
+  expect_error(dl_tabla("poblacion", d), "solapan")
+  d <- pob(); d$edad_fin <- c(34.5, NA)
+  expect_error(dl_tabla("poblacion", d), "enteros")
+  d <- pob(); d$edad_fin <- c(NA, 40)
+  expect_error(dl_tabla("poblacion", d), "abierta")
+  # un grupo de edad de GBD de menos de un año sí se admite
+  d <- pob(); d$edad_inicio <- c(0, 0.0191780821917808); d$edad_fin <- c(0.0191780821917808, 0.0767123287671233)
+  expect_s3_class(dl_tabla("poblacion", d), "dl_tabla")
+})
+
+test_that("un tibble, factores y números como texto se aceptan", {
+  skip_if_not_installed("tibble")
+  d <- tibble::as_tibble(pob())
+  d$sexo <- factor(d$sexo)
+  d$poblacion <- as.character(d$poblacion)
+  t <- dl_tabla("poblacion", d)
+  expect_type(t$poblacion, "double")
+  expect_type(t$sexo, "character")
+})
+
+test_that("una tabla de un CSV de Excel en español da el mensaje de lectura con el nombre de la tabla", {
+  f <- withr::local_tempfile(fileext = ".csv")
+  writeLines(c("ubicacion;anio;sexo;edad_inicio;edad_fin;poblacion", "PE;2023;hombres;30;35;100"), f)
+  expect_error(dl_tabla("poblacion", f), "poblacion")
+})
+
+test_that("la prevalencia mayor que 1 es un aviso, no un error", {
+  a <- data.frame(anio = 2023L, sexo = "hombres", edad_inicio = 30, edad_fin = 35, medida = "prevalencia",
+                  valor = 1500, inferior = 1200, superior = 1800)
+  t <- dl_tabla("ancla", a)
+  expect_match(attr(t, "avisos"), "100 000")
+})
+
+test_that("dl_plantilla escribe el encabezado y una fila de ejemplo", {
+  f <- withr::local_tempfile(fileext = ".csv")
+  dl_plantilla("poblacion", f)
+  expect_identical(readLines(f)[1L], "ubicacion,anio,sexo,edad_inicio,edad_fin,poblacion")
+  expect_s3_class(dl_plantilla("betas"), "data.frame")
+  expect_error(dl_plantilla("proxies"), "tablas del contrato")
+})
