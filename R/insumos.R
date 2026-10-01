@@ -101,17 +101,22 @@
   if (any(lengths(meta) != 1L))
     .dl_stop(paste0("\u00ab%s\u00bb (`%s`) trae m\u00e1s de un valor de cause_name, location_name o round para la ",
                     "causa: el ancla debe venir de una sola estimaci\u00f3n"), basename(archivo), pieza)
-  w <- pesos %||% .dl_leer_pesos_finas(paths)
   cat_bandas <- cat_bandas %||% .dl_bandas_catalogo(paths)
-  # 80+: pesos de población del archivo. <5: ancho de la banda en el catálogo, salvo que el archivo traiga los ids.
-  resto <- .dl_agregar_finas(std, .DL_FINAS_80, w)
-  w5 <- w[age_group_id %in% .DL_FINAS_5$ids]
-  if (!nrow(w5)) {
-    cb <- cat_bandas[match(.DL_FINAS_5$ids, cat_bandas$age_group_id)]
-    w5 <- data.table::CJ(age_group_id = .DL_FINAS_5$ids, sex_id = unique(std$sex_id))
-    w5[, peso := (cb$age_end - cb$age_start)[match(age_group_id, .DL_FINAS_5$ids)]]
+  # 80+ y <5 (cabecera de .DL_FINAS_80 y .DL_FINAS_5) solo con anchor.agrupar_bandas_finas; sin ella, las bandas
+  # llegan ya en las de la población (la traducción de un proyecto las agrupó con poblacion_detalle).
+  resto <- std
+  if (isTRUE(cfg$anchor$agrupar_bandas_finas)) {
+    # 80+: pesos de población del archivo. <5: ancho de la banda en el catálogo, salvo que el archivo traiga los ids.
+    w <- pesos %||% .dl_leer_pesos_finas(paths)
+    resto <- .dl_agregar_finas(std, .DL_FINAS_80, w)
+    w5 <- w[age_group_id %in% .DL_FINAS_5$ids]
+    if (!nrow(w5)) {
+      cb <- cat_bandas[match(.DL_FINAS_5$ids, cat_bandas$age_group_id)]
+      w5 <- data.table::CJ(age_group_id = .DL_FINAS_5$ids, sex_id = unique(std$sex_id))
+      w5[, peso := (cb$age_end - cb$age_start)[match(age_group_id, .DL_FINAS_5$ids)]]
+    }
+    resto <- .dl_agregar_finas(resto, .DL_FINAS_5, w5)
   }
-  resto <- .dl_agregar_finas(resto, .DL_FINAS_5, w5)
   edades <- cat_bandas[match(resto$age_group_id, cat_bandas$age_group_id), list(age_start, age_end)]
   # Las estimaciones GBD traen bandas fuera del soporte del modelo (por debajo de edad_inicio, todas las edades,
   # estandarizada por edad) y ceros estructurales (val = lower = upper = 0: GBD no modela la causa en esa banda).
@@ -162,7 +167,7 @@
 # Tabla prior_gbd: la prevalencia del ancla y, cuando el prior de EMR la necesita, el csmr (.dl_prior_usa_csmr). Los
 # pesos de las bandas finas se leen una sola vez para las dos medidas.
 .dl_materializar_prior <- function(cfg, paths, cat_bandas) {
-  pesos <- .dl_leer_pesos_finas(paths)
+  pesos <- if (isTRUE(cfg$anchor$agrupar_bandas_finas)) .dl_leer_pesos_finas(paths)
   out <- .dl_materializar_medida(cfg, "prevalence", paths, cat_bandas = cat_bandas, pesos = pesos)
   meta <- attr(out, "meta")
   if (.dl_prior_usa_csmr(cfg)) {

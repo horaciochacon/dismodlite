@@ -43,6 +43,7 @@
   "anchor.modelo_variante", "anchor.componente", "anchor.componente.sequela_ids", "anchor.componente.motivo",
   "anchor.gate_err_mediano", "anchor.gate_err_mediano.valor", "anchor.gate_err_mediano.procedencia",
   "anchor.metrica_prevalencia", "anchor.metrica_prevalencia.valor", "anchor.metrica_prevalencia.procedencia",
+  "anchor.agrupar_bandas_finas",
   "cascada", "cascada.kappa", "cascada.escala", "cascada.cota_warning",
   "cascada.heldout_anio", "cascada.heldout_anio.valor", "cascada.heldout_anio.procedencia",
   "cascada.dx_fuera_de_banda", "cascada.dx_fuera_de_banda.valor", "cascada.dx_fuera_de_banda.procedencia",
@@ -223,6 +224,7 @@ dl_configuracion <- function(causa, carpeta_config = NULL, cambios = NULL) {
   path <- .dl_archivo_config(carpeta_config, causa)
   cfg <- .dl_leer_config(path)
   if (!.dl_es_config_completa(cfg)) return(.dl_config_simple(cfg, path, causa, .dl_raiz_proyecto(path), cambios))
+  .dl_avisar_claves_desconocidas(cfg)
   cfg <- .dl_fundir_cambios(cfg, cambios)
   v <- .dl_validar_config(cfg, causa)
   if (length(v$problemas))
@@ -230,6 +232,35 @@ dl_configuracion <- function(causa, carpeta_config = NULL, cambios = NULL) {
              causa, length(v$problemas), paste0("  - ", v$problemas, collapse = "\n"),
              campos = list(problemas = v$problemas))
   v$cfg
+}
+
+# Avisa de cada clave del YAML de una configuración completa que el paquete no lee (no está en .DL_CLAVES_CONFIG),
+# con la más parecida: un nombre mal escrito (`anchr`) no se ignora en silencio. Es un aviso y no un error, para no
+# romper las configuraciones de la 0.2.2 que traen claves de documentación. No entra en las claves de dentro de una
+# clave desconocida (ya se avisó de ella), ni de las claves que la lista trae como hojas (phi_sinadef: la validación
+# la rechaza con su propio mensaje), ni de las secuencias de registros (transformaciones, covariables, ...).
+.dl_avisar_claves_desconocidas <- function(cfg) {
+  desconocidas <- character()
+  recorrer <- function(x, ruta) {
+    if (!is.list(x) || is.data.frame(x) || is.null(names(x))) return()
+    for (k in names(x)) {
+      campo <- c(ruta, k)
+      txt <- paste(campo, collapse = ".")
+      if (!txt %in% .DL_CLAVES_CONFIG) desconocidas <<- c(desconocidas, txt)
+      else if (any(startsWith(.DL_CLAVES_CONFIG, paste0(txt, ".")))) recorrer(x[[k]], campo)
+    }
+  }
+  recorrer(cfg, character())
+  for (ruta in desconocidas) {
+    k <- strsplit(ruta, ".", fixed = TRUE)[[1L]]
+    prefijo <- if (length(k) > 1L) paste0(paste(k[-length(k)], collapse = "."), ".") else ""
+    hermanas <- sub(".*[.]", "", grep(paste0("^", gsub(".", "[.]", prefijo, fixed = TRUE), "[^.]+$"),
+                                     .DL_CLAVES_CONFIG, value = TRUE))
+    cerca <- .dl_sugerir_clave(k[length(k)], hermanas, prefijo)
+    .dl_warn("la clave `%s` de la configuraci\u00f3n no existe y se ignora%s", ruta,
+             if (!is.null(cerca)) paste0("; ", cerca) else "")
+  }
+  invisible(desconocidas)
 }
 
 # La tabla de las claves simples va en ?dl_configuracion justo después de «Formato simple» y antes de «Formato
@@ -283,6 +314,9 @@ NULL
 #'   (por defecto) es la proporción de la población, por 100 000. `Percent` repite lo que hacían las versiones hasta la
 #'   1.0.0 y sirve solo para reproducir sus corridas: en GBD Results divide los casos por las personas con alguna causa,
 #'   no por la población, y sobrestima la prevalencia (menos de 1 % en adultos, hasta 37 % antes de los 2 años).
+#' - `anchor.agrupar_bandas_finas`: `true` agrupa las bandas de 80-84 a 95+ en 80+ (con `pesos_80mas`) y las de menos
+#'   de 5 años en <5, como hasta la 1.0.0; `false` usa las bandas tal cual llegan (así las deja la traducción de un
+#'   proyecto). Por defecto `true` en el formato completo.
 #' - `cascada.dx_fuera_de_banda`: en las edades sin grupo de edad del proxy, `cero` (sin diferencia con el valor
 #'   nacional) o `vecina` (la del grupo más próximo, con procedencia) (`cero`).
 #' - `cascada.dx_interpolacion`: entre los grupos de edad del proxy, `lineal` (interpolada entre sus puntos medios)
@@ -351,14 +385,15 @@ NULL
     p("cause_id", if (is.null(cfg$cause_id)) "falta"
                   else sprintf("es %s y se pidi\u00f3 la causa %d (el nombre del archivo o el argumento `causa`)",
                                format(cfg$cause_id), causa))
-  # Ubicación del ancla: anchor.location_id (el location_id de GBD del país; lo declara la configuración simple) o,
-  # en el formato completo de la versión 0.2.2, anchor.location: peru (ubicación 123).
+  # Ubicación del ancla: anchor.location_id (el location_id de GBD del país, que lo declara la configuración simple; o
+  # el código de texto de la ubicación nacional en ubicaciones.csv) o, en el formato completo de la versión 0.2.2,
+  # anchor.location: peru (ubicación 123). Un entero o un texto de dígitos se guarda como entero; otro texto, como texto.
   li <- cfg$anchor$location_id
   if (!is.null(li)) {
     if (.dl_es_texto1(li) && grepl("^[0-9]+$", li)) li <- as.numeric(li)
-    if (!.dl_es_entero1(li) || li < 1)
-      p("anchor.location_id", "debe ser un entero: el location_id de GBD del pa\u00eds (el de las filas del ancla)")
-    else cfg$anchor$location_id <- as.integer(li)
+    if (.dl_es_entero1(li) && li >= 1) cfg$anchor$location_id <- as.integer(li)
+    else if (!.dl_es_texto1(li) || !nzchar(trimws(li)))
+      p("anchor.location_id", "debe ser el c\u00f3digo de la ubicaci\u00f3n nacional: un entero o un texto")
   } else if (identical(cfg$anchor$location, "region"))
     p("anchor.location", paste0("\u00abregion\u00bb est\u00e1 reservado para un ancla regional (ubicaci\u00f3n 120) ",
                                 "que esta versi\u00f3n ",
@@ -366,6 +401,11 @@ NULL
   else if (!identical(cfg$anchor$location, "peru"))
     p("anchor.location", paste0("valor admitido: peru (ubicaci\u00f3n 123; \u00abregion\u00bb est\u00e1 reservado), o ",
                                 "anchor.location_id con el location_id de GBD del pa\u00eds"))
+  # Agrupar las bandas finas del ancla (80-84 ... 95+ en 80+, las de menos de 5 años en <5): sí si no se declara.
+  af <- cfg$anchor$agrupar_bandas_finas
+  if (is.null(af)) cfg$anchor$agrupar_bandas_finas <- TRUE
+  else if (!isTRUE(af) && !isFALSE(af))
+    p("anchor.agrupar_bandas_finas", "debe ser true o false")
   if (!en_dominio(cfg$anchor$lambda, "lambda"))
     p("anchor.lambda", sprintf("debe estar en %s (peso del ancla)", dominio$lambda$texto))
   if (!en_dominio(cfg$anchor$rho_edad, "rho"))

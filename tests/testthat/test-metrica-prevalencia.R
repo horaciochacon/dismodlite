@@ -38,3 +38,22 @@ test_that("anchor.metrica_prevalencia exige un valor conocido y procedencia", {
                                         cambios = list(anchor = list(metrica_prevalencia = "Percent"))),
                "debe ser un bloque \\{valor, procedencia\\}")
 })
+
+# La traducción de un proyecto escribe el ancla ya en las unidades del contrato y marca cfg$origen$unidades = "contrato":
+# .dl_metrica_std lee entonces la métrica "Contrato" con escala 1 para toda medida, aunque la prevalencia pida Percent.
+test_that(".dl_metrica_std: con origen$unidades = contrato, métrica Contrato y escala 1 para toda medida", {
+  cfg <- list(anchor = list(metrica_prevalencia = list(valor = "Percent", procedencia = "x")),
+              origen = list(unidades = "contrato"))
+  for (s in dismodlite:::.DL_MEDIDAS$slug)
+    expect_identical(dismodlite:::.dl_metrica_std(dismodlite:::.dl_medida(s), cfg),
+                     list(metric_std = "Contrato", escala_std = 1), info = s)
+})
+
+test_that(".dl_metrica_std: sin origen$unidades = contrato no cambia (Rate 1e5; Percent solo en prevalencia)", {
+  prev <- dismodlite:::.dl_medida("prevalence"); csmr <- dismodlite:::.dl_medida("csmr")
+  cfg <- list(anchor = list(), origen = list(formato = "simple"))
+  expect_identical(dismodlite:::.dl_metrica_std(prev, cfg), list(metric_std = "Rate", escala_std = 1e5))
+  cfg$anchor$metrica_prevalencia <- list(valor = "Percent", procedencia = "x")
+  expect_identical(dismodlite:::.dl_metrica_std(prev, cfg), list(metric_std = "Percent", escala_std = 1))
+  expect_identical(dismodlite:::.dl_metrica_std(csmr, cfg), list(metric_std = "Rate", escala_std = 1e5))
+})

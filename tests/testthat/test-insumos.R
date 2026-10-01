@@ -630,3 +630,14 @@ test_that("un ancla con bandas de edad que se solapan se detiene al armar los in
   expect_error(dl_insumos(cfg9100(), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, ancla_prevalencia = f)),
                "^dl_insumos\\(\\): «prevalencia.csv» \\(`ancla_prevalencia`\\) trae bandas de edad que se solapan")
 })
+
+test_that("sin agrupar bandas finas, el ancla conserva 80-84 ... 95+ y no lee pesos_80mas", {
+  rutas <- dl_rutas_ejemplo(9100, formato = "completo")
+  rutas["pesos_80mas"] <- list(NULL)
+  cfg <- dl_configuracion_ejemplo(9100, formato = "completo",
+                                  cambios = list(anchor = list(agrupar_bandas_finas = FALSE)))
+  b <- suppressMessages(dl_insumos(cfg, rutas))
+  edades <- b$prior_gbd[measure_id == 5L & sex_id == 1L]$age_group_id
+  expect_true(all(c(30L, 31L, 32L, 235L) %in% edades))
+  expect_false(21L %in% edades)
+})

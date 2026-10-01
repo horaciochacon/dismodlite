@@ -383,3 +383,33 @@ test_that("causa y carpeta_config: mensajes que nombran el argumento", {
                "no hay configuración de la causa 502 en «.*»: se busca 502.yaml")
   expect_identical(dl_configuracion("9100", config_dir_ejemplo()), dl_configuracion(9100L, config_dir_ejemplo()))
 })
+
+test_that("anchor.location_id admite un código de texto", {
+  cfg <- dl_configuracion_ejemplo(9100, formato = "completo",
+                                  cambios = list(anchor = list(location_id = "PAIS", location = NULL)))
+  expect_identical(dismodlite:::.dl_loc_ancla(cfg), "PAIS")
+  cfg <- dl_configuracion_ejemplo(9100, formato = "completo", cambios = list(anchor = list(location_id = "123")))
+  expect_identical(cfg$anchor$location_id, 123L)
+  expect_error(dl_configuracion_ejemplo(9100, formato = "completo",
+                                        cambios = list(anchor = list(location_id = "  "))), "anchor.location_id")
+})
+
+test_that("una clave desconocida del formato completo avisa con la más parecida", {
+  d <- withr::local_tempdir()
+  y <- yaml::read_yaml(system.file("extdata", "acs_peru_completo", "config", "9100.yaml", package = "dismodlite"))
+  y$anchr <- list(lambda = 1)
+  yaml::write_yaml(y, file.path(d, "9100.yaml"))
+  expect_warning(dl_configuracion(9100, d), "anchor")
+})
+
+test_that("las configuraciones del paquete no avisan de claves desconocidas", {
+  for (causa in c(9100L, 9101L, 9102L, 9103L))
+    expect_no_warning(dl_configuracion_ejemplo(causa, formato = "completo"))
+})
+
+test_that("anchor.agrupar_bandas_finas es lógica y vale TRUE por defecto en el formato completo", {
+  expect_true(dl_configuracion_ejemplo(9100, formato = "completo")$anchor$agrupar_bandas_finas)
+  expect_error(dl_configuracion_ejemplo(9100, formato = "completo",
+                                        cambios = list(anchor = list(agrupar_bandas_finas = "si"))),
+               "agrupar_bandas_finas")
+})

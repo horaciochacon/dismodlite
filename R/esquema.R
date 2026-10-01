@@ -197,18 +197,23 @@ print.dl_schema <- function(x, ...) {
 # de 1,5 % a 6 % entre los 2 y los 19 y de 22 % a 37 % antes de los 2). Las versiones hasta la 1.0.0 leían Percent;
 # anchor.metrica_prevalencia: {valor: Percent, procedencia} lo repite para reproducir sus corridas.
 .DL_METRICA_PREVALENCIA_ANTERIOR <- list(metric_std = "Percent", escala_std = 1)
+# Métrica del ancla escrita por la traducción de un proyecto (R/contrato_traduccion.R, que marca origen$unidades =
+# "contrato"): ya en las unidades del contrato (proporción o por persona-año), así que la escala es 1. La métrica de
+# la descarga la resolvió su lector, y por eso se mira antes que metrica_prevalencia.
+.DL_METRICA_CONTRATO <- list(metric_std = "Contrato", escala_std = 1)
 .dl_metrica_std <- function(med, cfg) {
+  if (identical(cfg$origen$unidades, "contrato")) return(.DL_METRICA_CONTRATO)
   if (identical(med$slug, "prevalence") && identical(cfg$anchor$metrica_prevalencia$valor, "Percent"))
     return(.DL_METRICA_PREVALENCIA_ANTERIOR)
   list(metric_std = med$metric_std, escala_std = med$escala_std)
 }
 
 # Ubicación del ancla (location_id, como texto): anchor.location_id de la configuración (el location_id de GBD del
-# país; lo trae toda configuración simple) o, en el formato completo de la versión 0.2.2, anchor.location: peru = 123
+# país, o el código de ubicación de ubicaciones.csv si es texto; lo trae toda configuración simple) o, en el formato completo de la versión 0.2.2, anchor.location: peru = 123
 # (Perú); region = 120 (reservado).
 .DL_LOC_ANCLA <- c(peru = "123", region = "120")
 .dl_loc_ancla <- function(cfg) {
-  if (!is.null(cfg$anchor$location_id)) return(as.character(as.integer(cfg$anchor$location_id)))
+  if (!is.null(cfg$anchor$location_id)) return(as.character(cfg$anchor$location_id))
   id <- .DL_LOC_ANCLA[cfg$anchor$location]
   if (is.na(id))
     .dl_stop("anchor.location debe ser %s", paste(names(.DL_LOC_ANCLA), collapse = " o "))
