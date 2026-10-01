@@ -20,8 +20,8 @@
 #   escenarios  variantes de los datos, piezas comunes y escenarios E1-E12 (correr_escenario());
 #   normalizar  lectura y normalización de corridas, consolidados y manifiestos, y el acumulador de resultados;
 #   referencia  escritura de las referencias y comparación con ellas (comparar_con_referencia());
-#   simple      escenarios S1-S5: el ejemplo en el formato simple por dl_proyecto(), comparado con las referencias
-#               de E1, E2, E4, E5 y E8 (test-compatibilidad-simple.R).
+#   simple      escenarios S1-S5: el ejemplo en el contrato de insumos por dl_proyecto(), comparado con las
+#               referencias de E1, E2, E4, E5 y E8 (test-compatibilidad-simple.R).
 # No usan testthat al cargarse (solo la comparación lo usa): data-raw/legado.R los carga para los scripts que
 # corren el código de v0.2.2.
 
@@ -132,24 +132,22 @@ api_legado <- function(entorno, perfiles = NULL) {
 # La misma API con las funciones nuevas del paquete (a partir de la API en español). Los escenarios ya usan los
 # nombres nuevos, así que no hay nada que traducir. `perfiles`: carpeta de perfiles de la consolidación (por
 # defecto, los del paquete). Solo esta API trae `proyecto` (dl_proyecto(), que la versión 0.2.2 no tiene): la usan los
-# escenarios S del formato simple.
+# escenarios S del contrato de insumos.
 api_nueva <- function(perfiles = system.file("perfiles", package = "dismodlite"), ns = asNamespace("dismodlite")) {
   g <- function(nombre) get(nombre, envir = ns, inherits = FALSE)
   # La versión 0.2.2 leía la prevalencia del ancla en Percent; la nueva la lee en Rate (R/esquema.R,
   # .dl_metrica_std). En el ejemplo sintético las dos son la misma proporción, pero Rate / 100 000 no siempre es el
-  # mismo número de punto flotante: para comparar con las referencias, la API nueva del arnés lee Percent, como
-  # quien reproduce una corrida anterior (anchor.metrica_prevalencia).
+  # mismo número de punto flotante: para comparar con las referencias, la configuración del formato completo lee
+  # Percent, como quien reproduce una corrida anterior (anchor.metrica_prevalencia). Los proyectos del contrato lo
+  # declaran en su propia configuración (avanzado, .proyecto_0_2_2 en helper-arnes-simple.R): el lector de GBD Results
+  # toma la métrica de ahí, así que dl_proyecto() va sin cambios.
   como_0_2_2 <- function(cfg) {
-    cfg$anchor$metrica_prevalencia <- list(valor = "Percent", procedencia = .ARNES$procedencia)
+    if (!identical(cfg$origen$formato, "simple"))
+      cfg$anchor$metrica_prevalencia <- list(valor = "Percent", procedencia = .ARNES$procedencia)
     cfg
   }
   configuracion <- function(causa, carpeta_config = NULL, cambios = NULL)
     como_0_2_2(g("dl_configuracion")(causa, carpeta_config, cambios))
-  proyecto <- function(...) {
-    p <- g("dl_proyecto")(...)
-    p$configuracion <- como_0_2_2(p$configuracion)
-    p
-  }
   list(
     configuracion = configuracion, rutas = g("dl_rutas"), insumos = g("dl_insumos"),
     opciones_mcmc = g("dl_opciones_mcmc"), ajustar = g("dl_ajustar"), ajustar_solo_prior = g("dl_ajustar_solo_prior"),
@@ -157,7 +155,7 @@ api_nueva <- function(perfiles = system.file("perfiles", package = "dismodlite")
     avd = g("dl_avd"), etiquetas = g("dl_etiquetas"), sensibilidad = g("dl_sensibilidad"), resumir = g("dl_resumir"),
     exportar_corrida = g("dl_exportar_corrida"), reresumir_corrida = g("dl_reresumir_corrida"),
     sumar_hijas = g("dl_sumar_hijas"), consolidar = g("dl_consolidar"), limpiar_cache = g("dl_limpiar_cache"),
-    proyecto = proyecto,
+    proyecto = g("dl_proyecto"),
     perfil = function(version) file.path(perfiles, sprintf("perfil_%s.yaml", version)))
 }
 

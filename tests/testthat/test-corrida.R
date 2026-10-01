@@ -96,7 +96,6 @@ test_that("un resumen, un ajuste y unos AVD de corridas distintas no se exportan
 })
 
 test_that("insumos, corrida y re-resumen bajo una carpeta con espacios y tildes (Ana María/Mis análisis)", {
-  skip("contrato: el ejemplo se migra en la Tarea 9")
   base <- file.path(withr::local_tempdir(), "Ana María", "Mis análisis")
   dir.create(file.path(base, "datos de ejemplo"), recursive = TRUE)
   expect_true(all(file.copy(c(dl_ejemplo(), ruta_acs()), file.path(base, "datos de ejemplo"), recursive = TRUE)))
@@ -112,7 +111,7 @@ test_that("insumos, corrida y re-resumen bajo una carpeta con espacios y tildes 
   # formato simple: el proyecto se lee de la copia y da los mismos insumos que corrida_mini()
   raiz <- file.path(base, "datos de ejemplo", "acs_peru")
   p <- dl_proyecto(raiz, 9100L)
-  expect_true(startsWith(p$rutas$ghdx_cov, raiz))
+  expect_identical(normalizePath(p$carpeta), normalizePath(raiz))
   r <- p$rutas; r["datos"] <- list(NULL)
   b <- suppressMessages(dl_insumos(p$configuracion, r))
   x <- corrida_mini()
@@ -198,7 +197,6 @@ test_that("la limitación de una proyección nombra la población del año, y lo
 })
 
 test_that("la limitación de la mortalidad de validación de otro año dice qué hizo la corrida con ella", {
-  skip("contrato: el ejemplo se migra en la Tarea 9")
   x <- corrida_mini(); b <- x$insumos; cfg <- b$cfg   # el ejemplo declara el held-out de 2019 y ajusta 2023
   expect_null(dismodlite:::.dl_limitacion_heldout(dl_configuracion_ejemplo(9100L, anio = 2019L, formato = "completo")))
   sin_casc <- dismodlite:::.dl_limitacion_heldout(cfg)

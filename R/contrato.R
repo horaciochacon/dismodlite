@@ -357,12 +357,40 @@ NULL
   out
 }
 
-# Números -> el texto más corto que vuelve exactamente al mismo número (15, 16 o 17 cifras significativas).
-.dl_num_exacto <- function(x) vapply(x, function(v) {
-  if (is.na(v)) return(NA_character_)
-  for (d in 15:17) { s <- format(v, digits = d); if (as.numeric(s) == v) return(s) }
-  s
-}, "", USE.NAMES = FALSE)
+# Números -> su texto exacto: el que vuelve exactamente al mismo double al leerlo con as.numeric() y con fread(). Es
+# el decimal más corto (15, 16 o 17 cifras significativas) o, si alguno de `x` no tiene decimal que vuelva, el texto
+# hexadecimal de todos (.dl_num_hex): sin long double (R en arm64, como en los Mac con procesador Apple), as.numeric() y
+# fread() no redondean bien todos los decimales de 17 cifras, y el double de una tasa / 100 000 puede no tener ningún
+# texto decimal que vuelva a él. Toda la columna va en un mismo formato porque fread() lee como texto una columna que
+# mezcla decimales y hexadecimales; por eso `x` es siempre una columna entera.
+.dl_num_exacto <- function(x) {
+  s <- vapply(x, function(v) {
+    if (is.na(v)) return(NA_character_)
+    for (d in 15:17) { s <- format(v, digits = d); if (as.numeric(s) == v) return(s) }
+    NA_character_
+  }, "", USE.NAMES = FALSE)
+  if (identical(is.na(s), is.na(x)) && identical(.dl_leer_numeros(s), as.numeric(x))) return(s)
+  .dl_num_hex(x)
+}
+
+# Números -> su texto hexadecimal, exacto, en la forma que leen fread() y as.numeric() (fread() pide la parte
+# fraccionaria y lee el cero solo como 0x0.0p-1022).
+.dl_num_hex <- function(x) {
+  h <- sub("^(-?0x1)p", "\\1.0p", sprintf("%a", as.numeric(x)))
+  h[!is.na(x) & x == 0] <- "0x0.0p-1022"
+  h[is.na(x)] <- NA_character_
+  h
+}
+
+# Textos de números `s` leídos como lee fread() una columna de un CSV, detectando su tipo (vacío = NA): un vector
+# numérico, o NULL si fread() no la lee como números.
+.dl_leer_numeros <- function(s) {
+  if (all(is.na(s))) return(rep(NA_real_, length(s)))
+  f <- tempfile(fileext = ".csv"); on.exit(unlink(f))
+  writeLines(c("x", ifelse(is.na(s), "", s)), f)
+  x <- data.table::fread(f, na.strings = "", showProgress = FALSE)$x
+  if (is.numeric(x)) as.numeric(x)
+}
 
 # Grupos de edad de GBD (el catálogo de inst/referencia): age_group_id y límites [age_start, age_end).
 .dl_grupos_edad_referencia <- function()

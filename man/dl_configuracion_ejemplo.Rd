@@ -27,9 +27,10 @@ Objeto de clase \code{dl_config}, como el de \code{\link[=dl_configuracion]{dl_c
 }
 \description{
 La configuración de una causa de los datos de ejemplo: \verb{dl_configuracion(causa, <config del ejemplo>, cambios)},
-con la configuración simple de \code{dl_ejemplo("config")} (por defecto) o la completa de \code{acs_peru_completo}. Las dos
-dan los mismos valores al modelo y los mismos números; difieren en el texto de las procedencias, en cómo se
-declara la ubicación del ancla y en el campo \code{origen}, que solo trae la simple.
+con la configuración del proyecto de \code{dl_ejemplo("config")} (por defecto) o la completa de \code{acs_peru_completo}.
+Difieren en una decisión: el proyecto usa las bandas del ancla como vienen (80-84 ... 95+, las de su población) y
+el formato completo las agrupa en 80+ como la versión 0.2.2 (\code{anchor.agrupar_bandas_finas}); y en el texto de las
+procedencias, en cómo se declara la ubicación del ancla y en el campo \code{origen}, que solo trae la del proyecto.
 }
 \details{
 Con \code{\link[=dl_rutas_ejemplo]{dl_rutas_ejemplo()}} de la misma causa y el mismo formato, son los dos argumentos de \code{\link[=dl_insumos]{dl_insumos()}}.

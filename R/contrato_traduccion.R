@@ -409,12 +409,14 @@
 }
 
 # Error estándar de cada fila de covariables `d`: error_estandar o, sin él, (superior - inferior) / 3,92 (el
-# intervalo del 95 % como media ± 1,96 sd), escrito como fwrite. Error si una fila no trae ninguno.
+# intervalo del 95 % como media ± 1,96 sd) con las cifras con que lo escribe fwrite. Error si una fila no trae
+# ninguno. La columna se escribe entera con .dl_num_exacto (un solo formato de texto).
 .dl_se_covariable <- function(d) {
-  se <- .dl_num_exacto(.dl_col(d, "error_estandar", NA_real_))
+  se <- as.numeric(.dl_col(d, "error_estandar", NA_real_))
   k <- is.na(se)
-  se[k] <- .dl_num_texto((.dl_col(d, "superior", NA_real_)[k] - .dl_col(d, "inferior", NA_real_)[k]) /
-                           .DL_ANCHO_IC95_EN_SD)
+  se[k] <- as.numeric(.dl_num_texto((.dl_col(d, "superior", NA_real_)[k] - .dl_col(d, "inferior", NA_real_)[k]) /
+                                      .DL_ANCHO_IC95_EN_SD))
+  se <- .dl_num_exacto(se)
   if (anyNA(se))
     .dl_stop("la tabla covariables no trae error_estandar (ni inferior y superior) de %s en %s",
              d$covariable[is.na(se)][1L], d$ubicacion[is.na(se)][1L])

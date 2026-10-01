@@ -38,7 +38,7 @@ Objeto de clase \code{dl_paths}, como el de \code{\link[=dl_rutas]{dl_rutas()}}.
 \code{\link[=dl_insumos]{dl_insumos()}} compara con el año de la configuración.
 }
 \description{
-Las rutas completas de \code{\link[=dl_rutas]{dl_rutas()}} para los datos de ejemplo de una causa. En el formato simple (por defecto)
+Las rutas completas de \code{\link[=dl_rutas]{dl_rutas()}} para los datos de ejemplo de una causa. Por defecto (\code{formato = "simple"})
 son las del proyecto \code{dl_ejemplo()} traducido al formato completo, como las de \code{\link[=dl_proyecto]{dl_proyecto()}}; en el completo,
 las de los archivos de \code{acs_peru_completo}. La causa es obligatoria porque la tabla de severidad es la de cada
 causa.

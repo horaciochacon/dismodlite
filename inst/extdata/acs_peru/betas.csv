@@ -1,0 +1,4 @@
+causa,covariable,efecto_sobre,transformacion,escala,beta,inferior,superior,fuente
+9100,SEV_scalar_agestd_cvd_pvd,prevalencia,log,,0.62,0.55,0.70,Tabla sintética de covariables (datos sintéticos de ejemplo)
+9100,LDI_pc,prevalencia,log,,-0.21,-0.30,-0.12,Tabla sintética de covariables (datos sintéticos de ejemplo)
+9100,haqi,mortalidad_exceso,lineal,1,-0.012,-0.018,-0.006,Tabla sintética de covariables (datos sintéticos de ejemplo)

@@ -1,27 +1,12 @@
-# ACS carotídea (causa 9102): configuración de ejemplo (formato simple) con datos sintéticos.
+# ACS carotídea (causa 9102): configuración de ejemplo con datos sintéticos.
 # Las claves que no aparecen toman su valor por defecto: ver ?dl_configuracion y print(dl_proyecto(...)).
 causa: 9102
 nombre: ACS carotídea
 anio: 2023
 edad_inicio: 30
-ubicacion_nacional: 123
 
 mortalidad_exceso:
   techo: 0.36                  # por persona-año
-
-covariables:
-  - nombre: SEV_scalar_agestd_cvd_pvd
-    efecto_sobre: prevalencia
-    transformacion: log
-    beta: [0.62, 0.55, 0.70]
-  - nombre: LDI_pc
-    efecto_sobre: prevalencia
-    transformacion: log
-    beta: [-0.21, -0.30, -0.12]
-  - nombre: haqi
-    efecto_sobre: mortalidad_exceso
-    transformacion: lineal
-    beta: [-0.012, -0.018, -0.006]
 
 subnacional:
   anio_validacion: 2019          # año de los datos subnacionales reservados para validar

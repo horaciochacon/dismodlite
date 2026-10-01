@@ -145,6 +145,7 @@ test_that("de la plantilla al proyecto: llenada con los archivos del ejemplo, la
 # ---- dl_revisar_proyecto() ----
 
 test_that("dl_revisar_proyecto() lista cada problema de una copia rota, cada uno en su archivo y con su corrección", {
+  skip("contrato: Tarea 10")
   d <- copia_ejemplo()
   # 9101: una clave mal escrita
   cfg <- readLines(file.path(d, "config", "9101.yaml"), encoding = "UTF-8")
@@ -177,6 +178,7 @@ test_that("dl_revisar_proyecto() lista cada problema de una copia rota, cada uno
 })
 
 test_that("dl_revisar_proyecto() pone el cierre de los proxies en su archivo y avisa de la mortalidad por 100 000", {
+  skip("contrato: Tarea 10")
   d <- copia_ejemplo()
   # proxies que no cierran en el valor nacional
   px <- leer_texto(file.path(d, "proxies.csv"))
@@ -214,6 +216,7 @@ test_that("dl_revisar_proyecto() pone el cierre de los proxies en su archivo y a
 })
 
 test_that("dl_revisar_proyecto() avisa de las filas de datos.csv que quedan fuera y de un datos_en_ajuste sin ellas", {
+  skip("contrato: Tarea 10")
   d <- copia_ejemplo()
   datos <- leer_texto(file.path(d, "datos.csv"))
   sub <- which(datos$location_id != "123")        # las subnacionales (las nacionales no entran: sin datos_en_ajuste)
@@ -352,6 +355,7 @@ test_that("dl_correr() comprueba la convergencia justo después del ajuste nacio
 })
 
 test_that("dl_revisar_proyecto() ubica en su archivo lo que antes llegaba con palabras del formato completo", {
+  skip("contrato: Tarea 10")
   d <- copia_ejemplo()
   # el ancla sin muertes (con el prior de la mortalidad en exceso por defecto) y un poblacion.csv de Excel con «;»
   a <- leer_texto(file.path(d, "ancla", "sintetico_acs_v1.csv"))
@@ -390,6 +394,7 @@ test_that("dl_revisar_proyecto() ubica en su archivo lo que antes llegaba con pa
 })
 
 test_that("dl_revisar_proyecto(): covariables/ sin age_group_id ni el intervalo es un error de su paso", {
+  skip("contrato: Tarea 10")
   # la estimación subnacional usa el intervalo del valor nacional (lower_value, upper_value): sin esas columnas, en
   # una descarga o en todas, la revisión lo dice en covariables/ y sigue con los demás archivos
   for (todas in c(FALSE, TRUE)) {

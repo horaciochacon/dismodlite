@@ -1,0 +1,27 @@
+ubicacion,nombre,padre
+123,Perú,
+01,Amazonas,123
+02,Áncash,123
+03,Apurímac,123
+04,Arequipa,123
+05,Ayacucho,123
+06,Cajamarca,123
+07,Callao,123
+08,Cusco,123
+09,Huancavelica,123
+10,Huánuco,123
+11,Ica,123
+12,Junín,123
+13,La Libertad,123
+14,Lambayeque,123
+15,Lima,123
+16,Loreto,123
+17,Madre de Dios,123
+18,Moquegua,123
+19,Pasco,123
+20,Piura,123
+21,Puno,123
+22,San Martín,123
+23,Tacna,123
+24,Tumbes,123
+25,Ucayali,123

@@ -22,27 +22,24 @@ tablas_de <- function(d, nombres) lapply(stats::setNames(nm = nombres), function
 # ---- Las dos puertas ----
 
 test_that("las dos puertas dan el mismo proyecto", {
-  ejemplo_simple_pendiente()
   d <- dl_ejemplo(copiar_en = withr::local_tempdir())
   p1 <- dl_proyecto(d, 9100)
   pob <- data.table::fread(file.path(d, "poblacion.csv"), colClasses = list(character = "ubicacion"))
   unlink(file.path(d, "poblacion.csv"))
   p2 <- dl_proyecto(d, 9100, poblacion = as.data.frame(pob))
-  expect_identical(dl_insumos(p1)$hash, dl_insumos(p2)$hash)
+  expect_identical(suppressMessages(dl_insumos(p1))$hash, suppressMessages(dl_insumos(p2))$hash)
 })
 
 test_that("sin carpeta: la configuración y todas las tablas como argumentos", {
-  ejemplo_simple_pendiente()
   d <- dl_ejemplo()
   args <- lapply(stats::setNames(nm = c("ubicaciones", "poblacion", "ancla", "covariables", "betas", "datos",
                                         "severidad")),
                  function(t) { f <- file.path(d, t); if (file.exists(f)) f else paste0(f, ".csv") })
   p <- do.call(dl_proyecto, c(list(causa = 9100, configuracion = file.path(d, "config", "9100.yaml")), args))
-  expect_identical(dl_insumos(p)$hash, dl_insumos(dl_proyecto(d, 9100))$hash)
+  expect_identical(suppressMessages(dl_insumos(p))$hash, suppressMessages(dl_insumos(dl_proyecto(d, 9100)))$hash)
 })
 
 test_that("una tabla opcional con solo el encabezado es como si no estuviera", {
-  ejemplo_simple_pendiente()
   d <- dl_ejemplo(copiar_en = withr::local_tempdir())
   writeLines(readLines(file.path(d, "datos.csv"), n = 1L), file.path(d, "datos.csv"))
   p <- dl_proyecto(d, 9100)
@@ -50,7 +47,6 @@ test_that("una tabla opcional con solo el encabezado es como si no estuviera", {
 })
 
 test_that("un argumento que no es una tabla del contrato es un error con la lista", {
-  ejemplo_simple_pendiente()
   expect_error(dl_proyecto(dl_ejemplo(), 9100, proxies = data.frame()), "ubicaciones, poblacion")
 })
 
@@ -386,7 +382,6 @@ test_that("los mensajes del formato completo, en las palabras de la configuraci�
 # ---- Pruebas sobre el ejemplo (se migra en la Tarea 9) ----
 
 test_that("dl_proyecto() lee el ejemplo, lo imprime en español y dl_insumos() acepta el proyecto", {
-  ejemplo_simple_pendiente()
   p <- dl_proyecto(dl_ejemplo(), 9100)
   expect_s3_class(p, "dl_proyecto")
   expect_s3_class(p$configuracion, "dl_config")
@@ -409,7 +404,6 @@ test_that("dl_proyecto() lee el ejemplo, lo imprime en español y dl_insumos() a
 })
 
 test_that("la configuración simple del ejemplo se traduce a la completa (lo que entra en las cuentas)", {
-  ejemplo_simple_pendiente()
   for (causa in c(9100L, 9102L)) {
     s <- dl_configuracion_ejemplo(causa); c <- dl_configuracion_ejemplo(causa, formato = "completo")
     expect_s3_class(s, "dl_config")
@@ -521,6 +515,16 @@ test_that("las betas y las prevalencias convertidas se escriben con el texto que
   expect_identical(.dl_num_exacto(c(0.62, -0.012)), c("0.62", "-0.012"))
   x <- c(1 / 3, 0.1 + 0.2, 0.62000000000000011, 2 / 3 * 1e-5)
   expect_identical(as.numeric(.dl_num_exacto(x)), x)
+  # una tasa de GBD / 100 000 sin texto decimal que vuelva a ella cuando R no tiene long double (arm64): el texto
+  # hexadecimal; as.numeric() y fread() lo leen igual, también en una columna con decimales
+  y <- c(0.62, as.numeric(c("40.9715235289338", "1229.0265041539", "120.315679245624")) / 1e5)
+  t <- .dl_num_exacto(y)
+  expect_identical(as.numeric(t), y)
+  f <- withr::local_tempfile(fileext = ".csv")
+  writeLines(c("x", t), f)
+  expect_identical(data.table::fread(f)$x, y)
+  expect_identical(.dl_num_exacto(0x1.ad9e18947113fp-12) %in% c("0.00040971523528933804", "0x1.ad9e18947113fp-12"),
+                   TRUE)
 })
 
 # ---- La configuración del proyecto con el contrato de insumos ----

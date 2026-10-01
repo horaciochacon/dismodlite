@@ -11,7 +11,7 @@ dl_ejemplo(..., copiar_en = NULL)
 ninguna, la carpeta.}
 
 \item{copiar_en}{\code{NULL} (por defecto) o la ruta de una carpeta nueva o vacía: copia ahí el proyecto de ejemplo
-entero (en el formato simple; crea la carpeta si no existe) para editarlo, por ejemplo para probar otra
+entero (crea la carpeta si no existe) para editarlo, por ejemplo para probar otra
 configuración. No escribe en una carpeta que ya tiene archivos. Va sin partes de la ruta en \code{...}.}
 }
 \value{
@@ -19,30 +19,32 @@ La ruta del archivo o de la carpeta (si el archivo no existe, un error); con \co
 copia (\code{copiar_en}).
 }
 \description{
-Ruta a la carpeta del proyecto de ejemplo o a un archivo dentro de ella. El ejemplo es un proyecto en el formato
-simple, listo para leer con \code{\link[=dl_proyecto]{dl_proyecto()}} y para copiar como punto de partida de uno propio: con \code{copiar_en},
-\code{dl_ejemplo()} lo copia en una carpeta nueva, donde se puede editar. Todos los números son sintéticos.
+Ruta a la carpeta del proyecto de ejemplo o a un archivo dentro de ella. El ejemplo es un proyecto con las tablas
+del contrato de insumos (\link{dl_tablas}), listo para leer con \code{\link[=dl_proyecto]{dl_proyecto()}} y para copiar como punto de partida de
+uno propio: con \code{copiar_en}, \code{dl_ejemplo()} lo copia en una carpeta nueva, donde se puede editar. Todos los números
+son sintéticos.
 }
 \details{
 La enfermedad es ficticia: una arteriopatía crónica (la causa 9100) que es la suma de tres subtipos (9101, 9102 y
 9103), con estimaciones de referencia de 2019 y 2023 y población de 2019, 2023 y 2024. La geografía es la de un
-país real, Perú (\code{location_id} 123 de GBD), con sus 25 departamentos (códigos 01 a 25), pero ningún número describe
-a ese país ni a sus departamentos.
+país real, Perú (código 123, su \code{location_id} de GBD), con sus 25 departamentos (códigos 01 a 25), pero ningún
+número describe a ese país ni a sus departamentos.
 }
 \section{Las dos carpetas del ejemplo}{
 
-El ejemplo viene en dos carpetas con los mismos números, una por formato. La de \code{dl_ejemplo()} es \code{acs_peru}, en el
-formato simple:
+El ejemplo viene en dos carpetas con los mismos números, una por formato. La de \code{dl_ejemplo()} es \code{acs_peru}, con
+las tablas del contrato (\link{dl_tablas}):
 \itemize{
 \item \verb{config/9100.yaml} ... \verb{config/9103.yaml}: la configuración de cada causa; la de 9100 declara sus subtipos.
-\item \code{ancla/sintetico_acs_v1.csv}: una descarga de GBD Results con la prevalencia, la incidencia, las muertes y los
-AVD de las cuatro causas, por edad y sexo, de 2019 y 2023.
-\item \verb{covariables/}: tres descargas del GHDx (SEV, LDI y HAQ), con los valores nacionales y, como en una descarga
-real, los globales y los regionales, que no se usan.
+\item \code{ubicaciones.csv}: el país (código 123, sin padre) y sus 25 departamentos.
 \item \code{poblacion.csv}: la población de los departamentos por año, sexo y grupo de edad, sin las filas nacionales (el
 paquete las calcula como su suma).
-\item \code{proxies.csv}: las tres covariables por departamento (el SEV por sexo y grupo de edad); su promedio ponderado
-por la población es el valor nacional.
+\item \code{ancla/sintetico_acs_v1.csv}: una descarga de GBD Results tal cual, con la prevalencia, la incidencia, las
+muertes y los AVD de las cuatro causas, por edad y sexo, de 2019 y 2023.
+\item \verb{covariables/}: tres descargas del GHDx tal cual (SEV, LDI y HAQ), con los valores nacionales y, como en una
+descarga real, los globales y los regionales, que no se usan; y \code{proxies.csv}, las tres covariables por
+departamento (el SEV por sexo y grupo de edad), cuyo promedio ponderado por la población es el valor nacional.
+\item \code{betas.csv}: las betas de las tres covariables, de la causa 9100 (los subtipos usan las de su causa padre).
 \item \code{datos.csv} (solo de la causa 9100): filas nacionales de 2023 (mortalidad, un estudio de prevalencia en casos y
 muestra, una cohorte de incidencia y un valor atípico excluido) y filas departamentales de 2019 (mortalidad y
 prevalencia), reservadas para validar.
@@ -59,13 +61,14 @@ extracción, el almacén de evidencia, el registro, los catálogos, una tabla de
 de severidad. Su ruta es \code{system.file("extdata", "acs_peru_completo", package = "dismodlite")}; la usan las guías
 del formato completo.
 
-Las columnas de cada archivo están en \code{\link[=dl_proyecto]{dl_proyecto()}} y las claves de la configuración en \code{\link[=dl_configuracion]{dl_configuracion()}}.
+Las columnas de cada tabla están en \link{dl_tablas}, la carpeta en \code{\link[=dl_proyecto]{dl_proyecto()}} y las claves de la configuración en
+\code{\link[=dl_configuracion]{dl_configuracion()}}.
 Con \code{\link[=dl_rutas_ejemplo]{dl_rutas_ejemplo()}} y \code{\link[=dl_configuracion_ejemplo]{dl_configuracion_ejemplo()}} se toman las rutas y la configuración de una causa del
 ejemplo en cualquiera de los dos formatos.
 }
 
 \examples{
-# la carpeta del proyecto de ejemplo (formato simple) y sus archivos
+# la carpeta del proyecto de ejemplo y sus archivos
 dl_ejemplo()
 list.files(dl_ejemplo(), recursive = TRUE)
 readLines(dl_ejemplo("config", "9101.yaml"))

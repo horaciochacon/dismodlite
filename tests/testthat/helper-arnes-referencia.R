@@ -115,8 +115,8 @@ saltar_si_otra_plataforma <- function() {
 
 # Compara el resultado de correr_escenario() con la referencia guardada. Con DL_REFERENCIA_DIR se leen las
 # referencias de esa carpeta; la tolerancia la fija tolerancia_arnes(). `fuera`: claves de los manifiestos que no se
-# comparan (rutas de .quitar_clave(), quitadas de los dos lados); los escenarios S las usan para la procedencia de
-# los insumos (.MANIFIESTO_FUERA_SIMPLE).
+# comparan (rutas de .quitar_clave(), quitadas de los dos lados, o funciones que reciben la lista de manifiestos y la
+# devuelven normalizada); los escenarios S las usan para la procedencia de los insumos (.MANIFIESTO_FUERA_SIMPLE).
 comparar_con_referencia <- function(id, res, tol = 1e-8, fuera = list()) {
   tol <- tolerancia_arnes(tol)
   raiz <- Sys.getenv("DL_REFERENCIA_DIR")
@@ -134,7 +134,7 @@ comparar_con_referencia <- function(id, res, tol = 1e-8, fuera = list()) {
   man_p <- file.path(ref_dir, "manifiestos.yaml")
   if (file.exists(man_p)) {
     sin_fuera <- function(m) {
-      for (ruta in fuera) m <- lapply(m, .quitar_clave, ruta)
+      for (ruta in fuera) m <- if (is.function(ruta)) ruta(m) else lapply(m, .quitar_clave, ruta)
       m
     }
     testthat::expect_identical(sin_fuera(res$manifiestos), sin_fuera(yaml::read_yaml(man_p)),

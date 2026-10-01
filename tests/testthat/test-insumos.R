@@ -7,8 +7,9 @@ test_that("los insumos de 9100 se construyen y todas sus tablas validan", {
   expect_identical(nrow(b$datos), 0L)
   expect_gt(nrow(b$prior_gbd), 0L)
   expect_setequal(unique(b$betas$parametro_objetivo), c("emr", "prevalencia"))   # extraccion.yaml: SEV y LDI, HAQ
-  expect_true(21L %in% b$prior_gbd$age_group_id)          # banda 80+ agregada
-  expect_false(any(b$prior_gbd$age_group_id %in% c(30L, 31L, 32L, 235L)))
+  # las bandas del ancla son las de la población (80-84 ... 95+ sin agrupar en 80+, como manda el proyecto)
+  expect_true(all(c(30L, 31L, 32L, 235L) %in% b$prior_gbd$age_group_id))
+  expect_false(21L %in% b$prior_gbd$age_group_id)
   expect_match(b$hash, "^[0-9a-f]{64}$")
 })
 
@@ -19,9 +20,7 @@ test_that("sigma_log se deriva del UI publicado", {
 })
 
 # La evidencia, la extracción y la partición de severidad son del formato completo: esas pruebas usan el ejemplo en
-# ese formato.
-cfg9100_completo <- function() dl_configuracion_ejemplo(9100L, formato = "completo")
-rutas_nacional_completo <- function() dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo")
+# ese formato (cfg9100_completo() y rutas_nacional_completo(), de helper-dismodlite.R).
 
 test_that("anti-doble-conteo: csmr en medidas_entrada + CoD peruana en el store -> error", {
   cfg <- cfg9100_completo(); cfg$medidas_entrada <- list("csmr")
@@ -224,7 +223,7 @@ test_that("betas materializa escala y rechaza haqi con beta grande en escala 0-1
 # declarada) salvo que pesos_80mas traiga esos ids.
 test_that("las bandas finas <5 del std se agregan a <5 years con peso por ancho de banda", {
   d <- withr::local_tempdir()
-  std <- data.table::fread(rutas_nacional()$std_prior)
+  std <- data.table::fread(rutas_nacional_completo()$std_prior)
   # una fila del ancla de la causa y año de ajuste, en la métrica que lee el paquete (Rate, por 100 000)
   base <- std[sex_id == 1L & cause_id == 9100L & year == 2023L & metric_name == "Rate"][1]
   fila <- function(id, nm, v) { r <- data.table::copy(base); r[, `:=`(age_group_id = id, age_group_name = nm,
@@ -232,8 +231,8 @@ test_that("las bandas finas <5 del std se agregan a <5 years con peso por ancho 
   finas <- rbind(fila(2L, "0-6 days", 1e-6), fila(3L, "7-27 days", 1e-5), fila(388L, "1-5 months", 5e-5),
                  fila(389L, "6-11 months", 1e-4), fila(238L, "12-23 months", 2e-4), fila(34L, "2-4 years", 3e-4))
   data.table::fwrite(rbind(std, finas), file.path(d, "prior.csv"))
-  p <- rutas_nacional(); p$std_prior <- file.path(d, "prior.csv")
-  cfg <- cfg9100(); cfg$edad_inicio <- 0; cfg$nudos_incidencia <- list(0, 40, 50, 60, 70, 80, 95)
+  p <- rutas_nacional_completo(); p$std_prior <- file.path(d, "prior.csv")
+  cfg <- cfg9100_completo(); cfg$edad_inicio <- 0; cfg$nudos_incidencia <- list(0, 40, 50, 60, 70, 80, 95)
   cfg$edad_inicio_fuente <- "test"
   b <- suppressMessages(dl_insumos(cfg, p))
   pr <- b$prior_gbd[measure_id == 5L & sex_id == 1L]
@@ -250,14 +249,14 @@ test_that("las bandas finas <5 del std se agregan a <5 years con peso por ancho 
 # fuera una banda más del ancla. Las bandas agregadas del catálogo (ids 22 y 27) nunca son celdas del ancla.
 test_that("All ages y Age-standardized quedan fuera del ancla aunque edad_inicio sea 0", {
   d <- withr::local_tempdir()
-  std <- data.table::fread(rutas_nacional()$std_prior)
+  std <- data.table::fread(rutas_nacional_completo()$std_prior)
   # una fila del ancla de la causa y año de ajuste, en la métrica que lee el paquete (Rate, por 100 000)
   base <- std[sex_id == 1L & cause_id == 9100L & year == 2023L & metric_name == "Rate"][1]
   agg <- data.table::copy(base)[, `:=`(age_group_id = 22L, age_group_name = "All ages", val = 500)]
   ags <- data.table::copy(base)[, `:=`(age_group_id = 27L, age_group_name = "Age-standardized", val = 400)]
   data.table::fwrite(rbind(std, agg, ags), file.path(d, "prior.csv"))
-  p <- rutas_nacional(); p$std_prior <- file.path(d, "prior.csv")
-  cfg <- cfg9100(); cfg$edad_inicio <- 0; cfg$nudos_incidencia <- list(0, 40, 50, 60, 70, 80, 95)
+  p <- rutas_nacional_completo(); p$std_prior <- file.path(d, "prior.csv")
+  cfg <- cfg9100_completo(); cfg$edad_inicio <- 0; cfg$nudos_incidencia <- list(0, 40, 50, 60, 70, 80, 95)
   cfg$edad_inicio_fuente <- "test"
   expect_message(b <- dl_insumos(cfg, p), "All ages")
   expect_false(any(c(22L, 27L) %in% b$prior_gbd$age_group_id))
@@ -305,7 +304,7 @@ test_that("anchor.componente escala la prevalencia del ancla y el YLD de referen
 # estimaciones GHDx), con su acquisition_id.
 test_that("cov_valores: las covariables sin CSV en `covariables` salen de `covariables_std`", {
   raw <- withr::local_tempdir()
-  file.copy(file.path(rutas_nacional()$ghdx_cov, c("HAQI.csv", "LDI_PC.csv")), raw)   # sin el CSV del SEV
+  file.copy(file.path(rutas_nacional_completo()$ghdx_cov, c("HAQI.csv", "LDI_PC.csv")), raw)   # sin el CSV del SEV
   cols <- c("acquisition_id", "source", "round", "entity", "location_id", "location_name", "location_level", "year",
             "age_group_id", "age_group_name", "sex_id", "sex_name", "covariate_id", "covariate_name_short",
             "measure_id", "measure_name", "metric_id", "metric_name", "val", "lower", "upper", "ui_level")
@@ -318,31 +317,31 @@ test_that("cov_valores: las covariables sin CSV en `covariables` salen de `covar
     ui_level = 0.95)))
   data.table::setcolorder(std, cols)
   csv <- withr::local_tempfile(fileext = ".csv"); data.table::fwrite(std, csv)
-  p <- rutas_nacional(); p$ghdx_cov <- raw; p$cov_std <- csv
-  b <- dl_insumos(cfg9100(), p)
+  p <- rutas_nacional_completo(); p$ghdx_cov <- raw; p$cov_std <- csv
+  b <- dl_insumos(cfg9100_completo(), p)
   cv <- b$cov_valores[covariate_name_short == "SEV_scalar_agestd_cvd_pvd"]
   expect_identical(nrow(cv), 10L)
   expect_true(all(cv$acquisition_id == "ghdx_std_test") && all(cv$location_id == "123"))
   expect_true(all(b$cov_valores[covariate_name_short != "SEV_scalar_agestd_cvd_pvd"]$acquisition_id == "ghdx_cov_crudo_congelado"))
   # el CSV de `covariables` manda: con él presente, `covariables_std` no duplica ni cambia los insumos
-  p2 <- rutas_nacional(); p2$cov_std <- csv
-  expect_identical(dl_insumos(cfg9100(), p2)$hash, dl_insumos(cfg9100(), rutas_nacional())$hash)
+  p2 <- rutas_nacional_completo(); p2$cov_std <- csv
+  expect_identical(dl_insumos(cfg9100_completo(), p2)$hash, dl_insumos(cfg9100_completo(), rutas_nacional_completo())$hash)
   # sin CSV ni `covariables_std` para una covariable: los insumos siguen (el ajuste nacional no la usa: dX = 0) y es
   # dl_cascada() quien se detiene al no tener valor nacional
   p3 <- p; p3$cov_std <- NULL
-  expect_false("SEV_scalar_agestd_cvd_pvd" %in% dl_insumos(cfg9100(), p3)$cov_valores$covariate_name_short)
+  expect_false("SEV_scalar_agestd_cvd_pvd" %in% dl_insumos(cfg9100_completo(), p3)$cov_valores$covariate_name_short)
   # covariables por banda de edad en `covariables_std`: la clave de cov_valores no tiene edad, así que solo entra la
   # banda estandarizada por edad (27) o la de todas las edades (22); sin ninguna de las dos, la covariable queda
   # fuera con un mensaje en vez de duplicar la clave.
   por_edad <- data.table::rbindlist(lapply(c(10L, 11L, 27L), function(a) { s <- data.table::copy(std); s[, age_group_id := a]; s }))
   csv2 <- withr::local_tempfile(fileext = ".csv"); data.table::fwrite(por_edad, csv2)
   p4 <- p; p4$cov_std <- csv2
-  b4 <- dl_insumos(cfg9100(), p4)
+  b4 <- dl_insumos(cfg9100_completo(), p4)
   expect_true(all(b4$cov_valores[covariate_name_short == "SEV_scalar_agestd_cvd_pvd"]$age_group_id == 27L))
   solo_edad <- por_edad[age_group_id != 27L]
   csv3 <- withr::local_tempfile(fileext = ".csv"); data.table::fwrite(solo_edad, csv3)
   p5 <- p; p5$cov_std <- csv3
-  expect_message(b5 <- dl_insumos(cfg9100(), p5), "banda")
+  expect_message(b5 <- dl_insumos(cfg9100_completo(), p5), "banda")
   expect_false("SEV_scalar_agestd_cvd_pvd" %in% b5$cov_valores$covariate_name_short)
 })
 
@@ -487,7 +486,7 @@ test_that("datos: las columnas num opcionales enteramente vacias sobreviven al v
 # la sustituta y .dl_materializar_cov trae la sustituta a cov_valores aunque no tenga beta.
 test_that("cov_proxy: sustituye — el proxy puede anclar en la covariable sustituta declarada; la sustituta entra en cov_valores", {
   d <- withr::local_tempdir()
-  proxy <- data.table::fread(rutas_completas()$cov_proxy, colClasses = list(character = "location_id"))
+  proxy <- data.table::fread(rutas_completas_completo()$cov_proxy, colClasses = list(character = "location_id"))
   # el proxy 900101 (beta SEV, 785) pasa a anclar en LDI (57): mismo cociente departamental, otra escala nacional
   # (el ancla de LDI de cada año: la tabla trae 2019, 2023 y 2024)
   proxy[proxy[covariate_id_proxy == 900102L, list(ldi = unique(ancla_ghdx)), by = year], on = "year", ldi := i.ldi]
@@ -496,21 +495,21 @@ test_that("cov_proxy: sustituye — el proxy puede anclar en la covariable susti
                                              ancla_ghdx = ldi, covariate_id_gbd = 57L)]
   proxy[, ldi := NULL]
   data.table::fwrite(proxy, file.path(d, "cov_proxy.csv"))
-  p <- rutas_completas(); p$cov_proxy <- file.path(d, "cov_proxy.csv")
-  expect_error(dl_insumos(cfg9100_datos(), p), "proxy_mapea_config")           # sin declarar: sigue siendo error
-  cfg <- cfg9100_datos()
+  p <- rutas_completas_completo(); p$cov_proxy <- file.path(d, "cov_proxy.csv")
+  expect_error(dl_insumos(cfg9100_datos(cfg9100_completo()), p), "proxy_mapea_config")           # sin declarar: sigue siendo error
+  cfg <- cfg9100_datos(cfg9100_completo())
   cfg$covariables[[1]]$sustituye <- list(covariate_id = 57L, covariate_name_short = "LDI_pc", procedencia = "test")
   b <- dl_insumos(cfg, p)
   expect_s3_class(b, "dl_bundle")
   expect_true(all(b$cov_proxy[covariate_id_proxy == 900101L]$covariate_id_gbd == 57L))
   # una sustituta sin beta entra en cov_valores por nombre (CSV de `covariables`): haqi_bis = copia de haqi, id 999
   dir.create(file.path(d, "ghdx_cov"))
-  for (f in list.files(rutas_completas()$ghdx_cov, full.names = TRUE)) file.copy(f, file.path(d, "ghdx_cov"))
+  for (f in list.files(rutas_completas_completo()$ghdx_cov, full.names = TRUE)) file.copy(f, file.path(d, "ghdx_cov"))
   h <- data.table::fread(file.path(d, "ghdx_cov", "HAQI.csv")); h[, covariate_name_short := "haqi_bis"]
   data.table::fwrite(h, file.path(d, "ghdx_cov", "HAQI_BIS.csv"))
   p2 <- p; p2$ghdx_cov <- file.path(d, "ghdx_cov")
   proxy2 <- data.table::copy(proxy)
-  cv <- dl_insumos(cfg9100_datos(), rutas_completas())$cov_valores
+  cv <- dl_insumos(cfg9100_datos(cfg9100_completo()), rutas_completas_completo())$cov_valores
   haq <- cv[covariate_name_short == "haqi" & year == 2023L]$val[1]
   proxy2[covariate_id_proxy == 900101L, `:=`(valor_calibrado = valor_calibrado / ancla_ghdx * haq,
                                               valor_calibrado_se = valor_calibrado_se / ancla_ghdx * haq,
@@ -602,7 +601,7 @@ test_that("years.ancla: el ancla se reetiqueta al año de ajuste; población y c
 })
 
 test_that("dl_insumos() lee una sola vez el esquema y los pesos de las bandas finas (prevalencia y csmr)", {
-  cfg <- cfg9100(); p <- rutas_nacional()
+  cfg <- cfg9100_completo(); p <- rutas_nacional_completo()
   n <- c(esquema = 0L, pesos = 0L)
   esquema <- dl_esquema; pesos <- .dl_leer_pesos_finas
   local_mocked_bindings(
@@ -627,7 +626,7 @@ test_that("un ancla con bandas de edad que se solapan se detiene al armar los in
   a <- data.table::fread(ejemplo_completo("ancla", "prevalencia.csv"), colClasses = list(character = "location_id"))
   extra <- a[age_group_id == 15L][, `:=`(age_group_id = 25L, age_group_name = "50-69 years")]
   data.table::fwrite(rbind(a, extra), f)
-  expect_error(dl_insumos(cfg9100(), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, ancla_prevalencia = f, formato = "completo")),
+  expect_error(dl_insumos(cfg9100_completo(), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, ancla_prevalencia = f, formato = "completo")),
                "^dl_insumos\\(\\): «prevalencia.csv» \\(`ancla_prevalencia`\\) trae bandas de edad que se solapan")
 })
 

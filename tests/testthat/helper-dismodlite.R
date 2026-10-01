@@ -1,5 +1,5 @@
-# Rutas y configuraciones de prueba sobre los datos sintéticos de ejemplo (inst/extdata/acs_peru, el formato
-# simple): la causa padre 9100 (arteriopatía crónica sintética) en 2023, que usan casi todas las pruebas del motor.
+# Rutas y configuraciones de prueba sobre los datos sintéticos de ejemplo (inst/extdata/acs_peru, el proyecto en el
+# contrato de insumos): la causa padre 9100 (arteriopatía crónica sintética) en 2023, que usan casi todas las pruebas del motor.
 # Las pruebas de lo que solo tiene el formato completo (evidencia, extracción, partición de severidad, registro,
 # lectura de sus archivos) usan el mismo ejemplo en ese formato: ejemplo_completo() y formato = "completo".
 
@@ -7,22 +7,24 @@
 ejemplo_completo <- function(...) file.path(ruta_acs(), ...)
 
 # Las dos variantes de 9100 que usan las pruebas: el ajuste nacional puro (sin datos locales ni proxies
-# departamentales; las tablas datos y cov_proxy de los insumos quedan vacías) y el completo (datos.csv y
-# proxies_departamentales.csv).
-# Por ahora usan el ejemplo en el formato completo (los mismos números): el simple se migra a las tablas del contrato.
-rutas_nacional <- function() dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo")
-rutas_completas <- function() dl_rutas_ejemplo(9100L, formato = "completo")
+# departamentales; las tablas datos y cov_proxy de los insumos quedan vacías) y el completo (datos.csv y los proxies
+# de covariables/proxies.csv).
+rutas_nacional <- function() dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE)
+rutas_completas <- function() dl_rutas_ejemplo(9100L)
 
-cfg9100 <- function() dl_configuracion_ejemplo(9100L, formato = "completo")
+cfg9100 <- function() dl_configuracion_ejemplo(9100L)
 
-# El ejemplo simple (inst/extdata/acs_peru) todavía trae la configuración anterior (covariables y ubicacion_nacional):
-# hasta que se migre a las tablas del contrato, lo que lo usa se salta. Se quita con el ejemplo nuevo.
-ejemplo_simple_pendiente <- function() testthat::skip("contrato: el ejemplo se migra en la Tarea 9")
+# Los mismos tres en el formato completo (acs_peru_completo), para las pruebas de lo que solo hace ese formato: las
+# bandas finas del ancla agrupadas en 80+ y <5 (pesos_80mas.csv), las descargas del GHDx en sus propios archivos, los
+# proxies de varios años, la evidencia y la extracción.
+cfg9100_completo <- function() dl_configuracion_ejemplo(9100L, formato = "completo")
+rutas_nacional_completo <- function() dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo")
+rutas_completas_completo <- function() dl_rutas_ejemplo(9100L, formato = "completo")
 
 # 9100 con los datos locales en la verosimilitud: las tres medidas de datos.csv y lambda 0,5 (con csmr en el ajuste
 # el ancla no va a peso completo). El held-out departamental es el del config (2019, el año de los datos de nivel 1).
-cfg9100_datos <- function() {
-  cfg <- cfg9100(); cfg$medidas_entrada <- list("prev_estudio", "incidencia", "csmr"); cfg$anchor$lambda <- 0.5
+cfg9100_datos <- function(cfg = cfg9100()) {
+  cfg$medidas_entrada <- list("prev_estudio", "incidencia", "csmr"); cfg$anchor$lambda <- 0.5
   cfg$decisiones <- list("lambda 0.5 porque csmr entra a la verosimilitud (datos de ejemplo)"); cfg
 }
 
@@ -33,12 +35,11 @@ raiz_fuente <- function() {
   if (dir.exists(file.path(r, "R")) && file.exists(file.path(r, "DESCRIPTION"))) r else NULL
 }
 
-# ---- Proyectos en el formato simple ----
+# ---- Proyectos en el contrato ----
 
-# Copia del proyecto de ejemplo (formato simple) en una carpeta temporal con un espacio en el nombre; `...`: archivos
+# Copia del proyecto de ejemplo en una carpeta temporal con un espacio en el nombre; `...`: archivos
 # que se reemplazan (ruta relativa = sus líneas).
 copia_ejemplo <- function(..., env = parent.frame()) {
-  ejemplo_simple_pendiente()
   d <- dl_ejemplo(copiar_en = file.path(withr::local_tempdir(.local_envir = env), "mi proyecto"))
   cambios <- list(...)
   for (f in names(cambios)) writeLines(enc2utf8(cambios[[f]]), file.path(d, f), useBytes = TRUE)
@@ -191,8 +192,7 @@ corrida_mini <- local({
   x <- NULL
   function() {
     if (is.null(x)) {
-      b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"),
-                                       dl_rutas_ejemplo(9100L, datos = FALSE, formato = "completo")))
+      b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE)))
       o <- dl_opciones_mcmc(simulaciones = 10L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L)
       f <- dl_ajustar(b, o, semilla = 7L)
       f0 <- dl_ajustar_solo_prior(b, o, semilla = 7L, ajuste = f)
