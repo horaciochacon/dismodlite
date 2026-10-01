@@ -385,13 +385,26 @@ test_that("causa y carpeta_config: mensajes que nombran el argumento", {
 })
 
 test_that("anchor.location_id admite un código de texto", {
-  cfg <- dl_configuracion_ejemplo(9100, formato = "completo",
-                                  cambios = list(anchor = list(location_id = "PAIS", location = NULL)))
+  loc <- function(x) dl_configuracion_ejemplo(9100, formato = "completo",
+                                              cambios = list(anchor = list(location_id = x, location = NULL)))
+  cfg <- loc("PAIS")
+  expect_identical(cfg$anchor$location_id, "PAIS")
   expect_identical(dismodlite:::.dl_loc_ancla(cfg), "PAIS")
-  cfg <- dl_configuracion_ejemplo(9100, formato = "completo", cambios = list(anchor = list(location_id = "123")))
-  expect_identical(cfg$anchor$location_id, 123L)
-  expect_error(dl_configuracion_ejemplo(9100, formato = "completo",
-                                        cambios = list(anchor = list(location_id = "  "))), "anchor.location_id")
+  # solo un texto de dígitos sin cero a la izquierda pasa a entero; "007" y "0" siguen siendo códigos de texto
+  expect_identical(loc("123")$anchor$location_id, 123L)
+  expect_identical(loc(123)$anchor$location_id, 123L)
+  expect_identical(loc("007")$anchor$location_id, "007")
+  expect_identical(dismodlite:::.dl_loc_ancla(loc("007")), "007")
+  expect_identical(loc("0")$anchor$location_id, "0")
+  expect_error(loc(0), "un entero positivo o un texto")
+  expect_error(loc(1.5), "anchor.location_id")
+  expect_error(loc("  "), "anchor.location_id")
+})
+
+test_that(".dl_loc_ancla normaliza un número de una lista sin validar como antes", {
+  expect_identical(dismodlite:::.dl_loc_ancla(list(anchor = list(location_id = 1e5))), "100000")
+  expect_identical(dismodlite:::.dl_loc_ancla(list(anchor = list(location_id = 123L))), "123")
+  expect_identical(dismodlite:::.dl_loc_ancla(list(anchor = list(location = "peru"))), "123")
 })
 
 test_that("una clave desconocida del formato completo avisa con la más parecida", {

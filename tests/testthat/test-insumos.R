@@ -641,3 +641,14 @@ test_that("sin agrupar bandas finas, el ancla conserva 80-84 ... 95+ y no lee pe
   expect_true(all(c(30L, 31L, 32L, 235L) %in% edades))
   expect_false(21L %in% edades)
 })
+
+test_that("sin la clave anchor.agrupar_bandas_finas (cfg sin validar o bundle anterior) se agrupa como con TRUE", {
+  rutas <- dl_rutas_ejemplo(9100, formato = "completo")
+  cfg <- dl_configuracion_ejemplo(9100, formato = "completo")
+  expect_true(cfg$anchor$agrupar_bandas_finas)
+  con <- suppressMessages(dl_insumos(cfg, rutas))$prior_gbd
+  cfg$anchor$agrupar_bandas_finas <- NULL
+  sin <- suppressMessages(dl_insumos(cfg, rutas))$prior_gbd
+  expect_identical(sin, con)
+  expect_true(21L %in% sin$age_group_id)
+})

@@ -213,7 +213,10 @@ print.dl_schema <- function(x, ...) {
 # (Perú); region = 120 (reservado).
 .DL_LOC_ANCLA <- c(peru = "123", region = "120")
 .dl_loc_ancla <- function(cfg) {
-  if (!is.null(cfg$anchor$location_id)) return(as.character(cfg$anchor$location_id))
+  if (!is.null(cfg$anchor$location_id)) {
+    li <- cfg$anchor$location_id    # un número (de una lista sin validar) se normaliza a entero: 1e5 es "100000"
+    return(if (is.numeric(li)) as.character(as.integer(li)) else as.character(li))
+  }
   id <- .DL_LOC_ANCLA[cfg$anchor$location]
   if (is.na(id))
     .dl_stop("anchor.location debe ser %s", paste(names(.DL_LOC_ANCLA), collapse = " o "))

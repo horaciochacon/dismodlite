@@ -387,13 +387,16 @@ NULL
                                format(cfg$cause_id), causa))
   # Ubicación del ancla: anchor.location_id (el location_id de GBD del país, que lo declara la configuración simple; o
   # el código de texto de la ubicación nacional en ubicaciones.csv) o, en el formato completo de la versión 0.2.2,
-  # anchor.location: peru (ubicación 123). Un entero o un texto de dígitos se guarda como entero; otro texto, como texto.
+  # anchor.location: peru (ubicación 123). Un número entero positivo, o un texto de dígitos sin cero a la izquierda
+  # ("123"), se guarda como entero; cualquier otro texto no vacío ("007", "PAIS"), como texto.
   li <- cfg$anchor$location_id
   if (!is.null(li)) {
-    if (.dl_es_texto1(li) && grepl("^[0-9]+$", li)) li <- as.numeric(li)
+    if (.dl_es_texto1(li) && grepl("^[1-9][0-9]*$", li) && as.numeric(li) <= .Machine$integer.max)
+      li <- as.numeric(li)
     if (.dl_es_entero1(li) && li >= 1) cfg$anchor$location_id <- as.integer(li)
     else if (!.dl_es_texto1(li) || !nzchar(trimws(li)))
-      p("anchor.location_id", "debe ser el c\u00f3digo de la ubicaci\u00f3n nacional: un entero o un texto")
+      p("anchor.location_id", paste0("debe ser el c\u00f3digo de la ubicaci\u00f3n nacional: un entero positivo ",
+                                     "o un texto"))
   } else if (identical(cfg$anchor$location, "region"))
     p("anchor.location", paste0("\u00abregion\u00bb est\u00e1 reservado para un ancla regional (ubicaci\u00f3n 120) ",
                                 "que esta versi\u00f3n ",
