@@ -166,17 +166,19 @@
 # ---- Ancla ----
 
 # ancla -> el ancla del formato completo (.dl_ancla_simple) de la causa de `cfg`, en la ubicación nacional. Sin
-# anchor.agrupar_bandas_finas, en las bandas de la población (.dl_agrupar_menores_1 y .dl_agrupar_ancla).
+# anchor.agrupar_bandas_finas, en las bandas de la población (.dl_agrupar_menores_1 y .dl_agrupar_ancla); las bandas
+# enteramente por debajo de edad_inicio pasan tal cual, sin esas comprobaciones: dl_insumos() las deja fuera y lo dice.
 .dl_trad_ancla <- function(tablas, cfg, bandas) {
   a <- data.table::as.data.table(as.data.frame(.dl_filas_de_causa(tablas$ancla, cfg$cause_id)))
   if (!nrow(a))
     .dl_stop("la tabla ancla no trae filas de la causa %d (causas que trae: %s): agr\u00e9galas o revisa la causa",
              cfg$cause_id, .dl_lista(tablas$ancla$causa))
   if (!isTRUE(cfg$anchor$agrupar_bandas_finas)) {
-    a <- .dl_agrupar_menores_1(a)
+    bajo <- a$edad_fin <= as.numeric(cfg$edad_inicio)
     pob <- unique(data.table::data.table(edad_inicio = tablas$poblacion$edad_inicio,
                                          edad_fin = tablas$poblacion$edad_fin))
-    a <- .dl_agrupar_ancla(a, pob, tablas$poblacion_detalle, .dl_anio_ancla(cfg))
+    a <- rbind(a[bajo], .dl_agrupar_ancla(.dl_agrupar_menores_1(a[!bajo]), pob, tablas$poblacion_detalle,
+                                          .dl_anio_ancla(cfg)))
   }
   .dl_ancla_completa(a, cfg, tablas, bandas)
 }
@@ -204,12 +206,17 @@
   rbind(a[!k], agr[, names(a), with = FALSE])
 }
 
-# Banda de `bandas` (la población) que contiene a [a0, a1): su fila; 0 si [a0, a1) no toca ninguna (queda fuera de la
-# población, como las bandas por debajo de edad_inicio, y pasa tal cual); NA si cruza el límite de una banda.
+# Cómo cae la banda [a0, a1) del ancla en las bandas de la población `bandas` (que reparten las edades):
+#   k > 0  está dentro de la banda k (igual a ella o más fina: se agrupa en ella);
+#   0      es la unión exacta de varias bandas (empieza en el inicio de una, termina en el fin de otra y toda banda que
+#          toca queda dentro): se usa tal cual;
+#   NA     cruza el límite de una banda.
 .dl_banda_contenedora <- function(a0, a1, bandas) {
   k <- which(bandas$edad_inicio <= a0 & bandas$edad_fin >= a1)
   if (length(k) == 1L) return(k)
-  if (!any(bandas$edad_inicio < a1 & bandas$edad_fin > a0)) return(0L)
+  toca <- bandas$edad_inicio < a1 & bandas$edad_fin > a0
+  dentro <- bandas$edad_inicio >= a0 & bandas$edad_fin <= a1
+  if (a0 %in% bandas$edad_inicio && a1 %in% bandas$edad_fin && all(dentro[toca])) return(0L)
   NA_integer_
 }
 
@@ -219,13 +226,20 @@
 #   w_b    = N_b / sum_{b' en B} N_b'         N_b: población de b en poblacion_detalle (año del ancla, mismo sexo)
 #   val_B  = sum_b w_b val_b,   lower_B = sum_b w_b lower_b,   upper_B = sum_b w_b upper_b
 # que se calcula como sum_b(val_b N_b) / sum_b N_b. Promediar los límites en escala natural es la aproximación
-# declarada de .dl_agregar_finas (R/insumos.R). Error si una banda del ancla cruza el límite de una banda de la
-# población, o si hace falta poblacion_detalle y no la hay.
+# declarada de .dl_agregar_finas (R/insumos.R). Una banda del ancla que es la unión de varias de la población queda
+# tal cual. Error si una banda del ancla sale de las edades de la población o cruza el límite de una de sus bandas, o
+# si hace falta poblacion_detalle y no la hay.
 .dl_agrupar_ancla <- function(a, bandas_pob, detalle, anio_ancla) {
+  fuera <- a$edad_inicio < min(bandas_pob$edad_inicio) | a$edad_fin > max(bandas_pob$edad_fin)
+  if (any(fuera))
+    .dl_stop(paste0("la poblaci\u00f3n no cubre la banda %s del ancla (la poblaci\u00f3n va de %g a %s a\u00f1os): ",
+                    "agrega esas edades a la poblaci\u00f3n o quita la banda del ancla"),
+             .dl_nombre_banda(a$edad_inicio[fuera][1L], a$edad_fin[fuera][1L]), min(bandas_pob$edad_inicio),
+             if (max(bandas_pob$edad_fin) >= .DL_EDAD_ABIERTA) "m\u00e1s" else format(max(bandas_pob$edad_fin)))
   B <- vapply(seq_len(nrow(a)), function(i) .dl_banda_contenedora(a$edad_inicio[i], a$edad_fin[i], bandas_pob), 1L)
   if (anyNA(B))
-    .dl_stop(paste0("ancla: la banda %s no es una uni\u00f3n de bandas de la poblaci\u00f3n; usa en la ",
-                    "poblaci\u00f3n bandas que la contengan enteras"),
+    .dl_stop(paste0("ancla: la banda %s cruza el l\u00edmite de una banda de la poblaci\u00f3n (no est\u00e1 dentro ",
+                    "de una ni es una uni\u00f3n de ellas); usa en la poblaci\u00f3n bandas que la contengan enteras"),
              .dl_nombre_banda(a$edad_inicio[is.na(B)][1L], a$edad_fin[is.na(B)][1L]))
   B0 <- ifelse(B > 0L, bandas_pob$edad_inicio[pmax(B, 1L)], a$edad_inicio)
   B1 <- ifelse(B > 0L, bandas_pob$edad_fin[pmax(B, 1L)], a$edad_fin)
@@ -391,6 +405,11 @@
   decl <- vapply(cfg$covariables, function(cv) cv$covariate_name_short, "")
   ref <- vapply(cfg$covariables, function(cv) cv$sustituye$covariate_name_short %||% cv$covariate_name_short, "")
   ids_proxy <- vapply(cfg$covariables, function(cv) as.integer(cv$proxy$covariate_id_proxy), 1L)
+  sin_id <- setdiff(ref, names(cov$ids))
+  if (length(sin_id))
+    .dl_stop(paste0("el valor nacional de los proxies sale de %s, que no est\u00e1 en la tabla betas (ni en su ",
+                    "valor_nacional_de): agr\u00e9gala como valor_nacional_de de la covariable que ancla"),
+             paste(sin_id, collapse = ", "))
   c0 <- tablas$covariables
   d <- c0[!.dl_es_nacional(c0, .dl_loc_ancla(cfg)) & c0$covariable %in% decl]
   ajuste <- .dl_anio_ajuste(cfg)

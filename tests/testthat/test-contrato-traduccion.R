@@ -56,10 +56,11 @@ pob_det <- tab("poblacion", data.frame(ubicacion = "P", anio = 2023L, sexo = "ho
                                        poblacion = c(300, 200, 75, 25)))
 
 test_that("una banda del ancla que cruza el límite de la población es un error", {
-  a <- tab("ancla", data.frame(anio = 2023L, sexo = "hombres", edad_inicio = c(70, 75), edad_fin = c(75, 85),
+  # 75-84 es la unión de 75-79 y 80-84 (queda tal cual); 70-77 y 78-84 cruzan el límite de 75
+  a <- tab("ancla", data.frame(anio = 2023L, sexo = "hombres", edad_inicio = c(70, 78), edad_fin = c(78, 85),
                                medida = "prevalencia", valor = 0.1, inferior = 0.05, superior = 0.2))
   expect_error(dismodlite:::.dl_traducir_contrato(list(ubicaciones = ubic, poblacion = pob_det, ancla = a),
-                                                  cfg_min()), "no es una uni")
+                                                  cfg_min()), "banda 70-77 a\u00f1os cruza el l\u00edmite")
 })
 
 test_that("las bandas de menos de un año de GBD se agrupan en [0, 1) por su ancho", {
@@ -174,4 +175,75 @@ test_that("fuentes_gbd -> list.csv del formato completo", {
   expect_identical(x$fuentes$component_id, c(5L, 4L))
   expect_identical(x$fuentes$location_id, c("P", "P"))
   expect_identical(x$fuentes$cause_id, c(1L, 1L))
+})
+
+# ---- Ronda de revisión 1 ----
+
+test_that("una banda del ancla que es la unión de varias de la población queda tal cual", {
+  pob <- tab("poblacion", data.frame(ubicacion = "P", anio = 2023L, sexo = "hombres",
+                                     edad_inicio = c(70, 75, 80, 85, 90, 95), edad_fin = c(75, 80, 85, 90, 95, NA),
+                                     poblacion = c(300, 200, 40, 30, 20, 10)))
+  a <- tab("ancla", data.frame(anio = 2023L, sexo = "hombres", edad_inicio = c(70, 80), edad_fin = c(80, NA),
+                               medida = "prevalencia", valor = c(0.1, 0.2), inferior = 0.05, superior = 0.3))
+  x <- dismodlite:::.dl_traducir_contrato(list(ubicaciones = ubic, poblacion = pob, ancla = a), cfg_min())
+  expect_setequal(x$ancla$age_group_id, c(as.character(x$bandas[edad_inicio == 70 & edad_fin == 80]$age_group_id),
+                                          "21"))
+  expect_identical(as.numeric(x$ancla[age_group_id == "21"]$val), 0.2)
+  # [0, 1) del ancla con la población en las bandas de menos de un año de GBD
+  g <- dismodlite:::.dl_grupos_edad_referencia()[age_group_id %in% c(2L, 3L, 388L, 389L)]
+  pob1 <- tab("poblacion", data.frame(ubicacion = "P", anio = 2023L, sexo = "hombres",
+                                      edad_inicio = c(g$age_start, 1), edad_fin = c(g$age_end, NA),
+                                      poblacion = c(1, 2, 3, 4, 90)))
+  a1 <- tab("ancla", data.frame(anio = 2023L, sexo = "hombres", edad_inicio = c(0, 1), edad_fin = c(1, NA),
+                                medida = "prevalencia", valor = 0.1, inferior = 0.05, superior = 0.3))
+  cfg <- cfg_min(); cfg$edad_inicio <- 0
+  x1 <- dismodlite:::.dl_traducir_contrato(list(ubicaciones = ubic, poblacion = pob1, ancla = a1), cfg)
+  expect_true("28" %in% x1$ancla$age_group_id)
+})
+
+test_that("una banda del ancla fuera de la población es un error, salvo por debajo de edad_inicio", {
+  pob <- tab("poblacion", data.frame(ubicacion = "P", anio = 2023L, sexo = "hombres", edad_inicio = c(70, 75),
+                                     edad_fin = c(75, 80), poblacion = c(300, 200)))
+  a <- tab("ancla", data.frame(anio = 2023L, sexo = "hombres", edad_inicio = c(70, 75, 80), edad_fin = c(75, 80, NA),
+                               medida = "prevalencia", valor = 0.1, inferior = 0.05, superior = 0.3))
+  expect_error(dismodlite:::.dl_traducir_contrato(list(ubicaciones = ubic, poblacion = pob, ancla = a), cfg_min()),
+               "no cubre la banda 80 años y más")
+  # 30-34 y las de menos de un año, enteramente por debajo de edad_inicio (70): pasan tal cual, sin comprobaciones
+  b <- tab("ancla", data.frame(anio = 2023L, sexo = "hombres", edad_inicio = c(0.5, 30, 70, 75),
+                               edad_fin = c(1, 35, 75, 80), medida = "prevalencia", valor = 0.1, inferior = 0.05,
+                               superior = 0.3))
+  x <- dismodlite:::.dl_traducir_contrato(list(ubicaciones = ubic, poblacion = pob, ancla = b), cfg_min())
+  expect_setequal(x$ancla$age_group_id, c("389", "11", "19", "20"))
+})
+
+test_that("poblacion_detalle sin una de las bandas del ancla: error que la nombra", {
+  det <- tab("poblacion_detalle", data.frame(anio = 2023L, sexo = "hombres", edad_inicio = 80, edad_fin = 85,
+                                             poblacion = 75))
+  expect_error(dismodlite:::.dl_traducir_contrato(list(ubicaciones = ubic, poblacion = pob80, ancla = ancla_fina,
+                                                       poblacion_detalle = det), cfg_min()),
+               "poblacion_detalle no trae.*hombres 85 años y más")
+})
+
+test_that("valor_nacional_de: el proxy se ancla en el valor nacional de la sustituta", {
+  u <- tab("ubicaciones", data.frame(ubicacion = c("P", "A", "B"), padre = c(NA, "P", "P")))
+  pob <- tab("poblacion", data.frame(ubicacion = rep(c("A", "B"), each = 2), anio = 2023L, sexo = "hombres",
+                                     edad_inicio = c(70, 75), edad_fin = c(75, NA), poblacion = c(1, 2, 3, 4)))
+  a <- tab("ancla", data.frame(anio = 2023L, sexo = "hombres", edad_inicio = c(70, 75), edad_fin = c(75, NA),
+                               medida = "prevalencia", valor = 0.1, inferior = 0.05, superior = 0.2))
+  cov <- tab("covariables", data.frame(ubicacion = c("P", "P", "A", "B"), anio = 2023L,
+                                       covariable = c("sdi", "sdi_std", "sdi", "sdi"), valor = c(0.5, 0.45, 0.4, 0.6),
+                                       error_estandar = c(NA, NA, 0.01, 0.02), covariable_id = c(881L, 882L, NA, NA)))
+  b <- tab("betas", data.frame(covariable = "sdi", efecto_sobre = "prevalencia", transformacion = "log", beta = -1,
+                               valor_nacional_de = "sdi_std"))
+  tablas <- list(ubicaciones = u, poblacion = pob, ancla = a, covariables = cov, betas = b)
+  expect_identical(dismodlite:::.dl_ids_covariable(tablas), list(sdi = 881L, sdi_std = 882L))
+  cfg <- cfg_min()
+  cfg$covariables <- list(list(covariate_name_short = "sdi", proxy = list(covariate_id_proxy = 900101L),
+                               sustituye = list(covariate_id = 882L, covariate_name_short = "sdi_std")))
+  x <- dismodlite:::.dl_traducir_contrato(tablas, cfg)
+  expect_identical(x$proxies$covariate_id_gbd, c(882L, 882L))
+  expect_identical(x$proxies$ancla_ghdx, c("0.45", "0.45"))
+  expect_setequal(x$cov$nacional$covariate_name_short, c("sdi", "sdi_std"))
+  cfg$covariables[[1]]$sustituye$covariate_name_short <- "otra"
+  expect_error(dismodlite:::.dl_traducir_contrato(tablas, cfg), "sale de otra, que no está en la tabla betas")
 })
