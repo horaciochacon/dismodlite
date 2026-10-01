@@ -145,7 +145,7 @@
   if (all(c("edad_inicio", "edad_fin") %in% names(d)) && !length(faltan)) {
     abierta <- is.na(d$edad_fin) & !is.na(d$edad_inicio)
     # filas de la banda de mayor edad_inicio de su grupo (por posición de fila, no en el orden de los grupos)
-    ultima <- seq_len(nrow(d)) %in% d[, .I[edad_inicio == max(edad_inicio, na.rm = TRUE)], by = grupo]$V1
+    ultima <- seq_len(nrow(d)) %in% d[, .I[edad_inicio %in% max(c(-Inf, edad_inicio), na.rm = TRUE)], by = grupo]$V1
     if (any(abierta & !ultima))
       p("edad_fin vac\u00edo (banda abierta) en una banda que no es la \u00faltima de su grupo (%s)",
         .dl_filas_msg(which(abierta & !ultima)))
@@ -156,8 +156,15 @@
                           !.dl_es_banda_gbd(d$edad_inicio, d$edad_fin))
     if (length(no_enteras))
       p("las bandas de edad son de a\u00f1os enteros (salvo los grupos de edad de GBD): %s", .dl_filas_msg(no_enteras))
+    # un grupo no mezcla filas sin edad (todas las edades) con filas por banda (donde la edad no es obligatoria)
+    mezcla <- d[, .I[any(is.na(edad_inicio)) & !all(is.na(edad_inicio))], by = grupo]$V1
+    if (length(mezcla) && !"edad_inicio" %in% .dl_columnas_contrato(tabla, "exigidas"))
+      p("un mismo grupo (%s) mezcla filas sin edad (todas las edades) con filas por banda de edad (%s)",
+        paste(grupo, collapse = ", "), .dl_filas_msg(mezcla))
     if (tabla %in% .DL_TABLAS_SIN_SOLAPE) {
-      orden <- d[, .I[order(edad_inicio)], by = grupo]$V1
+      con_edad <- which(!is.na(d$edad_inicio) & !is.na(d$edad_fin))   # las filas sin edad no se solapan con nada
+      x <- d[con_edad]
+      orden <- con_edad[x[, .I[order(edad_inicio)], by = grupo]$V1]
       x <- d[orden]
       solapa <- x[, c(FALSE, utils::head(edad_fin, -1L) > utils::tail(edad_inicio, -1L)), by = grupo]$V1
       if (any(solapa)) p("hay bandas de edad que se solapan en un mismo grupo (%s)", .dl_filas_msg(orden[solapa]))

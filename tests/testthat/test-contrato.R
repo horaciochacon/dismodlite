@@ -119,3 +119,20 @@ test_that("la página ?dl_tablas se genera con tabla en HTML y lista en texto, c
   expect_true(any(grepl("número", rd)))
   expect_false(any(grepl("\\tab numero \\tab", rd, fixed = TRUE)))
 })
+
+test_that("un grupo que mezcla filas sin edad con filas por banda es un problema de validación, no un fallo", {
+  cov <- data.frame(anio = 2023L, sexo = "ambos", covariable = "sev", valor = c(1, 2), edad_inicio = c(NA, 30),
+                    edad_fin = c(NA, 35))
+  e <- expect_error(dl_tabla("covariables", cov), class = "dl_error")
+  expect_match(paste(e$problemas, collapse = "\n"), "mezcla filas sin edad.*fila\\(s\\) 2, 3")
+  # el orden de las filas no cambia el diagnóstico
+  e2 <- expect_error(dl_tabla("covariables", cov[2:1, ]), class = "dl_error")
+  expect_match(paste(e2$problemas, collapse = "\n"), "mezcla filas sin edad")
+  # filas sin edad en grupos distintos (otra covariable) y bandas que no se solapan siguen siendo válidas
+  ok <- data.frame(anio = 2023L, sexo = "ambos", covariable = c("sev", "otra", "otra"), valor = 1,
+                   edad_inicio = c(NA, 30, 35), edad_fin = c(NA, 35, 40))
+  expect_s3_class(dl_tabla("covariables", ok), "dl_tabla")
+  # las bandas solapadas se siguen detectando junto a una fila sin edad de otra covariable
+  mal <- ok; mal$edad_inicio[3] <- 33
+  expect_error(dl_tabla("covariables", mal), "se solapan")
+})

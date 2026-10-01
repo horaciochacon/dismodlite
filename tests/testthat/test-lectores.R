@@ -61,3 +61,59 @@ test_that("GHDx fuentes: componente en palabras", {
   t <- dl_tabla("fuentes_gbd", fx("ghdx_fuentes.csv"))
   expect_setequal(t$componente, c("no_fatal", "causa_de_muerte"))
 })
+
+test_that("una carpeta mixta conserva el double exacto de la descarga (17 cifras)", {
+  d <- withr::local_tempdir()
+  v <- 12345.678901234567                      # val: 17 cifras significativas, 100 000 por persona
+  m <- data.table::fread(fx("gbd_results_mezcla.csv"), colClasses = "character")
+  m[measure_id == "5" & metric_name == "Rate" & location_id == "123" & age_id == "30" & sex_id == "1",
+    val := format(v, digits = 17)]
+  data.table::fwrite(m, file.path(d, "gbd.csv"))
+  data.table::fwrite(data.table::data.table(causa = 9300L, anio = 2023L, sexo = "mujeres", edad_inicio = 40,
+                                            edad_fin = 45, medida = "prevalencia", valor = 0.01, inferior = 0.008,
+                                            superior = 0.012), file.path(d, "propia.csv"))
+  a <- dl_tabla("ancla", d, ubicacion_gbd = 123)
+  esperado <- as.numeric(format(v, digits = 17)) / 1e5
+  expect_identical(a[causa == 9100L & medida == "prevalencia"]$valor, esperado)
+  # la misma tabla leída sola da el mismo double
+  solo <- dl_tabla("ancla", fx("gbd_results_mezcla.csv"), ubicacion_gbd = 123)
+  expect_identical(solo[causa == 9100L & medida == "prevalencia"]$valor, 12000 / 1e5)
+})
+
+test_that("una descarga de GBD sin filas utilizables, o una carpeta sin CSV, dicen qué pasó", {
+  f <- withr::local_tempfile(fileext = ".csv")
+  m <- data.table::fread(fx("gbd_results_mezcla.csv"))[metric_name == "Number"]
+  data.table::fwrite(m, f)
+  expect_error(dl_tabla("ancla", f), "no trae filas de Rate.*prevalencia", class = "dl_error")
+  expect_false(grepl("trae: )", tryCatch(dl_tabla("ancla", f), error = conditionMessage), fixed = TRUE))
+  # la ubicación mal declarada se comprueba aunque no quede ninguna fila
+  expect_error(dl_tabla("ancla", f, ubicacion_gbd = 999), "999")
+  vacia <- withr::local_tempdir()
+  expect_error(dl_tabla("ancla", vacia), "no tiene archivos CSV")
+})
+
+test_that("un grupo de edad de GBD que no está en el catálogo es un error, no una edad vacía", {
+  m <- data.table::fread(fx("gbd_results_mezcla.csv"))
+  m[, age_id := 9999L]
+  expect_error(dl_tabla("ancla", m, ubicacion_gbd = 123), "catálogo de GBD.*9999")
+  d <- data.table::data.table(covariate_id = 785L, covariate_name_short = "sev", location_id = 123L,
+                              year_id = 2023L, age_group_id = 9998L, sex_id = 3L, mean_value = 1.2)
+  expect_error(dl_tabla("covariables", d, ubicacion_gbd = 123), "catálogo de GBD.*9998")
+})
+
+test_that("GBD Results sin columna de edad no se reconoce como descarga", {
+  rec <- dismodlite:::.dl_reconocer_lector
+  expect_true(is.na(rec(c("measure_id", "metric_name", "val", "upper", "lower", "location_id", "year"))))
+  expect_identical(rec(c("measure_id", "metric_name", "val", "upper", "lower", "age_group_id")), "gbd_results")
+  f <- withr::local_tempfile(fileext = ".csv")
+  data.table::fwrite(data.table::fread(fx("gbd_results_mezcla.csv"))[, !"age_id"], f)
+  expect_error(dl_tabla("ancla", f, ubicacion_gbd = 123), "no se reconoce como tabla ancla")
+})
+
+test_that("covariables con una banda de edad y otra de todas las edades: problema de validación, no un fallo", {
+  d <- data.table::data.table(covariate_id = 785L, covariate_name_short = "sev", location_id = 123L,
+                              year_id = 2023L, age_group_id = c(27L, 30L), sex_id = 3L, mean_value = c(1.2, 1.3))
+  e <- tryCatch(dl_tabla("covariables", d, ubicacion_gbd = 123), error = identity)
+  expect_s3_class(e, "dl_error")
+  expect_match(paste(e$problemas, collapse = "\n"), "mezcla filas sin edad")
+})

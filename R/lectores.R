@@ -2,10 +2,11 @@
 # reconoce por sus columnas (.DL_LECTORES), sin declarar nada. Las unidades se convierten con la misma operación que
 # usaba el formato completo, para que un número leído sea el mismo double en los dos caminos.
 
-# Firma de cada lector (las columnas que debe traer, ya en minúsculas) y la tabla del contrato que produce.
+# Firma de cada lector (las columnas que debe traer, ya en minúsculas; `alguna`: de estas, al menos una) y la tabla del
+# contrato que produce.
 .DL_LECTORES <- list(
-  gbd_results = list(firma = c("measure_id", "metric_name", "val", "upper", "lower"), tabla = "ancla",
-                     nombre = "descarga de GBD Results"),
+  gbd_results = list(firma = c("measure_id", "metric_name", "val", "upper", "lower"),
+                     alguna = c("age_id", "age_group_id"), tabla = "ancla", nombre = "descarga de GBD Results"),
   ghdx_covariables = list(firma = c("covariate_name_short", "mean_value"), tabla = "covariables",
                           nombre = "descarga de covariables del GHDx"),
   ghdx_fuentes = list(firma = c("nid", "component_id", "cause_id"), tabla = "fuentes_gbd",
@@ -27,7 +28,10 @@
 # del eje o de valores del contrato, o NA.
 .dl_reconocer_lector <- function(columnas) {
   columnas <- tolower(trimws(columnas))
-  for (k in names(.DL_LECTORES)) if (all(.DL_LECTORES[[k]]$firma %in% columnas)) return(k)
+  for (k in names(.DL_LECTORES)) {
+    l <- .DL_LECTORES[[k]]
+    if (all(l$firma %in% columnas) && (is.null(l$alguna) || any(l$alguna %in% columnas))) return(k)
+  }
   if ("age_id" %in% columnas || "age_group_id" %in% columnas) return(NA_character_)
   if (any(columnas %in% unique(.dl_tablas_ref()$columna))) return("contrato")
   NA_character_
@@ -48,10 +52,14 @@
            .dl_lista(locs))
 }
 
-# Límites [edad_inicio, edad_fin) de los grupos de edad de GBD `ids`.
-.dl_edades_gbd <- function(ids) {
+# Límites [edad_inicio, edad_fin) de los grupos de edad de GBD `ids` (de la descarga `de`, para el mensaje). Un id que
+# no está en el catálogo es un error: no se convierte en una edad vacía.
+.dl_edades_gbd <- function(ids, de) {
   g <- .dl_grupos_edad_referencia()
-  k <- match(as.integer(ids), g$age_group_id)
+  k <- match(suppressWarnings(as.integer(ids)), g$age_group_id)
+  if (anyNA(k))
+    .dl_stop("%s trae grupos de edad que no est\u00e1n en el cat\u00e1logo de GBD: %s", de,
+             .dl_lista(ifelse(is.na(ids[is.na(k)]), "(vac\u00edo)", ids[is.na(k)])))
   list(edad_inicio = g$age_start[k], edad_fin = g$age_end[k])
 }
 
@@ -60,12 +68,15 @@
   edad <- if ("age_id" %in% names(d)) d$age_id else d$age_group_id
   percent <- identical(opciones$metrica_prevalencia, "Percent")
   metrica <- ifelse(percent & d$measure_id == "5", "Percent", "Rate")
-  d <- d[d$metric_name == metrica & d$measure_id %in% names(.DL_MEDIDA_GBD) &
+  ubicacion <- .dl_ubicacion_gbd(d$location_id, opciones, de)   # se comprueba aunque no quede ninguna fila
+  d <- d[d$location_id == ubicacion & d$metric_name == metrica & d$measure_id %in% names(.DL_MEDIDA_GBD) &
            !edad %in% as.character(.DL_BANDAS_AGREGADAS), ]
-  if (!nrow(d)) return(data.table::data.table())
-  d <- d[d$location_id == .dl_ubicacion_gbd(d$location_id, opciones, de), ]
+  if (!nrow(d))
+    .dl_stop(paste0("%s no trae filas de Rate (o de Percent, si se pidi\u00f3 as\u00ed la prevalencia) de prevalencia, ",
+                    "mortalidad, AVD o incidencia en la ubicaci\u00f3n %s: \u00bfse descarg\u00f3 la m\u00e9trica Rate, por edades ",
+                    "detalladas?"), de, ubicacion)
   escala <- ifelse(percent & d$measure_id == "5", 1, .DL_ESCALA_RATE)
-  e <- .dl_edades_gbd(if ("age_id" %in% names(d)) d$age_id else d$age_group_id)
+  e <- .dl_edades_gbd(if ("age_id" %in% names(d)) d$age_id else d$age_group_id, de)
   data.table::data.table(causa = d$cause_id, nombre_causa = d$cause_name, anio = d$year, sexo = d$sex_id,
                          edad_inicio = e$edad_inicio, edad_fin = e$edad_fin,
                          medida = unname(.DL_MEDIDA_GBD[d$measure_id]),
@@ -76,6 +87,7 @@
 # Descarga de covariables del GHDx -> covariables del contrato, filas nacionales (sin validar).
 .dl_leer_ghdx_covariables <- function(d, opciones, de) {
   if ("location_id" %in% names(d)) d <- d[d$location_id == .dl_ubicacion_gbd(d$location_id, opciones, de), ]
+  if (!"age_group_id" %in% names(d)) d$age_group_id <- as.character(.DL_BANDAS_AGREGADAS[["todas"]])
   agregada <- d$age_group_id %in% as.character(.DL_BANDAS_AGREGADAS)
   # de una misma covariable, año y sexo: la estandarizada (27) antes que todas las edades (22)
   prioridad <- match(d$age_group_id, as.character(c(.DL_BANDAS_AGREGADAS[["estandarizada"]],
@@ -88,9 +100,9 @@
                                 valor = d$mean_value, inferior = d$lower_value, superior = d$upper_value,
                                 covariable_id = d$covariate_id)
   if (any(!nacional)) {
-    e <- .dl_edades_gbd(d$age_group_id)
-    out[, `:=`(edad_inicio = ifelse(nacional, NA_real_, e$edad_inicio),
-               edad_fin = ifelse(nacional, NA_real_, e$edad_fin))]
+    e <- .dl_edades_gbd(d$age_group_id[!nacional], de)
+    out[, `:=`(edad_inicio = NA_real_, edad_fin = NA_real_)]
+    out[!nacional, `:=`(edad_inicio = e$edad_inicio, edad_fin = e$edad_fin)]
   }
   out
 }
@@ -100,6 +112,14 @@
   d <- d[d$component_id %in% names(.DL_COMPONENTE_GHDX), ]
   data.table::data.table(causa = d$cause_id, ubicacion = d$location_id,
                          componente = unname(.DL_COMPONENTE_GHDX[d$component_id]), nid = d$nid)
+}
+
+# Las columnas numéricas de `d` como el texto más corto que vuelve al mismo double (.dl_num_exacto): así, al juntar la
+# salida de un lector con tablas del contrato leídas como texto, rbindlist() no pasa el número por as.character() (15
+# cifras) y el double no cambia.
+.dl_numeros_a_texto <- function(d) {
+  for (cn in names(d)) if (is.double(d[[cn]])) data.table::set(d, j = cn, value = .dl_num_exacto(d[[cn]]))
+  d
 }
 
 # Lee `x` (ruta a un CSV, carpeta de CSV o data.frame) como la tabla `tabla` del contrato, sin validar: cada archivo
@@ -118,10 +138,11 @@
       .dl_stop("%s es una %s: va en la tabla %s, no en %s", de, .DL_LECTORES[[lector]]$nombre,
                .DL_LECTORES[[lector]]$tabla, tabla)
     for (cn in setdiff(names(d), .DL_COLUMNAS_NUMERICAS_GBD)) data.table::set(d, j = cn, value = as.character(d[[cn]]))
-    get(paste0(".dl_leer_", lector))(d, opciones, de)
+    .dl_numeros_a_texto(get(paste0(".dl_leer_", lector))(d, opciones, de))
   }
   if (is.data.frame(x)) return(una(x, "el data.frame"))
   archivos <- if (dir.exists(x)) list.files(x, "[.]csv$", ignore.case = TRUE, full.names = TRUE) else x
+  if (!length(archivos)) .dl_stop("la carpeta \u00ab%s\u00bb no tiene archivos CSV", x)
   data.table::rbindlist(fill = TRUE, lapply(archivos, function(f) {
     d <- tryCatch(.dl_leer_memo(f, function(p) .dl_leer_csv(p, colClasses = "character", na.strings = "", tabla = tabla)),
                   dl_error = function(e) .dl_stop("no se pudo leer la tabla %s: %s", tabla, e$detalle))
