@@ -1,0 +1,193 @@
+acquisition_id,source,round,entity,location_id,location_name,location_level,year,age_group_id,age_group_name,sex_id,sex_name,cause_id,cause_name,measure_id,measure_name,metric_id,metric_name,val,lower,upper,ui_level
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,18.5871673249972,13.8525788498432,24.9399619314459,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,15.9985835162211,11.9233681910317,21.4666418435372,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,26.3188498169332,19.6148200503868,35.3142090473894,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,23.0576255107597,17.1843062416722,30.9383507671182,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,37.861792311187,28.2175037334359,50.8023434871326,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,31.8500476132806,23.7370917375275,42.7358812185266,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,46.5668760817821,34.705198023705,62.4826847705898,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,40.2798771404029,30.0196455109662,54.0468907886759,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,59.4885879038962,44.3354460739314,79.8208297013256,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,51.2692840076905,38.2097921040611,68.7923000340496,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,73.4109783381402,54.7114763692684,98.5016690865613,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,65.8219118795612,49.0555235456887,88.3187818685811,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,88.377817296464,65.8659095961246,118.583932689616,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,74.1324391935281,55.2491641842856,99.4697136494465,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,107.001811709401,79.7459348088579,143.573308614878,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,90.8852140030368,67.7346134162557,121.948317230603,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,133.647937547483,99.6046659840201,179.326651359502,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,105.849412744988,78.8870789519173,142.027038233827,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,152.079434014997,113.341227003378,204.057736640107,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,113.04581605806,84.250389164094,151.683056363601,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,165.577052973418,123.400685103549,222.168624496346,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,138.452358786132,103.185288188176,185.773146443956,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,193.068581575485,143.88947508451,259.056315061799,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,155.864010755161,116.161783077885,209.135820792251,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,19.3539309378276,14.4240297449799,25.9687930050593,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,15.6490531886134,11.6628714548192,20.9976476761098,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,28.441520775773,21.1967968150795,38.1623747727419,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,22.3823131834791,16.6810118397682,30.0322275564253,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,39.1407296085256,29.1706656351724,52.5184009665009,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,31.8935554306335,23.7695170909946,42.7942593075343,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,48.2711936575343,35.9753858468667,64.7695106604707,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,40.899495210207,30.4814322920646,54.8782843411601,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,59.9005437793601,44.6424671034266,80.3735854640442,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,50.1814560416783,37.3990594942577,67.3326699792957,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,80.6959130640045,60.1407669621539,108.276477240991,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,67.1358097200642,50.0347407183737,90.0817488420308,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,95.3060607842535,71.0293665945692,127.880138282217,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,80.2579642992552,59.8143740433297,107.688844637819,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,111.643653068003,83.2053900504331,149.801656633226,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,95.0183333340814,70.8149300900131,127.494070220933,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,118.554848764405,88.3561417307253,159.074987773751,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,105.7587367651,78.8195002757677,141.905370663563,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,152.525453717923,113.673635002689,204.656198698211,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,132.493553953047,98.7443310289791,177.77771803383,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,170.207261159357,126.851470415017,228.381363310865,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,143.841727354464,107.201857885877,193.004514439873,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,190.736201182446,142.151206808475,255.926764593191,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9100,Arteriopatía crónica sintética,3,YLDs (Years Lived with Disability),3,Rate,155.801905991267,116.115497857349,209.052489619717,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,12.5711602786898,9.36899022587315,16.8677805123636,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,11.2245718396933,8.36540951863977,15.0609498200541,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,18.1620339219482,13.5357369188236,24.3695247743236,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,16.1154844019374,12.010491672985,21.6234975703158,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,25.8655359883709,19.2769759107132,34.7059598489149,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,21.9869780579506,16.38637786447,29.501773248437,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,31.2245144019581,23.2708965405118,41.8965508243649,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,27.693243579043,20.6391234112735,37.1583484746886,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,40.141567577047,29.9165666448552,53.8613092428416,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,35.4737296702265,26.4377367870341,47.5980794745434,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,50.1432123321387,37.3705573565922,67.2813551854189,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,46.4397582997033,34.6104601290772,62.3121201767265,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,61.903986809781,46.1355860959452,83.0617730741766,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,50.8697377902825,37.9120197009818,68.2561953507605,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,73.8770058357504,55.0587957076034,99.1269772815208,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,65.3052863609322,48.6704946917748,87.625582063461,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,95.3510928863611,71.0629279616303,127.940561631974,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,75.6503540728949,56.3804304598896,101.506427401717,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,109.297726026639,81.4570257758631,146.653929489946,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,81.9287885344899,61.0596000671838,109.930729702514,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,117.713843159165,87.7293600239684,157.946539989747,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,100.170267921922,74.6545458237842,134.406853123643,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,140.48465006562,104.699907102544,188.500042170336,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,115.3661080389,85.979648230699,154.796386795301,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,13.156028668156,9.80487888713065,17.652547503113,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,10.474478363387,7.80638248436371,14.0544864673006,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,19.3933701830059,14.4534228872515,26.0217119494122,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,14.8277378415797,11.0507644346134,19.8956199636253,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,27.0990535174027,20.1962875268838,36.3610738142608,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,21.9559070714868,16.3632213886925,29.4600826989288,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,32.1547513878239,23.9641802975486,43.1447278385953,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,28.6516306040345,21.353386730704,38.4442967583055,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,39.6916248919165,29.5812349391306,53.2575833903608,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,34.6146850172191,25.7975110020476,46.4454271866069,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,57.215059395402,42.6410387239245,76.7702457441001,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,47.6402393122194,35.5051504061295,63.9229062759785,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,67.7820561482978,50.5163729890154,90.9488718972368,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,57.3300793694865,42.7267604066562,76.9245776939269,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,80.5917545721628,60.0631400868001,108.136719053207,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,67.1459268001738,50.0422807403415,90.095323777274,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,81.2089773480788,60.5231417116737,108.964898638908,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,73.0114667690952,54.4137297887995,97.9656108938879,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,108.616775846731,80.9495296149337,145.740241499347,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,94.1947824231306,70.2011569565747,126.389042864769,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,123.428332740133,91.9882347692612,165.614150127162,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,106.144492808808,79.1069951865755,142.422971913753,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,139.270464976171,103.795003499116,186.870868161241,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9101,ACS de miembros inferiores,3,YLDs (Years Lived with Disability),3,Rate,117.58605795051,87.6341247120034,157.775079853646,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,3.9801475552668,2.96631040541582,5.34049792387644,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,3.0067009317394,2.240823521226,4.03434291334841,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,5.18268019357305,3.86252971093875,6.95403686158994,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,4.43352100120593,3.30419897651889,5.94882711598759,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,8.08383301038735,6.02469070339492,10.8467570132695,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,6.2593139667506,4.66491955198186,8.39864672858382,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,10.8406050387931,8.07924808843413,14.5457493470636,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,8.49728106562432,6.33282381939598,11.4015149587888,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,13.7582016068949,10.2536642221561,18.4605334595367,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,10.6732239173123,7.9545028734831,14.321160052483,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,16.8399809072216,12.5504418865061,22.5956153193691,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,12.6855564724271,9.45424701977619,17.0212754837611,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,19.714175828737,14.6925117933372,26.4521638010598,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,16.8605710875401,12.5657872638521,22.6232428918941,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,24.5113579406833,18.267738846543,32.8889455418284,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,18.3275243559176,13.6590730488197,24.5915771748346,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,29.3961783069776,21.9082806304656,39.4433188816267,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,22.2701178436589,16.5973952905507,29.8816856553881,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,34.0881773773078,25.4051172354565,45.7389677102163,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,23.0755698474567,17.1976797339671,30.9624281892603,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,37.9660135290122,28.2951773569907,50.9421858396311,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,29.6521873192773,22.0990781289301,39.7868276535241,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,42.1072836952236,31.3815686565835,56.4988754893898,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,31.704548293353,23.6286545148644,42.5406525730531,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,4.03623322324363,3.00810973526585,5.41575277039416,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,3.10878012819462,2.3169007466095,4.17131113605129,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,6.07157251474148,4.52500026133003,8.14673827022691,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,4.90038061123851,3.65213846868056,6.57525182600155,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,7.78664169508463,5.80320100263869,10.4479904900867,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,6.36203363635148,4.74147410694422,8.53647432784426,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,11.1997740404276,8.34692830180752,15.027676532153,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,7.57329207601372,5.64419654708677,10.1617214053638,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,13.8170122329498,10.2974943992018,18.5394446109416,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,10.3570163821047,7.71884083107562,13.8968778715232,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,16.5379936478308,12.3253778813667,22.190413675606,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,13.1689238371827,9.81448935345938,17.669850033348,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,20.0251051347768,14.9242400956294,26.8693637390823,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,16.8061806888969,12.525251378383,22.5502627304806,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,23.1394169868925,17.2452635060345,31.0480972532505,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,20.2634393998107,15.1018650204646,27.1891568195971,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,27.8400878475129,20.7485629924673,37.3553817504672,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,24.2757637192886,18.0921560118177,32.5728290077641,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,33.8806823136205,25.2504760423998,45.4605541736703,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,29.3486925910767,21.8728906427253,39.3796033123768,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,36.7030875541796,27.3539483175148,49.2476120950778,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,29.2451457311476,21.7957196022574,39.2406658024487,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,40.9389517896619,30.5108383531652,54.9312265443665,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9102,ACS carotídea,3,YLDs (Years Lived with Disability),3,Rate,28.5968603478702,21.3125677463544,38.3708069101845,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,2.0358594910406,1.51727821855426,2.73168349520591,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,1.76731074478841,1.31713515116593,2.37134911013477,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,2.97413570141197,2.21655342062454,3.99064741147587,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,2.5086201076163,1.86961559216836,3.36602608081485,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,3.91242331242875,2.91583711932783,5.24962662494831,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,3.60375558857944,2.68579432107563,4.83546124150579,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,4.50175664103098,3.3550533947591,6.04038459916127,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,4.08935249573562,3.0476982802967,5.48702735519841,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,5.58881871995429,4.1652152069201,7.49898699894731,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,5.12233042015171,3.81755244354389,6.87306050702324,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,6.42778509877996,4.79047712617018,8.62469858177336,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,6.69659710743082,4.99081639683531,8.98538620809347,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,6.75965465794591,5.03781170684221,9.06999581437929,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,6.40213031570544,4.77135721945167,8.59027540679191,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,8.61344793296744,6.41940025471142,11.5573857915293,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,7.25240328618706,5.40504567566127,9.73115799230724,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,8.90066635414458,6.6334573919242,11.9427708459014,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,7.92894082843431,5.90925320147696,10.638925176721,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,8.69353061105092,6.47908399205886,11.6648394399442,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,8.04145767611291,5.99310936294313,10.7898984718275,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,9.89719628524025,7.37614772258941,13.2798986669679,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,8.6299035449324,6.43166423546122,11.5794656667888,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,10.4766478146411,7.80799932538273,14.0573974020732,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,8.79335442290761,6.55348033232191,11.7987814238962,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,2.16166904642795,1.61104112258338,2.90049273155215,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,2.0657946970318,1.53958822384601,2.77185007275786,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,2.97657807802564,2.21837366649796,3.99392455310277,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,2.65419473066089,1.97810893647422,3.56135576679848,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,4.25503439603832,3.17117710564995,5.70933666215352,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,3.57561472279525,2.66482159535781,4.79770228076131,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,4.91666822928275,3.66427724751053,6.59710628972238,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,4.67457253015871,3.48384901427386,6.27226617749075,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,6.39190665449392,4.76373776509423,8.57655746274174,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,5.20975464235457,3.8827076611344,6.99036492116565,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,6.94286002077181,5.17435035686269,9.31581782128455,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,6.32664657066215,4.7151009587848,8.48899253270432,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,7.49889950117893,5.58875350992446,10.0619026458982,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,6.12170424087182,4.56236225829045,8.21400421341165,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,7.91248150894777,5.89698645759849,10.6168403267687,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,7.60896713409688,5.67078432920702,10.2095896240622,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,9.50578356881311,7.0844370265843,12.7547073843754,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,8.47150627671578,6.31361447515053,11.3669307619109,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,10.0279955575717,7.47362934535589,13.4554030251936,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,8.95007893883993,6.6702834296791,12.0090718566842,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,10.0758408650439,7.50928732824083,13.5196010886258,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,8.45208881450857,6.29914309704402,11.3408767236713,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,10.5267844166126,7.84536495619294,14.1246698875831,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9103,ACS renovascular,3,YLDs (Years Lived with Disability),3,Rate,9.61898769288666,7.16880539899074,12.906602855886,0.95

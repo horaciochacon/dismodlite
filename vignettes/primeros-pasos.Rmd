@@ -1,0 +1,319 @@
+---
+title: "Primeros pasos"
+description: >
+  El proyecto de ejemplo de principio a fin: revisarlo, correrlo con dl_correr(), hacer el ajuste nacional paso a
+  paso, leer los diagnósticos de convergencia y comparar la estimación con la curva verdadera.
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Primeros pasos}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5, fig.height = 3.4, dpi = 96)
+```
+
+## Qué vas a aprender
+
+Esta guía recorre el proyecto de ejemplo del paquete de principio a fin:
+
+1. qué es un proyecto y qué trae el de ejemplo;
+2. cómo revisarlo antes de correrlo, con `dl_revisar_proyecto()`;
+3. cómo correrlo en una llamada, con `dl_correr()`, y qué deja en la carpeta de la corrida;
+4. cómo hacer el ajuste nacional paso a paso y resumirlo con `dl_estimaciones()`;
+5. cómo leer los diagnósticos de convergencia;
+6. cómo comparar la estimación con la curva verdadera, que en el ejemplo se conoce.
+
+Todo el código de la guía corre en menos de un minuto.
+
+## 1. El proyecto de ejemplo
+
+dismodlite trabaja con **proyectos**: una carpeta por enfermedad (o por grupo de causas) con una configuración corta y
+unas pocas tablas. El paquete trae uno completo, `dl_ejemplo()`, listo para leer y para copiar como punto de partida.
+
+Todos sus números son **sintéticos**. La enfermedad es inventada, la *arteriopatía crónica sintética* (ACS en los
+nombres de los archivos; causa 9100, suma de tres subtipos: 9101, 9102 y 9103). La geografía es la de un país real,
+Perú, con sus 25 departamentos como ubicaciones subnacionales, pero ningún número describe a ese país. Como los datos
+se generaron a partir de curvas conocidas, al final podremos comprobar si el modelo las recupera.
+
+```{r archivos}
+library(dismodlite)
+list.files(dl_ejemplo(), recursive = TRUE)
+```
+
+Los archivos, en breve (la guía [Preparar tus datos](preparar-datos.html) los describe columna por columna):
+
+- `config/<causa>.yaml`: la configuración de cada causa. Un proyecto de una sola causa tiene `config.yaml`.
+- `ancla/`: la **estimación de referencia**, el ancla, tal como se descarga de GBD Results.
+- `covariables/`: los valores nacionales de las covariables, tal como se descargan del GHDx.
+- `poblacion.csv`: la población por ubicación, año, sexo y grupo de edad.
+- `proxies.csv`: los valores subnacionales de las covariables, que dan las diferencias entre ubicaciones.
+- `datos.csv`: los datos locales (estudios, registros).
+- `severidad.csv`: los estados de salud de cada causa y sus pesos de discapacidad, para los AVD.
+- `verdad.csv`: las curvas verdaderas del ejemplo. No es un insumo: sirve para comparar.
+
+La configuración de la causa 9100 es corta:
+
+```{r config, comment = ""}
+cat(readLines(dl_ejemplo("config", "9100.yaml"), encoding = "UTF-8"), sep = "\n")
+```
+
+`dl_proyecto()` lee la carpeta para una causa y muestra qué archivos encontró y qué claves de la configuración tomaron
+su valor por defecto (la lista completa de claves, con su significado, está en `?dl_configuracion`):
+
+```{r proyecto}
+proyecto <- dl_proyecto(dl_ejemplo(), causa = 9100)
+proyecto
+```
+
+## 2. Revisar el proyecto
+
+Antes de correr, `dl_revisar_proyecto()` comprueba la configuración y cada archivo, y al final arma los insumos
+completos con las reglas que cruzan tablas (por ejemplo, que la población nacional sea la suma de las subnacionales).
+No se detiene en el primer problema: muestra una línea por comprobación, con `✓` si está en orden, `!` si es un aviso
+que conviene mirar y `✗` si es un error, junto con la corrección sugerida.
+
+```{r revisar}
+dl_revisar_proyecto(dl_ejemplo(), causa = 9100)
+```
+
+Además de imprimir, devuelve (sin mostrarla) una tabla con una fila por comprobación, útil para guardar o filtrar.
+
+## 3. Correr el proyecto con `dl_correr()`
+
+`dl_correr()` hace la corrida completa de una causa en una llamada: arma los insumos, ajusta el modelo nacional, lo
+lleva a las ubicaciones subnacionales, lo valida contra el ancla, calcula los AVD y los diagnósticos, resume y escribe
+la carpeta de la corrida. La semilla es obligatoria: la misma semilla da siempre los mismos números.
+
+Con `rapido = TRUE` es una **prueba**: cadenas cortas para comprobar en segundos que el proyecto corre de principio a
+fin. Aquí además se omite el análisis de sensibilidad (`sensibilidad = FALSE`), que es lo más lento, y la corrida se
+escribe en una carpeta temporal:
+
+```{r correr}
+salida <- file.path(tempdir(), "resultados")
+corrida <- dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                     carpeta_salida = salida)
+```
+
+Cada mensaje nombra el paso en curso. El primero recuerda que es una prueba: sus cadenas no alcanzan a converger y la
+corrida se escribe igual (con `forzar = TRUE`, declarado en su manifiesto), con un nombre que termina en `-prueba`.
+Sus números **no sirven para publicar**. La corrida de producción es la misma llamada sin `rapido`:
+
+```r
+corrida <- dl_correr(dl_ejemplo(), causa = 9100, semilla = 1)
+```
+
+Usa 1000 simulaciones y 4 cadenas de 50 000 iteraciones, corre la sensibilidad y tarda bastante más: con este
+ejemplo, unos 5 minutos en una computadora reciente, con un solo núcleo y el motor por defecto (la guía
+[Diagnóstico y sensibilidad](https://horaciochacon.github.io/dismodlite/articles/diagnostico-y-sensibilidad.html#tiempos)
+explica cómo acortarlo). Solo escribe la corrida si pasa
+[dos compuertas](https://horaciochacon.github.io/dismodlite/articles/diagnostico-y-sensibilidad.html#compuertas):
+que las cadenas hayan convergido y que la prevalencia ajustada se parezca a la del ancla (la prueba solo exige la
+segunda). Si no, se detiene y dice qué cambiar.
+
+### La carpeta de la corrida
+
+La corrida queda en `<carpeta_salida>/mod/dismod_lite/<run_id>/`, con `run_id` el nombre de la corrida (la fecha, un
+nombre corto y la versión). Sin `carpeta_salida`, se escribe en la carpeta `resultados/` del proyecto.
+
+```{r carpeta}
+corrida
+list.files(corrida$dir, recursive = TRUE)
+```
+
+Lo principal:
+
+- `cause/<medida>/`: una tabla por medida (prevalencia, incidencia y AVD) con la media (`val`) y el intervalo del
+  95 % (`lower`, `upper`) de cada ubicación, sexo y grupo de edad, con los nombres de columna de las descargas de GBD.
+- `manifest.yaml`: qué se corrió, con qué opciones, con qué insumos y qué claves se tomaron por defecto.
+
+Las demás carpetas (las simulaciones, los diagnósticos, las etiquetas y los insumos) las describe la guía
+[Corridas, versiones y tablas consolidadas](https://horaciochacon.github.io/dismodlite/articles/corridas-y-consolidado.html#carpeta).
+
+La tabla de prevalencia trae la ubicación nacional y las 25 subnacionales. Sus grupos de edad son los del ancla, con
+80 años y más como una sola banda: por eso empieza en 40-44 años aunque `edad_inicio` sea 30. Las edades de 30 a 39
+se modelan, pero no se informan en las tablas; `dl_estimaciones()` (sección 6) da cada edad simple desde
+`edad_inicio`. Al leer la tabla conviene tratar `location_id` como texto, para que un código como `01` no se
+convierta en el número 1:
+
+```{r prevalencia-corrida}
+archivo <- list.files(file.path(corrida$dir, "cause", "prevalence"), full.names = TRUE)
+tabla <- read.csv(archivo, colClasses = c(location_id = "character"), encoding = "UTF-8")
+columnas <- c("location_id", "location_name", "sex_id", "age_group_name", "val", "lower", "upper")
+head(tabla[tabla$location_id == "123", columnas])
+head(tabla[tabla$location_id == "01", columnas], 3)
+```
+
+La estimación subnacional tiene su propia guía en el sitio del paquete:
+[Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html).
+
+## 4. Paso a paso: el ajuste nacional
+
+Cada paso de `dl_correr()` es también una función. Hacerlos a mano sirve para entender el modelo, probar opciones y
+mirar los resultados intermedios. Primero, los insumos: `dl_insumos()` lee todas las tablas del proyecto, las valida
+y las deja listas para el modelo.
+
+```{r insumos}
+insumos <- dl_insumos(proyecto)
+insumos
+```
+
+`print()` muestra una línea por tabla de los insumos (el ancla, los datos locales, las covariables, la severidad, la
+población...), con su número de filas; `?dl_insumos` describe cada una.
+
+El mensaje explica algo importante del ejemplo: su configuración no declara `datos_en_ajuste`, así que los datos
+locales nacionales **no entran al ajuste**; las filas subnacionales sirven solo para validar. El ajuste queda
+informado solo por el ancla. La guía
+[Datos locales](https://horaciochacon.github.io/dismodlite/articles/datos-locales.html) muestra cómo cambia eso.
+
+El ajuste nacional se hace por sexo con cadenas de Markov (MCMC). `dl_opciones_mcmc()` fija cuántas simulaciones se
+guardan y cuántas cadenas e iteraciones se corren. Aquí son las cadenas cortas de la prueba de arriba (las de
+`rapido = TRUE`):
+
+```{r ajuste}
+opciones <- dl_opciones_mcmc(simulaciones = 100, cadenas = 2, iteraciones = 2000, calentamiento = 1000)
+opciones
+ajuste <- dl_ajustar(insumos, opciones, semilla = 1)
+ajuste
+```
+
+El ajuste sale al instante porque ya lo hizo `dl_correr()`: los ajustes quedan guardados en la sesión, y
+`dl_ajustar()` con los mismos insumos, opciones y semilla devuelve el guardado sin volver a muestrear.
+
+## 5. ¿Convergieron las cadenas?
+
+`print()` resume la convergencia con dos números por ajuste:
+
+- **R-hat** compara la variación entre las cadenas (y entre las dos mitades de cada una) con la variación dentro de
+  ellas; cerca de 1 indica que todas muestrean la misma distribución.
+- **ESS** (tamaño efectivo de muestra) es el número de simulaciones independientes que equivalen a las guardadas;
+  cuanto mayor, más precisas la media y los intervalos.
+
+La tabla `ajuste$mcmc` los da por parámetro: el logaritmo de la incidencia (`logi_<edad>`) y de la mortalidad en
+exceso (`logf_<edad>`) en cada nudo, por sexo. Los peores primero:
+
+```{r mcmc}
+mcmc <- ajuste$mcmc
+head(mcmc[order(-mcmc$rhat), ], 5)
+```
+
+Para escribir una corrida de producción, dismodlite exige R-hat < 1.01 y ESS ≥ 400 en todos los parámetros. Con
+cadenas tan cortas no se cumple, y es lo esperado: se corrige alargando las cadenas (`iteraciones`, `calentamiento`)
+o con más cadenas. La guía
+[Diagnóstico y sensibilidad](https://horaciochacon.github.io/dismodlite/articles/diagnostico-y-sensibilidad.html)
+explica cómo elegirlas.
+
+## 6. Las estimaciones
+
+`dl_estimaciones()` resume las simulaciones en una tabla con la media y el intervalo del 95 % de cada edad y sexo.
+Por defecto da la prevalencia (una proporción); también da la incidencia (casos nuevos por persona-año de toda la
+población) y la mortalidad en exceso (muertes por la enfermedad por persona-año de quienes la tienen):
+
+```{r estimaciones}
+prevalencia <- dl_estimaciones(ajuste)
+head(prevalencia)
+incidencia <- dl_estimaciones(ajuste, "incidencia")
+mortalidad_exceso <- dl_estimaciones(ajuste, "mortalidad_exceso")
+```
+
+La curva verdadera del ejemplo está en `verdad.csv`: la prevalencia `p`, la incidencia entre quienes no tienen la
+enfermedad `i` y la mortalidad en exceso `f`, por edad simple. La incidencia de toda la población es `i (1 - p)`,
+la misma que da `dl_estimaciones()`.
+
+```{r verdad}
+verdad <- read.csv(dl_ejemplo("verdad.csv"))
+verdad <- verdad[verdad$cause_id == 9100 & verdad$location_id == 123 & verdad$anio == 2023, ]
+verdad$incidencia <- verdad$i * (1 - verdad$p)
+```
+
+Una función pequeña dibuja una medida con su intervalo y la curva verdadera:
+
+```{r funcion-figura}
+dibujar <- function(estimacion, verdadera, titulo, escala = 100, unidad = "Prevalencia (%)", ymax = NULL) {
+  ymax <- if (is.null(ymax)) escala * max(estimacion$superior, verdadera) else ymax
+  plot(NA, xlim = range(estimacion$edad), ylim = c(0, ymax), xlab = "Edad (años)", ylab = unidad,
+       main = titulo, font.main = 1, bty = "n", las = 1)
+  abline(h = pretty(c(0, ymax)), col = "grey92")
+  polygon(c(estimacion$edad, rev(estimacion$edad)), escala * c(estimacion$inferior, rev(estimacion$superior)),
+          col = adjustcolor("#2a78d6", 0.25), border = NA)
+  lines(estimacion$edad, escala * estimacion$media, col = "#2a78d6", lwd = 2)
+  lines(estimacion$edad, escala * verdadera, col = "#eb6834", lwd = 2, lty = 2)
+}
+leyenda <- function() legend("topleft", c("Media e intervalo del 95 %", "Curva verdadera"),
+                             col = c("#2a78d6", "#eb6834"), lwd = 2, lty = c(1, 2), bty = "n", cex = 0.8)
+sinteticos <- function(texto) mtext(paste("Datos sintéticos:", texto), side = 1, outer = TRUE, adj = 1,
+                                    cex = 0.75, col = "grey35")
+```
+
+```{r figura-prevalencia, fig.cap = "Prevalencia por edad y sexo, nivel nacional, 2023 (datos sintéticos)."}
+op <- par(mfrow = c(1, 2), mar = c(4, 4.2, 2.5, 1), oma = c(1.5, 0, 0, 0))
+ymax <- 100 * max(prevalencia$superior)
+for (sexo in 1:2) {
+  dibujar(prevalencia[prevalencia$sex_id == sexo, ], verdad$p[verdad$sex_id == sexo], c("Hombres", "Mujeres")[sexo],
+          ymax = ymax)
+  if (sexo == 1) leyenda()
+}
+sinteticos("arteriopatía crónica sintética, nivel nacional, 2023")
+par(op)
+```
+
+La línea azul es la media de las simulaciones y la banda, su intervalo del 95 %. La línea naranja discontinua es la
+curva verdadera. El intervalo se ensancha después de los 80 años: el ancla se usa como una sola banda de 80 años y más
+(sus bandas de 80-84, 85-89, 90-94 y 95 y más se agregan), que fija el promedio de esas edades pero no la forma de la
+curva dentro de ella.
+
+Las tasas, para los hombres, por 1000 personas-año:
+
+```{r figura-tasas, fig.cap = "Incidencia y mortalidad en exceso de los hombres, nivel nacional, 2023 (datos sintéticos)."}
+op <- par(mfrow = c(1, 2), mar = c(4, 4.2, 2.5, 1), oma = c(1.5, 0, 0, 0))
+hombres <- verdad$sex_id == 1
+dibujar(incidencia[incidencia$sex_id == 1, ], verdad$incidencia[hombres], "Incidencia",
+        escala = 1000, unidad = "Por 1000 personas-año")
+leyenda()
+dibujar(mortalidad_exceso[mortalidad_exceso$sex_id == 1, ], verdad$f[hombres], "Mortalidad en exceso",
+        escala = 1000, unidad = "Por 1000 personas-año")
+sinteticos("arteriopatía crónica sintética, hombres, nivel nacional, 2023")
+par(op)
+```
+
+La incidencia queda bien determinada: es la que explica cómo crece la prevalencia con la edad. La mortalidad en exceso,
+en cambio, la informa sobre todo su prior por edad, que sale de las muertes y la prevalencia del ancla (las muertes
+por persona-año divididas por la prevalencia), y un techo. Por eso su intervalo es más ancho y, después de los 80
+años, la curva queda casi plana: la banda de 80 años y más del ancla da el mismo prior a los nudos de 80 y de 95
+años. Datos locales de mortalidad en el ajuste la precisarían. La guía [El modelo](el-modelo.html) explica cada una
+de estas piezas.
+
+## 7. ¿Recupera la curva verdadera?
+
+Unimos las estimaciones de prevalencia con la curva verdadera y medimos dos cosas: en qué fracción de las edades la
+curva verdadera cae dentro del intervalo, y la diferencia relativa entre la media y la verdad a algunas edades.
+
+```{r comparacion}
+comparacion <- merge(as.data.frame(prevalencia)[, c("sex_id", "edad", "media", "inferior", "superior")],
+                     verdad[, c("sex_id", "edad", "p")], by = c("sex_id", "edad"))
+comparacion <- comparacion[comparacion$edad > 30, ]   # a los 30 años la prevalencia es 0 por construcción
+cubre <- comparacion$p >= comparacion$inferior & comparacion$p <= comparacion$superior
+round(tapply(cubre, comparacion$sex_id, mean), 2)     # fracción de edades cubiertas, por sexo
+comparacion$dif_relativa <- round(comparacion$media / comparacion$p - 1, 3)
+comparacion[comparacion$edad %in% c(40, 60, 80), c("sex_id", "edad", "p", "media", "dif_relativa")]
+```
+
+La estimación recupera la curva verdadera con diferencias pequeñas frente al ancho del intervalo. Conviene entender
+por qué: en el ejemplo, el ancla es una medición con ruido de la misma curva verdadera y, como ningún dato local entra
+al ajuste, el resultado sigue al ancla. Con datos propios que sí entren, el modelo combina ambas fuentes según su
+precisión; la guía [Datos locales](https://horaciochacon.github.io/dismodlite/articles/datos-locales.html) lo
+muestra con este mismo ejemplo.
+
+## Siguientes pasos
+
+- [Preparar tus datos](preparar-datos.html): cómo armar un proyecto propio, archivo por archivo, con
+  `dl_nuevo_proyecto()` y `dl_revisar_proyecto()`.
+- [El modelo](el-modelo.html): las ecuaciones detrás de cada número de esta guía.
+- En el sitio del paquete (<https://horaciochacon.github.io/dismodlite/>), las guías de cada tema:
+  [Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html),
+  [Datos locales](https://horaciochacon.github.io/dismodlite/articles/datos-locales.html),
+  [Carga: los años vividos con discapacidad](https://horaciochacon.github.io/dismodlite/articles/carga-avd.html) y
+  [Diagnóstico y sensibilidad](https://horaciochacon.github.io/dismodlite/articles/diagnostico-y-sensibilidad.html).
+- Cambia `simulaciones`, `cadenas` e `iteraciones` en `dl_opciones_mcmc()` y mira cómo cambian R-hat, ESS y el ancho
+  de los intervalos.

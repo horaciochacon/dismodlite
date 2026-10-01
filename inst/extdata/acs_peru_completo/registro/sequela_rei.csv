@@ -1,0 +1,10 @@
+sequela_id,cause_id,sequela_name,health_state_id,rol
+91011,9101,acs_de_miembros_inferiores_asintomatica,799,directa
+91012,9101,acs_de_miembros_inferiores_leve,9801,directa
+91013,9101,acs_de_miembros_inferiores_moderada,9802,directa
+91021,9102,acs_carotidea_asintomatica,799,directa
+91022,9102,acs_carotidea_leve,9801,directa
+91023,9102,acs_carotidea_moderada,9802,directa
+91031,9103,acs_renovascular_asintomatica,799,directa
+91032,9103,acs_renovascular_leve,9801,directa
+91033,9103,acs_renovascular_moderada,9802,directa

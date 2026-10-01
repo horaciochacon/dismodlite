@@ -1,0 +1,8 @@
+cause_id,cause_name,level,parent_id,reportable,yll_only
+294,all_causes,0,,0,0
+409,non_communicable_diseases,1,294,0,0
+491,cardiovascular_diseases,2,409,0,0
+9100,arteriopatia_cronica_sintetica,3,491,1,0
+9101,acs_de_miembros_inferiores,4,9100,1,0
+9102,acs_carotidea,4,9100,1,0
+9103,acs_renovascular,4,9100,1,0

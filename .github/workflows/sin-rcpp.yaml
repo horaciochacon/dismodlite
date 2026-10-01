@@ -1,0 +1,94 @@
+# R CMD check en Windows sin Rcpp: el paquete tiene que instalarse y pasar sus pruebas con el motor "mh" solo, como
+# en un equipo sin Rtools. Las pruebas que comparan el motor "rcpp" con el de R se omiten; la que pide
+# motor = "rcpp" sin Rcpp comprueba el mensaje en español que recibe el usuario. Sin los ejemplos en \donttest ni
+# las guías (el chequeo completo los corre en R-CMD-check).
+name: sin-rcpp
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'vignettes/articles/**'
+      - '_pkgdown.yml'
+      - 'pkgdown/**'
+      - 'README.Rmd'
+      - 'README.md'
+      - 'LICENSE.md'
+  pull_request:
+    paths-ignore:
+      - 'vignettes/articles/**'
+      - '_pkgdown.yml'
+      - 'pkgdown/**'
+      - 'README.Rmd'
+      - 'README.md'
+      - 'LICENSE.md'
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: sin-rcpp-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  sin-rcpp:
+    runs-on: windows-latest
+    name: windows-latest (R release, sin Rcpp)
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      # Con las pruebas marcadas con skip_on_cran() (la de la ruta con espacios y tildes, pensada para Windows).
+      NOT_CRAN: true
+      # Rcpp es la única sugerida de DESCRIPTION que falta, a propósito (un paso comprueba que las demás están): por
+      # ella el chequeo no exige las sugeridas. La hora de los archivos se compara con el reloj de la máquina.
+      _R_CHECK_FORCE_SUGGESTS_: false
+      _R_CHECK_SYSTEM_CLOCK_: false
+      _R_CHECK_DONTTEST_EXAMPLES_: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: release
+          use-public-rspm: true
+
+      # Las sugeridas de DESCRIPTION menos Rcpp, leídas de DESCRIPTION: SUGERIDAS (los nombres) y
+      # SUGERIDAS_SIN_RCPP (como paquetes de setup-r-dependencies).
+      - name: Leer las sugeridas de DESCRIPTION
+        shell: Rscript {0}
+        run: |
+          sugeridas <- strsplit(read.dcf("DESCRIPTION", fields = "Suggests")[1, 1], ",")[[1]]
+          sugeridas <- setdiff(trimws(sub("[(].*$", "", sugeridas)), c("", "Rcpp"))
+          cat("SUGERIDAS=", paste(sugeridas, collapse = " "), "\n",
+              "SUGERIDAS_SIN_RCPP=", paste0("any::", sugeridas, collapse = ", "), "\n",
+              sep = "", file = Sys.getenv("GITHUB_ENV"), append = TRUE)
+          cat("Sugeridas sin Rcpp:", sugeridas, "\n")
+
+      # Las dependencias obligatorias y esas sugeridas, con una cache propia: la de R-CMD-check tiene Rcpp. También
+      # instala pandoc (el paquete sugiere rmarkdown).
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"hard"'
+          extra-packages: any::rcmdcheck, ${{ env.SUGERIDAS_SIN_RCPP }}
+          cache-version: sin-rcpp
+          needs: check
+
+      - name: Comprobar que Rcpp no está instalado y las demás sugeridas sí
+        shell: Rscript {0}
+        run: |
+          if (requireNamespace("Rcpp", quietly = TRUE))
+            stop("Rcpp está instalado en ", dirname(find.package("Rcpp")))
+          cat("Rcpp ausente en todas las librerías:", paste0("\n  ", .libPaths()), "\n", sep = "")
+          sugeridas <- strsplit(Sys.getenv("SUGERIDAS"), " ", fixed = TRUE)[[1]]
+          faltan <- sugeridas[!nzchar(vapply(sugeridas, function(p) system.file(package = p), ""))]
+          if (!length(sugeridas) || length(faltan))
+            stop("faltan sugeridas de DESCRIPTION: ", paste(faltan, collapse = ", "))
+          cat("Sugeridas instaladas:", sugeridas, "\n")
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          args: 'c("--no-manual", "--as-cran", "--ignore-vignettes")'
+          build_args: 'c("--no-manual", "--no-build-vignettes")'
+          error-on: '"warning"'

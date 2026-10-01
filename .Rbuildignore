@@ -1,0 +1,14 @@
+^\.github$
+^docs$
+^\.dev$
+^\.claude$
+^data-raw$
+^_pkgdown\.yml$
+^pkgdown$
+^README\.Rmd$
+^LICENSE\.md$
+^vignettes/articles$
+^.*\.Rproj$
+^\.Rproj\.user$
+^.*\.Rcheck$
+^dismodlite_.*\.tar\.gz$

@@ -1,0 +1,52 @@
+tabla,id,name,slug,age_start,age_end
+age_group,2,0-6 days,0_6_days,0,0.0191780821917808
+age_group,3,7-27 days,7_27_days,0.0191780821917808,0.0767123287671233
+age_group,388,1-5 months,1_5_months,0.0767123287671233,0.5
+age_group,389,6-11 months,6_11_months,0.5,1
+age_group,238,12-23 months,12_23_months,1,2
+age_group,34,2-4 years,2_4_years,2,5
+age_group,6,5-9 years,5_9_years,5,10
+age_group,7,10-14 years,10_14_years,10,15
+age_group,8,15-19 years,15_19_years,15,20
+age_group,9,20-24 years,20_24_years,20,25
+age_group,10,25-29 years,25_29_years,25,30
+age_group,11,30-34 years,30_34_years,30,35
+age_group,12,35-39 years,35_39_years,35,40
+age_group,13,40-44 years,40_44_years,40,45
+age_group,14,45-49 years,45_49_years,45,50
+age_group,15,50-54 years,50_54_years,50,55
+age_group,16,55-59 years,55_59_years,55,60
+age_group,17,60-64 years,60_64_years,60,65
+age_group,18,65-69 years,65_69_years,65,70
+age_group,19,70-74 years,70_74_years,70,75
+age_group,20,75-79 years,75_79_years,75,80
+age_group,30,80-84 years,80_84_years,80,85
+age_group,31,85-89 years,85_89_years,85,90
+age_group,32,90-94 years,90_94_years,90,95
+age_group,235,95+ years,95_years,95,125
+age_group,22,All ages,all_ages,0,125
+age_group,27,Age-standardized,age_standardized,0,125
+age_group,28,<1 year,1_year,0,1
+age_group,42,Neonatal,neonatal,0,0.0767123287671233
+age_group,4,Post Neonatal,post_neonatal,0.0767123287671233,1
+age_group,5,1-4 years,1_4_years,1,5
+age_group,1,<5 years,5_years,0,5
+age_group,23,5-14 years,5_14_years,5,15
+age_group,24,15-49 years,15_49_years,15,50
+age_group,25,50-69 years,50_69_years,50,70
+age_group,26,70+ years,70_years,70,125
+age_group,21,80+ years,80_years,80,125
+age_group,39,0-14 years,0_14_years,0,15
+sex,1,Male,male,,
+sex,2,Female,female,,
+sex,3,Both,both,,
+measure,1,Deaths,death,,
+measure,2,DALYs (Disability-Adjusted Life Years),daly,,
+measure,3,YLDs (Years Lived with Disability),yld,,
+measure,4,YLLs (Years of Life Lost),yll,,
+measure,5,Prevalence,prevalence,,
+measure,6,Incidence,incidence,,
+measure,900002,Population,population,,
+metric,1,Number,number,,
+metric,2,Percent,percent,,
+metric,3,Rate,rate,,

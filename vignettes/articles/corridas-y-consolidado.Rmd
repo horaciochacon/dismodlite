@@ -1,0 +1,345 @@
+---
+title: "Corridas, versiones y tablas consolidadas"
+description: >
+  Qué hace dl_correr() y qué deja en la carpeta de una corrida, las versiones, volver a resumir sin ajustar,
+  otro año y proyección (ancla.anio), el registro de corridas y las tablas consolidadas.
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
+```
+
+## Qué vas a aprender
+
+- Qué hace `dl_correr()` y qué deja en la carpeta de una corrida.
+- Cómo se nombran las corridas y cómo conviven sus versiones.
+- Cómo volver a resumir una corrida desde sus simulaciones, sin volver a ajustar.
+- Cómo estimar otro año y cómo proyectar un año que todavía no tiene estimación de referencia (`ancla.anio`).
+- Qué es el registro de corridas y cómo se arman las tablas consolidadas con un perfil de columnas (formato
+  completo).
+
+Todo el recorrido usa el proyecto de ejemplo, con datos sintéticos, y corridas de prueba (`rapido = TRUE`) que
+tardan segundos. Sus cadenas son cortas y no convergen: los números sirven para ver la forma de los resultados, no
+para publicar. Para la corrida de producción, y cuánto tarda, ver
+[Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html#tiempos).
+
+## Una corrida en una llamada
+
+`dl_correr()` escribe sus resultados dentro de la carpeta del proyecto (en `resultados/`). El proyecto de ejemplo
+está dentro de la instalación del paquete, que no es un lugar para escribir, así que primero lo copiamos a una
+carpeta temporal, como harías para empezar un proyecto propio a partir del ejemplo:
+
+```{r copia}
+library(dismodlite)
+proyecto <- dl_ejemplo(copiar_en = file.path(tempdir(), "mi_proyecto"))
+list.files(proyecto)
+```
+
+Una corrida de prueba de la causa 9100, sin el análisis de sensibilidad:
+
+```{r correr}
+corrida <- dl_correr(proyecto, causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE)
+corrida
+```
+
+Los mensajes siguen los pasos de la corrida: los insumos, el ajuste nacional, la estimación subnacional, la
+validación, los AVD, las etiquetas, la sensibilidad y la escritura. Cada paso es una función del paquete que también
+puedes llamar por separado; `?dl_correr` los lista en orden, con la función de cada uno. La corrida de producción es
+la misma llamada sin `rapido`:
+
+```r
+corrida <- dl_correr(proyecto, causa = 9100, semilla = 1)
+```
+
+Usa las cadenas de producción (1000 simulaciones, 4 cadenas de 50 000 iteraciones) y corre la sensibilidad: en el
+ejemplo tarda unos 5 minutos. Antes de escribir nada comprueba que las cadenas convergieron y que la prevalencia
+ajustada reproduce la del ancla, [las dos compuertas](diagnostico-y-sensibilidad.html#compuertas) de una corrida;
+la corrida de prueba salta la primera y lo declara en el manifiesto.
+
+## La carpeta de la corrida {#carpeta}
+
+Una corrida se escribe en `<carpeta_salida>/mod/dismod_lite/<run_id>/`. Por defecto, `carpeta_salida` es la
+carpeta `resultados` del proyecto; con el argumento `carpeta_salida` se escribe en otra parte. `mod/dismod_lite/` es
+la subcarpeta fija de las corridas del modelo, la misma desde la versión 0.2.2.
+
+```{r arbol}
+corrida$dir
+list.files(corrida$dir, recursive = TRUE)
+```
+
+| Archivo o carpeta | Qué contiene |
+|---|---|
+| `manifest.yaml` | La descripción de la corrida: causa, año, parámetros del modelo y del muestreo, semilla, insumos (con el sha256 de cada tabla), estimación subnacional, datos usados, notas de la configuración, claves tomadas por defecto, resultado de las compuertas y de la validación, y limitaciones. |
+| `cause/<medida>/<run_id>.csv` | Las estimaciones: una fila por ubicación, sexo y grupo de edad, para la prevalencia, la incidencia y los AVD, con los nombres de columna de las descargas de GBD. |
+| `draws/<medida>_<año>.csv.gz` | Las simulaciones de cada celda (una columna por simulación), comprimidas. |
+| `etiquetas/<run_id>.csv` | Cuánto informan los datos locales cada celda (ver [Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html)). |
+| `diagnostics/` | R-hat y tamaño efectivo por parámetro (`mcmc.csv`), tasas de aceptación (`aceptacion.csv`), validación contra el ancla (`validacion.csv`, `amplitud.csv`), factores de renormalización y diferencias de las covariables de la estimación subnacional (`renorm.csv`, `dx_bandas.csv`), el desplazamiento de las proporciones de severidad (`desplazamiento_splits.csv`) y, si se corrió, la sensibilidad (`sensibilidad.csv`). |
+| `inputs/` | Los insumos congelados, tal como entraron al modelo (las tablas en CSV, `hash.json`, la configuración usada y las descargas de covariables): con ellos la corrida se puede reproducir y auditar. |
+
+Las estimaciones de cada medida son una tabla plana:
+
+```{r celdas}
+celdas <- read.csv(file.path(corrida$dir, "cause", "prevalence", paste0(corrida$run_id, ".csv")),
+                   colClasses = c(location_id = "character"))
+head(celdas[, c("location_id", "location_name", "sex_id", "age_group_name", "metric_name",
+                "val", "lower", "upper")])
+```
+
+`val` es la media de las simulaciones y `lower` y `upper`, sus cuantiles 2.5 % y 97.5 %. La prevalencia va como
+proporción (métrica `Percent`, entre 0 y 1); la incidencia y los AVD, como tasa por 100 000 (métrica `Rate`). Las
+filas de nivel 0 son las nacionales y las de nivel 1, las subnacionales:
+
+```{r figura-celdas, fig.height = 6}
+mujeres <- celdas[celdas$sex_id == 2 & celdas$age_group_id == 18, ]   # mujeres de 65 a 69 años
+nacional <- mujeres[mujeres$location_level == 0, ]
+subnacional <- mujeres[mujeres$location_level == 1, ]
+subnacional <- subnacional[order(subnacional$val), ]
+k <- seq_len(nrow(subnacional))
+op <- par(mar = c(5, 9, 4.5, 1))
+plot(100 * subnacional$val, k, xlim = 100 * range(subnacional$lower, subnacional$upper), pch = 19, yaxt = "n",
+     xlab = "Prevalencia (%)", ylab = "", main = "Mujeres de 65 a 69 años, 2023 (corrida de prueba)",
+     sub = "Datos sintéticos")
+segments(100 * subnacional$lower, k, 100 * subnacional$upper, k)
+axis(2, at = k, labels = subnacional$location_name, las = 1, cex.axis = 0.7)
+abline(v = 100 * nacional$val, lty = 2)
+mtext("punto: media; línea: intervalo del 95 %; línea discontinua: nacional", side = 3, line = 0.5, cex = 0.8)
+par(op)
+```
+
+Las simulaciones de cada celda están en `draws/`, con las mismas columnas de identificación y una columna por
+simulación:
+
+```{r simulaciones}
+simulaciones <- read.csv(file.path(corrida$dir, "draws", "prevalence_2023.csv.gz"),
+                         colClasses = c(location_id = "character"))
+dim(simulaciones)
+names(simulaciones)[1:6]
+```
+
+El manifiesto es un archivo YAML; se lee con el paquete `yaml`:
+
+```{r manifiesto}
+manifiesto <- yaml::read_yaml(file.path(corrida$dir, "manifest.yaml"))
+names(manifiesto)
+str(manifiesto$params[c("seed", "draws", "chains", "iter", "warmup", "engine", "lambda", "rho", "kappa")])
+str(manifiesto$validacion$gates)
+manifiesto$limitaciones
+```
+
+`validacion$gates` dice el R-hat máximo y el tamaño efectivo mínimo de las cadenas y si la corrida se escribió
+saltando esa compuerta (`force: true`, como toda corrida de prueba). `limitaciones` enumera, con los hechos de esta
+corrida, lo que hay que tener presente al usar sus números. `configuracion$por_defecto` lista las claves de la
+configuración que tomaron su valor por defecto, y `params$version_paquete`, la versión del paquete que hizo la
+corrida (la que da `dl_version()`).
+
+### Nombres anteriores en los resultados {#nombres-anteriores}
+
+Algunos nombres de los resultados vienen de la versión 0.2.2, que se escribió para departamentos, y se conservan para
+que las corridas de las dos versiones se lean igual. Cuentan o describen las ubicaciones subnacionales, sean
+departamentos, regiones o provincias:
+
+- en el manifiesto, `cascada$departamentos` (el número de ubicaciones de la estimación subnacional) y, en
+  `validacion$amplitud_csmr`, `n_departamentos` (las ubicaciones con datos reservados para validar);
+- la columna `n_departamentos` de la validación de amplitud de `dl_validar_ancla()`;
+- las columnas `dpto_min`, `dpto_med` y `dpto_max` y el atributo `departamental` de `dl_sensibilidad()`.
+
+Y «csmr», en esos nombres y en algunos textos del manifiesto, es la mortalidad por la causa.
+
+## Versiones de una corrida
+
+El nombre de una corrida (`run_id`) es `AAAA-MM-DD_<nombre>_v<n>`: la fecha, un nombre corto y una versión.
+`dl_correr()` la llama `causa-<causa>`, con `-prueba` al final si es una corrida de prueba. Correr de nuevo el mismo
+día no borra nada: la corrida nueva es la versión siguiente (`_v2`, `_v3`...). Así nunca se pierde una corrida y
+siempre queda claro cuál es la más reciente.
+
+## Volver a resumir una corrida
+
+`dl_reresumir_corrida()` recalcula las estimaciones (`val`, `lower`, `upper`) desde las simulaciones guardadas en
+`draws/`, sin volver a ajustar, y escribe una corrida nueva con la versión siguiente. El resto de la carpeta
+(simulaciones, insumos, diagnósticos, etiquetas) se enlaza desde la corrida original, que no se toca. Sirve para
+poner al día corridas hechas con una versión anterior del paquete: las de versiones anteriores a la 0.2.2 usaban la
+mediana como valor central, y el re-resumen las lleva a la media y lo declara en las limitaciones.
+
+Para validar las celdas nuevas necesita las rutas del proyecto (los catálogos de ubicaciones y edades):
+
+```{r reresumir}
+reresumen <- dl_reresumir_corrida(corrida$dir, carpeta = file.path(proyecto, "resultados"),
+                                  rutas = dl_proyecto(proyecto, causa = 9100)$rutas)
+reresumen
+str(reresumen$manifest$resumen)
+```
+
+Con el mismo valor central, las estimaciones re-resumidas son las mismas:
+
+```{r reresumir-igual}
+nuevas <- read.csv(file.path(reresumen$dir, "cause", "prevalence", paste0(reresumen$run_id, ".csv")),
+                   colClasses = c(location_id = "character"))
+all.equal(nuevas[, c("val", "lower", "upper")], celdas[, c("val", "lower", "upper")])
+```
+
+La corrida tiene que haber guardado sus simulaciones (`dl_correr()` siempre las guarda; en
+`dl_exportar_corrida()`, `guardar_simulaciones = TRUE`, el valor por defecto).
+
+## Otro año
+
+El año que se estima es `anio` en la configuración: para estimar otro año, basta con cambiarlo. El proyecto necesita
+las filas de ese año en las descargas del ancla (`ancla/`), en `poblacion.csv` y, para la estimación subnacional con
+covariables, en `proxies.csv` y en las descargas de `covariables/`; `dl_revisar_proyecto()` dice qué falta. El
+ejemplo trae 2019 y 2023.
+
+## Proyectar un año sin estimación de referencia
+
+Cuando el año que se quiere estimar todavía no tiene estimación de referencia publicada, se puede proyectar desde la
+del año anterior: `anio` es el año nuevo y `ancla.anio` el de la estimación de referencia, a lo sumo un año antes.
+En el ejemplo, 2024 con el ancla de 2023; la configuración de la copia, `config/9100.yaml`, es la del ejemplo con
+esas dos claves (sin `sensibilidad`, `subtipos` ni `notas`, que aquí no intervienen):
+
+```{cat, engine.opts = list(file = file.path(proyecto, "config", "9100.yaml"), lang = "yaml")}
+causa: 9100
+anio: 2024
+edad_inicio: 30
+ubicacion_nacional: 123
+
+ancla:
+  anio: 2023   # la estimación de referencia más reciente
+
+mortalidad_exceso:
+  techo: 0.25
+
+covariables:
+  - nombre: SEV_scalar_agestd_cvd_pvd
+    efecto_sobre: prevalencia
+    transformacion: log
+    beta: [0.62, 0.55, 0.70]
+  - nombre: LDI_pc
+    efecto_sobre: prevalencia
+    transformacion: log
+    beta: [-0.21, -0.30, -0.12]
+  - nombre: haqi
+    efecto_sobre: mortalidad_exceso
+    transformacion: lineal
+    beta: [-0.012, -0.018, -0.006]
+
+subnacional:
+  anio_validacion: 2019
+```
+
+```{r proyeccion}
+corrida_2024 <- dl_correr(proyecto, causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE)
+str(corrida_2024$manifest$params[c("year", "anio_ancla")])
+grep("proyecci", unlist(corrida_2024$manifest$limitaciones), value = TRUE)
+```
+
+Una proyección tiene un alcance preciso, y el manifiesto lo declara: el nivel nacional y su incertidumbre son los del
+año del ancla, con el año nuevo en las tablas; del año nuevo son solo la población (que cambia los conteos y los
+pesos por edad) y, con la estimación subnacional por covariables, los valores subnacionales de `proxies.csv`. Para
+esto el proyecto necesita la población y los proxies del año nuevo, y las covariables nacionales del año del ancla
+(el promedio de los proxies, ponderado por la población, debe cerrar en ese valor nacional; ver `?dl_proyecto`).
+
+Las corridas de la causa 9100 quedan así, una carpeta por corrida:
+
+```{r versiones}
+list.files(file.path(proyecto, "resultados", "mod", "dismod_lite"))
+```
+
+El nombre no dice el año: lo dice el manifiesto (`params$year`). Por eso las corridas de años distintos no compiten
+entre sí cuando se consolidan (abajo): se elige la más reciente de cada causa y año.
+
+## El registro de corridas y las tablas consolidadas (formato completo)
+
+Cuando un proyecto cubre varias causas y años, las **tablas consolidadas** reúnen la corrida vigente de cada causa
+y año en una tabla por medida, con tasas y conteos (tasa × población de la corrida) y con las columnas que declara
+un **perfil de columnas**. Esta parte usa piezas del formato completo: la carpeta `registro/` (los nombres de las
+causas en español y cuáles son la suma de sus subtipos, en `master_gbd.csv`, y las etiquetas en español de medidas,
+métricas y edades, en `etiquetas_es.csv`) y los catálogos. El ejemplo en ese formato está en `acs_peru_completo`
+(ver [El formato completo](formato-completo.html)).
+
+### El registro de corridas
+
+El registro es un archivo YAML con la lista `datasets`; uno vacío tiene una sola línea, `datasets: []`. Cada corrida
+que se escribe con un registro agrega una entrada al final, sin reescribir las anteriores. `dl_correr()` la anota
+con su argumento `registro` (y `dl_exportar_corrida()`, si la corrida se arma paso a paso). Aquí, una corrida de
+prueba del subtipo 9101 en el formato completo:
+
+```{r registro}
+completo <- system.file("extdata", "acs_peru_completo", package = "dismodlite")
+raiz <- file.path(tempdir(), "corridas")
+dir.create(raiz)
+registro <- file.path(raiz, "registro_corridas.yaml")
+writeLines("datasets: []", registro)
+corrida_9101 <- dl_correr(completo, causa = 9101, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                          carpeta_salida = raiz, registro = registro)
+cat(head(readLines(registro), 9), sep = "\n")
+```
+
+La entrada del registro dice qué es la corrida y qué archivos escribió, con su sha256 y su número de filas. También
+anotan en el registro `dl_reresumir_corrida()` y `dl_sumar_hijas()`, con su argumento `registro`, y
+`dl_consolidar()`, con `registro_salida`.
+
+### La corrida vigente de cada causa y año
+
+`dl_consolidado_seleccionar()` lee el registro y elige, por causa y año, la corrida activa más reciente (por la
+fecha y la versión de su `run_id`); las demás siguen en el registro, pero no se eligen:
+
+```{r seleccionar}
+proyecto_9101 <- dl_proyecto(completo, causa = 9101)
+seleccion <- dl_consolidado_seleccionar(registro, carpeta_corridas = raiz, rutas = proyecto_9101$rutas)
+as.data.frame(seleccion)[, c("cause_id", "year", "run_id")]
+```
+
+Una causa que `master_gbd.csv` declara como la suma de sus subtipos (en el ejemplo, la 9100) debe venir de
+`dl_sumar_hijas()`, no de un ajuste directo; ver [Subtipos y suma](subtipos-y-suma.html).
+
+### El consolidado y el perfil de columnas
+
+`dl_consolidar()` arma la tabla canónica (las estimaciones de cada corrida elegida, en tasas, más sus conteos),
+la valida y la escribe en `<carpeta>/mod/consolidado/<run_id>/`, con una tabla por medida con la forma del perfil.
+Encadena tres piezas que también se pueden llamar por separado: `dl_consolidado_canonico()` apila las celdas de las
+corridas elegidas, `dl_consolidado_conteos()` agrega los conteos (tasa × población de la corrida) y
+`dl_perfil_proyectar()` lleva la tabla canónica a la forma de un perfil.
+
+```{r consolidar}
+consolidado <- dl_consolidar(registro, carpeta = raiz,
+                             perfil = system.file("perfiles", "perfil_v2.yaml", package = "dismodlite"),
+                             maestro = file.path(completo, "registro", "master_gbd.csv"),
+                             rutas = proyecto_9101$rutas, causas = 9101, anios = 2023)
+consolidado
+list.files(consolidado$dir, recursive = TRUE)
+```
+
+- `canonico/`: la tabla canónica por medida, con las columnas de las corridas y `run_fuente` (la corrida de donde
+  sale cada fila).
+- `tablas/`: una tabla por medida con las columnas del perfil.
+- `manifest.yaml`: el perfil usado (con su sha256), las corridas de cada causa y año, los huecos (causa y año sin
+  corrida, si se permiten con `permitir_huecos = TRUE`) y las limitaciones.
+
+```{r tabla-consolidada}
+tabla <- read.csv(file.path(consolidado$dir, "tablas", "prevalencia.csv"), colClasses = c(ubigeo = "character"))
+table(tabla$metrica)
+head(tabla[tabla$metrica == "Número", c("ubigeo", "departamento", "edad", "sexo_id", "valor", "inferior",
+                                          "superior")], 3)
+```
+
+El perfil es un archivo YAML corto que dice qué medidas y métricas se escriben, cómo se llama cada archivo y, para
+cada columna de salida, de qué columna de la tabla canónica sale y con qué formato. El paquete trae dos:
+`perfil_v1.yaml` (columnas en español; nombres de medida, métrica y edad del catálogo) y `perfil_v2.yaml` (todo en
+español). Este es el segundo:
+
+```{r perfil}
+cat(readLines(system.file("perfiles", "perfil_v2.yaml", package = "dismodlite"), encoding = "UTF-8"),
+    sep = "\n")
+```
+
+Los perfiles incluidos llaman `ubigeo` y `departamento` a las columnas de la ubicación, como en el ejemplo. Para otra
+forma de tabla (otros nombres de columna, otras métricas), copia uno de los dos, cámbiale el identificador (`perfil`)
+y las columnas, y pásalo a `dl_consolidar()`; `dl_perfil_cargar()` lo valida. Las métricas son 1 (número de casos), 2
+(porcentaje, como proporción) y 3 (tasa por 100 000). Los conteos se calculan con la población congelada en los
+insumos de cada corrida.
+
+## Siguientes pasos
+
+- [Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html): cómo leer los diagnósticos de una corrida, las dos
+  compuertas, la sensibilidad y cuánto tarda una corrida de producción.
+- [Subtipos y suma](subtipos-y-suma.html): varias causas en un proyecto y la suma de sus subtipos.
+- [El formato completo](formato-completo.html): el formato de los proyectos de la versión 0.2.2.
+- La ayuda de cada función: `?dl_correr`, `?dl_exportar_corrida`, `?dl_reresumir_corrida`, `?dl_consolidar`.

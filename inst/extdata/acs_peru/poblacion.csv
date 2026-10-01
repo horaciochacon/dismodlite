@@ -1,0 +1,2101 @@
+location_id,location_name,anio,sexo,edad_inicio,edad_fin,poblacion
+01,Amazonas,2019,hombres,30,35,16573
+01,Amazonas,2019,hombres,35,40,13924
+01,Amazonas,2019,hombres,40,45,11698
+01,Amazonas,2019,hombres,45,50,9829
+01,Amazonas,2019,hombres,50,55,8257
+01,Amazonas,2019,hombres,55,60,6938
+01,Amazonas,2019,hombres,60,65,5694
+01,Amazonas,2019,hombres,65,70,4672
+01,Amazonas,2019,hombres,70,75,3830
+01,Amazonas,2019,hombres,75,80,3139
+01,Amazonas,2019,hombres,80,85,2093
+01,Amazonas,2019,hombres,85,90,1294
+01,Amazonas,2019,hombres,90,95,677
+01,Amazonas,2019,hombres,95,125,257
+01,Amazonas,2019,mujeres,30,35,17249
+01,Amazonas,2019,mujeres,35,40,14492
+01,Amazonas,2019,mujeres,40,45,12176
+01,Amazonas,2019,mujeres,45,50,10230
+01,Amazonas,2019,mujeres,50,55,8595
+01,Amazonas,2019,mujeres,55,60,7221
+01,Amazonas,2019,mujeres,60,65,6201
+01,Amazonas,2019,mujeres,65,70,5322
+01,Amazonas,2019,mujeres,70,75,4566
+01,Amazonas,2019,mujeres,75,80,3915
+01,Amazonas,2019,mujeres,80,85,2731
+01,Amazonas,2019,mujeres,85,90,1769
+01,Amazonas,2019,mujeres,90,95,969
+01,Amazonas,2019,mujeres,95,125,386
+01,Amazonas,2023,hombres,30,35,17445
+01,Amazonas,2023,hombres,35,40,14657
+01,Amazonas,2023,hombres,40,45,12314
+01,Amazonas,2023,hombres,45,50,10346
+01,Amazonas,2023,hombres,50,55,8692
+01,Amazonas,2023,hombres,55,60,7303
+01,Amazonas,2023,hombres,60,65,5994
+01,Amazonas,2023,hombres,65,70,4918
+01,Amazonas,2023,hombres,70,75,4032
+01,Amazonas,2023,hombres,75,80,3304
+01,Amazonas,2023,hombres,80,85,2203
+01,Amazonas,2023,hombres,85,90,1362
+01,Amazonas,2023,hombres,90,95,713
+01,Amazonas,2023,hombres,95,125,271
+01,Amazonas,2023,mujeres,30,35,18157
+01,Amazonas,2023,mujeres,35,40,15255
+01,Amazonas,2023,mujeres,40,45,12817
+01,Amazonas,2023,mujeres,45,50,10768
+01,Amazonas,2023,mujeres,50,55,9047
+01,Amazonas,2023,mujeres,55,60,7601
+01,Amazonas,2023,mujeres,60,65,6527
+01,Amazonas,2023,mujeres,65,70,5602
+01,Amazonas,2023,mujeres,70,75,4806
+01,Amazonas,2023,mujeres,75,80,4121
+01,Amazonas,2023,mujeres,80,85,2875
+01,Amazonas,2023,mujeres,85,90,1862
+01,Amazonas,2023,mujeres,90,95,1020
+01,Amazonas,2023,mujeres,95,125,406
+01,Amazonas,2024,hombres,30,35,17619
+01,Amazonas,2024,hombres,35,40,14804
+01,Amazonas,2024,hombres,40,45,12437
+01,Amazonas,2024,hombres,45,50,10449
+01,Amazonas,2024,hombres,50,55,8779
+01,Amazonas,2024,hombres,55,60,7376
+01,Amazonas,2024,hombres,60,65,6054
+01,Amazonas,2024,hombres,65,70,4967
+01,Amazonas,2024,hombres,70,75,4072
+01,Amazonas,2024,hombres,75,80,3337
+01,Amazonas,2024,hombres,80,85,2225
+01,Amazonas,2024,hombres,85,90,1376
+01,Amazonas,2024,hombres,90,95,720
+01,Amazonas,2024,hombres,95,125,274
+01,Amazonas,2024,mujeres,30,35,18339
+01,Amazonas,2024,mujeres,35,40,15408
+01,Amazonas,2024,mujeres,40,45,12945
+01,Amazonas,2024,mujeres,45,50,10876
+01,Amazonas,2024,mujeres,50,55,9137
+01,Amazonas,2024,mujeres,55,60,7677
+01,Amazonas,2024,mujeres,60,65,6592
+01,Amazonas,2024,mujeres,65,70,5658
+01,Amazonas,2024,mujeres,70,75,4854
+01,Amazonas,2024,mujeres,75,80,4162
+01,Amazonas,2024,mujeres,80,85,2904
+01,Amazonas,2024,mujeres,85,90,1881
+01,Amazonas,2024,mujeres,90,95,1030
+01,Amazonas,2024,mujeres,95,125,410
+02,Áncash,2019,hombres,30,35,43401
+02,Áncash,2019,hombres,35,40,37028
+02,Áncash,2019,hombres,40,45,31592
+02,Áncash,2019,hombres,45,50,26953
+02,Áncash,2019,hombres,50,55,22997
+02,Áncash,2019,hombres,55,60,19620
+02,Áncash,2019,hombres,60,65,16355
+02,Áncash,2019,hombres,65,70,13626
+02,Áncash,2019,hombres,70,75,11346
+02,Áncash,2019,hombres,75,80,9441
+02,Áncash,2019,hombres,80,85,6391
+02,Áncash,2019,hombres,85,90,4014
+02,Áncash,2019,hombres,90,95,2132
+02,Áncash,2019,hombres,95,125,823
+02,Áncash,2019,mujeres,30,35,45172
+02,Áncash,2019,mujeres,35,40,38540
+02,Áncash,2019,mujeres,40,45,32881
+02,Áncash,2019,mujeres,45,50,28054
+02,Áncash,2019,mujeres,50,55,23935
+02,Áncash,2019,mujeres,55,60,20421
+02,Áncash,2019,mujeres,60,65,17807
+02,Áncash,2019,mujeres,65,70,15521
+02,Áncash,2019,mujeres,70,75,13521
+02,Áncash,2019,mujeres,75,80,11775
+02,Áncash,2019,mujeres,80,85,8343
+02,Áncash,2019,mujeres,85,90,5487
+02,Áncash,2019,mujeres,90,95,3052
+02,Áncash,2019,mujeres,95,125,1234
+02,Áncash,2023,hombres,30,35,45685
+02,Áncash,2023,hombres,35,40,38977
+02,Áncash,2023,hombres,40,45,33255
+02,Áncash,2023,hombres,45,50,28372
+02,Áncash,2023,hombres,50,55,24207
+02,Áncash,2023,hombres,55,60,20653
+02,Áncash,2023,hombres,60,65,17216
+02,Áncash,2023,hombres,65,70,14343
+02,Áncash,2023,hombres,70,75,11943
+02,Áncash,2023,hombres,75,80,9938
+02,Áncash,2023,hombres,80,85,6727
+02,Áncash,2023,hombres,85,90,4225
+02,Áncash,2023,hombres,90,95,2244
+02,Áncash,2023,hombres,95,125,866
+02,Áncash,2023,mujeres,30,35,47549
+02,Áncash,2023,mujeres,35,40,40568
+02,Áncash,2023,mujeres,40,45,34612
+02,Áncash,2023,mujeres,45,50,29531
+02,Áncash,2023,mujeres,50,55,25195
+02,Áncash,2023,mujeres,55,60,21496
+02,Áncash,2023,mujeres,60,65,18744
+02,Áncash,2023,mujeres,65,70,16338
+02,Áncash,2023,mujeres,70,75,14233
+02,Áncash,2023,mujeres,75,80,12395
+02,Áncash,2023,mujeres,80,85,8782
+02,Áncash,2023,mujeres,85,90,5776
+02,Áncash,2023,mujeres,90,95,3213
+02,Áncash,2023,mujeres,95,125,1299
+02,Áncash,2024,hombres,30,35,46142
+02,Áncash,2024,hombres,35,40,39367
+02,Áncash,2024,hombres,40,45,33588
+02,Áncash,2024,hombres,45,50,28656
+02,Áncash,2024,hombres,50,55,24449
+02,Áncash,2024,hombres,55,60,20860
+02,Áncash,2024,hombres,60,65,17388
+02,Áncash,2024,hombres,65,70,14486
+02,Áncash,2024,hombres,70,75,12062
+02,Áncash,2024,hombres,75,80,10037
+02,Áncash,2024,hombres,80,85,6794
+02,Áncash,2024,hombres,85,90,4267
+02,Áncash,2024,hombres,90,95,2266
+02,Áncash,2024,hombres,95,125,875
+02,Áncash,2024,mujeres,30,35,48024
+02,Áncash,2024,mujeres,35,40,40974
+02,Áncash,2024,mujeres,40,45,34958
+02,Áncash,2024,mujeres,45,50,29826
+02,Áncash,2024,mujeres,50,55,25447
+02,Áncash,2024,mujeres,55,60,21711
+02,Áncash,2024,mujeres,60,65,18931
+02,Áncash,2024,mujeres,65,70,16501
+02,Áncash,2024,mujeres,70,75,14375
+02,Áncash,2024,mujeres,75,80,12519
+02,Áncash,2024,mujeres,80,85,8870
+02,Áncash,2024,mujeres,85,90,5834
+02,Áncash,2024,mujeres,90,95,3245
+02,Áncash,2024,mujeres,95,125,1312
+03,Apurímac,2019,hombres,30,35,15672
+03,Apurímac,2019,hombres,35,40,13371
+03,Apurímac,2019,hombres,40,45,11409
+03,Apurímac,2019,hombres,45,50,9734
+03,Apurímac,2019,hombres,50,55,8304
+03,Apurímac,2019,hombres,55,60,7085
+03,Apurímac,2019,hombres,60,65,5906
+03,Apurímac,2019,hombres,65,70,4921
+03,Apurímac,2019,hombres,70,75,4097
+03,Apurímac,2019,hombres,75,80,3410
+03,Apurímac,2019,hombres,80,85,2308
+03,Apurímac,2019,hombres,85,90,1450
+03,Apurímac,2019,hombres,90,95,770
+03,Apurímac,2019,hombres,95,125,297
+03,Apurímac,2019,mujeres,30,35,16312
+03,Apurímac,2019,mujeres,35,40,13918
+03,Apurímac,2019,mujeres,40,45,11874
+03,Apurímac,2019,mujeres,45,50,10131
+03,Apurímac,2019,mujeres,50,55,8643
+03,Apurímac,2019,mujeres,55,60,7374
+03,Apurímac,2019,mujeres,60,65,6431
+03,Apurímac,2019,mujeres,65,70,5605
+03,Apurímac,2019,mujeres,70,75,4883
+03,Apurímac,2019,mujeres,75,80,4252
+03,Apurímac,2019,mujeres,80,85,3012
+03,Apurímac,2019,mujeres,85,90,1982
+03,Apurímac,2019,mujeres,90,95,1102
+03,Apurímac,2019,mujeres,95,125,446
+03,Apurímac,2023,hombres,30,35,16497
+03,Apurímac,2023,hombres,35,40,14075
+03,Apurímac,2023,hombres,40,45,12009
+03,Apurímac,2023,hombres,45,50,10246
+03,Apurímac,2023,hombres,50,55,8741
+03,Apurímac,2023,hombres,55,60,7458
+03,Apurímac,2023,hombres,60,65,6217
+03,Apurímac,2023,hombres,65,70,5180
+03,Apurímac,2023,hombres,70,75,4313
+03,Apurímac,2023,hombres,75,80,3589
+03,Apurímac,2023,hombres,80,85,2429
+03,Apurímac,2023,hombres,85,90,1526
+03,Apurímac,2023,hombres,90,95,810
+03,Apurímac,2023,hombres,95,125,313
+03,Apurímac,2023,mujeres,30,35,17171
+03,Apurímac,2023,mujeres,35,40,14650
+03,Apurímac,2023,mujeres,40,45,12499
+03,Apurímac,2023,mujeres,45,50,10664
+03,Apurímac,2023,mujeres,50,55,9098
+03,Apurímac,2023,mujeres,55,60,7762
+03,Apurímac,2023,mujeres,60,65,6769
+03,Apurímac,2023,mujeres,65,70,5900
+03,Apurímac,2023,mujeres,70,75,5140
+03,Apurímac,2023,mujeres,75,80,4476
+03,Apurímac,2023,mujeres,80,85,3171
+03,Apurímac,2023,mujeres,85,90,2086
+03,Apurímac,2023,mujeres,90,95,1160
+03,Apurímac,2023,mujeres,95,125,469
+03,Apurímac,2024,hombres,30,35,16662
+03,Apurímac,2024,hombres,35,40,14216
+03,Apurímac,2024,hombres,40,45,12129
+03,Apurímac,2024,hombres,45,50,10348
+03,Apurímac,2024,hombres,50,55,8828
+03,Apurímac,2024,hombres,55,60,7533
+03,Apurímac,2024,hombres,60,65,6279
+03,Apurímac,2024,hombres,65,70,5232
+03,Apurímac,2024,hombres,70,75,4356
+03,Apurímac,2024,hombres,75,80,3625
+03,Apurímac,2024,hombres,80,85,2453
+03,Apurímac,2024,hombres,85,90,1541
+03,Apurímac,2024,hombres,90,95,818
+03,Apurímac,2024,hombres,95,125,316
+03,Apurímac,2024,mujeres,30,35,17343
+03,Apurímac,2024,mujeres,35,40,14796
+03,Apurímac,2024,mujeres,40,45,12624
+03,Apurímac,2024,mujeres,45,50,10771
+03,Apurímac,2024,mujeres,50,55,9189
+03,Apurímac,2024,mujeres,55,60,7840
+03,Apurímac,2024,mujeres,60,65,6837
+03,Apurímac,2024,mujeres,65,70,5959
+03,Apurímac,2024,mujeres,70,75,5191
+03,Apurímac,2024,mujeres,75,80,4521
+03,Apurímac,2024,mujeres,80,85,3203
+03,Apurímac,2024,mujeres,85,90,2107
+03,Apurímac,2024,mujeres,90,95,1172
+03,Apurímac,2024,mujeres,95,125,474
+04,Arequipa,2019,hombres,30,35,50570
+04,Arequipa,2019,hombres,35,40,43950
+04,Arequipa,2019,hombres,40,45,38196
+04,Arequipa,2019,hombres,45,50,33195
+04,Arequipa,2019,hombres,50,55,28850
+04,Arequipa,2019,hombres,55,60,25072
+04,Arequipa,2019,hombres,60,65,21290
+04,Arequipa,2019,hombres,65,70,18068
+04,Arequipa,2019,hombres,70,75,15324
+04,Arequipa,2019,hombres,75,80,12989
+04,Arequipa,2019,hombres,80,85,8957
+04,Arequipa,2019,hombres,85,90,5730
+04,Arequipa,2019,hombres,90,95,3100
+04,Arequipa,2019,hombres,95,125,1219
+04,Arequipa,2019,mujeres,30,35,52635
+04,Arequipa,2019,mujeres,35,40,45743
+04,Arequipa,2019,mujeres,40,45,39755
+04,Arequipa,2019,mujeres,45,50,34551
+04,Arequipa,2019,mujeres,50,55,30027
+04,Arequipa,2019,mujeres,55,60,26096
+04,Arequipa,2019,mujeres,60,65,23180
+04,Arequipa,2019,mujeres,65,70,20580
+04,Arequipa,2019,mujeres,70,75,18263
+04,Arequipa,2019,mujeres,75,80,16200
+04,Arequipa,2019,mujeres,80,85,11693
+04,Arequipa,2019,mujeres,85,90,7833
+04,Arequipa,2019,mujeres,90,95,4438
+04,Arequipa,2019,mujeres,95,125,1829
+04,Arequipa,2023,hombres,30,35,53232
+04,Arequipa,2023,hombres,35,40,46263
+04,Arequipa,2023,hombres,40,45,40206
+04,Arequipa,2023,hombres,45,50,34942
+04,Arequipa,2023,hombres,50,55,30368
+04,Arequipa,2023,hombres,55,60,26392
+04,Arequipa,2023,hombres,60,65,22410
+04,Arequipa,2023,hombres,65,70,19019
+04,Arequipa,2023,hombres,70,75,16131
+04,Arequipa,2023,hombres,75,80,13673
+04,Arequipa,2023,hombres,80,85,9428
+04,Arequipa,2023,hombres,85,90,6032
+04,Arequipa,2023,hombres,90,95,3263
+04,Arequipa,2023,hombres,95,125,1283
+04,Arequipa,2023,mujeres,30,35,55405
+04,Arequipa,2023,mujeres,35,40,48151
+04,Arequipa,2023,mujeres,40,45,41847
+04,Arequipa,2023,mujeres,45,50,36369
+04,Arequipa,2023,mujeres,50,55,31607
+04,Arequipa,2023,mujeres,55,60,27469
+04,Arequipa,2023,mujeres,60,65,24400
+04,Arequipa,2023,mujeres,65,70,21663
+04,Arequipa,2023,mujeres,70,75,19224
+04,Arequipa,2023,mujeres,75,80,17053
+04,Arequipa,2023,mujeres,80,85,12308
+04,Arequipa,2023,mujeres,85,90,8245
+04,Arequipa,2023,mujeres,90,95,4672
+04,Arequipa,2023,mujeres,95,125,1925
+04,Arequipa,2024,hombres,30,35,53764
+04,Arequipa,2024,hombres,35,40,46726
+04,Arequipa,2024,hombres,40,45,40608
+04,Arequipa,2024,hombres,45,50,35291
+04,Arequipa,2024,hombres,50,55,30672
+04,Arequipa,2024,hombres,55,60,26656
+04,Arequipa,2024,hombres,60,65,22634
+04,Arequipa,2024,hombres,65,70,19209
+04,Arequipa,2024,hombres,70,75,16292
+04,Arequipa,2024,hombres,75,80,13810
+04,Arequipa,2024,hombres,80,85,9522
+04,Arequipa,2024,hombres,85,90,6092
+04,Arequipa,2024,hombres,90,95,3296
+04,Arequipa,2024,hombres,95,125,1296
+04,Arequipa,2024,mujeres,30,35,55959
+04,Arequipa,2024,mujeres,35,40,48633
+04,Arequipa,2024,mujeres,40,45,42265
+04,Arequipa,2024,mujeres,45,50,36733
+04,Arequipa,2024,mujeres,50,55,31923
+04,Arequipa,2024,mujeres,55,60,27744
+04,Arequipa,2024,mujeres,60,65,24644
+04,Arequipa,2024,mujeres,65,70,21880
+04,Arequipa,2024,mujeres,70,75,19416
+04,Arequipa,2024,mujeres,75,80,17224
+04,Arequipa,2024,mujeres,80,85,12431
+04,Arequipa,2024,mujeres,85,90,8327
+04,Arequipa,2024,mujeres,90,95,4719
+04,Arequipa,2024,mujeres,95,125,1944
+05,Ayacucho,2019,hombres,30,35,24111
+05,Ayacucho,2019,hombres,35,40,20571
+05,Ayacucho,2019,hombres,40,45,17551
+05,Ayacucho,2019,hombres,45,50,14974
+05,Ayacucho,2019,hombres,50,55,12776
+05,Ayacucho,2019,hombres,55,60,10900
+05,Ayacucho,2019,hombres,60,65,9087
+05,Ayacucho,2019,hombres,65,70,7571
+05,Ayacucho,2019,hombres,70,75,6303
+05,Ayacucho,2019,hombres,75,80,5245
+05,Ayacucho,2019,hombres,80,85,3550
+05,Ayacucho,2019,hombres,85,90,2230
+05,Ayacucho,2019,hombres,90,95,1185
+05,Ayacucho,2019,hombres,95,125,457
+05,Ayacucho,2019,mujeres,30,35,25095
+05,Ayacucho,2019,mujeres,35,40,21411
+05,Ayacucho,2019,mujeres,40,45,18268
+05,Ayacucho,2019,mujeres,45,50,15586
+05,Ayacucho,2019,mujeres,50,55,13297
+05,Ayacucho,2019,mujeres,55,60,11345
+05,Ayacucho,2019,mujeres,60,65,9893
+05,Ayacucho,2019,mujeres,65,70,8622
+05,Ayacucho,2019,mujeres,70,75,7512
+05,Ayacucho,2019,mujeres,75,80,6542
+05,Ayacucho,2019,mujeres,80,85,4635
+05,Ayacucho,2019,mujeres,85,90,3049
+05,Ayacucho,2019,mujeres,90,95,1696
+05,Ayacucho,2019,mujeres,95,125,686
+05,Ayacucho,2023,hombres,30,35,25380
+05,Ayacucho,2023,hombres,35,40,21654
+05,Ayacucho,2023,hombres,40,45,18475
+05,Ayacucho,2023,hombres,45,50,15762
+05,Ayacucho,2023,hombres,50,55,13448
+05,Ayacucho,2023,hombres,55,60,11474
+05,Ayacucho,2023,hombres,60,65,9565
+05,Ayacucho,2023,hombres,65,70,7969
+05,Ayacucho,2023,hombres,70,75,6635
+05,Ayacucho,2023,hombres,75,80,5521
+05,Ayacucho,2023,hombres,80,85,3737
+05,Ayacucho,2023,hombres,85,90,2347
+05,Ayacucho,2023,hombres,90,95,1247
+05,Ayacucho,2023,hombres,95,125,481
+05,Ayacucho,2023,mujeres,30,35,26416
+05,Ayacucho,2023,mujeres,35,40,22538
+05,Ayacucho,2023,mujeres,40,45,19229
+05,Ayacucho,2023,mujeres,45,50,16406
+05,Ayacucho,2023,mujeres,50,55,13997
+05,Ayacucho,2023,mujeres,55,60,11942
+05,Ayacucho,2023,mujeres,60,65,10414
+05,Ayacucho,2023,mujeres,65,70,9076
+05,Ayacucho,2023,mujeres,70,75,7907
+05,Ayacucho,2023,mujeres,75,80,6886
+05,Ayacucho,2023,mujeres,80,85,4879
+05,Ayacucho,2023,mujeres,85,90,3209
+05,Ayacucho,2023,mujeres,90,95,1785
+05,Ayacucho,2023,mujeres,95,125,722
+05,Ayacucho,2024,hombres,30,35,25634
+05,Ayacucho,2024,hombres,35,40,21871
+05,Ayacucho,2024,hombres,40,45,18660
+05,Ayacucho,2024,hombres,45,50,15920
+05,Ayacucho,2024,hombres,50,55,13582
+05,Ayacucho,2024,hombres,55,60,11589
+05,Ayacucho,2024,hombres,60,65,9661
+05,Ayacucho,2024,hombres,65,70,8049
+05,Ayacucho,2024,hombres,70,75,6701
+05,Ayacucho,2024,hombres,75,80,5576
+05,Ayacucho,2024,hombres,80,85,3774
+05,Ayacucho,2024,hombres,85,90,2370
+05,Ayacucho,2024,hombres,90,95,1259
+05,Ayacucho,2024,hombres,95,125,486
+05,Ayacucho,2024,mujeres,30,35,26680
+05,Ayacucho,2024,mujeres,35,40,22763
+05,Ayacucho,2024,mujeres,40,45,19421
+05,Ayacucho,2024,mujeres,45,50,16570
+05,Ayacucho,2024,mujeres,50,55,14137
+05,Ayacucho,2024,mujeres,55,60,12061
+05,Ayacucho,2024,mujeres,60,65,10518
+05,Ayacucho,2024,mujeres,65,70,9167
+05,Ayacucho,2024,mujeres,70,75,7986
+05,Ayacucho,2024,mujeres,75,80,6955
+05,Ayacucho,2024,mujeres,80,85,4928
+05,Ayacucho,2024,mujeres,85,90,3241
+05,Ayacucho,2024,mujeres,90,95,1803
+05,Ayacucho,2024,mujeres,95,125,729
+06,Cajamarca,2019,hombres,30,35,54251
+06,Cajamarca,2019,hombres,35,40,46286
+06,Cajamarca,2019,hombres,40,45,39491
+06,Cajamarca,2019,hombres,45,50,33693
+06,Cajamarca,2019,hombres,50,55,28746
+06,Cajamarca,2019,hombres,55,60,24525
+06,Cajamarca,2019,hombres,60,65,20444
+06,Cajamarca,2019,hombres,65,70,17033
+06,Cajamarca,2019,hombres,70,75,14183
+06,Cajamarca,2019,hombres,75,80,11802
+06,Cajamarca,2019,hombres,80,85,7989
+06,Cajamarca,2019,hombres,85,90,5018
+06,Cajamarca,2019,hombres,90,95,2665
+06,Cajamarca,2019,hombres,95,125,1029
+06,Cajamarca,2019,mujeres,30,35,56465
+06,Cajamarca,2019,mujeres,35,40,48174
+06,Cajamarca,2019,mujeres,40,45,41102
+06,Cajamarca,2019,mujeres,45,50,35067
+06,Cajamarca,2019,mujeres,50,55,29919
+06,Cajamarca,2019,mujeres,55,60,25526
+06,Cajamarca,2019,mujeres,60,65,22259
+06,Cajamarca,2019,mujeres,65,70,19401
+06,Cajamarca,2019,mujeres,70,75,16902
+06,Cajamarca,2019,mujeres,75,80,14719
+06,Cajamarca,2019,mujeres,80,85,10429
+06,Cajamarca,2019,mujeres,85,90,6859
+06,Cajamarca,2019,mujeres,90,95,3815
+06,Cajamarca,2019,mujeres,95,125,1543
+06,Cajamarca,2023,hombres,30,35,57106
+06,Cajamarca,2023,hombres,35,40,48722
+06,Cajamarca,2023,hombres,40,45,41569
+06,Cajamarca,2023,hombres,45,50,35466
+06,Cajamarca,2023,hombres,50,55,30259
+06,Cajamarca,2023,hombres,55,60,25816
+06,Cajamarca,2023,hombres,60,65,21520
+06,Cajamarca,2023,hombres,65,70,17929
+06,Cajamarca,2023,hombres,70,75,14929
+06,Cajamarca,2023,hombres,75,80,12423
+06,Cajamarca,2023,hombres,80,85,8409
+06,Cajamarca,2023,hombres,85,90,5282
+06,Cajamarca,2023,hombres,90,95,2805
+06,Cajamarca,2023,hombres,95,125,1083
+06,Cajamarca,2023,mujeres,30,35,59437
+06,Cajamarca,2023,mujeres,35,40,50710
+06,Cajamarca,2023,mujeres,40,45,43265
+06,Cajamarca,2023,mujeres,45,50,36913
+06,Cajamarca,2023,mujeres,50,55,31494
+06,Cajamarca,2023,mujeres,55,60,26870
+06,Cajamarca,2023,mujeres,60,65,23431
+06,Cajamarca,2023,mujeres,65,70,20422
+06,Cajamarca,2023,mujeres,70,75,17792
+06,Cajamarca,2023,mujeres,75,80,15494
+06,Cajamarca,2023,mujeres,80,85,10978
+06,Cajamarca,2023,mujeres,85,90,7220
+06,Cajamarca,2023,mujeres,90,95,4016
+06,Cajamarca,2023,mujeres,95,125,1624
+06,Cajamarca,2024,hombres,30,35,57677
+06,Cajamarca,2024,hombres,35,40,49209
+06,Cajamarca,2024,hombres,40,45,41985
+06,Cajamarca,2024,hombres,45,50,35821
+06,Cajamarca,2024,hombres,50,55,30562
+06,Cajamarca,2024,hombres,55,60,26074
+06,Cajamarca,2024,hombres,60,65,21735
+06,Cajamarca,2024,hombres,65,70,18108
+06,Cajamarca,2024,hombres,70,75,15078
+06,Cajamarca,2024,hombres,75,80,12547
+06,Cajamarca,2024,hombres,80,85,8493
+06,Cajamarca,2024,hombres,85,90,5335
+06,Cajamarca,2024,hombres,90,95,2833
+06,Cajamarca,2024,hombres,95,125,1094
+06,Cajamarca,2024,mujeres,30,35,60031
+06,Cajamarca,2024,mujeres,35,40,51217
+06,Cajamarca,2024,mujeres,40,45,43698
+06,Cajamarca,2024,mujeres,45,50,37282
+06,Cajamarca,2024,mujeres,50,55,31809
+06,Cajamarca,2024,mujeres,55,60,27139
+06,Cajamarca,2024,mujeres,60,65,23665
+06,Cajamarca,2024,mujeres,65,70,20626
+06,Cajamarca,2024,mujeres,70,75,17970
+06,Cajamarca,2024,mujeres,75,80,15649
+06,Cajamarca,2024,mujeres,80,85,11088
+06,Cajamarca,2024,mujeres,85,90,7292
+06,Cajamarca,2024,mujeres,90,95,4056
+06,Cajamarca,2024,mujeres,95,125,1640
+07,Callao,2019,hombres,30,35,38209
+07,Callao,2019,hombres,35,40,33206
+07,Callao,2019,hombres,40,45,28859
+07,Callao,2019,hombres,45,50,25081
+07,Callao,2019,hombres,50,55,21798
+07,Callao,2019,hombres,55,60,18944
+07,Callao,2019,hombres,60,65,16085
+07,Callao,2019,hombres,65,70,13652
+07,Callao,2019,hombres,70,75,11579
+07,Callao,2019,hombres,75,80,9814
+07,Callao,2019,hombres,80,85,6767
+07,Callao,2019,hombres,85,90,4330
+07,Callao,2019,hombres,90,95,2343
+07,Callao,2019,hombres,95,125,921
+07,Callao,2019,mujeres,30,35,39768
+07,Callao,2019,mujeres,35,40,34562
+07,Callao,2019,mujeres,40,45,30037
+07,Callao,2019,mujeres,45,50,26105
+07,Callao,2019,mujeres,50,55,22687
+07,Callao,2019,mujeres,55,60,19717
+07,Callao,2019,mujeres,60,65,17513
+07,Callao,2019,mujeres,65,70,15549
+07,Callao,2019,mujeres,70,75,13799
+07,Callao,2019,mujeres,75,80,12241
+07,Callao,2019,mujeres,80,85,8834
+07,Callao,2019,mujeres,85,90,5918
+07,Callao,2019,mujeres,90,95,3354
+07,Callao,2019,mujeres,95,125,1381
+07,Callao,2023,hombres,30,35,40220
+07,Callao,2023,hombres,35,40,34954
+07,Callao,2023,hombres,40,45,30378
+07,Callao,2023,hombres,45,50,26401
+07,Callao,2023,hombres,50,55,22945
+07,Callao,2023,hombres,55,60,19941
+07,Callao,2023,hombres,60,65,16932
+07,Callao,2023,hombres,65,70,14370
+07,Callao,2023,hombres,70,75,12188
+07,Callao,2023,hombres,75,80,10331
+07,Callao,2023,hombres,80,85,7123
+07,Callao,2023,hombres,85,90,4558
+07,Callao,2023,hombres,90,95,2466
+07,Callao,2023,hombres,95,125,969
+07,Callao,2023,mujeres,30,35,41861
+07,Callao,2023,mujeres,35,40,36381
+07,Callao,2023,mujeres,40,45,31618
+07,Callao,2023,mujeres,45,50,27479
+07,Callao,2023,mujeres,50,55,23881
+07,Callao,2023,mujeres,55,60,20755
+07,Callao,2023,mujeres,60,65,18435
+07,Callao,2023,mujeres,65,70,16367
+07,Callao,2023,mujeres,70,75,14525
+07,Callao,2023,mujeres,75,80,12885
+07,Callao,2023,mujeres,80,85,9299
+07,Callao,2023,mujeres,85,90,6230
+07,Callao,2023,mujeres,90,95,3530
+07,Callao,2023,mujeres,95,125,1454
+07,Callao,2024,hombres,30,35,40622
+07,Callao,2024,hombres,35,40,35304
+07,Callao,2024,hombres,40,45,30682
+07,Callao,2024,hombres,45,50,26665
+07,Callao,2024,hombres,50,55,23174
+07,Callao,2024,hombres,55,60,20140
+07,Callao,2024,hombres,60,65,17101
+07,Callao,2024,hombres,65,70,14514
+07,Callao,2024,hombres,70,75,12310
+07,Callao,2024,hombres,75,80,10434
+07,Callao,2024,hombres,80,85,7194
+07,Callao,2024,hombres,85,90,4604
+07,Callao,2024,hombres,90,95,2491
+07,Callao,2024,hombres,95,125,979
+07,Callao,2024,mujeres,30,35,42280
+07,Callao,2024,mujeres,35,40,36745
+07,Callao,2024,mujeres,40,45,31934
+07,Callao,2024,mujeres,45,50,27754
+07,Callao,2024,mujeres,50,55,24120
+07,Callao,2024,mujeres,55,60,20963
+07,Callao,2024,mujeres,60,65,18619
+07,Callao,2024,mujeres,65,70,16531
+07,Callao,2024,mujeres,70,75,14670
+07,Callao,2024,mujeres,75,80,13014
+07,Callao,2024,mujeres,80,85,9392
+07,Callao,2024,mujeres,85,90,6292
+07,Callao,2024,mujeres,90,95,3565
+07,Callao,2024,mujeres,95,125,1469
+08,Cusco,2019,hombres,30,35,50634
+08,Cusco,2019,hombres,35,40,43200
+08,Cusco,2019,hombres,40,45,36857
+08,Cusco,2019,hombres,45,50,31446
+08,Cusco,2019,hombres,50,55,26829
+08,Cusco,2019,hombres,55,60,22890
+08,Cusco,2019,hombres,60,65,19081
+08,Cusco,2019,hombres,65,70,15897
+08,Cusco,2019,hombres,70,75,13236
+08,Cusco,2019,hombres,75,80,11015
+08,Cusco,2019,hombres,80,85,7456
+08,Cusco,2019,hombres,85,90,4684
+08,Cusco,2019,hombres,90,95,2487
+08,Cusco,2019,hombres,95,125,960
+08,Cusco,2019,mujeres,30,35,52700
+08,Cusco,2019,mujeres,35,40,44964
+08,Cusco,2019,mujeres,40,45,38362
+08,Cusco,2019,mujeres,45,50,32729
+08,Cusco,2019,mujeres,50,55,27924
+08,Cusco,2019,mujeres,55,60,23825
+08,Cusco,2019,mujeres,60,65,20776
+08,Cusco,2019,mujeres,65,70,18108
+08,Cusco,2019,mujeres,70,75,15776
+08,Cusco,2019,mujeres,75,80,13738
+08,Cusco,2019,mujeres,80,85,9734
+08,Cusco,2019,mujeres,85,90,6401
+08,Cusco,2019,mujeres,90,95,3561
+08,Cusco,2019,mujeres,95,125,1440
+08,Cusco,2023,hombres,30,35,53299
+08,Cusco,2023,hombres,35,40,45474
+08,Cusco,2023,hombres,40,45,38797
+08,Cusco,2023,hombres,45,50,33101
+08,Cusco,2023,hombres,50,55,28241
+08,Cusco,2023,hombres,55,60,24095
+08,Cusco,2023,hombres,60,65,20085
+08,Cusco,2023,hombres,65,70,16734
+08,Cusco,2023,hombres,70,75,13933
+08,Cusco,2023,hombres,75,80,11595
+08,Cusco,2023,hombres,80,85,7848
+08,Cusco,2023,hombres,85,90,4930
+08,Cusco,2023,hombres,90,95,2618
+08,Cusco,2023,hombres,95,125,1011
+08,Cusco,2023,mujeres,30,35,55474
+08,Cusco,2023,mujeres,35,40,47330
+08,Cusco,2023,mujeres,40,45,40381
+08,Cusco,2023,mujeres,45,50,34452
+08,Cusco,2023,mujeres,50,55,29394
+08,Cusco,2023,mujeres,55,60,25079
+08,Cusco,2023,mujeres,60,65,21869
+08,Cusco,2023,mujeres,65,70,19061
+08,Cusco,2023,mujeres,70,75,16606
+08,Cusco,2023,mujeres,75,80,14461
+08,Cusco,2023,mujeres,80,85,10246
+08,Cusco,2023,mujeres,85,90,6738
+08,Cusco,2023,mujeres,90,95,3748
+08,Cusco,2023,mujeres,95,125,1516
+08,Cusco,2024,hombres,30,35,53832
+08,Cusco,2024,hombres,35,40,45929
+08,Cusco,2024,hombres,40,45,39185
+08,Cusco,2024,hombres,45,50,33432
+08,Cusco,2024,hombres,50,55,28523
+08,Cusco,2024,hombres,55,60,24336
+08,Cusco,2024,hombres,60,65,20286
+08,Cusco,2024,hombres,65,70,16901
+08,Cusco,2024,hombres,70,75,14072
+08,Cusco,2024,hombres,75,80,11711
+08,Cusco,2024,hombres,80,85,7926
+08,Cusco,2024,hombres,85,90,4979
+08,Cusco,2024,hombres,90,95,2644
+08,Cusco,2024,hombres,95,125,1021
+08,Cusco,2024,mujeres,30,35,56029
+08,Cusco,2024,mujeres,35,40,47803
+08,Cusco,2024,mujeres,40,45,40785
+08,Cusco,2024,mujeres,45,50,34797
+08,Cusco,2024,mujeres,50,55,29688
+08,Cusco,2024,mujeres,55,60,25330
+08,Cusco,2024,mujeres,60,65,22088
+08,Cusco,2024,mujeres,65,70,19252
+08,Cusco,2024,mujeres,70,75,16772
+08,Cusco,2024,mujeres,75,80,14606
+08,Cusco,2024,mujeres,80,85,10348
+08,Cusco,2024,mujeres,85,90,6805
+08,Cusco,2024,mujeres,90,95,3785
+08,Cusco,2024,mujeres,95,125,1531
+09,Huancavelica,2019,hombres,30,35,13261
+09,Huancavelica,2019,hombres,35,40,11314
+09,Huancavelica,2019,hombres,40,45,9653
+09,Huancavelica,2019,hombres,45,50,8236
+09,Huancavelica,2019,hombres,50,55,7027
+09,Huancavelica,2019,hombres,55,60,5995
+09,Huancavelica,2019,hombres,60,65,4997
+09,Huancavelica,2019,hombres,65,70,4164
+09,Huancavelica,2019,hombres,70,75,3467
+09,Huancavelica,2019,hombres,75,80,2885
+09,Huancavelica,2019,hombres,80,85,1953
+09,Huancavelica,2019,hombres,85,90,1226
+09,Huancavelica,2019,hombres,90,95,652
+09,Huancavelica,2019,hombres,95,125,252
+09,Huancavelica,2019,mujeres,30,35,13803
+09,Huancavelica,2019,mujeres,35,40,11776
+09,Huancavelica,2019,mujeres,40,45,10047
+09,Huancavelica,2019,mujeres,45,50,8572
+09,Huancavelica,2019,mujeres,50,55,7313
+09,Huancavelica,2019,mujeres,55,60,6240
+09,Huancavelica,2019,mujeres,60,65,5441
+09,Huancavelica,2019,mujeres,65,70,4742
+09,Huancavelica,2019,mujeres,70,75,4132
+09,Huancavelica,2019,mujeres,75,80,3598
+09,Huancavelica,2019,mujeres,80,85,2549
+09,Huancavelica,2019,mujeres,85,90,1677
+09,Huancavelica,2019,mujeres,90,95,933
+09,Huancavelica,2019,mujeres,95,125,377
+09,Huancavelica,2023,hombres,30,35,13959
+09,Huancavelica,2023,hombres,35,40,11910
+09,Huancavelica,2023,hombres,40,45,10161
+09,Huancavelica,2023,hombres,45,50,8669
+09,Huancavelica,2023,hombres,50,55,7397
+09,Huancavelica,2023,hombres,55,60,6311
+09,Huancavelica,2023,hombres,60,65,5260
+09,Huancavelica,2023,hombres,65,70,4383
+09,Huancavelica,2023,hombres,70,75,3649
+09,Huancavelica,2023,hombres,75,80,3037
+09,Huancavelica,2023,hombres,80,85,2056
+09,Huancavelica,2023,hombres,85,90,1291
+09,Huancavelica,2023,hombres,90,95,686
+09,Huancavelica,2023,hombres,95,125,265
+09,Huancavelica,2023,mujeres,30,35,14529
+09,Huancavelica,2023,mujeres,35,40,12396
+09,Huancavelica,2023,mujeres,40,45,10576
+09,Huancavelica,2023,mujeres,45,50,9023
+09,Huancavelica,2023,mujeres,50,55,7698
+09,Huancavelica,2023,mujeres,55,60,6568
+09,Huancavelica,2023,mujeres,60,65,5727
+09,Huancavelica,2023,mujeres,65,70,4992
+09,Huancavelica,2023,mujeres,70,75,4349
+09,Huancavelica,2023,mujeres,75,80,3787
+09,Huancavelica,2023,mujeres,80,85,2683
+09,Huancavelica,2023,mujeres,85,90,1765
+09,Huancavelica,2023,mujeres,90,95,982
+09,Huancavelica,2023,mujeres,95,125,397
+09,Huancavelica,2024,hombres,30,35,14099
+09,Huancavelica,2024,hombres,35,40,12029
+09,Huancavelica,2024,hombres,40,45,10263
+09,Huancavelica,2024,hombres,45,50,8756
+09,Huancavelica,2024,hombres,50,55,7471
+09,Huancavelica,2024,hombres,55,60,6374
+09,Huancavelica,2024,hombres,60,65,5313
+09,Huancavelica,2024,hombres,65,70,4427
+09,Huancavelica,2024,hombres,70,75,3685
+09,Huancavelica,2024,hombres,75,80,3067
+09,Huancavelica,2024,hombres,80,85,2077
+09,Huancavelica,2024,hombres,85,90,1304
+09,Huancavelica,2024,hombres,90,95,693
+09,Huancavelica,2024,hombres,95,125,268
+09,Huancavelica,2024,mujeres,30,35,14674
+09,Huancavelica,2024,mujeres,35,40,12520
+09,Huancavelica,2024,mujeres,40,45,10682
+09,Huancavelica,2024,mujeres,45,50,9113
+09,Huancavelica,2024,mujeres,50,55,7775
+09,Huancavelica,2024,mujeres,55,60,6634
+09,Huancavelica,2024,mujeres,60,65,5784
+09,Huancavelica,2024,mujeres,65,70,5042
+09,Huancavelica,2024,mujeres,70,75,4392
+09,Huancavelica,2024,mujeres,75,80,3825
+09,Huancavelica,2024,mujeres,80,85,2710
+09,Huancavelica,2024,mujeres,85,90,1783
+09,Huancavelica,2024,mujeres,90,95,992
+09,Huancavelica,2024,mujeres,95,125,401
+10,Huánuco,2019,hombres,30,35,30140
+10,Huánuco,2019,hombres,35,40,25715
+10,Huánuco,2019,hombres,40,45,21939
+10,Huánuco,2019,hombres,45,50,18718
+10,Huánuco,2019,hombres,50,55,15970
+10,Huánuco,2019,hombres,55,60,13625
+10,Huánuco,2019,hombres,60,65,11358
+10,Huánuco,2019,hombres,65,70,9463
+10,Huánuco,2019,hombres,70,75,7879
+10,Huánuco,2019,hombres,75,80,6557
+10,Huánuco,2019,hombres,80,85,4438
+10,Huánuco,2019,hombres,85,90,2787
+10,Huánuco,2019,hombres,90,95,1480
+10,Huánuco,2019,hombres,95,125,572
+10,Huánuco,2019,mujeres,30,35,31369
+10,Huánuco,2019,mujeres,35,40,26763
+10,Huánuco,2019,mujeres,40,45,22834
+10,Huánuco,2019,mujeres,45,50,19482
+10,Huánuco,2019,mujeres,50,55,16621
+10,Huánuco,2019,mujeres,55,60,14182
+10,Huánuco,2019,mujeres,60,65,12366
+10,Huánuco,2019,mujeres,65,70,10779
+10,Huánuco,2019,mujeres,70,75,9390
+10,Huánuco,2019,mujeres,75,80,8178
+10,Huánuco,2019,mujeres,80,85,5794
+10,Huánuco,2019,mujeres,85,90,3810
+10,Huánuco,2019,mujeres,90,95,2119
+10,Huánuco,2019,mujeres,95,125,857
+10,Huánuco,2023,hombres,30,35,31726
+10,Huánuco,2023,hombres,35,40,27068
+10,Huánuco,2023,hombres,40,45,23094
+10,Huánuco,2023,hombres,45,50,19703
+10,Huánuco,2023,hombres,50,55,16810
+10,Huánuco,2023,hombres,55,60,14342
+10,Huánuco,2023,hombres,60,65,11956
+10,Huánuco,2023,hombres,65,70,9961
+10,Huánuco,2023,hombres,70,75,8294
+10,Huánuco,2023,hombres,75,80,6902
+10,Huánuco,2023,hombres,80,85,4672
+10,Huánuco,2023,hombres,85,90,2934
+10,Huánuco,2023,hombres,90,95,1558
+10,Huánuco,2023,hombres,95,125,602
+10,Huánuco,2023,mujeres,30,35,33020
+10,Huánuco,2023,mujeres,35,40,28172
+10,Huánuco,2023,mujeres,40,45,24036
+10,Huánuco,2023,mujeres,45,50,20507
+10,Huánuco,2023,mujeres,50,55,17496
+10,Huánuco,2023,mujeres,55,60,14928
+10,Huánuco,2023,mujeres,60,65,13017
+10,Huánuco,2023,mujeres,65,70,11346
+10,Huánuco,2023,mujeres,70,75,9884
+10,Huánuco,2023,mujeres,75,80,8608
+10,Huánuco,2023,mujeres,80,85,6099
+10,Huánuco,2023,mujeres,85,90,4011
+10,Huánuco,2023,mujeres,90,95,2231
+10,Huánuco,2023,mujeres,95,125,902
+10,Huánuco,2024,hombres,30,35,32043
+10,Huánuco,2024,hombres,35,40,27339
+10,Huánuco,2024,hombres,40,45,23325
+10,Huánuco,2024,hombres,45,50,19900
+10,Huánuco,2024,hombres,50,55,16978
+10,Huánuco,2024,hombres,55,60,14485
+10,Huánuco,2024,hombres,60,65,12076
+10,Huánuco,2024,hombres,65,70,10061
+10,Huánuco,2024,hombres,70,75,8377
+10,Huánuco,2024,hombres,75,80,6971
+10,Huánuco,2024,hombres,80,85,4719
+10,Huánuco,2024,hombres,85,90,2963
+10,Huánuco,2024,hombres,90,95,1574
+10,Huánuco,2024,hombres,95,125,608
+10,Huánuco,2024,mujeres,30,35,33350
+10,Huánuco,2024,mujeres,35,40,28454
+10,Huánuco,2024,mujeres,40,45,24276
+10,Huánuco,2024,mujeres,45,50,20712
+10,Huánuco,2024,mujeres,50,55,17671
+10,Huánuco,2024,mujeres,55,60,15077
+10,Huánuco,2024,mujeres,60,65,13147
+10,Huánuco,2024,mujeres,65,70,11459
+10,Huánuco,2024,mujeres,70,75,9983
+10,Huánuco,2024,mujeres,75,80,8694
+10,Huánuco,2024,mujeres,80,85,6160
+10,Huánuco,2024,mujeres,85,90,4051
+10,Huánuco,2024,mujeres,90,95,2253
+10,Huánuco,2024,mujeres,95,125,911
+11,Ica,2019,hombres,30,35,33770
+11,Ica,2019,hombres,35,40,29080
+11,Ica,2019,hombres,40,45,25040
+11,Ica,2019,hombres,45,50,21561
+11,Ica,2019,hombres,50,55,18567
+11,Ica,2019,hombres,55,60,15988
+11,Ica,2019,hombres,60,65,13451
+11,Ica,2019,hombres,65,70,11310
+11,Ica,2019,hombres,70,75,9505
+11,Ica,2019,hombres,75,80,7983
+11,Ica,2019,hombres,80,85,5454
+11,Ica,2019,hombres,85,90,3457
+11,Ica,2019,hombres,90,95,1853
+11,Ica,2019,hombres,95,125,722
+11,Ica,2019,mujeres,30,35,35148
+11,Ica,2019,mujeres,35,40,30266
+11,Ica,2019,mujeres,40,45,26062
+11,Ica,2019,mujeres,45,50,22442
+11,Ica,2019,mujeres,50,55,19325
+11,Ica,2019,mujeres,55,60,16640
+11,Ica,2019,mujeres,60,65,14645
+11,Ica,2019,mujeres,65,70,12883
+11,Ica,2019,mujeres,70,75,11328
+11,Ica,2019,mujeres,75,80,9956
+11,Ica,2019,mujeres,80,85,7119
+11,Ica,2019,mujeres,85,90,4725
+11,Ica,2019,mujeres,90,95,2653
+11,Ica,2019,mujeres,95,125,1083
+11,Ica,2023,hombres,30,35,35547
+11,Ica,2023,hombres,35,40,30610
+11,Ica,2023,hombres,40,45,26358
+11,Ica,2023,hombres,45,50,22696
+11,Ica,2023,hombres,50,55,19544
+11,Ica,2023,hombres,55,60,16829
+11,Ica,2023,hombres,60,65,14159
+11,Ica,2023,hombres,65,70,11905
+11,Ica,2023,hombres,70,75,10005
+11,Ica,2023,hombres,75,80,8403
+11,Ica,2023,hombres,80,85,5741
+11,Ica,2023,hombres,85,90,3639
+11,Ica,2023,hombres,90,95,1951
+11,Ica,2023,hombres,95,125,760
+11,Ica,2023,mujeres,30,35,36998
+11,Ica,2023,mujeres,35,40,31859
+11,Ica,2023,mujeres,40,45,27434
+11,Ica,2023,mujeres,45,50,23623
+11,Ica,2023,mujeres,50,55,20342
+11,Ica,2023,mujeres,55,60,17516
+11,Ica,2023,mujeres,60,65,15416
+11,Ica,2023,mujeres,65,70,13561
+11,Ica,2023,mujeres,70,75,11924
+11,Ica,2023,mujeres,75,80,10480
+11,Ica,2023,mujeres,80,85,7494
+11,Ica,2023,mujeres,85,90,4974
+11,Ica,2023,mujeres,90,95,2793
+11,Ica,2023,mujeres,95,125,1140
+11,Ica,2024,hombres,30,35,35902
+11,Ica,2024,hombres,35,40,30916
+11,Ica,2024,hombres,40,45,26622
+11,Ica,2024,hombres,45,50,22923
+11,Ica,2024,hombres,50,55,19739
+11,Ica,2024,hombres,55,60,16997
+11,Ica,2024,hombres,60,65,14301
+11,Ica,2024,hombres,65,70,12024
+11,Ica,2024,hombres,70,75,10105
+11,Ica,2024,hombres,75,80,8487
+11,Ica,2024,hombres,80,85,5798
+11,Ica,2024,hombres,85,90,3675
+11,Ica,2024,hombres,90,95,1971
+11,Ica,2024,hombres,95,125,768
+11,Ica,2024,mujeres,30,35,37368
+11,Ica,2024,mujeres,35,40,32178
+11,Ica,2024,mujeres,40,45,27708
+11,Ica,2024,mujeres,45,50,23859
+11,Ica,2024,mujeres,50,55,20545
+11,Ica,2024,mujeres,55,60,17691
+11,Ica,2024,mujeres,60,65,15570
+11,Ica,2024,mujeres,65,70,13697
+11,Ica,2024,mujeres,70,75,12043
+11,Ica,2024,mujeres,75,80,10585
+11,Ica,2024,mujeres,80,85,7569
+11,Ica,2024,mujeres,85,90,5024
+11,Ica,2024,mujeres,90,95,2821
+11,Ica,2024,mujeres,95,125,1151
+12,Junín,2019,hombres,30,35,50634
+12,Junín,2019,hombres,35,40,43200
+12,Junín,2019,hombres,40,45,36857
+12,Junín,2019,hombres,45,50,31446
+12,Junín,2019,hombres,50,55,26829
+12,Junín,2019,hombres,55,60,22890
+12,Junín,2019,hombres,60,65,19081
+12,Junín,2019,hombres,65,70,15897
+12,Junín,2019,hombres,70,75,13236
+12,Junín,2019,hombres,75,80,11015
+12,Junín,2019,hombres,80,85,7456
+12,Junín,2019,hombres,85,90,4684
+12,Junín,2019,hombres,90,95,2487
+12,Junín,2019,hombres,95,125,960
+12,Junín,2019,mujeres,30,35,52700
+12,Junín,2019,mujeres,35,40,44964
+12,Junín,2019,mujeres,40,45,38362
+12,Junín,2019,mujeres,45,50,32729
+12,Junín,2019,mujeres,50,55,27924
+12,Junín,2019,mujeres,55,60,23825
+12,Junín,2019,mujeres,60,65,20776
+12,Junín,2019,mujeres,65,70,18108
+12,Junín,2019,mujeres,70,75,15776
+12,Junín,2019,mujeres,75,80,13738
+12,Junín,2019,mujeres,80,85,9734
+12,Junín,2019,mujeres,85,90,6401
+12,Junín,2019,mujeres,90,95,3561
+12,Junín,2019,mujeres,95,125,1440
+12,Junín,2023,hombres,30,35,53299
+12,Junín,2023,hombres,35,40,45474
+12,Junín,2023,hombres,40,45,38797
+12,Junín,2023,hombres,45,50,33101
+12,Junín,2023,hombres,50,55,28241
+12,Junín,2023,hombres,55,60,24095
+12,Junín,2023,hombres,60,65,20085
+12,Junín,2023,hombres,65,70,16734
+12,Junín,2023,hombres,70,75,13933
+12,Junín,2023,hombres,75,80,11595
+12,Junín,2023,hombres,80,85,7848
+12,Junín,2023,hombres,85,90,4930
+12,Junín,2023,hombres,90,95,2618
+12,Junín,2023,hombres,95,125,1011
+12,Junín,2023,mujeres,30,35,55474
+12,Junín,2023,mujeres,35,40,47330
+12,Junín,2023,mujeres,40,45,40381
+12,Junín,2023,mujeres,45,50,34452
+12,Junín,2023,mujeres,50,55,29394
+12,Junín,2023,mujeres,55,60,25079
+12,Junín,2023,mujeres,60,65,21869
+12,Junín,2023,mujeres,65,70,19061
+12,Junín,2023,mujeres,70,75,16606
+12,Junín,2023,mujeres,75,80,14461
+12,Junín,2023,mujeres,80,85,10246
+12,Junín,2023,mujeres,85,90,6738
+12,Junín,2023,mujeres,90,95,3748
+12,Junín,2023,mujeres,95,125,1516
+12,Junín,2024,hombres,30,35,53832
+12,Junín,2024,hombres,35,40,45929
+12,Junín,2024,hombres,40,45,39185
+12,Junín,2024,hombres,45,50,33432
+12,Junín,2024,hombres,50,55,28523
+12,Junín,2024,hombres,55,60,24336
+12,Junín,2024,hombres,60,65,20286
+12,Junín,2024,hombres,65,70,16901
+12,Junín,2024,hombres,70,75,14072
+12,Junín,2024,hombres,75,80,11711
+12,Junín,2024,hombres,80,85,7926
+12,Junín,2024,hombres,85,90,4979
+12,Junín,2024,hombres,90,95,2644
+12,Junín,2024,hombres,95,125,1021
+12,Junín,2024,mujeres,30,35,56029
+12,Junín,2024,mujeres,35,40,47803
+12,Junín,2024,mujeres,40,45,40785
+12,Junín,2024,mujeres,45,50,34797
+12,Junín,2024,mujeres,50,55,29688
+12,Junín,2024,mujeres,55,60,25330
+12,Junín,2024,mujeres,60,65,22088
+12,Junín,2024,mujeres,65,70,19252
+12,Junín,2024,mujeres,70,75,16772
+12,Junín,2024,mujeres,75,80,14606
+12,Junín,2024,mujeres,80,85,10348
+12,Junín,2024,mujeres,85,90,6805
+12,Junín,2024,mujeres,90,95,3785
+12,Junín,2024,mujeres,95,125,1531
+13,La Libertad,2019,hombres,30,35,74223
+13,La Libertad,2019,hombres,35,40,63716
+13,La Libertad,2019,hombres,40,45,54697
+13,La Libertad,2019,hombres,45,50,46955
+13,La Libertad,2019,hombres,50,55,40308
+13,La Libertad,2019,hombres,55,60,34603
+13,La Libertad,2019,hombres,60,65,29022
+13,La Libertad,2019,hombres,65,70,24329
+13,La Libertad,2019,hombres,70,75,20382
+13,La Libertad,2019,hombres,75,80,17066
+13,La Libertad,2019,hombres,80,85,11623
+13,La Libertad,2019,hombres,85,90,7345
+13,La Libertad,2019,hombres,90,95,3925
+13,La Libertad,2019,hombres,95,125,1525
+13,La Libertad,2019,mujeres,30,35,77252
+13,La Libertad,2019,mujeres,35,40,66317
+13,La Libertad,2019,mujeres,40,45,56930
+13,La Libertad,2019,mujeres,45,50,48871
+13,La Libertad,2019,mujeres,50,55,41953
+13,La Libertad,2019,mujeres,55,60,36014
+13,La Libertad,2019,mujeres,60,65,31599
+13,La Libertad,2019,mujeres,65,70,27712
+13,La Libertad,2019,mujeres,70,75,24292
+13,La Libertad,2019,mujeres,75,80,21285
+13,La Libertad,2019,mujeres,80,85,15173
+13,La Libertad,2019,mujeres,85,90,10041
+13,La Libertad,2019,mujeres,90,95,5620
+13,La Libertad,2019,mujeres,95,125,2287
+13,La Libertad,2023,hombres,30,35,78129
+13,La Libertad,2023,hombres,35,40,67070
+13,La Libertad,2023,hombres,40,45,57576
+13,La Libertad,2023,hombres,45,50,49426
+13,La Libertad,2023,hombres,50,55,42430
+13,La Libertad,2023,hombres,55,60,36424
+13,La Libertad,2023,hombres,60,65,30550
+13,La Libertad,2023,hombres,65,70,25609
+13,La Libertad,2023,hombres,70,75,21455
+13,La Libertad,2023,hombres,75,80,17964
+13,La Libertad,2023,hombres,80,85,12235
+13,La Libertad,2023,hombres,85,90,7732
+13,La Libertad,2023,hombres,90,95,4132
+13,La Libertad,2023,hombres,95,125,1605
+13,La Libertad,2023,mujeres,30,35,81318
+13,La Libertad,2023,mujeres,35,40,69807
+13,La Libertad,2023,mujeres,40,45,59926
+13,La Libertad,2023,mujeres,45,50,51443
+13,La Libertad,2023,mujeres,50,55,44161
+13,La Libertad,2023,mujeres,55,60,37910
+13,La Libertad,2023,mujeres,60,65,33262
+13,La Libertad,2023,mujeres,65,70,29170
+13,La Libertad,2023,mujeres,70,75,25570
+13,La Libertad,2023,mujeres,75,80,22405
+13,La Libertad,2023,mujeres,80,85,15972
+13,La Libertad,2023,mujeres,85,90,10569
+13,La Libertad,2023,mujeres,90,95,5916
+13,La Libertad,2023,mujeres,95,125,2407
+13,La Libertad,2024,hombres,30,35,78910
+13,La Libertad,2024,hombres,35,40,67741
+13,La Libertad,2024,hombres,40,45,58152
+13,La Libertad,2024,hombres,45,50,49920
+13,La Libertad,2024,hombres,50,55,42854
+13,La Libertad,2024,hombres,55,60,36788
+13,La Libertad,2024,hombres,60,65,30856
+13,La Libertad,2024,hombres,65,70,25865
+13,La Libertad,2024,hombres,70,75,21670
+13,La Libertad,2024,hombres,75,80,18144
+13,La Libertad,2024,hombres,80,85,12357
+13,La Libertad,2024,hombres,85,90,7809
+13,La Libertad,2024,hombres,90,95,4173
+13,La Libertad,2024,hombres,95,125,1621
+13,La Libertad,2024,mujeres,30,35,82131
+13,La Libertad,2024,mujeres,35,40,70505
+13,La Libertad,2024,mujeres,40,45,60525
+13,La Libertad,2024,mujeres,45,50,51957
+13,La Libertad,2024,mujeres,50,55,44603
+13,La Libertad,2024,mujeres,55,60,38289
+13,La Libertad,2024,mujeres,60,65,33595
+13,La Libertad,2024,mujeres,65,70,29462
+13,La Libertad,2024,mujeres,70,75,25826
+13,La Libertad,2024,mujeres,75,80,22629
+13,La Libertad,2024,mujeres,80,85,16132
+13,La Libertad,2024,mujeres,85,90,10675
+13,La Libertad,2024,mujeres,90,95,5975
+13,La Libertad,2024,mujeres,95,125,2431
+14,Lambayeque,2019,hombres,30,35,45681
+14,Lambayeque,2019,hombres,35,40,39275
+14,Lambayeque,2019,hombres,40,45,33768
+14,Lambayeque,2019,hombres,45,50,29032
+14,Lambayeque,2019,hombres,50,55,24961
+14,Lambayeque,2019,hombres,55,60,21460
+14,Lambayeque,2019,hombres,60,65,18028
+14,Lambayeque,2019,hombres,65,70,15135
+14,Lambayeque,2019,hombres,70,75,12700
+14,Lambayeque,2019,hombres,75,80,10650
+14,Lambayeque,2019,hombres,80,85,7265
+14,Lambayeque,2019,hombres,85,90,4598
+14,Lambayeque,2019,hombres,90,95,2461
+14,Lambayeque,2019,hombres,95,125,958
+14,Lambayeque,2019,mujeres,30,35,47546
+14,Lambayeque,2019,mujeres,35,40,40878
+14,Lambayeque,2019,mujeres,40,45,35146
+14,Lambayeque,2019,mujeres,45,50,30218
+14,Lambayeque,2019,mujeres,50,55,25980
+14,Lambayeque,2019,mujeres,55,60,22336
+14,Lambayeque,2019,mujeres,60,65,19628
+14,Lambayeque,2019,mujeres,65,70,17240
+14,Lambayeque,2019,mujeres,70,75,15135
+14,Lambayeque,2019,mujeres,75,80,13282
+14,Lambayeque,2019,mujeres,80,85,9484
+14,Lambayeque,2019,mujeres,85,90,6285
+14,Lambayeque,2019,mujeres,90,95,3524
+14,Lambayeque,2019,mujeres,95,125,1435
+14,Lambayeque,2023,hombres,30,35,48085
+14,Lambayeque,2023,hombres,35,40,41342
+14,Lambayeque,2023,hombres,40,45,35545
+14,Lambayeque,2023,hombres,45,50,30560
+14,Lambayeque,2023,hombres,50,55,26275
+14,Lambayeque,2023,hombres,55,60,22590
+14,Lambayeque,2023,hombres,60,65,18977
+14,Lambayeque,2023,hombres,65,70,15932
+14,Lambayeque,2023,hombres,70,75,13368
+14,Lambayeque,2023,hombres,75,80,11210
+14,Lambayeque,2023,hombres,80,85,7647
+14,Lambayeque,2023,hombres,85,90,4840
+14,Lambayeque,2023,hombres,90,95,2591
+14,Lambayeque,2023,hombres,95,125,1008
+14,Lambayeque,2023,mujeres,30,35,50048
+14,Lambayeque,2023,mujeres,35,40,43030
+14,Lambayeque,2023,mujeres,40,45,36996
+14,Lambayeque,2023,mujeres,45,50,31808
+14,Lambayeque,2023,mujeres,50,55,27347
+14,Lambayeque,2023,mujeres,55,60,23512
+14,Lambayeque,2023,mujeres,60,65,20661
+14,Lambayeque,2023,mujeres,65,70,18147
+14,Lambayeque,2023,mujeres,70,75,15932
+14,Lambayeque,2023,mujeres,75,80,13981
+14,Lambayeque,2023,mujeres,80,85,9983
+14,Lambayeque,2023,mujeres,85,90,6616
+14,Lambayeque,2023,mujeres,90,95,3709
+14,Lambayeque,2023,mujeres,95,125,1511
+14,Lambayeque,2024,hombres,30,35,48566
+14,Lambayeque,2024,hombres,35,40,41755
+14,Lambayeque,2024,hombres,40,45,35900
+14,Lambayeque,2024,hombres,45,50,30866
+14,Lambayeque,2024,hombres,50,55,26538
+14,Lambayeque,2024,hombres,55,60,22816
+14,Lambayeque,2024,hombres,60,65,19167
+14,Lambayeque,2024,hombres,65,70,16091
+14,Lambayeque,2024,hombres,70,75,13502
+14,Lambayeque,2024,hombres,75,80,11322
+14,Lambayeque,2024,hombres,80,85,7723
+14,Lambayeque,2024,hombres,85,90,4888
+14,Lambayeque,2024,hombres,90,95,2617
+14,Lambayeque,2024,hombres,95,125,1018
+14,Lambayeque,2024,mujeres,30,35,50548
+14,Lambayeque,2024,mujeres,35,40,43460
+14,Lambayeque,2024,mujeres,40,45,37366
+14,Lambayeque,2024,mujeres,45,50,32126
+14,Lambayeque,2024,mujeres,50,55,27620
+14,Lambayeque,2024,mujeres,55,60,23747
+14,Lambayeque,2024,mujeres,60,65,20868
+14,Lambayeque,2024,mujeres,65,70,18328
+14,Lambayeque,2024,mujeres,70,75,16091
+14,Lambayeque,2024,mujeres,75,80,14121
+14,Lambayeque,2024,mujeres,80,85,10083
+14,Lambayeque,2024,mujeres,85,90,6682
+14,Lambayeque,2024,mujeres,90,95,3746
+14,Lambayeque,2024,mujeres,95,125,1526
+15,Lima,2019,hombres,30,35,364190
+15,Lima,2019,hombres,35,40,317974
+15,Lima,2019,hombres,40,45,277623
+15,Lima,2019,hombres,45,50,242393
+15,Lima,2019,hombres,50,55,211633
+15,Lima,2019,hombres,55,60,184777
+15,Lima,2019,hombres,60,65,157625
+15,Lima,2019,hombres,65,70,134388
+15,Lima,2019,hombres,70,75,114511
+15,Lima,2019,hombres,75,80,97515
+15,Lima,2019,hombres,80,85,67548
+15,Lima,2019,hombres,85,90,43419
+15,Lima,2019,hombres,90,95,23599
+15,Lima,2019,hombres,95,125,9321
+15,Lima,2019,mujeres,30,35,379055
+15,Lima,2019,mujeres,35,40,330953
+15,Lima,2019,mujeres,40,45,288955
+15,Lima,2019,mujeres,45,50,252287
+15,Lima,2019,mujeres,50,55,220272
+15,Lima,2019,mujeres,55,60,192319
+15,Lima,2019,mujeres,60,65,171618
+15,Lima,2019,mujeres,65,70,153074
+15,Lima,2019,mujeres,70,75,136472
+15,Lima,2019,mujeres,75,80,121619
+15,Lima,2019,mujeres,80,85,88182
+15,Lima,2019,mujeres,85,90,59347
+15,Lima,2019,mujeres,90,95,33784
+15,Lima,2019,mujeres,95,125,13981
+15,Lima,2023,hombres,30,35,383358
+15,Lima,2023,hombres,35,40,334710
+15,Lima,2023,hombres,40,45,292235
+15,Lima,2023,hombres,45,50,255151
+15,Lima,2023,hombres,50,55,222772
+15,Lima,2023,hombres,55,60,194502
+15,Lima,2023,hombres,60,65,165921
+15,Lima,2023,hombres,65,70,141461
+15,Lima,2023,hombres,70,75,120538
+15,Lima,2023,hombres,75,80,102647
+15,Lima,2023,hombres,80,85,71103
+15,Lima,2023,hombres,85,90,45704
+15,Lima,2023,hombres,90,95,24841
+15,Lima,2023,hombres,95,125,9812
+15,Lima,2023,mujeres,30,35,399005
+15,Lima,2023,mujeres,35,40,348372
+15,Lima,2023,mujeres,40,45,304163
+15,Lima,2023,mujeres,45,50,265565
+15,Lima,2023,mujeres,50,55,231865
+15,Lima,2023,mujeres,55,60,202441
+15,Lima,2023,mujeres,60,65,180650
+15,Lima,2023,mujeres,65,70,161130
+15,Lima,2023,mujeres,70,75,143655
+15,Lima,2023,mujeres,75,80,128020
+15,Lima,2023,mujeres,80,85,92823
+15,Lima,2023,mujeres,85,90,62471
+15,Lima,2023,mujeres,90,95,35562
+15,Lima,2023,mujeres,95,125,14717
+15,Lima,2024,hombres,30,35,387192
+15,Lima,2024,hombres,35,40,338057
+15,Lima,2024,hombres,40,45,295157
+15,Lima,2024,hombres,45,50,257703
+15,Lima,2024,hombres,50,55,225000
+15,Lima,2024,hombres,55,60,196447
+15,Lima,2024,hombres,60,65,167580
+15,Lima,2024,hombres,65,70,142876
+15,Lima,2024,hombres,70,75,121743
+15,Lima,2024,hombres,75,80,103673
+15,Lima,2024,hombres,80,85,71814
+15,Lima,2024,hombres,85,90,46161
+15,Lima,2024,hombres,90,95,25089
+15,Lima,2024,hombres,95,125,9910
+15,Lima,2024,mujeres,30,35,402995
+15,Lima,2024,mujeres,35,40,351856
+15,Lima,2024,mujeres,40,45,307205
+15,Lima,2024,mujeres,45,50,268221
+15,Lima,2024,mujeres,50,55,234184
+15,Lima,2024,mujeres,55,60,204465
+15,Lima,2024,mujeres,60,65,182456
+15,Lima,2024,mujeres,65,70,162741
+15,Lima,2024,mujeres,70,75,145092
+15,Lima,2024,mujeres,75,80,129300
+15,Lima,2024,mujeres,80,85,93751
+15,Lima,2024,mujeres,85,90,63096
+15,Lima,2024,mujeres,90,95,35918
+15,Lima,2024,mujeres,95,125,14864
+16,Loreto,2019,hombres,30,35,40348
+16,Loreto,2019,hombres,35,40,33382
+16,Loreto,2019,hombres,40,45,27617
+16,Loreto,2019,hombres,45,50,22849
+16,Loreto,2019,hombres,50,55,18904
+16,Loreto,2019,hombres,55,60,15640
+16,Loreto,2019,hombres,60,65,12642
+16,Loreto,2019,hombres,65,70,10213
+16,Loreto,2019,hombres,70,75,8246
+16,Loreto,2019,hombres,75,80,6655
+16,Loreto,2019,hombres,80,85,4368
+16,Loreto,2019,hombres,85,90,2660
+16,Loreto,2019,hombres,90,95,1370
+16,Loreto,2019,hombres,95,125,513
+16,Loreto,2019,mujeres,30,35,41996
+16,Loreto,2019,mujeres,35,40,34744
+16,Loreto,2019,mujeres,40,45,28745
+16,Loreto,2019,mujeres,45,50,23781
+16,Loreto,2019,mujeres,50,55,19675
+16,Loreto,2019,mujeres,55,60,16278
+16,Loreto,2019,mujeres,60,65,13765
+16,Loreto,2019,mujeres,65,70,11634
+16,Loreto,2019,mujeres,70,75,9828
+16,Loreto,2019,mujeres,75,80,8299
+16,Loreto,2019,mujeres,80,85,5702
+16,Loreto,2019,mujeres,85,90,3637
+16,Loreto,2019,mujeres,90,95,1962
+16,Loreto,2019,mujeres,95,125,770
+16,Loreto,2023,hombres,30,35,42472
+16,Loreto,2023,hombres,35,40,35139
+16,Loreto,2023,hombres,40,45,29071
+16,Loreto,2023,hombres,45,50,24052
+16,Loreto,2023,hombres,50,55,19899
+16,Loreto,2023,hombres,55,60,16463
+16,Loreto,2023,hombres,60,65,13307
+16,Loreto,2023,hombres,65,70,10751
+16,Loreto,2023,hombres,70,75,8680
+16,Loreto,2023,hombres,75,80,7005
+16,Loreto,2023,hombres,80,85,4598
+16,Loreto,2023,hombres,85,90,2800
+16,Loreto,2023,hombres,90,95,1442
+16,Loreto,2023,hombres,95,125,540
+16,Loreto,2023,mujeres,30,35,44206
+16,Loreto,2023,mujeres,35,40,36573
+16,Loreto,2023,mujeres,40,45,30258
+16,Loreto,2023,mujeres,45,50,25033
+16,Loreto,2023,mujeres,50,55,20711
+16,Loreto,2023,mujeres,55,60,17135
+16,Loreto,2023,mujeres,60,65,14489
+16,Loreto,2023,mujeres,65,70,12246
+16,Loreto,2023,mujeres,70,75,10345
+16,Loreto,2023,mujeres,75,80,8736
+16,Loreto,2023,mujeres,80,85,6002
+16,Loreto,2023,mujeres,85,90,3828
+16,Loreto,2023,mujeres,90,95,2065
+16,Loreto,2023,mujeres,95,125,810
+16,Loreto,2024,hombres,30,35,42897
+16,Loreto,2024,hombres,35,40,35490
+16,Loreto,2024,hombres,40,45,29362
+16,Loreto,2024,hombres,45,50,24293
+16,Loreto,2024,hombres,50,55,20098
+16,Loreto,2024,hombres,55,60,16628
+16,Loreto,2024,hombres,60,65,13440
+16,Loreto,2024,hombres,65,70,10859
+16,Loreto,2024,hombres,70,75,8767
+16,Loreto,2024,hombres,75,80,7075
+16,Loreto,2024,hombres,80,85,4644
+16,Loreto,2024,hombres,85,90,2828
+16,Loreto,2024,hombres,90,95,1456
+16,Loreto,2024,hombres,95,125,545
+16,Loreto,2024,mujeres,30,35,44648
+16,Loreto,2024,mujeres,35,40,36939
+16,Loreto,2024,mujeres,40,45,30561
+16,Loreto,2024,mujeres,45,50,25283
+16,Loreto,2024,mujeres,50,55,20918
+16,Loreto,2024,mujeres,55,60,17306
+16,Loreto,2024,mujeres,60,65,14634
+16,Loreto,2024,mujeres,65,70,12368
+16,Loreto,2024,mujeres,70,75,10448
+16,Loreto,2024,mujeres,75,80,8823
+16,Loreto,2024,mujeres,80,85,6062
+16,Loreto,2024,mujeres,85,90,3866
+16,Loreto,2024,mujeres,90,95,2086
+16,Loreto,2024,mujeres,95,125,818
+17,Madre de Dios,2019,hombres,30,35,6795
+17,Madre de Dios,2019,hombres,35,40,5605
+17,Madre de Dios,2019,hombres,40,45,4623
+17,Madre de Dios,2019,hombres,45,50,3812
+17,Madre de Dios,2019,hombres,50,55,3144
+17,Madre de Dios,2019,hombres,55,60,2594
+17,Madre de Dios,2019,hombres,60,65,2090
+17,Madre de Dios,2019,hombres,65,70,1683
+17,Madre de Dios,2019,hombres,70,75,1355
+17,Madre de Dios,2019,hombres,75,80,1090
+17,Madre de Dios,2019,hombres,80,85,713
+17,Madre de Dios,2019,hombres,85,90,433
+17,Madre de Dios,2019,hombres,90,95,222
+17,Madre de Dios,2019,hombres,95,125,83
+17,Madre de Dios,2019,mujeres,30,35,7073
+17,Madre de Dios,2019,mujeres,35,40,5834
+17,Madre de Dios,2019,mujeres,40,45,4812
+17,Madre de Dios,2019,mujeres,45,50,3968
+17,Madre de Dios,2019,mujeres,50,55,3273
+17,Madre de Dios,2019,mujeres,55,60,2700
+17,Madre de Dios,2019,mujeres,60,65,2275
+17,Madre de Dios,2019,mujeres,65,70,1917
+17,Madre de Dios,2019,mujeres,70,75,1615
+17,Madre de Dios,2019,mujeres,75,80,1359
+17,Madre de Dios,2019,mujeres,80,85,931
+17,Madre de Dios,2019,mujeres,85,90,592
+17,Madre de Dios,2019,mujeres,90,95,318
+17,Madre de Dios,2019,mujeres,95,125,124
+17,Madre de Dios,2023,hombres,30,35,7153
+17,Madre de Dios,2023,hombres,35,40,5900
+17,Madre de Dios,2023,hombres,40,45,4866
+17,Madre de Dios,2023,hombres,45,50,4013
+17,Madre de Dios,2023,hombres,50,55,3310
+17,Madre de Dios,2023,hombres,55,60,2730
+17,Madre de Dios,2023,hombres,60,65,2200
+17,Madre de Dios,2023,hombres,65,70,1772
+17,Madre de Dios,2023,hombres,70,75,1426
+17,Madre de Dios,2023,hombres,75,80,1147
+17,Madre de Dios,2023,hombres,80,85,751
+17,Madre de Dios,2023,hombres,85,90,456
+17,Madre de Dios,2023,hombres,90,95,234
+17,Madre de Dios,2023,hombres,95,125,87
+17,Madre de Dios,2023,mujeres,30,35,7445
+17,Madre de Dios,2023,mujeres,35,40,6141
+17,Madre de Dios,2023,mujeres,40,45,5065
+17,Madre de Dios,2023,mujeres,45,50,4177
+17,Madre de Dios,2023,mujeres,50,55,3445
+17,Madre de Dios,2023,mujeres,55,60,2842
+17,Madre de Dios,2023,mujeres,60,65,2395
+17,Madre de Dios,2023,mujeres,65,70,2018
+17,Madre de Dios,2023,mujeres,70,75,1700
+17,Madre de Dios,2023,mujeres,75,80,1431
+17,Madre de Dios,2023,mujeres,80,85,980
+17,Madre de Dios,2023,mujeres,85,90,623
+17,Madre de Dios,2023,mujeres,90,95,335
+17,Madre de Dios,2023,mujeres,95,125,131
+17,Madre de Dios,2024,hombres,30,35,7225
+17,Madre de Dios,2024,hombres,35,40,5959
+17,Madre de Dios,2024,hombres,40,45,4915
+17,Madre de Dios,2024,hombres,45,50,4053
+17,Madre de Dios,2024,hombres,50,55,3343
+17,Madre de Dios,2024,hombres,55,60,2757
+17,Madre de Dios,2024,hombres,60,65,2222
+17,Madre de Dios,2024,hombres,65,70,1790
+17,Madre de Dios,2024,hombres,70,75,1440
+17,Madre de Dios,2024,hombres,75,80,1158
+17,Madre de Dios,2024,hombres,80,85,759
+17,Madre de Dios,2024,hombres,85,90,461
+17,Madre de Dios,2024,hombres,90,95,236
+17,Madre de Dios,2024,hombres,95,125,88
+17,Madre de Dios,2024,mujeres,30,35,7519
+17,Madre de Dios,2024,mujeres,35,40,6202
+17,Madre de Dios,2024,mujeres,40,45,5116
+17,Madre de Dios,2024,mujeres,45,50,4219
+17,Madre de Dios,2024,mujeres,50,55,3479
+17,Madre de Dios,2024,mujeres,55,60,2870
+17,Madre de Dios,2024,mujeres,60,65,2419
+17,Madre de Dios,2024,mujeres,65,70,2038
+17,Madre de Dios,2024,mujeres,70,75,1717
+17,Madre de Dios,2024,mujeres,75,80,1445
+17,Madre de Dios,2024,mujeres,80,85,990
+17,Madre de Dios,2024,mujeres,85,90,629
+17,Madre de Dios,2024,mujeres,90,95,338
+17,Madre de Dios,2024,mujeres,95,125,132
+18,Moquegua,2019,hombres,30,35,6824
+18,Moquegua,2019,hombres,35,40,5912
+18,Moquegua,2019,hombres,40,45,5122
+18,Moquegua,2019,hombres,45,50,4438
+18,Moquegua,2019,hombres,50,55,3846
+18,Moquegua,2019,hombres,55,60,3332
+18,Moquegua,2019,hombres,60,65,2821
+18,Moquegua,2019,hombres,65,70,2386
+18,Moquegua,2019,hombres,70,75,2018
+18,Moquegua,2019,hombres,75,80,1705
+18,Moquegua,2019,hombres,80,85,1172
+18,Moquegua,2019,hombres,85,90,748
+18,Moquegua,2019,hombres,90,95,403
+18,Moquegua,2019,hombres,95,125,158
+18,Moquegua,2019,mujeres,30,35,7102
+18,Moquegua,2019,mujeres,35,40,6153
+18,Moquegua,2019,mujeres,40,45,5331
+18,Moquegua,2019,mujeres,45,50,4619
+18,Moquegua,2019,mujeres,50,55,4002
+18,Moquegua,2019,mujeres,55,60,3468
+18,Moquegua,2019,mujeres,60,65,3070
+18,Moquegua,2019,mujeres,65,70,2718
+18,Moquegua,2019,mujeres,70,75,2404
+18,Moquegua,2019,mujeres,75,80,2126
+18,Moquegua,2019,mujeres,80,85,1530
+18,Moquegua,2019,mujeres,85,90,1022
+18,Moquegua,2019,mujeres,90,95,578
+18,Moquegua,2019,mujeres,95,125,238
+18,Moquegua,2023,hombres,30,35,7183
+18,Moquegua,2023,hombres,35,40,6223
+18,Moquegua,2023,hombres,40,45,5392
+18,Moquegua,2023,hombres,45,50,4672
+18,Moquegua,2023,hombres,50,55,4048
+18,Moquegua,2023,hombres,55,60,3507
+18,Moquegua,2023,hombres,60,65,2969
+18,Moquegua,2023,hombres,65,70,2512
+18,Moquegua,2023,hombres,70,75,2124
+18,Moquegua,2023,hombres,75,80,1795
+18,Moquegua,2023,hombres,80,85,1234
+18,Moquegua,2023,hombres,85,90,787
+18,Moquegua,2023,hombres,90,95,424
+18,Moquegua,2023,hombres,95,125,166
+18,Moquegua,2023,mujeres,30,35,7476
+18,Moquegua,2023,mujeres,35,40,6477
+18,Moquegua,2023,mujeres,40,45,5612
+18,Moquegua,2023,mujeres,45,50,4862
+18,Moquegua,2023,mujeres,50,55,4213
+18,Moquegua,2023,mujeres,55,60,3650
+18,Moquegua,2023,mujeres,60,65,3232
+18,Moquegua,2023,mujeres,65,70,2861
+18,Moquegua,2023,mujeres,70,75,2531
+18,Moquegua,2023,mujeres,75,80,2238
+18,Moquegua,2023,mujeres,80,85,1610
+18,Moquegua,2023,mujeres,85,90,1076
+18,Moquegua,2023,mujeres,90,95,608
+18,Moquegua,2023,mujeres,95,125,250
+18,Moquegua,2024,hombres,30,35,7255
+18,Moquegua,2024,hombres,35,40,6285
+18,Moquegua,2024,hombres,40,45,5446
+18,Moquegua,2024,hombres,45,50,4719
+18,Moquegua,2024,hombres,50,55,4088
+18,Moquegua,2024,hombres,55,60,3542
+18,Moquegua,2024,hombres,60,65,2999
+18,Moquegua,2024,hombres,65,70,2537
+18,Moquegua,2024,hombres,70,75,2145
+18,Moquegua,2024,hombres,75,80,1813
+18,Moquegua,2024,hombres,80,85,1246
+18,Moquegua,2024,hombres,85,90,795
+18,Moquegua,2024,hombres,90,95,428
+18,Moquegua,2024,hombres,95,125,168
+18,Moquegua,2024,mujeres,30,35,7551
+18,Moquegua,2024,mujeres,35,40,6542
+18,Moquegua,2024,mujeres,40,45,5668
+18,Moquegua,2024,mujeres,45,50,4911
+18,Moquegua,2024,mujeres,50,55,4255
+18,Moquegua,2024,mujeres,55,60,3686
+18,Moquegua,2024,mujeres,60,65,3264
+18,Moquegua,2024,mujeres,65,70,2890
+18,Moquegua,2024,mujeres,70,75,2556
+18,Moquegua,2024,mujeres,75,80,2260
+18,Moquegua,2024,mujeres,80,85,1626
+18,Moquegua,2024,mujeres,85,90,1087
+18,Moquegua,2024,mujeres,90,95,614
+18,Moquegua,2024,mujeres,95,125,252
+19,Pasco,2019,hombres,30,35,9644
+19,Pasco,2019,hombres,35,40,8229
+19,Pasco,2019,hombres,40,45,7020
+19,Pasco,2019,hombres,45,50,5990
+19,Pasco,2019,hombres,50,55,5110
+19,Pasco,2019,hombres,55,60,4360
+19,Pasco,2019,hombres,60,65,3635
+19,Pasco,2019,hombres,65,70,3028
+19,Pasco,2019,hombres,70,75,2521
+19,Pasco,2019,hombres,75,80,2099
+19,Pasco,2019,hombres,80,85,1420
+19,Pasco,2019,hombres,85,90,892
+19,Pasco,2019,hombres,90,95,474
+19,Pasco,2019,hombres,95,125,182
+19,Pasco,2019,mujeres,30,35,10039
+19,Pasco,2019,mujeres,35,40,8564
+19,Pasco,2019,mujeres,40,45,7307
+19,Pasco,2019,mujeres,45,50,6234
+19,Pasco,2019,mujeres,50,55,5319
+19,Pasco,2019,mujeres,55,60,4538
+19,Pasco,2019,mujeres,60,65,3957
+19,Pasco,2019,mujeres,65,70,3449
+19,Pasco,2019,mujeres,70,75,3005
+19,Pasco,2019,mujeres,75,80,2616
+19,Pasco,2019,mujeres,80,85,1854
+19,Pasco,2019,mujeres,85,90,1219
+19,Pasco,2019,mujeres,90,95,678
+19,Pasco,2019,mujeres,95,125,275
+19,Pasco,2023,hombres,30,35,10152
+19,Pasco,2023,hombres,35,40,8662
+19,Pasco,2023,hombres,40,45,7390
+19,Pasco,2023,hombres,45,50,6305
+19,Pasco,2023,hombres,50,55,5379
+19,Pasco,2023,hombres,55,60,4590
+19,Pasco,2023,hombres,60,65,3826
+19,Pasco,2023,hombres,65,70,3187
+19,Pasco,2023,hombres,70,75,2654
+19,Pasco,2023,hombres,75,80,2209
+19,Pasco,2023,hombres,80,85,1495
+19,Pasco,2023,hombres,85,90,939
+19,Pasco,2023,hombres,90,95,499
+19,Pasco,2023,hombres,95,125,192
+19,Pasco,2023,mujeres,30,35,10567
+19,Pasco,2023,mujeres,35,40,9015
+19,Pasco,2023,mujeres,40,45,7692
+19,Pasco,2023,mujeres,45,50,6562
+19,Pasco,2023,mujeres,50,55,5599
+19,Pasco,2023,mujeres,55,60,4777
+19,Pasco,2023,mujeres,60,65,4165
+19,Pasco,2023,mujeres,65,70,3631
+19,Pasco,2023,mujeres,70,75,3163
+19,Pasco,2023,mujeres,75,80,2754
+19,Pasco,2023,mujeres,80,85,1952
+19,Pasco,2023,mujeres,85,90,1283
+19,Pasco,2023,mujeres,90,95,714
+19,Pasco,2023,mujeres,95,125,289
+19,Pasco,2024,hombres,30,35,10254
+19,Pasco,2024,hombres,35,40,8749
+19,Pasco,2024,hombres,40,45,7464
+19,Pasco,2024,hombres,45,50,6368
+19,Pasco,2024,hombres,50,55,5433
+19,Pasco,2024,hombres,55,60,4636
+19,Pasco,2024,hombres,60,65,3864
+19,Pasco,2024,hombres,65,70,3219
+19,Pasco,2024,hombres,70,75,2681
+19,Pasco,2024,hombres,75,80,2231
+19,Pasco,2024,hombres,80,85,1510
+19,Pasco,2024,hombres,85,90,948
+19,Pasco,2024,hombres,90,95,504
+19,Pasco,2024,hombres,95,125,194
+19,Pasco,2024,mujeres,30,35,10673
+19,Pasco,2024,mujeres,35,40,9105
+19,Pasco,2024,mujeres,40,45,7769
+19,Pasco,2024,mujeres,45,50,6628
+19,Pasco,2024,mujeres,50,55,5655
+19,Pasco,2024,mujeres,55,60,4825
+19,Pasco,2024,mujeres,60,65,4207
+19,Pasco,2024,mujeres,65,70,3667
+19,Pasco,2024,mujeres,70,75,3195
+19,Pasco,2024,mujeres,75,80,2782
+19,Pasco,2024,mujeres,80,85,1972
+19,Pasco,2024,mujeres,85,90,1296
+19,Pasco,2024,mujeres,90,95,721
+19,Pasco,2024,mujeres,95,125,292
+20,Piura,2019,hombres,30,35,75951
+20,Piura,2019,hombres,35,40,64800
+20,Piura,2019,hombres,40,45,55286
+20,Piura,2019,hombres,45,50,47169
+20,Piura,2019,hombres,50,55,40244
+20,Piura,2019,hombres,55,60,34336
+20,Piura,2019,hombres,60,65,28622
+20,Piura,2019,hombres,65,70,23846
+20,Piura,2019,hombres,70,75,19855
+20,Piura,2019,hombres,75,80,16522
+20,Piura,2019,hombres,80,85,11184
+20,Piura,2019,hombres,85,90,7025
+20,Piura,2019,hombres,90,95,3731
+20,Piura,2019,hombres,95,125,1440
+20,Piura,2019,mujeres,30,35,79051
+20,Piura,2019,mujeres,35,40,67445
+20,Piura,2019,mujeres,40,45,57542
+20,Piura,2019,mujeres,45,50,49094
+20,Piura,2019,mujeres,50,55,41886
+20,Piura,2019,mujeres,55,60,35737
+20,Piura,2019,mujeres,60,65,31163
+20,Piura,2019,mujeres,65,70,27161
+20,Piura,2019,mujeres,70,75,23663
+20,Piura,2019,mujeres,75,80,20606
+20,Piura,2019,mujeres,80,85,14601
+20,Piura,2019,mujeres,85,90,9602
+20,Piura,2019,mujeres,90,95,5341
+20,Piura,2019,mujeres,95,125,2160
+20,Piura,2023,hombres,30,35,79948
+20,Piura,2023,hombres,35,40,68211
+20,Piura,2023,hombres,40,45,58196
+20,Piura,2023,hombres,45,50,49652
+20,Piura,2023,hombres,50,55,42362
+20,Piura,2023,hombres,55,60,36143
+20,Piura,2023,hombres,60,65,30128
+20,Piura,2023,hombres,65,70,25101
+20,Piura,2023,hombres,70,75,20900
+20,Piura,2023,hombres,75,80,17392
+20,Piura,2023,hombres,80,85,11773
+20,Piura,2023,hombres,85,90,7395
+20,Piura,2023,hombres,90,95,3927
+20,Piura,2023,hombres,95,125,1516
+20,Piura,2023,mujeres,30,35,83212
+20,Piura,2023,mujeres,35,40,70995
+20,Piura,2023,mujeres,40,45,60571
+20,Piura,2023,mujeres,45,50,51678
+20,Piura,2023,mujeres,50,55,44091
+20,Piura,2023,mujeres,55,60,37618
+20,Piura,2023,mujeres,60,65,32803
+20,Piura,2023,mujeres,65,70,28591
+20,Piura,2023,mujeres,70,75,24908
+20,Piura,2023,mujeres,75,80,21691
+20,Piura,2023,mujeres,80,85,15369
+20,Piura,2023,mujeres,85,90,10107
+20,Piura,2023,mujeres,90,95,5622
+20,Piura,2023,mujeres,95,125,2274
+20,Piura,2024,hombres,30,35,80747
+20,Piura,2024,hombres,35,40,68893
+20,Piura,2024,hombres,40,45,58778
+20,Piura,2024,hombres,45,50,50149
+20,Piura,2024,hombres,50,55,42786
+20,Piura,2024,hombres,55,60,36504
+20,Piura,2024,hombres,60,65,30429
+20,Piura,2024,hombres,65,70,25352
+20,Piura,2024,hombres,70,75,21109
+20,Piura,2024,hombres,75,80,17566
+20,Piura,2024,hombres,80,85,11891
+20,Piura,2024,hombres,85,90,7469
+20,Piura,2024,hombres,90,95,3966
+20,Piura,2024,hombres,95,125,1531
+20,Piura,2024,mujeres,30,35,84044
+20,Piura,2024,mujeres,35,40,71705
+20,Piura,2024,mujeres,40,45,61177
+20,Piura,2024,mujeres,45,50,52195
+20,Piura,2024,mujeres,50,55,44532
+20,Piura,2024,mujeres,55,60,37994
+20,Piura,2024,mujeres,60,65,33131
+20,Piura,2024,mujeres,65,70,28877
+20,Piura,2024,mujeres,70,75,25157
+20,Piura,2024,mujeres,75,80,21908
+20,Piura,2024,mujeres,80,85,15523
+20,Piura,2024,mujeres,85,90,10208
+20,Piura,2024,mujeres,90,95,5678
+20,Piura,2024,mujeres,95,125,2297
+21,Puno,2019,hombres,30,35,47017
+21,Puno,2019,hombres,35,40,40115
+21,Puno,2019,hombres,40,45,34225
+21,Puno,2019,hombres,45,50,29200
+21,Puno,2019,hombres,50,55,24913
+21,Puno,2019,hombres,55,60,21255
+21,Puno,2019,hombres,60,65,17718
+21,Puno,2019,hombres,65,70,14762
+21,Puno,2019,hombres,70,75,12291
+21,Puno,2019,hombres,75,80,10228
+21,Puno,2019,hombres,80,85,6924
+21,Puno,2019,hombres,85,90,4349
+21,Puno,2019,hombres,90,95,2309
+21,Puno,2019,hombres,95,125,891
+21,Puno,2019,mujeres,30,35,48936
+21,Puno,2019,mujeres,35,40,41752
+21,Puno,2019,mujeres,40,45,35622
+21,Puno,2019,mujeres,45,50,30391
+21,Puno,2019,mujeres,50,55,25929
+21,Puno,2019,mujeres,55,60,22123
+21,Puno,2019,mujeres,60,65,19291
+21,Puno,2019,mujeres,65,70,16814
+21,Puno,2019,mujeres,70,75,14649
+21,Puno,2019,mujeres,75,80,12757
+21,Puno,2019,mujeres,80,85,9038
+21,Puno,2019,mujeres,85,90,5944
+21,Puno,2019,mujeres,90,95,3307
+21,Puno,2019,mujeres,95,125,1338
+21,Puno,2023,hombres,30,35,49492
+21,Puno,2023,hombres,35,40,42226
+21,Puno,2023,hombres,40,45,36026
+21,Puno,2023,hombres,45,50,30737
+21,Puno,2023,hombres,50,55,26224
+21,Puno,2023,hombres,55,60,22374
+21,Puno,2023,hombres,60,65,18651
+21,Puno,2023,hombres,65,70,15539
+21,Puno,2023,hombres,70,75,12938
+21,Puno,2023,hombres,75,80,10766
+21,Puno,2023,hombres,80,85,7288
+21,Puno,2023,hombres,85,90,4578
+21,Puno,2023,hombres,90,95,2431
+21,Puno,2023,hombres,95,125,938
+21,Puno,2023,mujeres,30,35,51512
+21,Puno,2023,mujeres,35,40,43949
+21,Puno,2023,mujeres,40,45,37497
+21,Puno,2023,mujeres,45,50,31991
+21,Puno,2023,mujeres,50,55,27294
+21,Puno,2023,mujeres,55,60,23287
+21,Puno,2023,mujeres,60,65,20306
+21,Puno,2023,mujeres,65,70,17699
+21,Puno,2023,mujeres,70,75,15420
+21,Puno,2023,mujeres,75,80,13428
+21,Puno,2023,mujeres,80,85,9514
+21,Puno,2023,mujeres,85,90,6257
+21,Puno,2023,mujeres,90,95,3481
+21,Puno,2023,mujeres,95,125,1408
+21,Puno,2024,hombres,30,35,49987
+21,Puno,2024,hombres,35,40,42648
+21,Puno,2024,hombres,40,45,36386
+21,Puno,2024,hombres,45,50,31044
+21,Puno,2024,hombres,50,55,26486
+21,Puno,2024,hombres,55,60,22598
+21,Puno,2024,hombres,60,65,18838
+21,Puno,2024,hombres,65,70,15694
+21,Puno,2024,hombres,70,75,13067
+21,Puno,2024,hombres,75,80,10874
+21,Puno,2024,hombres,80,85,7361
+21,Puno,2024,hombres,85,90,4624
+21,Puno,2024,hombres,90,95,2455
+21,Puno,2024,hombres,95,125,947
+21,Puno,2024,mujeres,30,35,52027
+21,Puno,2024,mujeres,35,40,44388
+21,Puno,2024,mujeres,40,45,37872
+21,Puno,2024,mujeres,45,50,32311
+21,Puno,2024,mujeres,50,55,27567
+21,Puno,2024,mujeres,55,60,23520
+21,Puno,2024,mujeres,60,65,20509
+21,Puno,2024,mujeres,65,70,17876
+21,Puno,2024,mujeres,70,75,15574
+21,Puno,2024,mujeres,75,80,13562
+21,Puno,2024,mujeres,80,85,9609
+21,Puno,2024,mujeres,85,90,6320
+21,Puno,2024,mujeres,90,95,3516
+21,Puno,2024,mujeres,95,125,1422
+22,San Martín,2019,hombres,30,35,36087
+22,San Martín,2019,hombres,35,40,30225
+22,San Martín,2019,hombres,40,45,25316
+22,San Martín,2019,hombres,45,50,21204
+22,San Martín,2019,hombres,50,55,17760
+22,San Martín,2019,hombres,55,60,14875
+22,San Martín,2019,hombres,60,65,12173
+22,San Martín,2019,hombres,65,70,9956
+22,San Martín,2019,hombres,70,75,8139
+22,San Martín,2019,hombres,75,80,6648
+22,San Martín,2019,hombres,80,85,4418
+22,San Martín,2019,hombres,85,90,2725
+22,San Martín,2019,hombres,90,95,1420
+22,San Martín,2019,hombres,95,125,539
+22,San Martín,2019,mujeres,30,35,37559
+22,San Martín,2019,mujeres,35,40,31459
+22,San Martín,2019,mujeres,40,45,26349
+22,San Martín,2019,mujeres,45,50,22069
+22,San Martín,2019,mujeres,50,55,18485
+22,San Martín,2019,mujeres,55,60,15482
+22,San Martín,2019,mujeres,60,65,13253
+22,San Martín,2019,mujeres,65,70,11341
+22,San Martín,2019,mujeres,70,75,9700
+22,San Martín,2019,mujeres,75,80,8292
+22,San Martín,2019,mujeres,80,85,5767
+22,San Martín,2019,mujeres,85,90,3724
+22,San Martín,2019,mujeres,90,95,2034
+22,San Martín,2019,mujeres,95,125,808
+22,San Martín,2023,hombres,30,35,37986
+22,San Martín,2023,hombres,35,40,31816
+22,San Martín,2023,hombres,40,45,26648
+22,San Martín,2023,hombres,45,50,22320
+22,San Martín,2023,hombres,50,55,18695
+22,San Martín,2023,hombres,55,60,15658
+22,San Martín,2023,hombres,60,65,12814
+22,San Martín,2023,hombres,65,70,10480
+22,San Martín,2023,hombres,70,75,8567
+22,San Martín,2023,hombres,75,80,6998
+22,San Martín,2023,hombres,80,85,4651
+22,San Martín,2023,hombres,85,90,2868
+22,San Martín,2023,hombres,90,95,1495
+22,San Martín,2023,hombres,95,125,567
+22,San Martín,2023,mujeres,30,35,39536
+22,San Martín,2023,mujeres,35,40,33115
+22,San Martín,2023,mujeres,40,45,27736
+22,San Martín,2023,mujeres,45,50,23231
+22,San Martín,2023,mujeres,50,55,19458
+22,San Martín,2023,mujeres,55,60,16297
+22,San Martín,2023,mujeres,60,65,13951
+22,San Martín,2023,mujeres,65,70,11938
+22,San Martín,2023,mujeres,70,75,10210
+22,San Martín,2023,mujeres,75,80,8728
+22,San Martín,2023,mujeres,80,85,6071
+22,San Martín,2023,mujeres,85,90,3920
+22,San Martín,2023,mujeres,90,95,2141
+22,San Martín,2023,mujeres,95,125,850
+22,San Martín,2024,hombres,30,35,38366
+22,San Martín,2024,hombres,35,40,32134
+22,San Martín,2024,hombres,40,45,26914
+22,San Martín,2024,hombres,45,50,22543
+22,San Martín,2024,hombres,50,55,18882
+22,San Martín,2024,hombres,55,60,15815
+22,San Martín,2024,hombres,60,65,12942
+22,San Martín,2024,hombres,65,70,10585
+22,San Martín,2024,hombres,70,75,8653
+22,San Martín,2024,hombres,75,80,7068
+22,San Martín,2024,hombres,80,85,4698
+22,San Martín,2024,hombres,85,90,2897
+22,San Martín,2024,hombres,90,95,1510
+22,San Martín,2024,hombres,95,125,573
+22,San Martín,2024,mujeres,30,35,39931
+22,San Martín,2024,mujeres,35,40,33446
+22,San Martín,2024,mujeres,40,45,28013
+22,San Martín,2024,mujeres,45,50,23463
+22,San Martín,2024,mujeres,50,55,19653
+22,San Martín,2024,mujeres,55,60,16460
+22,San Martín,2024,mujeres,60,65,14091
+22,San Martín,2024,mujeres,65,70,12057
+22,San Martín,2024,mujeres,70,75,10312
+22,San Martín,2024,mujeres,75,80,8815
+22,San Martín,2024,mujeres,80,85,6132
+22,San Martín,2024,mujeres,85,90,3959
+22,San Martín,2024,mujeres,90,95,2162
+22,San Martín,2024,mujeres,95,125,858
+23,Tacna,2019,hombres,30,35,12511
+23,Tacna,2019,hombres,35,40,10840
+23,Tacna,2019,hombres,40,45,9391
+23,Tacna,2019,hombres,45,50,8137
+23,Tacna,2019,hombres,50,55,7050
+23,Tacna,2019,hombres,55,60,6108
+23,Tacna,2019,hombres,60,65,5171
+23,Tacna,2019,hombres,65,70,4375
+23,Tacna,2019,hombres,70,75,3698
+23,Tacna,2019,hombres,75,80,3126
+23,Tacna,2019,hombres,80,85,2149
+23,Tacna,2019,hombres,85,90,1371
+23,Tacna,2019,hombres,90,95,739
+23,Tacna,2019,hombres,95,125,290
+23,Tacna,2019,mujeres,30,35,13021
+23,Tacna,2019,mujeres,35,40,11281
+23,Tacna,2019,mujeres,40,45,9775
+23,Tacna,2019,mujeres,45,50,8468
+23,Tacna,2019,mujeres,50,55,7337
+23,Tacna,2019,mujeres,55,60,6357
+23,Tacna,2019,mujeres,60,65,5630
+23,Tacna,2019,mujeres,65,70,4983
+23,Tacna,2019,mujeres,70,75,4408
+23,Tacna,2019,mujeres,75,80,3898
+23,Tacna,2019,mujeres,80,85,2805
+23,Tacna,2019,mujeres,85,90,1873
+23,Tacna,2019,mujeres,90,95,1058
+23,Tacna,2019,mujeres,95,125,434
+23,Tacna,2023,hombres,30,35,13169
+23,Tacna,2023,hombres,35,40,11410
+23,Tacna,2023,hombres,40,45,9885
+23,Tacna,2023,hombres,45,50,8565
+23,Tacna,2023,hombres,50,55,7421
+23,Tacna,2023,hombres,55,60,6429
+23,Tacna,2023,hombres,60,65,5443
+23,Tacna,2023,hombres,65,70,4605
+23,Tacna,2023,hombres,70,75,3893
+23,Tacna,2023,hombres,75,80,3290
+23,Tacna,2023,hombres,80,85,2262
+23,Tacna,2023,hombres,85,90,1443
+23,Tacna,2023,hombres,90,95,778
+23,Tacna,2023,hombres,95,125,305
+23,Tacna,2023,mujeres,30,35,13706
+23,Tacna,2023,mujeres,35,40,11875
+23,Tacna,2023,mujeres,40,45,10289
+23,Tacna,2023,mujeres,45,50,8914
+23,Tacna,2023,mujeres,50,55,7723
+23,Tacna,2023,mujeres,55,60,6692
+23,Tacna,2023,mujeres,60,65,5926
+23,Tacna,2023,mujeres,65,70,5245
+23,Tacna,2023,mujeres,70,75,4640
+23,Tacna,2023,mujeres,75,80,4103
+23,Tacna,2023,mujeres,80,85,2953
+23,Tacna,2023,mujeres,85,90,1972
+23,Tacna,2023,mujeres,90,95,1114
+23,Tacna,2023,mujeres,95,125,457
+23,Tacna,2024,hombres,30,35,13301
+23,Tacna,2024,hombres,35,40,11524
+23,Tacna,2024,hombres,40,45,9984
+23,Tacna,2024,hombres,45,50,8651
+23,Tacna,2024,hombres,50,55,7495
+23,Tacna,2024,hombres,55,60,6493
+23,Tacna,2024,hombres,60,65,5497
+23,Tacna,2024,hombres,65,70,4651
+23,Tacna,2024,hombres,70,75,3932
+23,Tacna,2024,hombres,75,80,3323
+23,Tacna,2024,hombres,80,85,2285
+23,Tacna,2024,hombres,85,90,1457
+23,Tacna,2024,hombres,90,95,786
+23,Tacna,2024,hombres,95,125,308
+23,Tacna,2024,mujeres,30,35,13843
+23,Tacna,2024,mujeres,35,40,11994
+23,Tacna,2024,mujeres,40,45,10392
+23,Tacna,2024,mujeres,45,50,9003
+23,Tacna,2024,mujeres,50,55,7800
+23,Tacna,2024,mujeres,55,60,6759
+23,Tacna,2024,mujeres,60,65,5985
+23,Tacna,2024,mujeres,65,70,5297
+23,Tacna,2024,mujeres,70,75,4686
+23,Tacna,2024,mujeres,75,80,4144
+23,Tacna,2024,mujeres,80,85,2983
+23,Tacna,2024,mujeres,85,90,1992
+23,Tacna,2024,mujeres,90,95,1125
+23,Tacna,2024,mujeres,95,125,462
+24,Tumbes,2019,hombres,30,35,9644
+24,Tumbes,2019,hombres,35,40,8229
+24,Tumbes,2019,hombres,40,45,7020
+24,Tumbes,2019,hombres,45,50,5990
+24,Tumbes,2019,hombres,50,55,5110
+24,Tumbes,2019,hombres,55,60,4360
+24,Tumbes,2019,hombres,60,65,3635
+24,Tumbes,2019,hombres,65,70,3028
+24,Tumbes,2019,hombres,70,75,2521
+24,Tumbes,2019,hombres,75,80,2099
+24,Tumbes,2019,hombres,80,85,1420
+24,Tumbes,2019,hombres,85,90,892
+24,Tumbes,2019,hombres,90,95,474
+24,Tumbes,2019,hombres,95,125,182
+24,Tumbes,2019,mujeres,30,35,10039
+24,Tumbes,2019,mujeres,35,40,8564
+24,Tumbes,2019,mujeres,40,45,7307
+24,Tumbes,2019,mujeres,45,50,6234
+24,Tumbes,2019,mujeres,50,55,5319
+24,Tumbes,2019,mujeres,55,60,4538
+24,Tumbes,2019,mujeres,60,65,3957
+24,Tumbes,2019,mujeres,65,70,3449
+24,Tumbes,2019,mujeres,70,75,3005
+24,Tumbes,2019,mujeres,75,80,2616
+24,Tumbes,2019,mujeres,80,85,1854
+24,Tumbes,2019,mujeres,85,90,1219
+24,Tumbes,2019,mujeres,90,95,678
+24,Tumbes,2019,mujeres,95,125,275
+24,Tumbes,2023,hombres,30,35,10152
+24,Tumbes,2023,hombres,35,40,8662
+24,Tumbes,2023,hombres,40,45,7390
+24,Tumbes,2023,hombres,45,50,6305
+24,Tumbes,2023,hombres,50,55,5379
+24,Tumbes,2023,hombres,55,60,4590
+24,Tumbes,2023,hombres,60,65,3826
+24,Tumbes,2023,hombres,65,70,3187
+24,Tumbes,2023,hombres,70,75,2654
+24,Tumbes,2023,hombres,75,80,2209
+24,Tumbes,2023,hombres,80,85,1495
+24,Tumbes,2023,hombres,85,90,939
+24,Tumbes,2023,hombres,90,95,499
+24,Tumbes,2023,hombres,95,125,192
+24,Tumbes,2023,mujeres,30,35,10567
+24,Tumbes,2023,mujeres,35,40,9015
+24,Tumbes,2023,mujeres,40,45,7692
+24,Tumbes,2023,mujeres,45,50,6562
+24,Tumbes,2023,mujeres,50,55,5599
+24,Tumbes,2023,mujeres,55,60,4777
+24,Tumbes,2023,mujeres,60,65,4165
+24,Tumbes,2023,mujeres,65,70,3631
+24,Tumbes,2023,mujeres,70,75,3163
+24,Tumbes,2023,mujeres,75,80,2754
+24,Tumbes,2023,mujeres,80,85,1952
+24,Tumbes,2023,mujeres,85,90,1283
+24,Tumbes,2023,mujeres,90,95,714
+24,Tumbes,2023,mujeres,95,125,289
+24,Tumbes,2024,hombres,30,35,10254
+24,Tumbes,2024,hombres,35,40,8749
+24,Tumbes,2024,hombres,40,45,7464
+24,Tumbes,2024,hombres,45,50,6368
+24,Tumbes,2024,hombres,50,55,5433
+24,Tumbes,2024,hombres,55,60,4636
+24,Tumbes,2024,hombres,60,65,3864
+24,Tumbes,2024,hombres,65,70,3219
+24,Tumbes,2024,hombres,70,75,2681
+24,Tumbes,2024,hombres,75,80,2231
+24,Tumbes,2024,hombres,80,85,1510
+24,Tumbes,2024,hombres,85,90,948
+24,Tumbes,2024,hombres,90,95,504
+24,Tumbes,2024,hombres,95,125,194
+24,Tumbes,2024,mujeres,30,35,10673
+24,Tumbes,2024,mujeres,35,40,9105
+24,Tumbes,2024,mujeres,40,45,7769
+24,Tumbes,2024,mujeres,45,50,6628
+24,Tumbes,2024,mujeres,50,55,5655
+24,Tumbes,2024,mujeres,55,60,4825
+24,Tumbes,2024,mujeres,60,65,4207
+24,Tumbes,2024,mujeres,65,70,3667
+24,Tumbes,2024,mujeres,70,75,3195
+24,Tumbes,2024,mujeres,75,80,2782
+24,Tumbes,2024,mujeres,80,85,1972
+24,Tumbes,2024,mujeres,85,90,1296
+24,Tumbes,2024,mujeres,90,95,721
+24,Tumbes,2024,mujeres,95,125,292
+25,Ucayali,2019,hombres,30,35,23956
+25,Ucayali,2019,hombres,35,40,19881
+25,Ucayali,2019,hombres,40,45,16499
+25,Ucayali,2019,hombres,45,50,13691
+25,Ucayali,2019,hombres,50,55,11362
+25,Ucayali,2019,hombres,55,60,9430
+25,Ucayali,2019,hombres,60,65,7646
+25,Ucayali,2019,hombres,65,70,6196
+25,Ucayali,2019,hombres,70,75,5018
+25,Ucayali,2019,hombres,75,80,4062
+25,Ucayali,2019,hombres,80,85,2674
+25,Ucayali,2019,hombres,85,90,1634
+25,Ucayali,2019,hombres,90,95,845
+25,Ucayali,2019,hombres,95,125,317
+25,Ucayali,2019,mujeres,30,35,24934
+25,Ucayali,2019,mujeres,35,40,20692
+25,Ucayali,2019,mujeres,40,45,17172
+25,Ucayali,2019,mujeres,45,50,14251
+25,Ucayali,2019,mujeres,50,55,11827
+25,Ucayali,2019,mujeres,55,60,9814
+25,Ucayali,2019,mujeres,60,65,8324
+25,Ucayali,2019,mujeres,65,70,7058
+25,Ucayali,2019,mujeres,70,75,5980
+25,Ucayali,2019,mujeres,75,80,5065
+25,Ucayali,2019,mujeres,80,85,3491
+25,Ucayali,2019,mujeres,85,90,2233
+25,Ucayali,2019,mujeres,90,95,1208
+25,Ucayali,2019,mujeres,95,125,475
+25,Ucayali,2023,hombres,30,35,25217
+25,Ucayali,2023,hombres,35,40,20927
+25,Ucayali,2023,hombres,40,45,17367
+25,Ucayali,2023,hombres,45,50,14412
+25,Ucayali,2023,hombres,50,55,11960
+25,Ucayali,2023,hombres,55,60,9926
+25,Ucayali,2023,hombres,60,65,8048
+25,Ucayali,2023,hombres,65,70,6522
+25,Ucayali,2023,hombres,70,75,5282
+25,Ucayali,2023,hombres,75,80,4276
+25,Ucayali,2023,hombres,80,85,2815
+25,Ucayali,2023,hombres,85,90,1720
+25,Ucayali,2023,hombres,90,95,889
+25,Ucayali,2023,hombres,95,125,334
+25,Ucayali,2023,mujeres,30,35,26246
+25,Ucayali,2023,mujeres,35,40,21781
+25,Ucayali,2023,mujeres,40,45,18076
+25,Ucayali,2023,mujeres,45,50,15001
+25,Ucayali,2023,mujeres,50,55,12449
+25,Ucayali,2023,mujeres,55,60,10331
+25,Ucayali,2023,mujeres,60,65,8762
+25,Ucayali,2023,mujeres,65,70,7429
+25,Ucayali,2023,mujeres,70,75,6295
+25,Ucayali,2023,mujeres,75,80,5332
+25,Ucayali,2023,mujeres,80,85,3675
+25,Ucayali,2023,mujeres,85,90,2351
+25,Ucayali,2023,mujeres,90,95,1272
+25,Ucayali,2023,mujeres,95,125,500
+25,Ucayali,2024,hombres,30,35,25469
+25,Ucayali,2024,hombres,35,40,21136
+25,Ucayali,2024,hombres,40,45,17541
+25,Ucayali,2024,hombres,45,50,14556
+25,Ucayali,2024,hombres,50,55,12080
+25,Ucayali,2024,hombres,55,60,10025
+25,Ucayali,2024,hombres,60,65,8128
+25,Ucayali,2024,hombres,65,70,6587
+25,Ucayali,2024,hombres,70,75,5335
+25,Ucayali,2024,hombres,75,80,4319
+25,Ucayali,2024,hombres,80,85,2843
+25,Ucayali,2024,hombres,85,90,1737
+25,Ucayali,2024,hombres,90,95,898
+25,Ucayali,2024,hombres,95,125,337
+25,Ucayali,2024,mujeres,30,35,26508
+25,Ucayali,2024,mujeres,35,40,21999
+25,Ucayali,2024,mujeres,40,45,18257
+25,Ucayali,2024,mujeres,45,50,15151
+25,Ucayali,2024,mujeres,50,55,12573
+25,Ucayali,2024,mujeres,55,60,10434
+25,Ucayali,2024,mujeres,60,65,8850
+25,Ucayali,2024,mujeres,65,70,7503
+25,Ucayali,2024,mujeres,70,75,6358
+25,Ucayali,2024,mujeres,75,80,5385
+25,Ucayali,2024,mujeres,80,85,3712
+25,Ucayali,2024,mujeres,85,90,2375
+25,Ucayali,2024,mujeres,90,95,1285
+25,Ucayali,2024,mujeres,95,125,505

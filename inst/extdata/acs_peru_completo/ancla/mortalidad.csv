@@ -1,0 +1,193 @@
+acquisition_id,source,round,entity,location_id,location_name,location_level,year,age_group_id,age_group_name,sex_id,sex_name,cause_id,cause_name,measure_id,measure_name,metric_id,metric_name,val,lower,upper,ui_level
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,16.096792640276,11.996561142435,21.5984172653873,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,13.5926629487993,10.1302921518523,18.2384163526694,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,30.6198554199827,22.8202584159055,41.0852291351427,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,25.2968690295602,18.853161794851,33.9429316770354,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,47.414259782148,35.3367331748199,63.6196905799704,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,40.9715235289338,30.5351133047299,54.9749307798359,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,81.3085442193631,60.5973465601684,109.098495864136,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,63.6537871603919,47.4396711619748,85.4096270192572,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,114.956265680208,85.6742023555678,154.246466915367,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,95.3072271077609,71.0302358280608,127.881703236326,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,170.068112525276,126.74776620922,228.194655913438,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,138.539248340152,103.250044930139,185.889733448938,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,235.462457634654,175.484634292569,315.939735572045,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,206.751983195403,154.087392634811,277.416483102815,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,345.899354015175,257.790656952929,464.122185506365,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,275.179984241374,205.085173170831,369.232073466407,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,454.219801519469,338.519340020497,609.46481840563,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,380.103401086483,283.282129147395,510.016625306914,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,643.236638150143,479.389144848315,863.084567318718,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,516.879799670072,385.218363596021,693.540995327912,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,897.479578957455,668.870431747412,1204.22365291492,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,704.197674584621,524.821972196949,944.881104757357,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,1229.0265041539,915.964560906629,1649.08798045379,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,1007.52460709986,750.884404222161,1351.88030035498,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,17.0920592819159,12.7383099731669,22.9338500249963,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,13.8570414750328,10.3273272522966,18.5931552036447,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,30.6485559596145,22.8416482533848,41.1237390572472,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,27.0145088831893,20.1332783985269,36.2476331849319,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,49.1379241630915,36.6213397170752,65.9324757016445,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,39.5890619890846,29.5047972187559,53.1199661382277,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,75.4604343686374,56.2388877690446,101.251596199556,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,63.732261256464,47.4981560609645,85.5149222982215,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,120.315679245624,89.6684472937951,161.437641770537,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,94.1817307297708,70.1914298363402,126.371530312703,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,169.148950558276,126.062736403386,226.961339181256,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,141.585230089087,105.520143520986,189.976782730522,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,242.323609732073,180.598089654992,325.145919016972,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,208.901442087767,155.689333816614,280.300592446183,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,347.702379140323,259.134409192184,466.541455597196,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,284.565616629651,212.080064347142,381.825563930731,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,491.223170553283,366.097081065599,659.11534335665,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,371.748245839271,277.055228359289,498.805812483566,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,687.475458677109,512.359297796241,922.443504619013,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,574.913794771278,428.469735849485,771.410075820198,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,887.331683731803,661.307443998104,1190.60737044504,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,771.811513373438,575.21297674249,1035.60426530932,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,1171.24477583403,872.90119715487,1571.55738746814,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9100,Arteriopatía crónica sintética,1,Deaths,3,Rate,975.969256145799,727.366942976857,1309.53983837026,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,8.33347843262336,6.21074556778386,11.1817272224499,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,7.26769447724595,5.41644184088363,9.75167546633796,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,16.8160960289152,12.5326410482033,22.5635669741164,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,13.1745856326485,9.81870895651946,17.6774469393699,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,23.7187379486706,17.677017799848,31.8254207948211,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,21.5751697179987,16.0794667897236,28.9492154464938,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,42.7241803758061,31.8413272502709,57.3266175256209,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,32.5939218903707,24.2914837488321,43.7339997498779,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,60.9542538339277,45.4277724358933,81.787436654395,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,50.406727810015,37.5669492473848,67.6349360120004,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,94.5961073179859,70.5002549661413,126.927534148827,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,74.8048363142313,55.7502859512598,100.371925282878,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,121.269937953568,90.3796338755806,162.71805074479,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,111.848803921563,83.3582841587907,150.076924746356,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,182.981659039443,136.371928847388,245.521844765402,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,148.045621479481,110.334921349769,198.64523190954,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,244.949139981835,182.554835627713,328.668813244694,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,202.291148616214,150.762837490724,271.431007067538,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,354.296001980321,264.048481288278,475.388672590756,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,277.30088714943,206.665832248838,372.077866849676,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,519.847225184819,387.429916072271,697.52263911893,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,398.8891820807,297.282730095787,535.223083862767,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,675.371464573561,503.338475538299,906.202560160792,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,571.880272904633,426.208923315995,767.339745008111,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,9.21621057194097,6.86862507945872,12.3661629982358,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,7.08223274467415,5.27822157153552,9.50282589882693,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,15.3507185560861,11.4405296666132,20.5973470682782,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,14.3173354664111,10.6703735432234,19.2107702722306,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,25.6425815305135,19.1108131946096,34.406803146111,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,20.6475620096146,15.3881425713833,27.7045663544665,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,38.5559407686539,28.7348362603576,51.733740714117,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,33.6898807827821,25.1082761469345,45.2045397507963,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,61.89699146494,46.1303726298857,83.0523868330684,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,49.7290755364396,37.061910938516,66.7256730990336,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,89.874193637871,66.9811237057273,120.591746378344,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,73.2051545332053,54.558080726071,98.225498018108,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,123.182458745949,91.8049906615383,165.284240359435,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,113.389858418762,84.5067958475863,152.144686865372,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,188.979780641853,140.842187870483,253.570027783754,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,156.875276776922,116.915455870499,210.492721262575,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,260.306902071855,194.000614674584,349.27561121343,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,197.558414800789,147.23564223783,265.080701013662,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,378.52736227161,282.107544469068,507.901921793563,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,325.009324002847,242.221808679197,436.092279488704,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,503.220601521088,375.038484323617,675.213303114607,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,445.560754866774,332.065956111932,597.846248985942,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9101,ACS de miembros inferiores,1,Deaths,3,Rate,645.733948104924,481.25033124946,866.43541761851,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9101,ACS de miembros inferiores,1,Deaths,3,Rate,551.570542330392,411.072558571467,740.088475435783,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,4.0830714995484,3.04301720149552,5.47859961561541,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,3.14731292445799,2.34561833381416,4.22301382184075,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,7.76860779495516,5.78976076082317,10.4237928931726,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,6.16885266997275,4.59750087410786,8.27726721666246,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,13.9823384005375,10.4207081053253,18.7612766014658,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,9.74469560731152,7.26249255239996,13.0752757120248,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,24.0533531055292,17.9263986099354,32.2744020262171,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,16.6145451725811,12.3824299331472,22.2931292793171,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,33.8155449664645,25.2019307088494,45.3731539297287,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,26.487274882159,19.7403432920694,35.5401990888835,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,46.9110662659871,34.9617148765785,62.9445136195561,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,37.5271812381395,27.968125966917,50.3533677353287,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,72.8726166605965,54.3102480671011,97.7793040532819,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,57.4184728041562,42.7926379555135,77.0431825817566,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,112.577543333993,83.9013965112634,151.054735559923,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,78.5040027601205,58.5071877413168,105.335407276957,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,148.648468710493,110.784209218974,199.454122620484,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,117.00976391365,87.2046263141728,157.001817791208,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,208.409328251622,155.322572943421,279.640282022072,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,166.770811200439,124.290365046614,223.770390070232,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,281.758538482821,209.988014994666,378.05907165698,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,208.346399066892,155.275673301416,279.55584465493,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,424.959895917326,316.71262023337,570.204348045859,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,314.049020836305,234.053352390081,421.385921120527,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,4.44960345836985,3.3161848537678,5.97040629814155,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,3.03515958927858,2.26203308966799,4.07252828195445,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,8.37010161013579,6.23803996102582,11.2308676125372,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,6.76170317946905,5.03933842177562,9.07274448758535,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,13.1431175349627,9.7952565230838,17.6352235524161,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,10.2485641389423,7.6380139238024,13.7513583973313,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,20.8699751775551,15.5539018768368,28.0029967631726,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,16.8149933458147,12.531819244411,22.5620874116814,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,35.5704931953992,26.5098523675745,47.7279152150822,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,25.0850185448172,18.6952746088712,33.6586741066232,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,50.1993091916772,37.41236502725,67.3566250485939,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,38.5613209206026,28.7388459611254,51.740959715401,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,79.1491263533764,58.9879831894459,106.201023730264,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,57.5836824602841,42.915764828385,77.2648582390793,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,110.103111436917,82.0572605886952,147.734582669707,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,84.1706498228872,62.730406582503,112.938823093539,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,165.111677135051,123.053851431528,221.54419068727,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,116.616734596305,86.911710803507,156.474457379525,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,225.562652444449,168.106542214441,302.656336318389,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,173.958236717018,129.64698431812,233.414361937183,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,267.846917089426,199.620010612309,359.392681997414,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,230.334722624657,171.663053935267,309.059423273361,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9102,ACS carotídea,1,Deaths,3,Rate,383.257207295264,285.632586773367,514.248351713141,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9102,ACS carotídea,1,Deaths,3,Rate,298.886384644842,222.752996088277,401.040939941664,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,3.68024270810422,2.74279837315566,4.93809042732199,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,3.17765554709539,2.36823197715456,4.26372706449066,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,6.03515159611241,4.49785660687902,8.09786926785366,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,5.95343072693894,4.43695196422372,7.98821752100302,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,9.71318343293993,7.23900726964655,13.0329931836835,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,9.65165820362353,7.19315396260638,12.9504396213173,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,14.5310107380278,10.8296206999621,19.4974763122976,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,14.4453200974402,10.7657574799955,19.3824979900623,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,20.1864668798156,15.0444992108251,27.085876331243,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,18.413224415587,13.7229432886066,24.7065681354423,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,28.5609389413029,21.2857963665002,38.3226081450554,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,26.2072307877816,19.5316330119624,35.1644404307308,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,41.3199030204893,30.7947523498872,55.4423807739729,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,37.4847064696835,27.9364705205073,50.2963757747026,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,50.3401516417386,37.517331594278,67.5456051810393,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,48.6303600017733,36.2430640797456,65.2514342799095,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,60.6221928271408,45.18029517381,81.3418825404528,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,60.8024885566195,45.3146653424981,81.5838004481672,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,80.5313079182005,60.0180906166156,108.05561270589,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,72.8081013202036,54.2621663005688,97.6927384080032,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,95.8738152898146,71.4525006804749,128.641942139014,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,96.9620934370295,72.2635687997457,130.102176239659,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,128.695143663013,95.9134651349606,172.68107224714,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,121.595313358922,90.6221285160848,163.154634226343,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,3.42624525160503,2.55350003994042,4.59728072861902,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,3.7396491410801,2.78707259109308,5.01780102286329,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,6.92773579339263,5.16307862574575,9.29552437643177,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,5.93547023730921,4.42356643352787,7.96411842511588,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,10.3522250976152,7.71526999938181,13.8904490031173,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,8.69293584052781,6.47864072357018,11.6640413864299,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,16.0345184224284,11.9501496318502,21.5148587222659,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,13.2273871278672,9.85806066961897,17.7482951357439,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,22.8481945852852,17.0282222963349,30.6573397223866,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,19.3676366485141,14.434244288953,25.9871831070467,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,29.0754477287281,21.6692476704092,39.0129677543178,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,29.8187546352794,22.2232168337894,40.0103249970128,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,39.9920246327478,29.8051158040079,53.660654927274,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,37.9279012087203,28.2667731406428,50.891047341732,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,48.6194870615522,36.234960733006,65.2368451437353,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,43.5196900298418,32.43420189414,58.3940195746177,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,65.8045913463763,49.0426149594867,88.2955414559506,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,57.5730964421771,42.9078753179518,77.2506540903794,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,83.3854439610499,62.1452111127323,111.885246507061,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,75.9462340514134,56.6009428521682,101.903434394311,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,116.264165121289,86.6489490621776,156.001385333025,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,95.9160358820071,71.4839666952908,128.698593050021,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9103,ACS renovascular,1,Deaths,3,Rate,142.253620433847,106.018279132043,190.873618136487,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9103,ACS renovascular,1,Deaths,3,Rate,125.512329170565,93.541388317114,168.410422992815,0.95

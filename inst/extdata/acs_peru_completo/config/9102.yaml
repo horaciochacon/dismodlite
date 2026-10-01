@@ -1,0 +1,71 @@
+# ACS carotídea (causa 9102): configuración de ejemplo con datos sintéticos.
+schema: dismod_lite/v1
+cause_id: 9102
+years:
+  ajuste: 2023
+sexos: [1, 2]
+edad_inicio: 30
+edad_inicio_fuente: datos sintéticos de ejemplo
+remision:
+  valor: 0
+  fuente: datos sintéticos de ejemplo
+emr_prior:
+  tipo: informativo_edad
+  cota: [0, 0.36]
+  fuente_cota: datos sintéticos de ejemplo
+nudos_incidencia: [30, 40, 50, 60, 70, 80, 95]
+sigma_suavidad: 0.5
+offset_lognormal: ~
+anchor:
+  location: peru
+  lambda: 1.0
+  rho_edad: 0.5
+  medidas: prevalence
+  evidencia_ghdx: sintetico_evidencia_v1
+medidas_entrada: []
+fuente_admin_principal: ~
+extraction:
+  cause_id: 9100
+  motivo: subtipo de la ACS; comparte covariables con la causa padre
+cascada:
+  kappa: 1.0
+  escala: natural
+  cota_warning: 0.5
+  heldout_anio:
+    valor: 2019
+    procedencia: datos sintéticos de ejemplo
+transformaciones:
+  - covariate_name_short: SEV_scalar_agestd_cvd_pvd
+    transformacion: log
+    procedencia: datos sintéticos de ejemplo
+  - covariate_name_short: LDI_pc
+    transformacion: log
+    token_exento: true
+    procedencia: datos sintéticos de ejemplo
+  - covariate_name_short: haqi
+    transformacion: lineal
+    escala: 1
+    escala_procedencia: datos sintéticos de ejemplo
+    procedencia: datos sintéticos de ejemplo
+covariables:
+  - covariate_name_short: SEV_scalar_agestd_cvd_pvd
+    proxy:
+      covariate_id_proxy: 900101
+      justificacion: datos sintéticos de ejemplo
+  - covariate_name_short: LDI_pc
+    proxy:
+      covariate_id_proxy: 900102
+      justificacion: datos sintéticos de ejemplo
+  - covariate_name_short: haqi
+    proxy:
+      covariate_id_proxy: 900103
+      justificacion: datos sintéticos de ejemplo
+severidad:
+  fuente: tabla
+  procedencia: datos sintéticos de ejemplo
+sensibilidad:
+  lambda: [0.1, 0.5, 1.0]
+  rho: [0.0, 0.5, 0.9]
+  kappa: [0.5, 1.0]
+decisiones:
+  - Datos sintéticos de ejemplo (dismodlite).

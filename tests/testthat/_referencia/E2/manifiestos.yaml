@@ -1,0 +1,205 @@
+E2:
+  schema: estimates/v1
+  run_id: FECHA_e2-proxies_v1
+  method: dismod_lite
+  source: gbd
+  round: '2023'
+  entities: cause
+  causa:
+    cause_id: 9100
+    cause_name: Arteriopatía crónica sintética
+    extraction_cause_id: 9100
+    componente: ~
+  params:
+    seed: 20260929
+    draws: 40
+    chains: 2
+    iter: 2000
+    warmup: 1000
+    thin: 10
+    year: 2023
+    anio_ancla: 2023
+    remision: 0
+    remision_por_edad: ~
+    emr_sd_factor: 1.0
+    emr_prior: informativo_edad
+    csmr_fraccion_aguda: 0.0
+    emr_cota:
+    - 0.0
+    - 0.25
+    emr_cota_origen: impreso
+    emr_cota_k: ~
+    lambda: 1.0
+    fuentes_locales_no_fatales: []
+    rho: 0.5
+    kappa: 1.0
+    anchor: peru
+    engine: mh
+    opts:
+      draws: 40
+      chains: 2
+      iter: 2000
+      warmup: 1000
+      thin: 10
+      cores: 1
+      engine: mh
+    estadistico_puntual: media
+  inputs:
+    bundle_hash: 5c2530afb6abe86ba2d9aeee32ff57baff33d5513f7d5199203a5bcde0197a98
+    tablas:
+    - tabla: datos
+      sha256: 7ad492a64d8028580cbc01fc682f9161276571e985868e5ec29c837874a3397b
+    - tabla: prior_gbd
+      sha256: 5f7f63d131683be7c3ca2d1a1e715afecc94083f39de4d89d93a9aeab8ab9d67
+    - tabla: betas
+      sha256: 19943fd89b1ee65326da1b752fcb1a88ec508f3e76ee53773d3b311b96cf76f8
+    - tabla: crosswalks
+      sha256: 29cd9b7a023bb1418554838876b8cec962975912f423a4d15c16f78e57118ebe
+    - tabla: cov_valores
+      sha256: 9554499b4c2f86bef69c65e02fb6cfd48d6f4ed2bed176bd2cb4a158f3b1cea5
+    - tabla: cov_proxy
+      sha256: 1983583a8e7fe05a861e37c4beea5b683cec65a1eeeac5cd5fe4e5c350d72c83
+    - tabla: severidad
+      sha256: 015aef731e00a0bfc5ffa166beecda8388dd3f3bde2f53f2b8a7648ac7dd609c
+    - tabla: poblacion
+      sha256: aa0e6e019785e1f622f9c6727c9bd9b007fd40a42e4acf8bab73c625028713e3
+    - tabla: sequela_map
+      sha256: 42dbb2ab10658537c09f86b7b642591980a5df435a3dbd71c3e7dd7046b3e70c
+    betas:
+      modelo_variante: (todas)
+      filas_excluidas: 0
+      variantes_excluidas: []
+      sin_covariable: []
+    escalas:
+    - covariate_name_short: SEV_scalar_agestd_cvd_pvd
+      parametro_objetivo: prevalencia
+      escala: 1.0
+    - covariate_name_short: LDI_pc
+      parametro_objetivo: prevalencia
+      escala: 1.0
+    - covariate_name_short: haqi
+      parametro_objetivo: emr
+      escala: 1.0
+  files:
+  - path: mod/dismod_lite/FECHA_e2-proxies_v1/cause/prevalence/FECHA_e2-proxies_v1.csv
+    rows: 468
+  - path: mod/dismod_lite/FECHA_e2-proxies_v1/cause/incidence/FECHA_e2-proxies_v1.csv
+    rows: 468
+  - path: mod/dismod_lite/FECHA_e2-proxies_v1/cause/yld/FECHA_e2-proxies_v1.csv
+    rows: 468
+  cascada:
+    modo: proxy
+    departamentos: 25
+    proxies:
+    - LDI_pc
+    - SEV_scalar_agestd_cvd_pvd
+    - haqi
+    renorm_min: 0.935229
+    renorm_max: 1.038385
+    truncados_emr: 0
+    supuesto_ecologico: yes
+    haqi_nacional: no
+    sustituciones: []
+    dx_por_edad:
+      bandas_por_proxy:
+        LDI_pc: 22
+        SEV_scalar_agestd_cvd_pvd:
+        - 13
+        - 14
+        - 15
+        - 16
+        - 17
+        - 18
+        - 19
+        - 20
+        - 21
+        haqi: 22
+      fuera_de_banda: cero
+      interpolacion: lineal
+      edades_sin_banda: 30-39
+  datos:
+    n_likelihood_por_tipo: []
+    n_heldout: 160
+    heldout_anio: 2019
+  decisiones: Datos sintéticos de ejemplo (dismodlite).
+  validacion:
+    gates:
+      rhat_max: 1.448752
+      ess_min: 15.1
+      force: yes
+    anchor_identity:
+      err_rel_mediano: 0.021638
+      celdas_fuera_ic95: 0
+      gate_err_mediano: 0.05
+    implied_incidence:
+      err_rel_mediano: 0.037818
+      cobertura: 1.0
+    amplitud_csmr:
+      '1':
+        sex_id: 1
+        kappa: 1.0
+        pendiente: 0.922
+        pendiente_lower: 0.7537
+        pendiente_upper: 1.0902
+        spearman: 0.7697
+        n_celdas_spearman: 6
+        n_celdas: 60
+        n_departamentos: 10
+        pendiente_std: 0.9339
+        pendiente_std_lower: 0.6416
+        pendiente_std_upper: 1.2263
+        spearman_std: 0.9394
+        n_departamentos_std: 10
+      '2':
+        sex_id: 2
+        kappa: 1.0
+        pendiente: 1.057
+        pendiente_lower: 0.8971
+        pendiente_upper: 1.2169
+        spearman: 0.802
+        n_celdas_spearman: 6
+        n_celdas: 60
+        n_departamentos: 10
+        pendiente_std: 1.068
+        pendiente_std_lower: 0.7974
+        pendiente_std_upper: 1.3387
+        spearman_std: 0.9273
+        n_departamentos_std: 10
+  n_limitaciones: 5
+E2-archivos:
+- cause/incidence/FECHA_e2-proxies_v1.csv
+- cause/prevalence/FECHA_e2-proxies_v1.csv
+- cause/yld/FECHA_e2-proxies_v1.csv
+- diagnostics/aceptacion.csv
+- diagnostics/amplitud.csv
+- diagnostics/desplazamiento_splits.csv
+- diagnostics/dx_bandas.csv
+- diagnostics/mcmc.csv
+- diagnostics/renorm.csv
+- diagnostics/validacion.csv
+- draws/incidence_2023.csv.gz
+- draws/prevalence_2023.csv.gz
+- draws/yld_2023.csv.gz
+- etiquetas/FECHA_e2-proxies_v1.csv
+- inputs/betas.csv
+- inputs/config_usado.yaml
+- inputs/cov_proxy.csv
+- inputs/cov_valores.csv
+- inputs/crosswalks.csv
+- inputs/datos.csv
+- inputs/ghdx_cov/HAQI.csv
+- inputs/ghdx_cov/LDI_PC.csv
+- inputs/ghdx_cov/SEV_SCALAR_CVD_PVD.csv
+- inputs/hash.json
+- inputs/poblacion.csv
+- inputs/prior_gbd.csv
+- inputs/sequela_map.csv
+- inputs/severidad.csv
+- manifest.yaml
+registro-e2:
+- run_id: FECHA_e2-proxies_v1
+  status: active
+  filas:
+  - 468
+  - 468
+  - 468

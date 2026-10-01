@@ -1,0 +1,21 @@
+perfil: legado_v2
+descripcion: perfil de columnas v2 de la versión 0.2.2 (copia del arnés)
+archivos: {por: measure, nombre: "{measure_slug_es}.csv"}
+medidas: [prevalence, incidence, yld]
+metrics: [2, 3, 1]
+columnas:
+  - {salida: causa_gbd_id, origen: cause_id}
+  - {salida: causa_gbd,    origen: cause_name_es}
+  - {salida: anio,         origen: year}
+  - {salida: ubigeo,       origen: location_id, formato: texto}
+  - {salida: departamento, origen: location_name}
+  - {salida: nivel,        origen: location_level}
+  - {salida: edad_id,      origen: age_group_id}
+  - {salida: edad,         origen: age_group_name_es}
+  - {salida: sexo_id,      origen: sex_id}
+  - {salida: medida,       origen: measure_name_es}
+  - {salida: metrica,      origen: metric_name_es}
+  - {salida: valor,        origen: val,   formato: {decimales: 8}}
+  - {salida: inferior,     origen: lower, formato: {decimales: 8}}
+  - {salida: superior,     origen: upper, formato: {decimales: 8}}
+  - {salida: run_origen,   origen: run_fuente}

@@ -1,0 +1,295 @@
+---
+title: "Datos locales"
+description: >
+  Qué hace el paquete con los datos locales, cuándo entran al ajuste (datos_en_ajuste) y qué filas entran, cómo
+  evitar el doble conteo con ancla.peso, cómo entra cada dato y cómo excluir uno.
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
+```
+
+## Qué vas a aprender
+
+- Qué hace el paquete con los datos de `datos.csv` por defecto.
+- Cómo hacer que entren al ajuste nacional (`datos_en_ajuste`) y qué filas entran.
+- Por qué los datos que ya informaron la estimación de referencia pueden contarse dos veces, y cómo evitarlo con
+  `ancla.peso`.
+- Cómo entra cada dato a la verosimilitud: con `valor` y `error_estandar`, o con `casos` y `muestra`.
+- Cómo excluir un dato atípico (`excluir` y `motivo`).
+
+El ejemplo es el proyecto sintético del paquete (la arteriopatía crónica sintética, causa 9100, en el Perú y sus
+departamentos). Todo vale igual para cualquier país.
+
+```{r setup}
+library(dismodlite)
+library(data.table)
+```
+
+## Los datos locales de un proyecto
+
+Los datos locales van en `datos.csv`, una fila por dato: su tipo (`prevalencia_estudio`, `incidencia`,
+`mortalidad` o `prevalencia_registro`), su ubicación, sexo, edades y año, y su valor con su error estándar o sus
+casos y su muestra. La prevalencia va como proporción y las tasas, **por persona-año** (no por 100 000). La guía
+[Preparar tus datos](preparar-datos.html#datos) describe cada columna y sus unidades, y muestra cómo la revisión
+detecta una mortalidad escrita por 100 000.
+
+El ejemplo trae datos nacionales de 2023 (mortalidad de un registro vital, un estudio de prevalencia con casos y
+muestra, una cohorte de incidencia con valor y error estándar, y un valor atípico ya excluido) y datos
+subnacionales de 2019 (mortalidad y prevalencia):
+
+```{r datos}
+datos <- fread(dl_ejemplo("datos.csv"), colClasses = list(character = "location_id"), encoding = "UTF-8")
+datos[, .(filas = .N, excluidas = sum(excluir)), by = .(tipo, nacional = location_id == "123", anio)]
+datos[location_id == "123" & tipo != "mortalidad",
+      .(tipo, sexo, edad_inicio, edad_fin, valor, error_estandar, casos, muestra, excluir)]
+```
+
+## Por defecto, los datos no entran al ajuste
+
+Con la configuración del ejemplo, que no declara `datos_en_ajuste`, el ajuste usa solo el ancla. Las filas
+nacionales se leen y se dejan fuera (un mensaje lo dice); las subnacionales del año `subnacional.anio_validacion`
+se reservan para validar la estimación subnacional (ver la guía
+[Estimación subnacional](desagregacion-subnacional.html)).
+
+```{r sin-datos}
+opciones <- dl_opciones_mcmc(simulaciones = 200, cadenas = 2, iteraciones = 8000, calentamiento = 4000,
+                             nucleos = 4)
+insumos_ancla <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))
+ajuste_ancla <- dl_ajustar(insumos_ancla, opciones, semilla = 1)
+```
+
+Las cadenas son cortas para que la guía corra en segundos (y `nucleos = 4` las corre en paralelo, con el mismo
+resultado); una estimación para publicar usa las de producción (los valores por defecto de `dl_opciones_mcmc()`).
+
+Es el valor por defecto por una razón: la estimación de referencia de GBD ya usó muchas de las fuentes nacionales de
+un país. Meterlas otra vez al ajuste las cuenta dos veces y da intervalos demasiado estrechos. Los datos entran solo
+cuando el modelador lo decide, y entonces conviene bajar el peso del ancla.
+
+## Hacer que entren: `datos_en_ajuste` {#que-filas-entran}
+
+`datos_en_ajuste` lista los tipos de dato cuyas filas nacionales entran al ajuste. Para probarlo, una copia del
+proyecto de ejemplo en una carpeta temporal (en un proyecto propio basta con editar su configuración):
+
+```{r copiar}
+con_datos <- dl_ejemplo(copiar_en = file.path(tempdir(), "con_datos"))
+```
+
+Su configuración, `config/9100.yaml`, con los tres tipos en el ajuste (sin `covariables`, que no intervienen en el
+ajuste nacional):
+
+```{cat, engine.opts = list(file = file.path(con_datos, "config", "9100.yaml"), lang = "yaml")}
+causa: 9100
+anio: 2023
+edad_inicio: 30
+ubicacion_nacional: 123
+
+mortalidad_exceso:
+  techo: 0.25
+
+datos_en_ajuste: [prevalencia_estudio, incidencia, mortalidad]
+
+subnacional:
+  anio_validacion: 2019
+```
+
+```{r con-datos}
+insumos_peso1 <- dl_insumos(dl_proyecto(con_datos, causa = 9100))
+insumos_peso1$datos[, .N, by = .(tipo_dato, nacional = location_level == 0L, excluido = outlier)]
+```
+
+Qué filas entran:
+
+- Las filas **nacionales** del año que se estima: su año, o su rango de `anio_inicio` a `anio_fin`, debe incluir
+  `anio`. Entran si su tipo está en `datos_en_ajuste` y no están excluidas.
+- Las filas **subnacionales** nunca entran; las del año `subnacional.anio_validacion` validan la estimación
+  subnacional.
+- Las filas de otros años y las de ambos sexos se dejan fuera, con un mensaje que las cuenta. Las subnacionales de
+  2019 del ejemplo se reservan para validar solo porque la configuración declara `subnacional.anio_validacion: 2019`;
+  sin esa clave, el año de validación es el que se estima y quedarían fuera. Una encuesta nacional de otro año
+  tampoco entra: revisa que los años de tus datos incluyan `anio`. Si ninguna fila nacional queda en el ajuste, otro
+  mensaje lo dice.
+- Toda fila nacional de ese año que no esté excluida debe ser de un tipo de `datos_en_ajuste`. Eso vale también para
+  `prevalencia_registro`, que no entra nunca al ajuste y no se puede poner en `datos_en_ajuste`: con datos en el
+  ajuste, sus filas nacionales se marcan con `excluir: TRUE` y su motivo.
+
+Si solo se quiere el estudio de prevalencia, las demás filas nacionales se excluyen con su motivo, o `dl_insumos()`
+se detiene y lo explica:
+
+```{r copiar-solo-prevalencia}
+solo_prevalencia <- dl_ejemplo(copiar_en = file.path(tempdir(), "solo_prevalencia"))
+```
+
+```{cat, engine.opts = list(file = file.path(solo_prevalencia, "config", "9100.yaml"), lang = "yaml")}
+causa: 9100
+anio: 2023
+edad_inicio: 30
+ubicacion_nacional: 123
+
+ancla:
+  peso: 0.5
+
+datos_en_ajuste: [prevalencia_estudio]
+
+subnacional:
+  anio_validacion: 2019
+```
+
+```{r solo-prevalencia, error = TRUE}
+dl_insumos(dl_proyecto(solo_prevalencia, causa = 9100))
+```
+
+## El doble conteo y `ancla.peso` {#doble-conteo}
+
+Arriba, `dl_insumos()` avisó: con datos en el ajuste y el ancla a peso completo, la estimación de referencia puede
+incluir ya esos datos. El ancla entra al ajuste como un *power prior*: su término de la log-posterior se multiplica
+por λ = `ancla.peso`. Con λ = 1 el ancla pesa con su propia incertidumbre; con λ = 0.5 pesa como si su varianza fuera
+el doble, y los datos locales tienen más voz. La elección se anota en `notas`, que queda en el manifiesto de cada
+corrida:
+
+```{r copiar-peso}
+peso05 <- dl_ejemplo(copiar_en = file.path(tempdir(), "peso05"))
+```
+
+```{cat, engine.opts = list(file = file.path(peso05, "config", "9100.yaml"), lang = "yaml")}
+causa: 9100
+anio: 2023
+edad_inicio: 30
+ubicacion_nacional: 123
+
+ancla:
+  peso: 0.5
+
+mortalidad_exceso:
+  techo: 0.25
+
+datos_en_ajuste: [prevalencia_estudio, incidencia, mortalidad]
+
+subnacional:
+  anio_validacion: 2019
+
+notas:
+  - "ancla.peso 0.5: el registro vital y el estudio de prevalencia ya informaron la estimación de referencia"
+```
+
+```{r peso05}
+insumos_peso05 <- dl_insumos(dl_proyecto(peso05, causa = 9100))
+ajuste_peso1 <- dl_ajustar(insumos_peso1, opciones, semilla = 1)
+ajuste_peso05 <- dl_ajustar(insumos_peso05, opciones, semilla = 1)
+```
+
+La prevalencia de las mujeres con las tres configuraciones, frente al ancla, al estudio de prevalencia y a la curva
+verdadera con la que se generaron los datos sintéticos:
+
+```{r figura-peso, fig.height = 5}
+prevalencia <- function(ajuste) dl_estimaciones(ajuste)[location_id == "123" & sex_id == 2 & edad >= 40]
+ancla <- insumos_ancla$prior_gbd[measure_id == 5 & sex_id == 2]
+estudio <- datos[location_id == "123" & tipo == "prevalencia_estudio" & sexo == "mujeres" & !excluir]
+estudio[, p := casos / muestra]
+verdad <- fread(dl_ejemplo("verdad.csv"), colClasses = list(character = "location_id"))[
+  cause_id == 9100 & location_id == "123" & anio == 2023 & sex_id == 2 & edad >= 40]
+
+curvas <- list(prevalencia(ajuste_ancla), prevalencia(ajuste_peso1), prevalencia(ajuste_peso05))
+colores <- c("grey45", "#e6550d", "#08519c")
+plot(verdad$edad, 100 * verdad$p, type = "n", ylim = c(0, 25), xlab = "Edad (años)", ylab = "Prevalencia (%)",
+     main = "Mujeres: el ancla, los datos y su peso", sub = "Datos sintéticos")
+polygon(c(curvas[[3]]$edad, rev(curvas[[3]]$edad)), 100 * c(curvas[[3]]$inferior, rev(curvas[[3]]$superior)),
+        col = "#9ecae160", border = NA)
+lines(verdad$edad, 100 * verdad$p, lty = 2, lwd = 2, col = "#cb181d")
+segments(ancla$age_start, 100 * ancla$val, pmin(ancla$age_end, 95), 100 * ancla$val, col = "grey20", lwd = 3)
+for (k in 1:3) lines(curvas[[k]]$edad, 100 * curvas[[k]]$media, col = colores[k], lwd = 2)
+segments(estudio$edad_inicio, 100 * estudio$p, pmin(estudio$edad_fin, 95), 100 * estudio$p, col = "#31a354",
+         lwd = 3)
+legend("topleft", c("verdad", "ancla (por grupo de edad)", "estudio de prevalencia", "solo el ancla",
+                    "con datos, ancla.peso 1", "con datos, ancla.peso 0.5 (e IC 95 %)"),
+       col = c("#cb181d", "grey20", "#31a354", colores), lty = c(2, 1, 1, 1, 1, 1), lwd = c(2, 3, 3, 2, 2, 2),
+       bty = "n", cex = 0.8)
+```
+
+La media y el ancho del intervalo del 95 % en algunas edades:
+
+```{r tabla-peso}
+resumen <- function(ajuste, nombre) prevalencia(ajuste)[edad %in% c(60, 70, 80, 90),
+  .(ajuste = nombre, edad, media = round(100 * media, 2), ancho_ic = round(100 * (superior - inferior), 2))]
+tabla_peso <- dcast(rbind(resumen(ajuste_ancla, "solo ancla"), resumen(ajuste_peso1, "peso 1"),
+                          resumen(ajuste_peso05, "peso 0.5")),
+                    edad ~ ajuste, value.var = c("media", "ancho_ic"))
+tabla_peso
+```
+
+```{r razon-anchos, include = FALSE}
+# el ancho del intervalo con datos, como porcentaje del ancho con solo el ancla, en las edades de la tabla
+solo_ancla <- tabla_peso[["ancho_ic_solo ancla"]]
+razon <- 100 * c(tabla_peso[["ancho_ic_peso 1"]], tabla_peso[["ancho_ic_peso 0.5"]]) / c(solo_ancla, solo_ancla)
+```
+
+Con datos en el ajuste, el intervalo mide entre el `r round(min(razon))` % y el `r round(max(razon))` % del ancho
+que tiene con solo el ancla, según la edad y λ: los datos aportan información que el ancla sola no tiene. Las medias
+se mueven poco porque en este ejemplo el ancla y los datos son observaciones con ruido de la misma curva verdadera y
+cuentan casi la misma historia; el cambio mayor está después de los 80 años, donde el estudio de prevalencia queda
+por encima del ancla. Con λ = 0.5 el intervalo queda algo más ancho que con λ = 1: la
+información del ancla que se descuenta es la que, si los datos ya la informaron, se habría contado dos veces. Con
+datos reales que discrepen del ancla, λ decide además cuánto se aleja la curva de ella.
+
+Cuánto depende cada celda del ancla o de los datos lo mide `dl_etiquetas()` (ver
+[Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html)). Y si la prevalencia ajustada se aleja demasiado de
+la del ancla, `dl_correr()` no escribe la corrida, también en la prueba con `rapido = TRUE`: es la segunda de
+[las dos compuertas](diagnostico-y-sensibilidad.html#compuertas), que explica cuándo y cómo aceptar un error mayor.
+
+## Cómo entra cada dato
+
+Cada dato se compara con la cantidad del modelo promediada en su intervalo de edad, con los pesos de la población:
+la prevalencia *p* para `prevalencia_estudio`, la incidencia poblacional *i* (1 − *p*) para `incidencia` y la
+mortalidad por la causa *p f* para `mortalidad`. Un dato con `valor` y `error_estandar` entra con una verosimilitud
+log-normal, centrada en su valor y con su error; uno con `casos` y `muestra`, con una binomial (prevalencia) o una
+Poisson (incidencia y mortalidad), con `muestra_efectiva` en lugar de `muestra` si se da. La guía
+[El modelo](el-modelo.html#verosimilitud) escribe cada término.
+
+Con casos y muestra, la incertidumbre sale del tamaño de la muestra; con valor y error estándar, del error que se
+declara. La forma del dato y su incertidumbre deben ser las de la fuente: no conviene convertir un valor publicado en
+conteos inventando la muestra. Si algún dato con `valor` vale 0, la log-normal necesita un desplazamiento η > 0, que
+se declara en `avanzado: {offset_lognormal: ...}`.
+
+## Excluir un dato {#excluir}
+
+Un dato que no se quiere usar (un valor atípico, una definición de caso distinta) no se borra: se marca con
+`excluir: TRUE` y su `motivo`, que queda registrado. En el ejemplo, un estudio de prevalencia de mujeres de 65 a 69
+años vale mucho más que sus vecinos y está excluido:
+
+```{r atipico}
+datos[excluir == TRUE, .(tipo, sexo, edad_inicio, edad_fin, valor, error_estandar, motivo)]
+```
+
+Con datos en el ajuste, un dato excluido sin motivo detiene `dl_insumos()`. Aquí, en la copia `peso05`, con el
+motivo borrado:
+
+```{r sin-motivo, error = TRUE}
+datos_peso05 <- fread(file.path(peso05, "datos.csv"), colClasses = "character", encoding = "UTF-8")
+datos_peso05[excluir == "TRUE", motivo := NA]
+fwrite(datos_peso05, file.path(peso05, "datos.csv"))
+dl_insumos(dl_proyecto(peso05, causa = 9100))
+```
+
+Excluir un dato es una decisión que se documenta: el motivo va en `datos.csv` y, si hace falta explicarla más, en
+`notas`.
+
+## Lista de comprobación
+
+- [ ] `tipo` es uno de los cuatro; la prevalencia va como proporción y las tasas por persona-año.
+- [ ] Cada fila trae `valor` y `error_estandar` **o** `casos` y `muestra`, los de la fuente.
+- [ ] Los datos nacionales son del año que se estima, de un sexo (no de ambos) y usan el `location_id` de
+      `ubicacion_nacional`.
+- [ ] Los datos que no se usan están marcados con `excluir: TRUE` y su `motivo`; con `datos_en_ajuste` no vacío,
+      también las filas nacionales de los tipos que no están en la lista (y las de `prevalencia_registro`).
+- [ ] `datos_en_ajuste` lista los tipos nacionales que entran; si esos datos ya informaron el ancla, `ancla.peso`
+      baja (por ejemplo a 0.5) y la razón queda en `notas`.
+- [ ] Los datos subnacionales del año `subnacional.anio_validacion` (mortalidad) sirven para validar la estimación
+      subnacional.
+- [ ] `dl_revisar_proyecto()` no da errores y sus avisos están entendidos.
+
+## Siguientes pasos
+
+- [Estimación subnacional](desagregacion-subnacional.html): los datos subnacionales reservados para validar.
+- [Subtipos y suma](subtipos-y-suma.html): varias causas en un proyecto, con `datos.csv` compartido.
+- [El modelo](el-modelo.html): la log-posterior completa y el papel de λ.
+- [Preparar tus datos](preparar-datos.html): dónde conseguir cada archivo del proyecto.

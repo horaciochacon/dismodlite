@@ -1,0 +1,404 @@
+---
+title: "El modelo"
+description: >
+  Las ecuaciones detrás de cada número: el modelo enfermedad-muerte, las tasas por edad, el ancla, los priors, la
+  verosimilitud de los datos, el muestreo, la estimación subnacional, los AVD y los supuestos.
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{El modelo}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7.5, fig.height = 3.2, dpi = 96)
+```
+
+## Qué vas a aprender
+
+Esta guía explica qué calcula dismodlite y con qué supuestos, de la ecuación del modelo a los años vividos con
+discapacidad:
+
+1. el modelo enfermedad-muerte y la ecuación de la prevalencia;
+2. cómo se representan las tasas por edad (nudos e interpolación) y cómo se resuelve la ecuación;
+3. cómo entran al ajuste la estimación de referencia (el ancla), los priors y los datos locales;
+4. cómo se muestrea y qué son las simulaciones;
+5. cómo se lleva la estimación nacional a las ubicaciones subnacionales;
+6. cómo se calculan los AVD;
+7. los supuestos del modelo y sus límites.
+
+La notación es la misma del código del paquete (la cabecera de su archivo `R/edo.R`), de modo que cada fórmula de esta
+guía se puede buscar en el código. Los cálculos de la guía son pequeños y corren en segundos.
+
+## Notación
+
+| Símbolo | Significado | Unidades o dominio | En la configuración |
+|---|---|---|---|
+| $a$ | edad | años, de $a_0$ a $a_F$ | $a_0$ = `edad_inicio`; $a_F$ = 99 |
+| $S(a)$, $C(a)$ | personas sin y con la enfermedad (compartimentos) | personas | |
+| $p(a) = C/(S + C)$ | prevalencia | proporción en $[0, 1)$ | |
+| $i(a)$ | incidencia entre quienes no tienen la enfermedad ($S$) | por persona-año | |
+| $r(a)$ | remisión, de $C$ a $S$ | por persona-año | `remision` |
+| $f(a)$ | mortalidad en exceso de quienes tienen la enfermedad (EMR) | por persona-año | `mortalidad_exceso` |
+| $m(a)$ | mortalidad por otras causas | por persona-año; se cancela | |
+| $\theta$ | ($\log i$ en los nudos, $\log f$ en los nudos) | parámetros del muestreo | `nudos` |
+| $h$ | paso del método numérico, $1/n_{sub}$ | años (0.2) | `avanzado: {nsub: ...}` |
+| $W$ | interpolación de los nudos a la malla | cada fila suma 1 | |
+| $\sigma$ | escala del prior de suavidad de $\log i$ | $> 0$ | `incidencia.suavidad` |
+| $\lambda$ | peso del ancla | $(0, 1]$ | `ancla.peso` |
+| $\rho$ | correlación entre bandas de edad del ancla | $[0, 1)$ | `ancla.correlacion_edad` |
+| $\eta$ | desplazamiento de la log-normal de los datos | $\ge 0$ | `avanzado: {offset_lognormal: ...}` |
+| $\kappa$ | fracción del gradiente subnacional que se aplica | $(0, 1]$ | `subnacional.kappa` |
+
+Tres desviaciones estándar en escala logarítmica, ninguna de ellas $\sigma$: $\sigma_{log}$ la del ancla, $sd_{log}$ la
+del prior de la EMR y $s_{log}$ la de los datos locales. $N(x; \mu, s)$ es la densidad normal con media $\mu$ y
+**desviación estándar** $s$ (nunca la varianza); $MVN(z; 0, \Sigma)$ es la normal multivariada con matriz de covarianza
+$\Sigma$. Todas las tasas van por persona-año (no por 100 000) y la prevalencia es una proporción.
+
+## 1. El modelo enfermedad-muerte
+
+Cada persona de edad $a$ está sin la enfermedad ($S$) o con ella ($C$). Quien no la tiene la adquiere con la tasa $i$;
+quien la tiene se cura con la tasa $r$ o muere por ella con la tasa $f$, además de la mortalidad por otras causas $m$,
+que afecta igual a los dos grupos. Al avanzar la edad:
+
+$$
+\frac{dS}{da} = -(i + m)\,S + r\,C, \qquad
+\frac{dC}{da} = i\,S - (r + m + f)\,C .
+$$
+
+La prevalencia es $p = C / (S + C)$. Derivando el cociente, $m$ se cancela y queda una sola ecuación, la que resuelve el
+paquete:
+
+$$
+\frac{dp}{da} = i\,(1 - p) - r\,p - f\,p\,(1 - p) .
+$$
+
+Se lee así: la prevalencia sube con los casos nuevos entre quienes no tienen la enfermedad, $i(1-p)$, y baja con las
+remisiones, $r\,p$, y con las muertes en exceso. Esas muertes, $f\,p$ por persona, quitan enfermos pero también reducen
+el total de personas; su efecto neto sobre la proporción es $f\,p\,(1 - p)$. Como $m$ afecta por igual a los dos
+grupos, no cambia la proporción y se cancela: el modelo no necesita la mortalidad general.
+
+Tres decisiones completan el modelo:
+
+- **Condición inicial**: $p(a_0) = 0$ en $a_0$ = `edad_inicio`. Se elige una edad a la que casi nadie tiene la
+  enfermedad.
+- **Remisión**: $r$ no se estima; es un dato de la configuración (`remision`, 0 por defecto: una enfermedad crónica).
+  En el formato completo puede cambiar por tramos de edad.
+- **Lo que se estima**: la incidencia $i(a)$ y la mortalidad en exceso $f(a)$. De ellas salen $p(a)$ y las demás
+  cantidades.
+
+## 2. Las tasas por edad: nudos e interpolación
+
+La incidencia y la mortalidad en exceso se describen por su valor en unas pocas edades, los **nudos**
+(`nudos`; por defecto cada 10 años desde `edad_inicio` hasta 80, y 95). Los parámetros del modelo son
+
+$$
+\theta = (\log i_1, \dots, \log i_K,\ \log f_1, \dots, \log f_K),
+$$
+
+los logaritmos de las dos tasas en los $K$ nudos. Entre nudos, $\log i$ y $\log f$ son lineales; fuera de ellos,
+constantes (antes del primer nudo valen lo del primero y después del último, lo del último). En una malla de edades,
+eso es una multiplicación por una matriz $W$:
+
+$$
+\log i(a_j) = \sum_k W_{jk} \log i_k, \qquad
+W_{jk} = 1 - w,\quad W_{j,k+1} = w,\quad w = \frac{a_j - \text{nudo}_k}{\text{nudo}_{k+1} - \text{nudo}_k}
+$$
+
+para $a_j$ entre $\text{nudo}_k$ y $\text{nudo}_{k+1}$, con $a_j$ llevada primero al rango de los nudos. Cada fila de $W$
+suma 1 y en un nudo devuelve su valor. Como $\log i$ es lineal, $i$ crece o decrece exponencialmente entre nudos.
+
+La función exportada `dl_edo()` hace exactamente esto: recibe $\log i$ y $\log f$ en los nudos, interpola, resuelve la
+ecuación y devuelve $p$, $i$ y $f$ en las edades enteras. Un ejemplo con valores inventados:
+
+```{r edo}
+library(dismodlite)
+nudos <- c(30, 40, 50, 60, 70, 80, 95)
+log_i <- log(c(0.5, 0.8, 1.5, 2.5, 4, 6, 7) / 1000)        # incidencia por persona-año
+log_f <- log(c(10, 12, 15, 20, 30, 50, 90) / 1000)         # mortalidad en exceso por persona-año
+solucion <- dl_edo(log_i, log_f, nudos, edad_inicio = 30)
+str(solucion)
+```
+
+```{r figura-edo, fig.cap = "Tasas en los nudos (puntos), su interpolación y la prevalencia que resulta (valores inventados)."}
+op <- par(mfrow = c(1, 2), mar = c(4, 4.2, 2.5, 1), oma = c(1.5, 0, 0, 0), las = 1)
+plot(solucion$edades, 1000 * solucion$f, type = "l", lwd = 2, col = "#eb6834", log = "y", ylim = c(0.4, 100),
+     yaxt = "n", xlab = "Edad (años)", ylab = "Por 1000 personas-año", main = "Tasas (escala logarítmica)",
+     font.main = 1, bty = "n")
+axis(2, at = c(0.5, 1, 2, 5, 10, 20, 50, 100), labels = c(0.5, 1, 2, 5, 10, 20, 50, 100))
+lines(solucion$edades, 1000 * solucion$i, lwd = 2, col = "#2a78d6")
+points(nudos, 1000 * exp(log_f), pch = 19, col = "#eb6834")
+points(nudos, 1000 * exp(log_i), pch = 19, col = "#2a78d6")
+legend("bottomright", c("Incidencia i", "Mortalidad en exceso f"), col = c("#2a78d6", "#eb6834"), lwd = 2,
+       bty = "n", cex = 0.8)
+plot(solucion$edades, 100 * solucion$p, type = "l", lwd = 2, col = "#1baf7a", xlab = "Edad (años)",
+     ylab = "Prevalencia (%)", main = "Prevalencia p", font.main = 1, bty = "n")
+mtext("Datos sintéticos: valores inventados para ilustrar", side = 1, outer = TRUE, adj = 1, cex = 0.75,
+      col = "grey35")
+par(op)
+```
+
+En escala logarítmica, las tasas son rectas entre nudos. La prevalencia crece mientras los casos nuevos superan a las
+muertes en exceso y se frena cuando $f$ aumenta.
+
+## 3. Cómo se resuelve la ecuación
+
+La ecuación de $p$ se integra con el método de Runge-Kutta de orden 4 (RK4), con paso de 0.2 años
+($h = 1/n_{sub}$, con $n_{sub} = 5$ pasos por año). Con $i$ y $f$ constantes y $r = 0$ la ecuación tiene solución
+exacta, $p(t) = i\,(E - 1) / (i\,E - f)$ con $E = e^{(i - f)\,t}$ y $t = a - a_0$. Sirve para ver la precisión del
+método:
+
+```{r precision}
+i <- 0.002; f <- 0.05
+solucion <- dl_edo(rep(log(i), 2), rep(log(f), 2), nudos = c(30, 95), edad_inicio = 30)
+t <- solucion$edades - 30
+E <- exp((i - f) * t)
+exacta <- i * (E - 1) / (i * E - f)
+max(abs(solucion$p - exacta) / pmax(exacta, 1e-12))   # error relativo máximo
+```
+
+El error es muchísimo menor que la incertidumbre de cualquier estimación. Con una remisión o un techo de la
+mortalidad en exceso muy altos (enfermedades agudas) el paso de 0.2 años es demasiado largo para que el método sea
+estable: `dl_insumos()` lo comprueba y, si hace falta, se detiene y pide más pasos por año, que se declaran en
+`avanzado` (por ejemplo `avanzado: {nsub: 10}`, pasos de 0.1 años).
+
+`dl_edo()` resuelve la ecuación por dentro; `dl_edo_resolver()` hace solo ese paso, a partir de las tasas ya
+evaluadas en la malla de edades, para quien quiera probar el método con otras tasas.
+
+## 4. De las edades simples a las bandas de edad
+
+Las estimaciones de referencia y los datos vienen por bandas de edad (40-44 años, 80 y más…). El modelo produce
+cantidades por edad simple y las lleva a cada banda $[\text{inicio}, \text{fin})$ con un **promedio ponderado por la
+población**:
+
+$$
+q = \sum_{a \in A} w_a\, x(a), \qquad A = \{a \text{ entera} : \text{inicio} \le a < \text{fin}\}, \qquad
+w_a = \frac{N_{b(a)}}{\sum_{a' \in A} N_{b(a')}},
+$$
+
+donde $N_{b(a)}$ es la población de la banda fina de la tabla de población que contiene la edad $a$. La cantidad
+$x(a)$ depende de lo que se compara:
+
+| Medida | $x(a)$ | Qué es |
+|---|---|---|
+| prevalencia | $p$ | proporción con la enfermedad |
+| incidencia | $i\,(1 - p)$ | casos nuevos por persona-año de **toda** la población |
+| mortalidad por la causa | $p\,f$ | muertes por la enfermedad por persona-año de toda la población |
+
+La incidencia y la mortalidad se comparan por persona-año de toda la población, como las publica GBD. La banda de 80
+años y más se representa con las edades 80 a 99.
+
+## 5. La log-posterior: ancla, priors y datos
+
+El ajuste combina cuatro fuentes de información, que se suman en la log-posterior de $\theta$ (por sexo):
+
+$$
+\log \text{posterior}(\theta) = L_{suavidad} + L_{emr} + L_{ancla} + L_{datos} \; (+\ \text{constantes}).
+$$
+
+### Suavidad de la incidencia
+
+$$
+L_{suavidad} = \sum_k \log N(D2_k;\ 0, \sigma), \qquad
+D2_k = (\log i_{k+2} - \log i_{k+1}) - (\log i_{k+1} - \log i_k).
+$$
+
+Penaliza la curvatura de $\log i$ entre nudos (las segundas diferencias, sin dividir por la distancia entre nudos). Un
+$\sigma$ mayor (`incidencia.suavidad`) permite una curva más quebrada. No dice nada sobre el nivel ni la pendiente de
+$\log i$: esos los fija el ancla.
+
+### Prior de la mortalidad en exceso
+
+Las muertes por la causa ocurren solo entre quienes la tienen, a la tasa $f$; por persona-año de toda la población son
+$\text{csmr} = f\,p$. De ahí $f = \text{csmr}/p$, y el ancla, que trae la prevalencia y las muertes por banda, da un
+prior para $f$ en cada banda (`mortalidad_exceso.prior: desde_ancla`, el valor por defecto):
+
+$$
+\mu_{log} = \log(\text{csmr}) + \log(1 - \text{fracción aguda}) - \log(p), \qquad
+sd_{log} = \sqrt{\sigma_{log,p}^2 + \sigma_{log,\text{csmr}}^2},
+$$
+
+con la incertidumbre de las dos medidas del ancla. La fracción aguda (las muertes de la fase aguda de la enfermedad,
+que no son del modelo crónico) es 0 salvo que se declare en `avanzado` (`emr_prior.fraccion_aguda`), y
+`emr_prior.factor_sd` puede ensanchar $sd_{log}$. Cada nudo toma el prior de la banda que lo contiene (un nudo fuera
+de las bandas del ancla toma la más cercana, con el doble de desviación estándar), y
+
+$$
+L_{emr} = \sum_k \log N(\log f_k;\ \mu_{log,k}, sd_{log,k}).
+$$
+
+Además, $f$ está acotada por un **techo** $f_{max}$ (`mortalidad_exceso.techo`; por defecto, 3 veces la mayor
+$\text{csmr}/p$ del ancla): fuera de la cota, la log-posterior es $-\infty$. Con `mortalidad_exceso.prior: plano`,
+$L_{emr} = 0$ y solo queda la cota, con $\log f$ uniforme entre $\log f_{max} - \log 1000$ y $\log f_{max}$.
+
+El prior del ejemplo, en muertes por 1000 personas-año con la enfermedad (`dl_prior_emr()`):
+
+```{r prior-emr, message = FALSE}
+insumos <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))
+prior <- dl_prior_emr(insumos)
+prior$f_por_mil <- round(1000 * exp(prior$mu_log), 1)
+head(prior[prior$sex_id == 1, c("age_start", "age_end", "mu_log", "sd_log", "f_por_mil")], 9)
+```
+
+### El ancla
+
+El ancla es la estimación de referencia de la prevalencia por banda de edad. Cada banda $b$ trae su valor $val_b$ y
+su intervalo del 95 %, que se lee como el de una normal en escala logarítmica:
+$\sigma_{log,b} = (\log \text{upper}_b - \log \text{lower}_b) / 3.92$. Con $q_b$ la prevalencia del modelo en la banda
+(el promedio de la sección 4) y $z_b = \log q_b - \log val_b$,
+
+$$
+L_{ancla} = \log MVN(z;\ 0,\ \Sigma / \lambda), \qquad
+\Sigma = \text{diag}(\sigma_{log})\, R\, \text{diag}(\sigma_{log}), \qquad R_{bc} = \rho^{|b - c|} .
+$$
+
+- $\rho$ (`ancla.correlacion_edad`) correlaciona los errores de bandas vecinas: una estimación publicada no tiene
+  errores independientes entre edades, y tratarlos como independientes le daría más información de la que tiene. Con
+  $\rho = 0.5$, la correlación entre bandas a una, dos y tres de distancia es 0.5, 0.25 y 0.125:
+
+```{r ar1}
+rho <- 0.5
+round(rho^abs(outer(1:4, 1:4, "-")), 3)
+```
+
+- $\lambda$ (`ancla.peso`) multiplica la precisión del ancla (un *power prior*): con $\lambda = 1$ pesa entera; con
+  $\lambda = 0.5$ cuenta como la mitad de la información. Se baja cuando los datos locales que entran al ajuste ya
+  estaban en la estimación de referencia, para no contarlos dos veces.
+
+En el ejemplo, las bandas del ancla de los hombres:
+
+```{r ancla}
+ancla <- insumos$prior_gbd
+ancla <- ancla[ancla$sex_id == 1 & ancla$measure_id == 5, c("age_start", "age_end", "val", "lower", "upper",
+                                                             "sigma_log")]
+ancla
+```
+
+### Los datos locales {#verosimilitud}
+
+Entran al ajuste las filas **nacionales** de `datos.csv` del año que se estima, de los tipos de `datos_en_ajuste` y
+sin `excluir`. Cada dato $d$ se compara con la cantidad del modelo $q_d$ en su intervalo de edad (sección 4): $p$
+para la prevalencia de un estudio, $i(1-p)$ para la incidencia, $p\,f$ para la mortalidad.
+
+- Un dato con valor y error estándar entra con una **log-normal**:
+  $\ell_d = \log N(\log(q_d + \eta);\ \log(val_d + \eta),\ s_{log,d})$, con $s_{log,d} = se_d / (val_d + \eta)$.
+  El desplazamiento $\eta$ (0 por defecto) solo hace falta si algún valor es 0.
+- Un dato con casos y muestra entra con su verosimilitud de conteos: **binomial** para la prevalencia ($x$ casos entre
+  $n$ personas), $\ell_d = x \log q_d + (n - x) \log(1 - q_d)$, y **Poisson** para la incidencia y la mortalidad ($x$
+  eventos en $n$ personas-año), $\ell_d = x \log(n\, q_d) - n\, q_d$.
+
+$L_{datos} = \sum_d \ell_d$. Las constantes que no dependen de $\theta$ (la del truncamiento del prior de la EMR,
+$\log\binom{n}{x}$ de la binomial y $-\log x!$ de la Poisson) se omiten: el muestreo no las ve.
+
+Dos consecuencias prácticas. Sin `datos_en_ajuste` (el valor por defecto), el ajuste queda informado por el ancla y los
+priors, y los datos locales solo validan. Y las **covariables no entran al ajuste nacional**: solo mueven las
+estimaciones subnacionales (sección 7).
+
+## 6. El muestreo y las simulaciones
+
+La posterior se recorre con un **Metropolis-Hastings adaptativo por bloques**, por sexo: un bloque para $\log i$ y otro
+para $\log f$ en los nudos. En cada iteración se propone mover un bloque, $\theta' = \theta + s_b L_b z$ con
+$z \sim N(0, I)$, y se acepta con probabilidad $\min(1, e^{\log \text{post}(\theta') - \log \text{post}(\theta)})$.
+Durante el **calentamiento** el muestreador adapta la escala $s_b$ (hacia una aceptación de 0.28) y la forma $L_b$ (la
+covarianza de las iteraciones de la primera mitad del calentamiento); después las deja fijas y guarda una de cada
+`adelgazamiento` iteraciones. Cada cadena usa una semilla derivada de la semilla del ajuste: el resultado es el mismo
+en serie o en paralelo.
+
+Cada vector $\theta$ guardado es una **simulación**: con él se resuelve la ecuación y se obtienen $p$, $i$ y $f$ por
+edad. Las estimaciones son la media de las simulaciones y su intervalo del 95 %, los percentiles 2.5 y 97.5. La media
+es lineal, así que las sumas son exactas: las ubicaciones subnacionales suman la nacional y los subtipos suman la causa
+que los contiene.
+
+La convergencia se mide con el **R-hat** partido (Gelman y colaboradores) y el **tamaño efectivo de muestra** (ESS).
+Una corrida de producción exige R-hat < 1.01 y ESS ≥ 400 en todos los parámetros.
+
+El muestreador está exportado para quien quiera usarlo con otra log-posterior: `dl_mh()` corre una cadena y
+`dl_mh_cadenas()` varias, en serie o en paralelo, cada una con una semilla derivada de la que recibe. `dl_ajustar()`
+los usa con la log-posterior de la sección 5.
+
+## 7. De lo nacional a lo subnacional {#subnacional}
+
+La estimación subnacional (`subnacional.modo: covariables`) desplaza las tasas nacionales de cada ubicación según la
+diferencia entre sus covariables y las nacionales, con los coeficientes publicados ($\beta$, en `covariables`). Para
+cada sexo y cada simulación $k$:
+
+1. **Diferencia de la covariable**. Con $T$ la transformación de la covariable (log, logit o lineal), el valor nacional
+   $X_{nac} \sim N(T(val), sd_T)$, con $sd_T = (T(\text{upper}) - T(\text{lower})) / 3.92$, y el de la ubicación $d$,
+   $X_d \sim N(T(valor_d), se_T)$, con $se_T$ del error estándar de `proxies.csv` por el método delta. La diferencia
+   es $dX = (X_d - X_{nac}) \times \text{escala}$ (`escala`, solo con la transformación lineal), por banda de edad del
+   proxy.
+2. **Desplazamiento**. Con $\beta_c \sim N(\beta, sd_\beta)$, $sd_\beta = (\beta_{sup} - \beta_{inf}) / 3.92$, y
+   $P_{ba}$ el peso de la banda $b$ del proxy en la edad $a$ (interpolación lineal entre los puntos medios de las
+   bandas),
+   $$
+   \delta_c(a) = \kappa\, \beta_c \sum_b dX_b\, P_{ba}, \qquad
+   \log i_d(a) = \log i_{nac}(a) + \sum_{c \in i} \delta_c(a), \qquad
+   \log f_d(a) = \min\Big(\log f_{nac}(a) + \sum_{c \in f} \delta_c(a),\ \log f_{max}\Big),
+   $$
+   donde las covariables con `efecto_sobre: prevalencia` o `incidencia` mueven $\log i$ y las de
+   `mortalidad_exceso` mueven $\log f$. $\kappa$ (`subnacional.kappa`) es la fracción del gradiente que se aplica.
+3. **Nueva solución**: se resuelve $dp/da$ con $i_d$ y $f_d$, con la misma remisión.
+4. **Renormalización**, por sexo, banda de población y simulación, para $q = p$ y $q = i(1-p)$:
+   $$
+   \text{factor} = \frac{N_{nac}\, q_{nac}}{\sum_d N_d\, q_d}, \qquad q_d \leftarrow q_d \times \text{factor},
+   $$
+   de modo que la suma ponderada por población de las ubicaciones es exactamente la nacional. Si algún $p_d$ queda
+   fuera de $[0, 1]$, es un error.
+
+Con `subnacional.modo: plano`, cada ubicación recibe las tasas nacionales. Los datos subnacionales de `datos.csv` del
+año `subnacional.anio_validacion` no entran al ajuste: los de mortalidad sirven para validar la estimación
+subnacional (`dl_validar_ancla()`).
+
+## 8. Carga: años vividos con discapacidad {#avd}
+
+Los AVD por persona de cada banda de edad $b$ y simulación $k$ son
+
+$$
+AVD_{k,b} = p_{k,b} \times \Big(\sum_e \pi_{k,e}\, DW_{k,e}\Big) \times COMO_b ,
+$$
+
+donde $p_{k,b}$ es la prevalencia de la banda, $\pi_{k,e}$ la proporción de los casos en el estado de salud $e$ y
+$DW_{k,e}$ su peso de discapacidad (de `severidad.csv`). Cada proporción y cada peso se simula con una distribución
+Beta con la media y la varianza de su intervalo del 95 %, $v = ((\text{superior} - \text{inferior})/3.92)^2$; las
+proporciones se renormalizan para que sumen 1 en cada simulación.
+
+$COMO_b$ calibra el resultado a los AVD del ancla:
+$COMO_b = AVD^{ancla}_b / (p^{ancla}_b \sum_e \pi_e DW_e)$. Absorbe la corrección por comorbilidad y el patrón por
+edad de la severidad (la tabla de severidad es la misma a todas las edades); puede superar 1. Los AVD de la fórmula
+son años vividos con discapacidad por persona y año, en la misma escala que $p$ (por 100 000, multiplicados por
+100 000).
+
+## 9. Supuestos y límites
+
+- **Estado estacionario**. El modelo relaciona tasas y prevalencia a lo largo de la edad en un año, como si las tasas
+  de hoy se hubieran mantenido toda la vida de cada cohorte. Con tendencias fuertes en el tiempo la relación entre
+  incidencia y prevalencia se distorsiona.
+- **Nadie tiene la enfermedad en `edad_inicio`** ($p(a_0) = 0$) y la mortalidad por otras causas es igual con y sin
+  la enfermedad (por eso $m$ se cancela).
+- **Remisión conocida**: no se estima.
+- **Formas por edad**: $\log i$ y $\log f$ son lineales entre nudos y constantes fuera de ellos; el modelo no puede
+  mostrar rasgos más finos que los que permiten los nudos.
+- **El ancla es la fuente principal**. Su incertidumbre se resume en una log-normal por banda con correlación AR(1)
+  entre bandas, una simplificación de la publicada. Si los datos locales ya informaron el ancla, hay que bajar
+  $\lambda$ y dejar la razón en `notas`.
+- **Solo datos nacionales en el ajuste**. Los subnacionales validan, no ajustan.
+- **Diferencias subnacionales solo por covariables**. Se supone que la asociación publicada entre la covariable y la
+  tasa vale entre las ubicaciones del país (un supuesto ecológico), atenuada por $\kappa$; no hay efectos aleatorios
+  por ubicación. La renormalización impone el total nacional desde arriba.
+- **Severidad igual en todas las edades y ubicaciones**, con los pesos de discapacidad simulados de forma
+  independiente entre estados; $COMO$ es una calibración empírica.
+- **El estimador puntual es la media** de las simulaciones.
+
+Cada corrida registra en su manifiesto sus limitaciones y las claves tomadas por defecto, y las etiquetas
+(`dl_etiquetas()`) dicen, celda por celda, si el resultado lo mueven los datos o el ancla.
+
+## Siguientes pasos
+
+- [Primeros pasos](primeros-pasos.html): el modelo en acción con el proyecto de ejemplo.
+- [Preparar tus datos](preparar-datos.html): qué va en cada archivo y en qué unidades.
+- En el sitio del paquete (<https://horaciochacon.github.io/dismodlite/>), las guías
+  [Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html),
+  [Datos locales](https://horaciochacon.github.io/dismodlite/articles/datos-locales.html),
+  [Carga: los años vividos con discapacidad](https://horaciochacon.github.io/dismodlite/articles/carga-avd.html) y
+  [Diagnóstico y sensibilidad](https://horaciochacon.github.io/dismodlite/articles/diagnostico-y-sensibilidad.html).
+- La ayuda de cada función (`?dl_edo`, `?dl_prior_emr`, `?dl_cascada`, `?dl_avd`) describe lo que calcula.

@@ -1,0 +1,9 @@
+bibentry(
+  bibtype = "Manual",
+  header = "Para citar dismodlite en publicaciones, usa:",
+  title = "dismodlite: estimaci\u00f3n de carga de enfermedad por edad, sexo y ubicaci\u00f3n",
+  author = person("Horacio", "Chac\u00f3n"),
+  year = 2026,
+  note = sprintf("Paquete de R, versi\u00f3n %s", meta$Version),
+  url = "https://github.com/horaciochacon/dismodlite"
+)

@@ -1,0 +1,13 @@
+run_id,source,round,entity,method,location_id,location_name,location_level,year,age_group_id,age_group_name,sex_id,sex_name,cause_id,cause_name,health_state_id,health_state_name,measure_id,measure_name,metric_id,metric_name,val,lower,upper,ui_level
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9100,Arteriopatía crónica sintética,799,asymptomatic,900001,Proportion,2,Percent,0.527712791248062,0.448555872560852,0.606869709935271,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9100,Arteriopatía crónica sintética,9801,arteriopatia_sintomatica_leve,900001,Proportion,2,Percent,0.322287208751938,0.273944127439148,0.370630290064729,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9100,Arteriopatía crónica sintética,9802,arteriopatia_sintomatica_moderada,900001,Proportion,2,Percent,0.15,0.1275,0.1725,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9101,ACS de miembros inferiores,799,asymptomatic,900001,Proportion,2,Percent,0.5,0.425,0.575,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9101,ACS de miembros inferiores,9801,arteriopatia_sintomatica_leve,900001,Proportion,2,Percent,0.35,0.2975,0.4025,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9101,ACS de miembros inferiores,9802,arteriopatia_sintomatica_moderada,900001,Proportion,2,Percent,0.15,0.1275,0.1725,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9102,ACS carotídea,799,asymptomatic,900001,Proportion,2,Percent,0.6,0.51,0.69,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9102,ACS carotídea,9801,arteriopatia_sintomatica_leve,900001,Proportion,2,Percent,0.25,0.2125,0.2875,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9102,ACS carotídea,9802,arteriopatia_sintomatica_moderada,900001,Proportion,2,Percent,0.15,0.1275,0.1725,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9103,ACS renovascular,799,asymptomatic,900001,Proportion,2,Percent,0.55,0.4675,0.6325,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9103,ACS renovascular,9801,arteriopatia_sintomatica_leve,900001,Proportion,2,Percent,0.3,0.255,0.345,0.95
+acs_v1,gbd,2023,cause_health_state,severity_split,123,Perú,0,2023,22,All ages,3,Both,9103,ACS renovascular,9802,arteriopatia_sintomatica_moderada,900001,Proportion,2,Percent,0.15,0.1275,0.1725,0.95

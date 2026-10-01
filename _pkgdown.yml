@@ -1,0 +1,185 @@
+url: https://horaciochacon.github.io/dismodlite/
+lang: es
+
+template:
+  bootstrap: 5
+
+home:
+  title: "dismodlite: carga de enfermedad por edad, sexo y ubicación subnacional"
+  description: >
+    Estima prevalencia, incidencia, mortalidad en exceso y años vividos con discapacidad por edad y sexo con un
+    modelo enfermedad-muerte anclado en una estimación de referencia, y los desagrega a las ubicaciones
+    subnacionales de un país.
+
+navbar:
+  structure:
+    left: [primeros_pasos, guias, reference, news]
+    right: [search, github]
+  components:
+    primeros_pasos:
+      text: Primeros pasos
+      href: articles/primeros-pasos.html
+    guias:
+      text: Guías
+      menu:
+      - text: Para empezar
+      - text: El modelo
+        href: articles/el-modelo.html
+      - text: Preparar tus datos
+        href: articles/preparar-datos.html
+      - text: ---
+      - text: Temas
+      - text: Estimación subnacional
+        href: articles/desagregacion-subnacional.html
+      - text: Datos locales
+        href: articles/datos-locales.html
+      - text: Subtipos y suma
+        href: articles/subtipos-y-suma.html
+      - text: "Carga: los años vividos con discapacidad"
+        href: articles/carga-avd.html
+      - text: Corridas, versiones y tablas consolidadas
+        href: articles/corridas-y-consolidado.html
+      - text: Diagnóstico y sensibilidad
+        href: articles/diagnostico-y-sensibilidad.html
+      - text: ---
+      - text: Avanzado
+      - text: El formato completo
+        href: articles/formato-completo.html
+      - text: ---
+      - text: Todas las guías
+        href: articles/index.html
+    reference:
+      text: Referencia
+      href: reference/index.html
+    news:
+      text: Novedades
+      href: news/index.html
+
+articles:
+- title: Para empezar
+  desc: >
+    Un proyecto de principio a fin con el ejemplo del paquete, el modelo que hay detrás y cómo preparar los
+    archivos de un proyecto propio.
+  contents:
+  - primeros-pasos
+  - el-modelo
+  - preparar-datos
+- title: Temas
+  desc: Cada parte de una estimación con más detalle, sobre el formato simple del proyecto.
+  contents:
+  - articles/desagregacion-subnacional
+  - articles/datos-locales
+  - articles/subtipos-y-suma
+  - articles/carga-avd
+  - articles/corridas-y-consolidado
+  - articles/diagnostico-y-sensibilidad
+- title: Avanzado
+  desc: El formato completo, para proyectos anteriores y usos que el formato simple no cubre.
+  contents:
+  - articles/formato-completo
+
+reference:
+- title: Proyecto
+  desc: >
+    El camino recomendado: crear la carpeta de un proyecto en el formato simple, revisarla y correrla de
+    principio a fin (`dl_nuevo_proyecto()`, `dl_revisar_proyecto()` y `dl_correr()`). `dl_ejemplo()` es un
+    proyecto completo listo para correr.
+  contents:
+  - dismodlite-package
+  - dl_nuevo_proyecto
+  - dl_revisar_proyecto
+  - dl_correr
+  - dl_proyecto
+  - dl_ejemplo
+- title: Configuración
+  desc: >
+    La configuración de una causa y las rutas de sus archivos. `dl_proyecto()` las arma juntas; estas funciones
+    sirven para cambiar claves con `cambios` y para el formato completo.
+  contents:
+  - dl_configuracion
+  - dl_rutas
+  - dl_configuracion_ejemplo
+  - dl_rutas_ejemplo
+- title: Insumos
+  desc: >
+    Leer y validar los archivos de una causa y llevarlos a las tablas que usa el ajuste; guardarlos en disco para
+    reproducir una corrida.
+  contents:
+  - dl_insumos
+  - dl_congelar_insumos
+- title: Ajuste
+  desc: >
+    El ajuste nacional por sexo con MCMC, anclado en la estimación de referencia, y sus estimaciones por edad y
+    sexo.
+  contents:
+  - dl_opciones_mcmc
+  - dl_ajustar
+  - dl_ajustar_solo_prior
+  - dl_estimaciones
+- title: Subnacional
+  desc: >
+    Llevar el ajuste nacional a las ubicaciones subnacionales (departamentos, regiones, provincias...) con la
+    cascada.
+  contents:
+  - dl_cascada
+- title: Carga
+  desc: >
+    Años vividos con discapacidad (AVD) a partir de la prevalencia, la severidad y los pesos de discapacidad.
+  contents:
+  - dl_avd
+  - dl_factor_comorbilidad
+- title: Diagnóstico
+  desc: >
+    Convergencia de las cadenas, validación contra el ancla, cuánto informan los datos cada celda y sensibilidad
+    a los supuestos.
+  contents:
+  - dl_rhat
+  - dl_ess
+  - dl_validar_ancla
+  - dl_etiquetas
+  - dl_sensibilidad
+- title: Corrida
+  desc: >
+    Resumir una corrida y escribirla en disco con su manifiesto, volver a resumirla sin ajustar de nuevo y sumar
+    las corridas de las causas hijas.
+  contents:
+  - dl_resumir
+  - dl_exportar_corrida
+  - dl_reresumir_corrida
+  - dl_sumar_hijas
+- title: Consolidado
+  desc: >
+    Reunir las corridas vigentes de varias causas y años en tablas por medida, con un perfil de columnas.
+  contents:
+  - dl_consolidar
+  - dl_consolidado_seleccionar
+  - dl_consolidado_canonico
+  - dl_consolidado_conteos
+  - dl_perfil_cargar
+  - dl_perfil_proyectar
+- title: Avanzado
+  desc: >
+    Las piezas del modelo por separado (la ecuación de la prevalencia, el muestreador MCMC y el prior de la
+    mortalidad en exceso), el esquema de las tablas de insumos y sus validaciones, y la severidad desde una
+    partición, del formato completo.
+  contents:
+  - dl_edo
+  - dl_edo_resolver
+  - dl_mh
+  - dl_mh_cadenas
+  - dl_prior_emr
+  - dl_esquema
+  - dl_esquema_tabla
+  - dl_validar_tabla
+  - dl_validar_estimaciones
+  - dl_severidad_desde_particion
+- title: Utilidades
+  contents:
+  - dl_limpiar_cache
+  - dl_version
+- title: Nombres anteriores
+  desc: >
+    Los nombres de las funciones antes de la versión 1.0.0, todos en una página con la función nueva que
+    corresponde a cada uno. Siguen funcionando con sus argumentos originales.
+  contents:
+  - dl_nombres_anteriores

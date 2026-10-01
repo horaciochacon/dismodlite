@@ -1,0 +1,17 @@
+# Partición de severidad sintética: proporción de la prevalencia por estado de salud y por secuela.
+schema: estimates/v1
+run_id: acs_v1
+method: severity_split
+source: gbd
+round: '2023'
+entities:
+  - cause_health_state
+  - cause_sequela
+causa:
+  cause_id: 9100
+  hijas:
+    - 9101
+    - 9102
+    - 9103
+ubicacion: '123'
+nota: datos sintéticos de ejemplo

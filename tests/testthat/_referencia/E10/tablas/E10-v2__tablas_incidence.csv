@@ -1,0 +1,577 @@
+causa_gbd_id,causa_gbd,anio,ubigeo,departamento,nivel,edad_id,edad,sexo_id,medida,metrica,valor,inferior,superior,run_origen
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40 a 44 años,1,Incidencia,Número,18.84809696,13.98214609,23.78486589,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45 a 49 años,1,Incidencia,Número,19.45188197,14.67545965,25.40281247,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50 a 54 años,1,Incidencia,Número,20.18096329,15.4908528,26.55457809,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55 a 59 años,1,Incidencia,Número,20.10007824,16.79083849,26.90442301,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60 a 64 años,1,Incidencia,Número,20.54039877,16.10318242,28.38869163,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65 a 69 años,1,Incidencia,Número,21.90853803,17.44933327,29.8786037,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70 a 74 años,1,Incidencia,Número,23.49322258,17.65843755,28.58627465,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75 a 79 años,1,Incidencia,Número,24.94706162,19.62197334,31.84087442,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80 años a más,1,Incidencia,Número,49.12749968,32.44957855,66.80252089,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40 a 44 años,2,Incidencia,Número,15.5882424,12.46249224,18.77333314,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45 a 49 años,2,Incidencia,Número,16.11590284,12.14773138,22.46890063,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50 a 54 años,2,Incidencia,Número,17.12395483,12.45630394,23.07937905,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55 a 59 años,2,Incidencia,Número,18.12619768,14.28389383,21.97023737,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60 a 64 años,2,Incidencia,Número,20.56108095,16.40693308,26.07080701,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65 a 69 años,2,Incidencia,Número,22.55789401,16.68592033,29.48994581,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70 a 74 años,2,Incidencia,Número,25.08991709,18.06931735,32.16272728,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75 a 79 años,2,Incidencia,Número,27.55305777,19.23389955,40.04531663,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80 años a más,2,Incidencia,Número,56.47258183,39.88522468,78.23999723,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40 a 44 años,1,Incidencia,Número,1265.58549862,927.42891328,1599.702027,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45 a 49 años,1,Incidencia,Número,1327.46562552,1049.33730646,1702.14417069,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50 a 54 años,1,Incidencia,Número,1387.78707957,1122.89142351,1885.85372596,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55 a 59 años,1,Incidencia,Número,1437.41832064,1183.41983249,1925.37057105,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60 a 64 años,1,Incidencia,Número,1496.54078792,1222.67058121,2092.77635405,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65 a 69 años,1,Incidencia,Número,1610.0474842,1274.19693736,2053.87187439,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70 a 74 años,1,Incidencia,Número,1761.17057825,1400.35560142,2095.82687817,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75 a 79 años,1,Incidencia,Número,1967.49059058,1516.43629159,2387.91809904,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80 años a más,1,Incidencia,Número,4166.57610994,2874.95988378,5769.04137304,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40 a 44 años,2,Incidencia,Número,1031.61312665,835.97898437,1245.39107084,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45 a 49 años,2,Incidencia,Número,1099.20786885,871.71868649,1441.02681249,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50 a 54 años,2,Incidencia,Número,1181.69215538,912.61678433,1531.21791003,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55 a 59 años,2,Incidencia,Número,1289.31465701,1046.77128865,1527.89325861,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60 a 64 años,2,Incidencia,Número,1461.67063096,1162.99173551,1831.95744277,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65 a 69 años,2,Incidencia,Número,1663.04489122,1232.818135,2090.60767597,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70 a 74 años,2,Incidencia,Número,1893.65856318,1383.24687635,2407.90868738,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75 a 79 años,2,Incidencia,Número,2159.67018365,1472.46341806,3140.33069504,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80 años a más,2,Incidencia,Número,4665.63113843,3261.71643007,7052.11949802,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40 a 44 años,1,Incidencia,Número,375.26703222,268.31465114,477.50063795,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45 a 49 años,1,Incidencia,Número,403.19694244,319.73847493,510.02406568,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50 a 54 años,1,Incidencia,Número,426.41630581,337.86714799,585.24487642,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55 a 59 años,1,Incidencia,Número,457.18181741,365.80547051,614.8836102,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60 a 64 años,1,Incidencia,Número,483.99263219,382.78584631,674.89579837,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65 a 69 años,1,Incidencia,Número,520.25841602,405.97645642,657.68556907,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70 a 74 años,1,Incidencia,Número,580.81965295,460.78440191,693.374055,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75 a 79 años,1,Incidencia,Número,678.42495256,513.76116134,825.97865029,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80 años a más,1,Incidencia,Número,1484.01088121,1016.53891696,2067.04332108,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40 a 44 años,2,Incidencia,Número,306.87282974,253.47698763,375.84252317,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45 a 49 años,2,Incidencia,Número,332.96972918,256.69892708,443.86696749,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50 a 54 años,2,Incidencia,Número,365.12428214,284.16059572,474.99158863,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55 a 59 años,2,Incidencia,Número,404.7944661,337.09442116,486.69446879,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60 a 64 años,2,Incidencia,Número,475.27582575,369.02951785,607.43519871,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65 a 69 años,2,Incidencia,Número,542.46981901,407.99079038,729.57303003,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70 a 74 años,2,Incidencia,Número,631.22535349,457.96231351,837.77776731,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75 a 79 años,2,Incidencia,Número,734.42044701,495.828442,1049.8265357,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80 años a más,2,Incidencia,Número,1641.49197114,1151.64248112,2473.30484808,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40 a 44 años,1,Incidencia,Número,25.30575387,18.7453869,31.88044147,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45 a 49 años,1,Incidencia,Número,25.53495454,20.34853221,32.36062107,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50 a 54 años,1,Incidencia,Número,25.84489158,20.69581746,34.77820751,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55 a 59 años,1,Incidencia,Número,25.00831572,20.77567835,33.98107416,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60 a 64 años,1,Incidencia,Número,25.14730083,20.5546962,35.35104472,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65 a 69 años,1,Incidencia,Número,27.1367808,21.42931849,37.24782016,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70 a 74 años,1,Incidencia,Número,28.69933633,22.34032912,35.27206583,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75 a 79 años,1,Incidencia,Número,30.35873405,24.13584251,37.89197092,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80 años a más,1,Incidencia,Número,59.19077695,39.76755296,80.02255289,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40 a 44 años,2,Incidencia,Número,20.50689756,16.72596015,24.91199592,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45 a 49 años,2,Incidencia,Número,20.69105434,15.91581332,28.05267361,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50 a 54 años,2,Incidencia,Número,21.48328248,16.29624685,27.62307637,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55 a 59 años,2,Incidencia,Número,23.4123902,18.35049246,27.56257664,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60 a 64 años,2,Incidencia,Número,25.40916712,19.93868723,32.21884734,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65 a 69 años,2,Incidencia,Número,28.13286446,20.81060105,36.07438464,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70 a 74 años,2,Incidencia,Número,30.13724168,22.14549483,37.88097327,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75 a 79 años,2,Incidencia,Número,33.4840218,22.72931754,47.99358255,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80 años a más,2,Incidencia,Número,65.62779992,46.40419522,92.20573835,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,153.06234333,113.54674424,193.15304443,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,188.01355087,141.84670067,245.53269354,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,232.17859281,178.21965941,305.50596052,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,275.23042915,229.91699976,368.40234158,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,342.68266216,268.65502864,473.61847905,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,445.47657647,354.80547515,607.53565873,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,582.66921092,437.95728045,708.98498644,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,755.05634458,593.88539177,963.70685279,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80 años a más,1,Incidencia,Tasa por 100 000,1079.96262209,713.33432727,1468.51002185,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,121.62161503,97.23408157,146.47213189,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,149.66477374,112.81325574,208.66363885,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,189.27771446,137.68435884,255.10532825,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,238.47122328,187.92124497,289.04403852,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,315.0157952,251.37020189,399.43016709,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,402.67572319,297.85648572,526.41816861,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,522.05403843,375.97414375,669.22029295,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,668.60125629,466.72893825,971.73784587,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80 años a más,2,Incidencia,Tasa por 100 000,916.31643412,647.17223235,1269.5115565,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40 a 44 años,1,Incidencia,Tasa por 100 000,138.61834596,101.58038481,175.21380361,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45 a 49 años,1,Incidencia,Tasa por 100 000,169.10928699,133.67779948,216.84055807,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50 a 54 años,1,Incidencia,Tasa por 100 000,205.58377114,166.34270258,279.36628501,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55 a 59 años,1,Incidencia,Tasa por 100 000,247.55970974,203.81476013,331.5974013,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60 a 64 años,1,Incidencia,Tasa por 100 000,306.63112204,250.51696234,428.79577142,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65 a 69 años,1,Incidencia,Tasa por 100 000,392.59588059,310.70168649,500.81854422,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70 a 74 años,1,Incidencia,Tasa por 100 000,511.27855981,406.53177151,608.43132466,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75 a 79 años,1,Incidencia,Tasa por 100 000,680.2770878,524.32111707,825.64357772,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80 años a más,1,Incidencia,Tasa por 100 000,1001.18850305,690.8254419,1386.24562324,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40 a 44 años,2,Incidencia,Tasa por 100 000,108.56023002,87.97297019,131.05682511,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45 a 49 años,2,Incidencia,Tasa por 100 000,134.53966136,106.69568532,176.37724843,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50 a 54 años,2,Incidencia,Tasa por 100 000,168.1889438,129.89174241,217.93655974,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55 a 59 años,2,Incidencia,Tasa por 100 000,213.34471617,173.21072265,252.82265413,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60 a 64 años,2,Incidencia,Tasa por 100 000,275.06810146,218.86047508,344.75144063,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65 a 69 años,2,Incidencia,Tasa por 100 000,356.01710275,263.91611132,447.54780326,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70 a 74 años,2,Incidencia,Tasa por 100 000,461.27391145,336.9433696,586.53945343,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75 a 79 años,2,Incidencia,Tasa por 100 000,598.73088028,408.2147937,870.60189822,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80 años a más,2,Incidencia,Tasa por 100 000,826.44828328,577.76533639,1249.17977433,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,128.41276104,91.8146872,163.39611544,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,158.02287368,125.31343202,199.89107065,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,191.41377993,151.66499739,262.71024923,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,235.05250198,188.07285812,316.13228152,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,291.70064801,230.70367603,406.75731123,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,367.77515783,286.98825572,464.92359666,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,481.85605614,382.27314367,575.23275233,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,660.93013197,500.512593,804.67880239,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80 años a más,1,Incidencia,Tasa por 100 000,979.80383019,671.15998743,1364.74535923,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,100.89091367,83.33590464,123.56615472,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,125.38163131,96.66143019,167.14061246,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,157.47278897,122.55432934,204.85695928,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,199.95676078,166.51489627,240.41299381,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,263.09207071,204.27872563,336.24976402,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,336.66593372,253.20597678,452.78534725,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,439.4036779,318.79315966,583.18733585,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,573.6763373,387.30545383,820.04884838,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80 años a más,2,Incidencia,Tasa por 100 000,798.49589739,560.2109621,1203.12728232,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,145.71171685,107.93681638,183.56907623,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,177.17842447,141.19159182,224.53941906,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,216.09441122,173.04195202,290.78768817,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,251.94756923,209.30564526,342.34408783,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,312.46646157,255.40129472,439.25254369,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,416.08066236,328.56974075,571.11039806,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,543.34222514,422.95208474,667.77860336,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,709.97974865,564.44907644,886.15460513,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80 años a más,1,Incidencia,Tasa por 100 000,1027.97459108,690.64871412,1389.76298865,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,113.44820513,92.53131304,137.81807875,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,137.93116687,106.09834889,187.00535703,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,172.57034683,130.90406335,221.88992181,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,226.62269096,177.62551992,266.79485662,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,289.99277699,227.55863077,367.71110862,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,378.68978944,280.12654534,485.58870154,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,478.74887497,351.79499327,601.76287956,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,627.98240435,426.28127428,900.10469906,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80 años a más,2,Incidencia,Tasa por 100 000,841.59784454,595.07816389,1182.42803735,FECHA_e5-suma_v1
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40 a 44 años,1,Incidencia,Número,12.07217906,8.62586193,15.96774651,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45 a 49 años,1,Incidencia,Número,12.29557702,9.2190145,16.36019764,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50 a 54 años,1,Incidencia,Número,12.61320608,9.23470309,17.45487974,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55 a 59 años,1,Incidencia,Número,12.42975539,9.38937574,17.96568775,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60 a 64 años,1,Incidencia,Número,12.52628571,9.13541703,19.29494181,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65 a 69 años,1,Incidencia,Número,13.06947167,8.45594645,19.50991571,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70 a 74 años,1,Incidencia,Número,13.7164975,8.73328067,18.12639546,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75 a 79 años,1,Incidencia,Número,14.36884691,10.20322786,20.33539532,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80 años a más,1,Incidencia,Número,27.65377823,16.27459756,43.81692514,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40 a 44 años,2,Incidencia,Número,10.01296607,7.55229274,12.5343815,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45 a 49 años,2,Incidencia,Número,10.48515431,7.02230485,15.93990574,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50 a 54 años,2,Incidencia,Número,11.16056551,7.63726323,16.85268044,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55 a 59 años,2,Incidencia,Número,11.68638521,8.75607693,15.13595582,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60 a 64 años,2,Incidencia,Número,13.13070872,9.50428043,17.64585678,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65 a 69 años,2,Incidencia,Número,14.21841154,9.22580309,19.88303051,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70 a 74 años,2,Incidencia,Número,15.60745518,10.0532592,21.01451306,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75 a 79 años,2,Incidencia,Número,17.02014404,10.73620865,27.63255252,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80 años a más,2,Incidencia,Número,33.76587228,21.66458705,50.27900714,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40 a 44 años,1,Incidencia,Número,810.82687435,577.33680739,1080.54811233,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45 a 49 años,1,Incidencia,Número,839.14993047,625.04220913,1099.31729374,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50 a 54 años,1,Incidencia,Número,867.18698017,642.43604406,1161.84890596,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55 a 59 años,1,Incidencia,Número,888.85755128,689.84436627,1286.99814149,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60 a 64 años,1,Incidencia,Número,912.19557344,697.83838515,1437.86585755,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65 a 69 años,1,Incidencia,Número,959.89256006,646.90729857,1343.45579299,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70 a 74 años,1,Incidencia,Número,1029.23942999,698.99915184,1327.01978136,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75 a 79 años,1,Incidencia,Número,1135.30761104,841.15139844,1527.95977695,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80 años a más,1,Incidencia,Número,2348.93978286,1398.77339249,3791.05017055,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40 a 44 años,2,Incidencia,Número,662.7093085,519.66740621,820.02271969,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45 a 49 años,2,Incidencia,Número,715.21065812,513.27604113,1008.51784425,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50 a 54 años,2,Incidencia,Número,770.43969414,556.30117392,1118.79307737,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55 a 59 años,2,Incidencia,Número,830.91749912,650.26592781,1038.8753125,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60 a 64 años,2,Incidencia,Número,933.28686215,710.82854144,1232.91737956,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65 a 69 años,2,Incidencia,Número,1048.29772493,710.76847838,1444.23845467,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70 a 74 años,2,Incidencia,Número,1179.3310991,773.23107155,1594.29896224,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75 a 79 años,2,Incidencia,Número,1334.92788794,813.84307925,2113.77621897,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80 años a más,2,Incidencia,Número,2794.15590789,1845.58277828,4158.24886296,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40 a 44 años,1,Incidencia,Número,240.40705324,161.72098588,322.62704389,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45 a 49 años,1,Incidencia,Número,254.87044671,196.99541842,329.51385883,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50 a 54 años,1,Incidencia,Número,266.44125001,207.55323065,360.60281886,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55 a 59 años,1,Incidencia,Número,282.61858086,218.97518736,411.22542955,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60 a 64 años,1,Incidencia,Número,294.98459724,222.59185214,467.02172661,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65 a 69 años,1,Incidencia,Número,310.30473378,208.96130719,430.54111327,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70 a 74 años,1,Incidencia,Número,339.67790301,229.2824055,452.99466513,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75 a 79 años,1,Incidencia,Número,391.72629739,288.18543406,517.20330307,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80 años a más,1,Incidencia,Número,837.32309409,509.61324479,1359.03767776,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40 a 44 años,2,Incidencia,Número,197.12735637,157.91630326,244.81564565,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45 a 49 años,2,Incidencia,Número,216.54621399,159.25813616,295.67073689,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50 a 54 años,2,Incidencia,Número,237.91941885,175.84822385,324.14948084,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55 a 59 años,2,Incidencia,Número,260.80142321,201.43783428,317.36904291,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60 a 64 años,2,Incidencia,Número,303.41653692,231.68633438,413.08061634,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65 a 69 años,2,Incidencia,Número,342.13989189,238.90951934,465.2330661,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70 a 74 años,2,Incidencia,Número,393.50507585,262.72068474,546.69785373,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75 a 79 años,2,Incidencia,Número,454.18209204,276.37369574,686.20302881,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80 años a más,2,Incidencia,Número,983.85774123,632.98641728,1447.81811604,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40 a 44 años,1,Incidencia,Número,16.21384849,11.56561951,21.5193412,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45 a 49 años,1,Incidencia,Número,16.13752491,12.00498779,20.69206235,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50 a 54 años,1,Incidencia,Número,16.14851839,12.29325403,21.78320211,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55 a 59 años,1,Incidencia,Número,15.46526757,11.94505265,22.70622488,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60 a 64 años,1,Incidencia,Número,15.32768246,11.81701927,24.29248072,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65 a 69 años,1,Incidencia,Número,16.17841357,11.01941479,24.347239,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70 a 74 años,1,Incidencia,Número,16.76085844,11.40276341,22.5025033,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75 a 79 años,1,Incidencia,Número,17.50403177,13.13281412,24.23405178,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80 años a más,1,Incidencia,Número,33.38531193,19.98646658,53.27989924,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40 a 44 años,2,Incidencia,Número,13.16980767,9.87969751,16.44735066,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45 a 49 años,2,Incidencia,Número,13.46195979,9.68627694,18.87138883,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50 a 54 años,2,Incidencia,Número,14.00164147,9.95793382,20.18094712,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55 a 59 años,2,Incidencia,Número,15.08864573,10.90933023,18.8447893,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60 a 64 años,2,Incidencia,Número,16.21651305,12.40376583,21.87442452,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65 a 69 años,2,Incidencia,Número,17.7219662,11.98922315,24.78829596,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70 a 74 años,2,Incidencia,Número,18.75385554,12.33972868,24.53669989,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75 a 79 años,2,Incidencia,Número,20.6886883,12.56530657,32.99750231,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80 años a más,2,Incidencia,Número,39.32018331,24.49652976,61.3718819,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,98.03621129,70.04922794,129.67148372,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,118.84377554,89.10704137,158.13065572,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,145.1128173,106.24370789,200.81545955,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,170.2006763,128.56874904,246.00421405,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,208.98040894,152.40935984,321.90426773,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,265.74769571,171.93872404,396.70426417,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,340.19091024,216.59922296,449.56337954,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,434.89246088,308.81440255,615.47806654,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80 años a más,1,Incidencia,Tasa por 100 000,607.90895216,357.76209194,963.22104072,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,78.12254089,58.92402853,97.79497149,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,97.37327555,65.21456959,148.03032818,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,123.36205935,84.41763264,186.27921345,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,153.7479965,115.19638109,199.13111191,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,201.17525228,145.61483732,270.35172018,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,253.80955978,164.68766679,354.9273564,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,324.7493795,209.18142321,437.25578572,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,413.01004702,260.52435453,670.53027221,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80 años a más,2,Incidencia,Tasa por 100 000,547.88045245,351.52664366,815.82033327,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40 a 44 años,1,Incidencia,Tasa por 100 000,88.80907715,63.23513772,118.35138142,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45 a 49 años,1,Incidencia,Tasa por 100 000,106.90148482,79.62574721,140.04487961,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50 a 54 años,1,Incidencia,Tasa por 100 000,128.46320037,95.16908364,172.11377963,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55 a 59 años,1,Incidencia,Tasa por 100 000,153.08370169,118.8086089,221.65355886,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60 a 64 años,1,Incidencia,Tasa por 100 000,186.90272558,142.98238228,294.60902423,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65 a 69 años,1,Incidencia,Tasa por 100 000,234.06133582,157.74263992,327.58984767,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70 a 74 años,1,Incidencia,Tasa por 100 000,298.7944836,202.9237168,385.24193569,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75 a 79 años,1,Incidencia,Tasa por 100 000,392.54254079,290.83545633,528.30546297,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80 años a más,1,Incidencia,Tasa por 100 000,564.42782824,336.11190627,910.95320116,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40 a 44 años,2,Incidencia,Tasa por 100 000,69.73920078,54.68640491,86.29383707,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45 a 49 años,2,Incidencia,Tasa por 100 000,87.53958416,62.82340831,123.43948136,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50 a 54 años,2,Incidencia,Tasa por 100 000,109.65583365,79.17773377,159.23658726,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55 a 59 años,2,Incidencia,Tasa por 100 000,137.49309142,107.60042093,171.90416434,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60 a 64 años,2,Incidencia,Tasa por 100 000,175.63289557,133.7690265,232.01960529,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65 a 69 años,2,Incidencia,Tasa por 100 000,224.41481936,152.1580901,309.17601384,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70 a 74 años,2,Incidencia,Tasa por 100 000,287.27178149,188.35038573,388.35328217,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75 a 79 años,2,Incidencia,Tasa por 100 000,370.08546745,225.62379522,586.00757925,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80 años a más,2,Incidencia,Tasa por 100 000,494.94383177,326.91798248,736.57293778,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,82.26497622,55.33936246,110.39986445,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,99.89004421,77.20738638,129.14464722,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,119.60266551,93.16845504,161.87080013,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,145.30368884,112.58248623,211.42478203,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,177.78617369,134.1553222,281.47234323,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,219.35709049,147.71654887,304.35322334,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,281.80150908,190.2158701,375.81066977,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,381.6246918,280.75387889,503.86597083,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80 años a más,1,Incidencia,Tasa por 100 000,552.83447385,336.46721563,897.29148142,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,64.80977514,51.91831461,80.48830582,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,81.54169939,59.96955026,111.33648519,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,102.61118273,75.8407797,139.8009535,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,128.82836146,99.50446514,156.77112981,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,167.95822692,128.2514998,228.66350199,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,212.33779674,148.27128365,288.73150009,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,273.92368929,182.88307733,380.56305296,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,354.77432591,215.88321804,536.01236433,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80 años a más,2,Incidencia,Tasa por 100 000,478.59288002,307.91320712,704.28417936,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,93.36009957,66.59537924,123.90937523,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,111.97283449,83.29855527,143.57523137,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,135.02105679,102.78640495,182.13379694,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,155.80563745,120.34105026,228.75503609,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,190.4533109,146.83175039,301.8449394,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,248.05908563,168.95760185,373.30939898,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,317.32030371,215.87965569,426.0224025,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,409.35527988,307.12848747,566.74583207,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80 años a más,1,Incidencia,Tasa por 100 000,579.80743195,347.1077905,925.31954223,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,72.8579756,54.65643677,90.98999039,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,89.74041591,64.5708749,125.80087216,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,112.47201757,79.98982908,162.10898158,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,146.05213172,105.59800821,182.41011812,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,185.07775678,141.56317995,249.65104452,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,238.55116711,161.38407795,333.66934936,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,297.91668844,196.02428407,389.7807767,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,388.00990808,235.6584128,618.85788287,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80 años a más,2,Incidencia,Tasa por 100 000,504.23420501,314.13862215,787.02079897,FECHA_e5-9101_v2
+9102,ACS carotídea,2023,01,Amazonas,1,13,40 a 44 años,1,Incidencia,Número,4.46774054,3.59396477,5.6835564,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45 a 49 años,1,Incidencia,Número,4.7243392,3.60397941,6.04028111,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50 a 54 años,1,Incidencia,Número,5.0273951,3.87198752,6.37363362,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55 a 59 años,1,Incidencia,Número,5.17308785,3.41995749,6.41397138,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60 a 64 años,1,Incidencia,Número,5.54442447,3.84185872,6.87641638,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65 a 69 años,1,Incidencia,Número,6.34255396,4.86240644,8.11489957,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70 a 74 años,1,Incidencia,Número,7.21543395,5.3752231,9.98520017,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75 a 79 años,1,Incidencia,Número,7.97113993,5.92832104,10.45611471,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80 años a más,1,Incidencia,Número,16.74370382,10.03193196,23.23845406,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,13,40 a 44 años,2,Incidencia,Número,3.45755159,2.81200402,4.46444152,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45 a 49 años,2,Incidencia,Número,3.52109866,2.53999125,4.42397789,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50 a 54 años,2,Incidencia,Número,3.76035487,2.89631825,4.82129668,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55 a 59 años,2,Incidencia,Número,4.07751531,3.08086066,4.98771713,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60 a 64 años,2,Incidencia,Número,4.80493889,3.34171998,5.93870748,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65 a 69 años,2,Incidencia,Número,5.62968502,4.01331632,7.23191192,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70 a 74 años,2,Incidencia,Número,6.59687033,4.70658063,8.58915688,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75 a 79 años,2,Incidencia,Número,7.45548868,5.27155041,9.72640108,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80 años a más,2,Incidencia,Número,16.71434851,10.58642897,26.42166502,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40 a 44 años,1,Incidencia,Número,299.93165315,233.67337183,376.43855306,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45 a 49 años,1,Incidencia,Número,322.37687022,256.93564498,403.49972342,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50 a 54 años,1,Incidencia,Número,346.07116031,264.78750261,446.04121237,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55 a 59 años,1,Incidencia,Número,370.1388893,249.7147129,464.65797242,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60 a 64 años,1,Incidencia,Número,404.35349274,284.06209394,528.88483828,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65 a 69 años,1,Incidencia,Número,466.74875892,339.97105058,603.52209833,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70 a 74 años,1,Incidencia,Número,540.41985457,382.54442868,718.63532862,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75 a 79 años,1,Incidencia,Número,626.99550461,459.52647589,826.54426824,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80 años a más,1,Incidencia,Número,1418.00003491,891.29464609,1939.53254027,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40 a 44 años,2,Incidencia,Número,228.81533783,186.36581392,302.25740624,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45 a 49 años,2,Incidencia,Número,240.05513632,177.97249154,299.42629847,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50 a 54 años,2,Incidencia,Número,259.07774397,197.56737272,332.3284758,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55 a 59 años,2,Incidencia,Número,290.1008686,217.81064158,360.28503195,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60 a 64 años,2,Incidencia,Número,341.52566987,242.53678696,411.27196974,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65 a 69 años,2,Incidencia,Número,414.89131807,302.1928919,531.84836645,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70 a 74 años,2,Incidencia,Número,497.0705284,351.70328375,641.7505488,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75 a 79 años,2,Incidencia,Número,583.62692307,407.03264775,757.54387951,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80 años a más,2,Incidencia,Número,1378.06078733,857.26965796,2230.87094172,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40 a 44 años,1,Incidencia,Número,88.97108005,65.19056889,108.935815,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45 a 49 años,1,Incidencia,Número,97.95452469,79.0995951,127.11980079,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50 a 54 años,1,Incidencia,Número,106.40498714,80.94500466,145.49052281,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55 a 59 años,1,Incidencia,Número,117.8649453,79.39672431,146.33329129,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60 a 64 años,1,Incidencia,Número,130.84603295,87.86127235,175.69856659,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65 a 69 años,1,Incidencia,Número,150.78056681,105.49866632,197.81807339,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70 a 74 años,1,Incidencia,Número,178.1210706,120.93787864,234.71496426,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75 a 79 años,1,Incidencia,Número,216.07915299,152.53909818,287.20011597,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80 años a más,1,Incidencia,Número,504.7362724,322.86828766,704.62587116,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40 a 44 años,2,Incidencia,Número,68.02637669,54.88529536,91.05214501,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45 a 49 años,2,Incidencia,Número,72.7376787,56.39297938,93.73706702,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50 a 54 años,2,Incidencia,Número,80.09035938,63.07248795,108.36767173,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55 a 59 años,2,Incidencia,Número,91.06574618,68.21833011,114.11328114,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60 a 64 años,2,Incidencia,Número,111.04472978,76.50278393,139.0378519,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65 a 69 años,2,Incidencia,Número,135.18449777,98.22931402,187.47480577,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70 a 74 años,2,Incidencia,Número,165.47663679,116.21350217,220.70566791,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75 a 79 años,2,Incidencia,Número,198.23266235,140.45564602,265.26031163,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80 años a más,2,Incidencia,Número,484.25059057,309.62965009,791.46200202,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40 a 44 años,1,Incidencia,Número,5.99647926,4.66545362,7.69930544,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45 a 49 años,1,Incidencia,Número,6.20351557,4.96572212,7.98697591,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50 a 54 años,1,Incidencia,Número,6.44531429,4.77064418,8.12405531,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55 a 59 años,1,Incidencia,Número,6.43925289,4.2224236,8.29080608,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60 a 64 años,1,Incidencia,Número,6.79528188,4.70367539,8.76280427,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65 a 69 años,1,Incidencia,Número,7.86547539,5.78693248,10.0185297,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70 a 74 años,1,Incidencia,Número,8.81246746,6.30093889,12.02038291,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75 a 79 años,1,Incidencia,Número,9.68124139,7.49701295,12.46410968,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80 años a más,1,Incidencia,Número,20.11588178,12.02351342,27.6775748,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40 a 44 años,2,Incidencia,Número,4.55305007,3.594455,6.11386767,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45 a 49 años,2,Incidencia,Número,4.52239045,3.17462601,5.6738861,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50 a 54 años,2,Incidencia,Número,4.71468954,3.57254023,6.11035848,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55 a 59 años,2,Incidencia,Número,5.26810307,3.85623918,6.81474798,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60 a 64 años,2,Incidencia,Número,5.94147485,4.22446072,7.76228642,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65 a 69 años,2,Incidencia,Número,7.02274606,5.09363169,9.30648921,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70 a 74 años,2,Incidencia,Número,7.91798291,5.67515325,10.62681946,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75 a 79 años,2,Incidencia,Número,9.05369709,6.17315501,11.9309982,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80 años a más,2,Incidencia,Número,19.35655909,12.33415413,30.31549753,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,36.28179749,29.18600593,46.1552412,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,45.66343704,34.83451969,58.38276732,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,57.83933613,44.54656606,73.32758422,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,70.8351068,46.82948775,87.82652854,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,92.49957406,64.09507375,114.72166135,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,128.9661236,98.86958999,165.00405793,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,178.95421505,133.314065,247.64881375,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,241.25726186,179.42860278,316.46836277,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80 años a más,1,Incidencia,Tasa por 100 000,368.07438597,220.53048928,510.84752833,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,26.97629394,21.93964281,34.83218789,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,32.69965327,23.58832883,41.08449009,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,41.5646609,32.01412899,53.29166225,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,53.6444587,40.53230713,65.61922283,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,73.61634578,51.19840631,90.98678536,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,100.49419893,71.64077692,129.0951789,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,137.26321954,97.93134904,178.71737166,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,180.91455171,127.91920433,236.02040954,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80 años a más,2,Incidencia,Tasa por 100 000,271.20474618,171.77395703,428.71434395,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40 a 44 años,1,Incidencia,Tasa por 100 000,32.85122159,25.59401663,41.23094776,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45 a 49 años,1,Incidencia,Tasa por 100 000,41.06842514,32.73169782,51.40287569,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50 a 54 años,1,Incidencia,Tasa por 100 000,51.26623188,39.22504694,66.07557879,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55 a 59 años,1,Incidencia,Tasa por 100 000,63.74725762,43.0071754,80.02582904,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60 a 64 años,1,Incidencia,Tasa por 100 000,82.84930567,58.20240871,108.36493913,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65 a 69 años,1,Incidencia,Tasa por 100 000,113.81256878,82.8989426,147.16354144,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70 a 74 años,1,Incidencia,Tasa por 100 000,156.88717967,111.05498069,208.62421868,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75 a 79 años,1,Incidencia,Tasa por 100 000,216.78918211,158.88530003,285.78491325,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80 años a más,1,Incidencia,Tasa por 100 000,340.73188508,214.16960328,466.05117232,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40 a 44 años,2,Incidencia,Tasa por 100 000,24.07903221,19.61192147,31.80759599,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45 a 49 años,2,Incidencia,Tasa por 100 000,29.38201014,21.78328542,36.64885773,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50 a 54 años,2,Incidencia,Tasa por 100 000,36.87425014,28.1195467,47.29994617,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55 a 59 años,2,Incidencia,Tasa por 100 000,48.00340021,36.0414343,59.61687278,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60 a 64 años,2,Incidencia,Tasa por 100 000,64.27085256,45.64238489,77.39623244,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65 a 69 años,2,Incidencia,Tasa por 100 000,88.81805043,64.69208283,113.85568455,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70 a 74 años,2,Incidencia,Tasa por 100 000,121.08078582,85.67096124,156.3232103,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75 a 79 años,2,Incidencia,Tasa por 100 000,161.80038232,112.8427004,210.0158243,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80 años a más,2,Incidencia,Tasa por 100 000,244.1033031,151.85277535,395.16614265,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,30.44504596,22.30758427,37.27678581,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,38.39080571,31.00109155,49.82140019,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,47.76407589,36.33535842,65.3091604,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,60.59832048,40.8205182,75.23485172,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,78.86044138,52.95367817,105.89290481,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,106.58808209,74.5779164,139.83930086,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,147.77171564,100.33174488,194.72279635,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,210.50703186,148.60551032,279.79396959,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80 años a más,1,Incidencia,Tasa por 100 000,333.24724178,213.17066398,465.22241593,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,22.36510578,18.04469819,29.93531265,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,27.38978355,21.23509475,35.29722178,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,34.54180639,27.20224611,46.73739966,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,44.98384526,33.6978824,56.36866106,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,61.46954319,42.34862105,76.96532073,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,83.89778301,60.96277168,116.35003151,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,115.19030788,80.89763821,153.63591098,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,154.84507292,109.71383067,207.20224311,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80 años a más,2,Incidencia,Tasa por 100 000,235.5613775,150.61785842,385.00289533,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,34.52800862,26.86390062,44.33296157,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,43.04409916,34.45546852,55.41892802,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,53.89058768,39.88832927,67.92688386,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,64.87258608,42.53902482,83.52615431,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,84.43441695,58.44527071,108.88176275,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,120.59913196,88.72941548,153.61131093,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,166.83959597,119.2907779,227.57256546,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,226.40882574,175.32771168,291.48993643,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80 años a más,1,Incidencia,Tasa por 100 000,349.3553626,208.81405737,480.68035435,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,25.18837172,19.88523455,33.82312274,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,30.14725985,21.16276255,37.82338578,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,37.87203418,28.69740729,49.083127,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,50.99315719,37.32687233,65.9640691,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,67.80957368,48.21342979,88.59034944,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,94.53151249,68.56416332,125.27243514,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,125.78209555,90.15334789,168.81365313,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,169.79927018,115.77560041,223.76215676,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80 años a más,2,Incidencia,Tasa por 100 000,248.22466133,158.17073772,388.75990679,FECHA_e5-9102_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40 a 44 años,1,Incidencia,Número,2.30817736,1.77519462,2.83664813,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45 a 49 años,1,Incidencia,Número,2.43196576,1.67569527,3.03836584,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50 a 54 años,1,Incidencia,Número,2.54036211,1.81507954,3.4050644,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55 a 59 años,1,Incidencia,Número,2.497235,1.92223533,3.57730075,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60 a 64 años,1,Incidencia,Número,2.46968859,1.79392033,3.5957936,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65 a 69 años,1,Incidencia,Número,2.4965124,1.77672202,3.24664098,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70 a 74 años,1,Incidencia,Número,2.56129113,1.75304416,3.41428769,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75 a 79 años,1,Incidencia,Número,2.60707479,1.79219019,3.67523786,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80 años a más,1,Incidencia,Número,4.73001763,3.06059082,7.19651531,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40 a 44 años,2,Incidencia,Número,2.11772474,1.5293466,2.79818209,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45 a 49 años,2,Incidencia,Número,2.10964986,1.45734402,2.86177859,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50 a 54 años,2,Incidencia,Número,2.20303445,1.60453826,2.81263692,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55 a 59 años,2,Incidencia,Número,2.36229716,1.84562589,3.07335024,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60 a 64 años,2,Incidencia,Número,2.62543335,1.81319082,3.51859066,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65 a 69 años,2,Incidencia,Número,2.70979745,1.81706468,3.74466767,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70 a 74 años,2,Incidencia,Número,2.88559158,1.97254438,3.81002761,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75 a 79 años,2,Incidencia,Número,3.07742506,2.13150415,4.14751271,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80 años a más,2,Incidencia,Número,5.99236104,3.5636749,8.87282955,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40 a 44 años,1,Incidencia,Número,154.82697112,126.00302345,185.69594296,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45 a 49 años,1,Incidencia,Número,165.93882483,117.84868511,206.29485626,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50 a 54 años,1,Incidencia,Número,174.52893908,121.06508151,232.01097348,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55 a 59 años,1,Incidencia,Número,178.42188006,136.3069384,260.19041827,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60 a 64 años,1,Incidencia,Número,179.99172175,132.86257141,261.37121657,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65 a 69 años,1,Incidencia,Número,183.40616522,126.19056052,242.59424545,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70 a 74 años,1,Incidencia,Número,191.51129368,128.13847935,254.67405874,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75 a 79 años,1,Incidencia,Número,205.18747492,138.20526929,299.85686988,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80 años a más,1,Incidencia,Número,399.63629217,255.4097004,574.56705889,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40 a 44 años,2,Incidencia,Número,140.08848032,104.53687133,184.42098022,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45 a 49 años,2,Incidencia,Número,143.9420744,96.18094055,195.11883119,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50 a 54 años,2,Incidencia,Número,152.17471727,101.29124718,198.11278921,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55 a 59 años,2,Incidencia,Número,168.29628929,126.29339728,221.46214499,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60 a 64 años,2,Incidencia,Número,186.85809895,124.91910069,246.90441406,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65 a 69 años,2,Incidencia,Número,199.85584821,136.12698088,263.58232951,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70 a 74 años,2,Incidencia,Número,217.25693568,153.64219864,291.37523333,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75 a 79 años,2,Incidencia,Número,241.11537263,169.82709101,332.04087984,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80 años a más,2,Incidencia,Número,493.41444321,302.5541356,682.74659291,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40 a 44 años,1,Incidencia,Número,45.88889893,36.32020208,54.69216026,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45 a 49 años,1,Incidencia,Número,50.37197104,37.79769891,62.77385795,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50 a 54 años,1,Incidencia,Número,53.57006866,37.7157133,71.26584662,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55 a 59 años,1,Incidencia,Número,56.69829125,42.28548542,80.32706759,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60 a 64 años,1,Incidencia,Número,58.162002,42.27918721,84.73126528,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65 a 69 años,1,Incidencia,Número,59.17311543,40.45185397,78.06401498,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70 a 74 años,1,Incidencia,Número,63.02067935,41.4787524,80.27146977,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75 a 79 años,1,Incidencia,Número,70.61950218,49.72706638,98.99724292,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80 años a más,1,Incidencia,Número,141.95151473,86.23509535,204.05007634,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40 a 44 años,2,Incidencia,Número,41.71909668,29.74647276,55.34060308,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45 a 49 años,2,Incidencia,Número,43.68583649,29.617269,58.53821014,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50 a 54 años,2,Incidencia,Número,47.11450392,30.86029143,63.23552475,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55 a 59 años,2,Incidencia,Número,52.92729671,38.44688915,70.34753834,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60 a 64 años,2,Incidencia,Número,60.81455904,39.90993301,80.4532664,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65 a 69 años,2,Incidencia,Número,65.14542935,44.78669453,88.16627423,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70 a 74 años,2,Incidencia,Número,72.24364085,52.37309535,100.90482159,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75 a 79 años,2,Incidencia,Número,82.00569263,58.04667022,115.37321189,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80 años a más,2,Incidencia,Número,173.38363933,106.22406077,246.38618583,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40 a 44 años,1,Incidencia,Número,3.09542612,2.49266485,3.75219098,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45 a 49 años,1,Incidencia,Número,3.19391406,2.32122798,3.98360105,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50 a 54 años,1,Incidencia,Número,3.2510589,2.24405194,4.32795995,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55 a 59 años,1,Incidencia,Número,3.10379525,2.44142708,4.36413142,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60 a 64 años,1,Incidencia,Número,3.02433649,2.20330762,4.25029554,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65 a 69 años,1,Incidencia,Número,3.09289185,2.11898974,4.12240267,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70 a 74 años,1,Incidencia,Número,3.12601043,2.10560001,4.05225568,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75 a 79 años,1,Incidencia,Número,3.1734609,2.14571263,4.66860734,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80 años a más,1,Incidencia,Número,5.68958324,3.71251274,8.40068911,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40 a 44 años,2,Incidencia,Número,2.78403982,2.03103544,3.55859548,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45 a 49 años,2,Incidencia,Número,2.7067041,1.83937706,3.65288265,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50 a 54 años,2,Incidencia,Número,2.76695147,1.9034546,3.66389944,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55 a 59 años,2,Incidencia,Número,3.05564141,2.24708497,3.97499534,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60 a 64 años,2,Incidencia,Número,3.25117923,2.13263468,4.14855014,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65 a 69 años,2,Incidencia,Número,3.38815219,2.30392595,4.52956654,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70 a 74 años,2,Incidencia,Número,3.46540323,2.3648598,4.54010062,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75 a 79 años,2,Incidencia,Número,3.74163642,2.55440714,5.11416092,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80 años a más,2,Incidencia,Número,6.95105752,4.30237766,10.1174473,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,18.74433455,14.41606808,23.03596016,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,23.50633829,16.19655198,29.36754142,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,29.22643938,20.88218525,39.17469398,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,34.19464606,26.32117393,48.98398949,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,41.20267915,29.92860072,59.98988325,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,50.76275716,36.12692187,66.0154733,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,63.52408563,43.47827768,84.67975414,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,78.90662184,54.24304456,111.2360127,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80 años a más,1,Incidencia,Tasa por 100 000,103.97928397,67.28051916,158.19994079,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,16.5227802,11.93217286,21.8318022,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,19.59184492,13.53402694,26.57669564,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,24.35099421,17.73558374,31.08916685,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,31.07876808,24.28135624,40.43349876,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,40.22419715,27.77985014,53.90823753,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,48.37196448,32.43599927,66.84519225,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,60.04143939,41.04337038,79.27647951,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,74.67665756,51.72298359,100.64335631,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80 años a más,2,Incidencia,Tasa por 100 000,97.23123548,57.82370435,143.96932579,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40 a 44 años,1,Incidencia,Tasa por 100 000,16.95804722,13.80098833,20.33909561,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45 a 49 años,1,Incidencia,Tasa por 100 000,21.13937703,15.01304947,26.28043648,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50 a 54 años,1,Incidencia,Tasa por 100 000,25.8543389,17.93431887,34.36960293,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55 a 59 años,1,Incidencia,Tasa por 100 000,30.72875043,23.47549466,44.81135623,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60 a 64 años,1,Incidencia,Tasa por 100 000,36.8790908,27.2226455,53.55320086,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65 a 69 años,1,Incidencia,Tasa por 100 000,44.721976,30.77045535,59.1544674,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70 a 74 años,1,Incidencia,Tasa por 100 000,55.59689654,37.19938204,73.93343245,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75 a 79 años,1,Incidencia,Tasa por 100 000,70.94536491,47.78568119,103.6781366,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80 años a más,1,Incidencia,Tasa por 100 000,96.02878972,61.37251519,138.06298467,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40 a 44 años,2,Incidencia,Tasa por 100 000,14.74199703,11.00077781,19.40725987,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45 a 49 años,2,Incidencia,Tasa por 100 000,17.61806706,11.77225122,23.88194464,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50 a 54 años,2,Incidencia,Tasa por 100 000,21.65886001,14.41667172,28.19717523,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55 a 59 años,2,Incidencia,Tasa por 100 000,27.84822454,20.89794671,36.64565373,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60 a 64 años,2,Incidencia,Tasa por 100 000,35.16435333,23.50820981,46.4643176,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65 a 69 años,2,Incidencia,Tasa por 100 000,42.78423296,29.14144627,56.42650886,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70 a 74 años,2,Incidencia,Tasa por 100 000,52.92134414,37.42551023,70.97572719,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75 a 79 años,2,Incidencia,Tasa por 100 000,66.8450305,47.08159814,92.05254107,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80 años a más,2,Incidencia,Tasa por 100 000,87.40114841,53.5930378,120.9385682,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,15.70273887,12.42842304,18.71513004,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,19.74202376,14.8138549,24.60263058,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,24.04703852,16.93018571,31.99048652,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,29.15049267,21.74038592,41.29883888,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,35.05403294,25.48151663,51.06723397,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,41.82998525,28.59576419,55.18412494,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,52.28283143,34.41134945,66.59432691,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,68.79840831,48.44473426,96.44436069,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80 años a más,1,Incidencia,Tasa por 100 000,93.72211457,56.9358876,134.72208922,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,13.71603275,9.77978017,18.19439021,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,16.45014836,11.15254985,22.04289351,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,20.31979985,13.30959456,27.27256151,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,26.14455407,18.99165147,34.74964969,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,33.66430061,22.09240687,44.5354367,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,40.43035397,27.79537921,54.7174792,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,50.28968073,36.45755132,70.24107869,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,64.05693847,45.34187644,90.12124035,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80 años a más,2,Incidencia,Tasa por 100 000,84.34163987,51.67218495,119.85337852,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40 a 44 años,1,Incidencia,Tasa por 100 000,17.82360866,14.35288102,21.60529151,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45 a 49 años,1,Incidencia,Tasa por 100 000,22.16149082,16.10621693,27.64086213,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50 a 54 años,1,Incidencia,Tasa por 100 000,27.18276674,18.76297612,36.18695613,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55 a 59 años,1,Incidencia,Tasa por 100 000,31.2693457,24.59628329,43.96666758,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60 a 64 años,1,Incidencia,Tasa por 100 000,37.57873372,27.37708276,52.81182333,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65 a 69 años,1,Incidencia,Tasa por 100 000,47.42244477,32.48987636,63.20764594,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70 a 74 años,1,Incidencia,Tasa por 100 000,59.18232545,39.86368818,76.71820668,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75 a 79 años,1,Incidencia,Tasa por 100 000,74.21564303,50.18037015,109.18164968,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80 años a más,1,Incidencia,Tasa por 100 000,98.81179652,64.47573366,145.89595535,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40 a 44 años,2,Incidencia,Tasa por 100 000,15.40185781,11.23608895,19.68685264,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45 a 49 años,2,Incidencia,Tasa por 100 000,18.04349112,12.2616963,24.35092761,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50 a 54 años,2,Incidencia,Tasa por 100 000,22.22629507,15.29002005,29.43127515,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55 a 59 años,2,Incidencia,Tasa por 100 000,29.57740205,21.75089503,38.47638504,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60 a 64 años,2,Incidencia,Tasa por 100 000,37.10544654,24.33958775,47.34706853,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65 a 69 años,2,Incidencia,Tasa por 100 000,45.60710984,31.01259866,60.97141655,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70 a 74 años,2,Incidencia,Tasa por 100 000,55.05009099,37.56727241,72.12232916,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75 a 79 años,2,Incidencia,Tasa por 100 000,70.1732261,47.9071107,95.91449582,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80 años a más,2,Incidencia,Tasa por 100 000,89.1389782,55.17283486,129.74413049,FECHA_e5-9103_v1

@@ -1,0 +1,216 @@
+# Covariables del ancla y sus betas (datos sintéticos de ejemplo), en el formato de
+# una extracción de los apéndices del GBD. Lo usan las cuatro causas (los subtipos
+# declaran extraction.cause_id: 9100).
+meta:
+  causa_gbd:
+    cause_id: 9100
+    cause_name: Arteriopatía crónica sintética
+  fuente: datos sintéticos de ejemplo
+covariables_gbd:
+  - covariate_id: '785'
+    covariate_name_short: SEV_scalar_agestd_cvd_pvd
+    nombre_impreso: Escalar sintético de riesgo vascular (log-transformado)
+    nivel: pais
+    rol: predictiva
+    componente_modelo: DisMod-MR
+    modelo_variante: ~
+    parametro: Prevalence
+    tabla_impresa: Tabla sintética de covariables
+    beta_impreso: 0.62 (0.55 a 0.70)
+    beta_valor: '0.62'
+    beta_inferior: '0.55'
+    beta_superior: '0.70'
+    exponenciado_impreso: 1.86 (1.73 a 2.01)
+    exponenciado_valor: '1.86'
+    exponenciado_inferior: '1.73'
+    exponenciado_superior: '2.01'
+    procedencia:
+      covariate_id:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      covariate_name_short:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      nombre_impreso:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      nivel:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      rol:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      componente_modelo:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      modelo_variante:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      parametro:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      tabla_impresa:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_impreso:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_valor:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_inferior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_superior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_impreso:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_valor:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_inferior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_superior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+  - covariate_id: '57'
+    covariate_name_short: LDI_pc
+    nombre_impreso: Ingreso sintético per cápita (log-transformado)
+    nivel: pais
+    rol: predictiva
+    componente_modelo: DisMod-MR
+    modelo_variante: ~
+    parametro: Prevalence
+    tabla_impresa: Tabla sintética de covariables
+    beta_impreso: -0.21 (-0.30 a -0.12)
+    beta_valor: '-0.21'
+    beta_inferior: '-0.30'
+    beta_superior: '-0.12'
+    exponenciado_impreso: 0.81 (0.74 a 0.89)
+    exponenciado_valor: '0.81'
+    exponenciado_inferior: '0.74'
+    exponenciado_superior: '0.89'
+    procedencia:
+      covariate_id:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      covariate_name_short:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      nombre_impreso:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      nivel:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      rol:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      componente_modelo:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      modelo_variante:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      parametro:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      tabla_impresa:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_impreso:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_valor:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_inferior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_superior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_impreso:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_valor:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_inferior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_superior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+  - covariate_id: '1099'
+    covariate_name_short: haqi
+    nombre_impreso: Índice sintético de acceso y calidad de la atención
+    nivel: pais
+    rol: predictiva
+    componente_modelo: DisMod-MR
+    modelo_variante: ~
+    parametro: Excess mortality rate
+    tabla_impresa: Tabla sintética de covariables
+    beta_impreso: -0.012 (-0.018 a -0.006)
+    beta_valor: '-0.012'
+    beta_inferior: '-0.018'
+    beta_superior: '-0.006'
+    exponenciado_impreso: 0.99 (0.98 a 0.99)
+    exponenciado_valor: '0.99'
+    exponenciado_inferior: '0.98'
+    exponenciado_superior: '0.99'
+    procedencia:
+      covariate_id:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      covariate_name_short:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      nombre_impreso:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      nivel:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      rol:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      componente_modelo:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      modelo_variante:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      parametro:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      tabla_impresa:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_impreso:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_valor:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_inferior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      beta_superior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_impreso:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_valor:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_inferior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo
+      exponenciado_superior:
+        tag: app_convention
+        origen: datos sintéticos de ejemplo

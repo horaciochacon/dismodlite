@@ -1,0 +1,13 @@
+covariate_id,covariate_name_short,location_id,location_name,year_id,age_group_id,age_group_name,sex_id,sex,mean_value,lower_value,upper_value
+785,SEV_scalar_agestd_cvd_pvd,1,Global,2019,27,Age-standardized,1,Male,1.204,1.1679,1.2401
+785,SEV_scalar_agestd_cvd_pvd,1,Global,2019,27,Age-standardized,2,Female,1.094,1.0612,1.1268
+785,SEV_scalar_agestd_cvd_pvd,1,Global,2023,27,Age-standardized,1,Male,1.256,1.2183,1.2937
+785,SEV_scalar_agestd_cvd_pvd,1,Global,2023,27,Age-standardized,2,Female,1.146,1.1116,1.1804
+785,SEV_scalar_agestd_cvd_pvd,120,Andean Latin America,2019,27,Age-standardized,1,Male,1.228,1.1912,1.2648
+785,SEV_scalar_agestd_cvd_pvd,120,Andean Latin America,2019,27,Age-standardized,2,Female,1.117,1.0835,1.1505
+785,SEV_scalar_agestd_cvd_pvd,120,Andean Latin America,2023,27,Age-standardized,1,Male,1.279,1.2406,1.3174
+785,SEV_scalar_agestd_cvd_pvd,120,Andean Latin America,2023,27,Age-standardized,2,Female,1.168,1.133,1.203
+785,SEV_scalar_agestd_cvd_pvd,123,Perú,2019,27,Age-standardized,1,Male,1.216,1.1795,1.2525
+785,SEV_scalar_agestd_cvd_pvd,123,Perú,2019,27,Age-standardized,2,Female,1.106,1.0728,1.1392
+785,SEV_scalar_agestd_cvd_pvd,123,Perú,2023,27,Age-standardized,1,Male,1.268,1.23,1.306
+785,SEV_scalar_agestd_cvd_pvd,123,Perú,2023,27,Age-standardized,2,Female,1.158,1.1233,1.1927

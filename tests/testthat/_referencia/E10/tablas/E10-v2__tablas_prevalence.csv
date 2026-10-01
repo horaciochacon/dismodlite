@@ -1,0 +1,577 @@
+causa_gbd_id,causa_gbd,anio,ubigeo,departamento,nivel,edad_id,edad,sexo_id,medida,metrica,valor,inferior,superior,run_origen
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40 a 44 años,1,Prevalencia,Número,166.00627088,132.12159309,203.48456875,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45 a 49 años,1,Prevalencia,Número,211.51914048,168.50760782,262.57545994,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50 a 54 años,1,Prevalencia,Número,246.4031159,201.13151455,300.71035405,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55 a 59 años,1,Prevalencia,Número,269.25548215,222.82554705,337.66164115,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60 a 64 años,1,Prevalencia,Número,275.11521968,234.22510543,343.81283567,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65 a 69 años,1,Prevalencia,Número,278.37606511,237.92258973,362.89510765,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70 a 74 años,1,Prevalencia,Número,279.87602005,230.63018521,360.14437474,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75 a 79 años,1,Prevalencia,Número,273.73874423,223.21361307,341.97637889,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80 años a más,1,Prevalencia,Número,495.17213516,404.69778417,585.65872814,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40 a 44 años,2,Prevalencia,Número,134.76138287,112.88520854,158.42226678,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45 a 49 años,2,Prevalencia,Número,173.55231897,149.73015632,203.45081358,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50 a 54 años,2,Prevalencia,Número,205.0925579,167.34781373,254.20469665,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55 a 59 años,2,Prevalencia,Número,229.39179728,179.18241909,284.46106871,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60 a 64 años,2,Prevalencia,Número,253.84888875,198.05383339,304.09618042,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65 a 69 años,2,Prevalencia,Número,276.28254769,229.5978964,323.06420419,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70 a 74 años,2,Prevalencia,Número,295.05089851,245.07073011,356.43511423,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75 a 79 años,2,Prevalencia,Número,305.05285497,250.9658241,362.97232963,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80 años a más,2,Prevalencia,Número,605.85987756,482.94900152,821.72883518,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40 a 44 años,1,Prevalencia,Número,11071.88381919,8797.81822329,13605.84299063,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45 a 49 años,1,Prevalencia,Número,14552.31518272,11585.9401579,17767.27360373,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50 a 54 años,1,Prevalencia,Número,17390.09616401,14194.35227685,20503.2685608,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55 a 59 años,1,Prevalencia,Número,19532.13607247,16373.03362532,23149.35167309,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60 a 64 años,1,Prevalencia,Número,20601.6389466,17311.13652703,25034.10306242,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65 a 69 años,1,Prevalencia,Número,21414.42301588,18117.20948126,27068.01648217,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70 a 74 años,1,Prevalencia,Número,22059.9143204,19127.44677628,27269.64937424,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75 a 79 años,1,Prevalencia,Número,22287.29194676,18911.1487985,27000.47210175,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80 años a más,1,Prevalencia,Número,43793.82028163,34353.43472078,50391.04783489,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40 a 44 años,2,Prevalencia,Número,8963.49893062,7601.93969426,10746.84748934,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45 a 49 años,2,Prevalencia,Número,11882.04825041,10505.45427331,13619.95881715,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50 a 54 años,2,Prevalencia,Número,14429.22916947,12257.46119073,17321.77078923,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55 a 59 años,2,Prevalencia,Número,16587.71213206,13878.63966024,19773.9968301,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60 a 64 años,2,Prevalencia,Número,18836.67952634,15986.20041401,21248.84434873,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65 a 69 años,2,Prevalencia,Número,21019.14664332,18223.0933666,23858.35733349,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70 a 74 años,2,Prevalencia,Número,23122.73532583,19330.70294897,27138.48364186,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75 a 79 años,2,Prevalencia,Número,24733.13203018,20070.18233253,29119.16040798,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80 años a más,2,Prevalencia,Número,52800.41090593,43225.97346896,68579.22522597,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40 a 44 años,1,Prevalencia,Número,3210.80618906,2564.49202565,3927.29625321,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45 a 49 años,1,Prevalencia,Número,4352.21465395,3472.41918844,5210.56714265,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50 a 54 años,1,Prevalencia,Número,5333.55437363,4283.86595509,6273.51733775,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55 a 59 años,1,Prevalencia,Número,6139.68971839,4967.69645324,7390.23683166,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60 a 64 años,1,Prevalencia,Número,6648.53657128,5430.47769454,8145.72450898,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65 a 69 años,1,Prevalencia,Número,7051.07246599,5972.07500158,8978.96475088,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70 a 74 años,1,Prevalencia,Número,7386.65208873,6104.7360893,9147.47741461,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75 a 79 años,1,Prevalencia,Número,7647.73253808,6213.7357958,9282.83317882,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80 años a más,1,Prevalencia,Número,15810.16336802,13122.39285711,18406.59306049,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40 a 44 años,2,Prevalencia,Número,2600.03008451,2195.29262986,3063.53059285,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45 a 49 años,2,Prevalencia,Número,3553.60111439,3131.04644181,4092.50487695,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50 a 54 años,2,Prevalencia,Número,4426.55137165,3832.68504581,5158.2728571,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55 a 59 años,2,Prevalencia,Número,5206.86121502,4476.05018507,5947.25199708,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60 a 64 años,2,Prevalencia,Número,6062.13687491,5212.43197696,6807.61935161,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65 a 69 años,2,Prevalencia,Número,6926.87542159,5998.66947994,7840.79355238,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70 a 74 años,2,Prevalencia,Número,7774.90136885,6474.45158803,9252.25264386,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75 a 79 años,2,Prevalencia,Número,8505.08886874,6873.4834258,10230.87695231,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80 años a más,2,Prevalencia,Número,18952.13950303,15219.24780497,24109.73034256,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40 a 44 años,1,Prevalencia,Número,219.69558696,171.73637975,270.9046636,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45 a 49 años,1,Prevalencia,Número,278.14102283,216.7032261,339.53655225,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50 a 54 años,1,Prevalencia,Número,319.95190274,257.1295457,377.32853833,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55 a 59 años,1,Prevalencia,Número,343.92345492,288.94271223,404.0747706,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60 a 64 años,1,Prevalencia,Número,345.20608489,296.34532351,423.2522414,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65 a 69 años,1,Prevalencia,Número,345.08762411,292.83072298,445.97015692,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70 a 74 años,1,Prevalencia,Número,344.22919714,292.8805346,441.67279164,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75 a 79 años,1,Prevalencia,Número,334.07686603,283.39812441,417.73962563,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80 años a más,1,Prevalencia,Número,599.12723345,490.71793462,706.07838649,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40 a 44 años,2,Prevalencia,Número,177.33992288,148.06922633,213.87883031,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45 a 49 años,2,Prevalencia,Número,225.40474886,196.27711725,260.11721831,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50 a 54 años,2,Prevalencia,Número,261.71549642,221.46986397,318.88812898,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55 a 59 años,2,Prevalencia,Número,290.16588686,236.55014508,347.3580937,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60 a 64 años,2,Prevalencia,Número,318.53522071,260.92884401,365.70130024,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65 a 69 años,2,Prevalencia,Número,342.67518274,291.1539217,388.12434023,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70 a 74 años,2,Prevalencia,Número,361.71421368,305.14316479,421.65825395,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75 a 79 años,2,Prevalencia,Número,369.55552723,303.96727152,436.13086241,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80 años a más,2,Prevalencia,Número,716.24572119,577.57953389,957.30635905,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40 a 44 años,1,Prevalencia,Proporción,0.0134811,0.01072938,0.01652465,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45 a 49 años,1,Prevalencia,Proporción,0.02044453,0.01628722,0.02537942,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50 a 54 años,1,Prevalencia,Proporción,0.02834826,0.02313984,0.03459622,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55 a 59 años,1,Prevalencia,Proporción,0.03686916,0.03051151,0.04623602,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60 a 64 años,1,Prevalencia,Proporción,0.04589844,0.03907659,0.0573595,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65 a 69 años,1,Prevalencia,Proporción,0.05660351,0.04837792,0.07378916,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70 a 74 años,1,Prevalencia,Proporción,0.0694137,0.05719995,0.08932152,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75 a 79 años,1,Prevalencia,Proporción,0.08285071,0.0675586,0.10350375,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80 años a más,1,Prevalencia,Proporción,0.10885296,0.08896412,0.1287445,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40 a 44 años,2,Prevalencia,Proporción,0.01051427,0.00880746,0.01236032,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45 a 49 años,2,Prevalencia,Proporción,0.01611741,0.0139051,0.01889402,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50 a 54 años,2,Prevalencia,Proporción,0.02266968,0.0184976,0.02809823,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55 a 59 años,2,Prevalencia,Proporción,0.03017916,0.02357353,0.03742416,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60 a 64 años,2,Prevalencia,Proporción,0.03889212,0.03034378,0.0465905,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65 a 69 años,2,Prevalencia,Proporción,0.04931856,0.04098499,0.05766944,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70 a 74 años,2,Prevalencia,Proporción,0.0613922,0.05099266,0.07416461,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75 a 79 años,2,Prevalencia,Proporción,0.07402399,0.06089925,0.0880787,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80 años a más,2,Prevalencia,Proporción,0.098306,0.07836265,0.1333326,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40 a 44 años,1,Prevalencia,Proporción,0.01212693,0.00963616,0.01490235,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45 a 49 años,1,Prevalencia,Proporción,0.01853857,0.01475963,0.02263419,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50 a 54 años,1,Prevalencia,Proporción,0.02576131,0.02102721,0.0303731,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55 a 59 años,1,Prevalencia,Proporción,0.03363927,0.0281985,0.03986903,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60 a 64 años,1,Prevalencia,Proporción,0.04221137,0.03546935,0.05129319,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65 a 69 años,1,Prevalencia,Proporción,0.05221718,0.04417722,0.06600297,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70 a 74 años,1,Prevalencia,Proporción,0.06404128,0.05552814,0.07916546,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75 a 79 años,1,Prevalencia,Proporción,0.07706026,0.06538695,0.09335649,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80 años a más,1,Prevalencia,Proporción,0.10523237,0.08254803,0.12108488,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40 a 44 años,2,Prevalencia,Proporción,0.0094326,0.00799979,0.01130928,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45 a 49 años,2,Prevalencia,Proporción,0.01454326,0.01285835,0.01667041,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50 a 54 años,2,Prevalencia,Proporción,0.02053696,0.01744591,0.02465389,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55 a 59 años,2,Prevalencia,Proporción,0.02744792,0.02296518,0.03272031,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60 a 64 años,2,Prevalencia,Proporción,0.03544827,0.03008403,0.03998766,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65 a 69 años,2,Prevalencia,Proporción,0.04499684,0.03901117,0.05107489,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70 a 74 años,2,Prevalencia,Proporción,0.05632438,0.04708742,0.06610629,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75 a 79 años,2,Prevalencia,Proporción,0.06856829,0.05564108,0.08072779,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80 años a más,2,Prevalencia,Proporción,0.0935282,0.07656849,0.12147806,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40 a 44 años,1,Prevalencia,Proporción,0.01098707,0.00877544,0.01343883,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45 a 49 años,1,Prevalencia,Proporción,0.01705741,0.01360927,0.0204215,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50 a 54 años,1,Prevalencia,Proporción,0.02394176,0.01922982,0.02816116,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55 a 59 años,1,Prevalencia,Proporción,0.0315662,0.02554059,0.03799569,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60 a 64 años,1,Prevalencia,Proporción,0.04007049,0.0327293,0.04909399,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65 a 69 años,1,Prevalencia,Proporción,0.04984464,0.04221711,0.06347308,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70 a 74 años,1,Prevalencia,Proporción,0.06128069,0.05064574,0.07588874,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75 a 79 años,1,Prevalencia,Proporción,0.07450517,0.060535,0.09043453,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80 años a más,1,Prevalencia,Proporción,0.10438507,0.08663933,0.12152775,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00854815,0.00721749,0.010072,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45 a 49 años,2,Prevalencia,Proporción,0.01338129,0.01179013,0.01541056,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50 a 54 años,2,Prevalencia,Proporción,0.01909107,0.01652981,0.02224688,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55 a 59 años,2,Prevalencia,Proporción,0.02572039,0.02211039,0.02937771,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60 a 64 años,2,Prevalencia,Proporción,0.03355736,0.02885376,0.03768403,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65 a 69 años,2,Prevalencia,Proporción,0.04298936,0.03722876,0.04866129,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70 a 74 años,2,Prevalencia,Proporción,0.05412204,0.04506945,0.06440606,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75 a 79 años,2,Prevalencia,Proporción,0.06643563,0.0536907,0.07991624,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80 años a más,2,Prevalencia,Proporción,0.09219177,0.0740333,0.11728063,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40 a 44 años,1,Prevalencia,Proporción,0.01265017,0.00988866,0.01559882,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45 a 49 años,1,Prevalencia,Proporción,0.01929927,0.0150363,0.02355929,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50 a 54 años,1,Prevalencia,Proporción,0.02675183,0.02149913,0.03154921,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55 a 59 años,1,Prevalencia,Proporción,0.03464875,0.02910968,0.04070872,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60 a 64 años,1,Prevalencia,Proporción,0.0428934,0.03682223,0.05259098,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65 a 69 años,1,Prevalencia,Proporción,0.05291132,0.04489891,0.06837936,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70 a 74 años,1,Prevalencia,Proporción,0.06517024,0.05544879,0.08361848,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75 a 79 años,1,Prevalencia,Proporción,0.07812836,0.06627646,0.09769402,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80 años a más,1,Prevalencia,Proporción,0.10405127,0.08522368,0.12262563,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00981079,0.00819148,0.0118322,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45 a 49 años,2,Prevalencia,Proporción,0.01502598,0.01308427,0.01733999,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50 a 54 años,2,Prevalencia,Proporción,0.02102301,0.01779017,0.02561556,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55 a 59 años,2,Prevalencia,Proporción,0.02808691,0.02289712,0.03362289,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60 a 64 años,2,Prevalencia,Proporción,0.03635417,0.0297796,0.04173719,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65 a 69 años,2,Prevalencia,Proporción,0.04612669,0.03919154,0.05224449,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70 a 74 años,2,Prevalencia,Proporción,0.05746056,0.04847389,0.06698304,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75 a 79 años,2,Prevalencia,Proporción,0.06930899,0.05700812,0.08179499,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80 años a más,2,Prevalencia,Proporción,0.09184993,0.07406765,0.12276306,FECHA_e5-suma_v1
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40 a 44 años,1,Prevalencia,Número,108.97186039,80.22777865,141.76575263,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45 a 49 años,1,Prevalencia,Número,139.15736183,106.22351606,176.92082637,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50 a 54 años,1,Prevalencia,Número,163.14164486,128.90766083,202.11243905,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55 a 59 años,1,Prevalencia,Número,179.48065664,145.2734007,224.84142325,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60 a 64 años,1,Prevalencia,Número,184.54973181,150.4372992,233.07614278,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65 a 69 años,1,Prevalencia,Número,188.24337984,148.41693284,252.76414588,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70 a 74 años,1,Prevalencia,Número,190.94337047,152.28830034,256.16547761,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75 a 79 años,1,Prevalencia,Número,187.53881577,148.18027761,242.01024364,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80 años a más,1,Prevalencia,Número,336.3506324,261.8373472,406.17632854,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40 a 44 años,2,Prevalencia,Número,85.78352751,68.03493267,104.73139947,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45 a 49 años,2,Prevalencia,Número,112.95506555,90.51143208,138.25566278,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50 a 54 años,2,Prevalencia,Número,136.36415409,106.66920263,180.02000519,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55 a 59 años,2,Prevalencia,Número,154.98253783,123.02436951,204.62960446,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60 a 64 años,2,Prevalencia,Número,173.6626587,136.1337941,225.20343282,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65 a 69 años,2,Prevalencia,Número,190.74817638,152.47687678,241.72854003,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70 a 74 años,2,Prevalencia,Número,204.95962825,158.25684376,255.36572607,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75 a 79 años,2,Prevalencia,Número,213.19878476,158.47346244,264.72190013,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80 años a más,2,Prevalencia,Número,424.14654884,335.37083049,559.80108292,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40 a 44 años,1,Prevalencia,Número,7260.80994112,5404.3454248,9621.37391096,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45 a 49 años,1,Prevalencia,Número,9555.24518646,7289.02396658,12040.41558648,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50 a 54 años,1,Prevalencia,Número,11477.02034514,9079.45032213,14066.20290629,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55 a 59 años,1,Prevalencia,Número,12961.35812874,10510.50210261,15377.07235505,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60 a 64 años,1,Prevalencia,Número,13740.26701504,11434.79614092,16931.93228397,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65 a 69 años,1,Prevalencia,Número,14381.2232278,11971.60383128,18792.02610087,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70 a 74 años,1,Prevalencia,Número,14936.7269908,12452.71664843,19319.36937617,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75 a 79 años,1,Prevalencia,Número,15144.49246363,12347.80861052,18996.71434915,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80 años a más,1,Prevalencia,Número,29483.73422452,21920.87350514,35070.70209565,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40 a 44 años,2,Prevalencia,Número,5696.19162319,4690.78132631,6907.84655831,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45 a 49 años,2,Prevalencia,Número,7713.74726762,6228.31546663,8996.03216947,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50 a 54 años,2,Prevalencia,Número,9560.10762773,7616.93478177,11992.05502304,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55 a 59 años,2,Prevalencia,Número,11156.31396757,9218.91856588,14184.79822681,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60 a 64 años,2,Prevalencia,Número,12817.45027441,10550.42462485,15783.83086197,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65 a 69 años,2,Prevalencia,Número,14426.031916,11879.45494214,17642.84086829,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70 a 74 años,2,Prevalencia,Número,15960.28688093,12704.89426013,19275.47459912,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75 a 79 años,2,Prevalencia,Número,17166.0573087,13120.49849898,20844.42159624,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80 años a más,2,Prevalencia,Número,36702.54194941,28056.76533569,46343.01057335,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40 a 44 años,1,Prevalencia,Número,2103.98004738,1609.7485193,2781.10122552,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45 a 49 años,1,Prevalencia,Número,2853.54358757,2181.70851885,3606.95684682,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50 a 54 años,1,Prevalencia,Número,3512.24734543,2718.87755717,4280.97711591,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55 a 59 años,1,Prevalencia,Número,4062.13443401,3288.1786405,4841.98130725,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60 a 64 años,1,Prevalencia,Número,4417.71197378,3615.95722456,5500.36825979,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65 a 69 años,1,Prevalencia,Número,4716.28258555,3831.87868953,6221.95975768,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70 a 74 años,1,Prevalencia,Número,4980.95344139,4134.11882224,6467.66755918,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75 a 79 años,1,Prevalencia,Número,5171.55747991,4156.86395903,6512.23119962,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80 años a más,1,Prevalencia,Número,10592.59059106,8301.63746045,12694.90693283,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40 a 44 años,2,Prevalencia,Número,1651.39567442,1348.58522739,2026.02744742,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45 a 49 años,2,Prevalencia,Número,2304.19678697,1826.8728754,2694.79647979,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50 a 54 años,2,Prevalencia,Número,2926.90601068,2399.8417198,3514.72967167,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55 a 59 años,2,Prevalencia,Número,3492.71226863,2871.53300288,4183.32224875,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60 a 64 años,2,Prevalencia,Número,4111.69040409,3436.93403587,5007.36730974,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65 a 69 años,2,Prevalencia,Número,4737.51714055,3914.20545077,5604.68194143,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70 a 74 años,2,Prevalencia,Número,5348.62842535,4243.22616841,6505.92206991,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75 a 79 años,2,Prevalencia,Número,5882.37956949,4501.14421165,7128.11188577,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80 años a más,2,Prevalencia,Número,13129.12830382,10007.78755386,16787.85411832,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40 a 44 años,1,Prevalencia,Número,144.20144541,106.55196498,190.61416945,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45 a 49 años,1,Prevalencia,Número,182.9004948,136.80299551,235.02302529,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50 a 54 años,1,Prevalencia,Número,211.64407472,166.88417017,259.33351503,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55 a 59 años,1,Prevalencia,Número,229.02476504,186.81875513,273.08080336,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60 a 64 años,1,Prevalencia,Número,231.34380296,193.01175069,286.99459324,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65 a 69 años,1,Prevalencia,Número,232.97574579,191.84364219,310.47480806,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70 a 74 años,1,Prevalencia,Número,234.28942914,187.35652544,313.6779952,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75 a 79 años,1,Prevalencia,Número,228.28897669,181.73216926,295.04258872,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80 años a más,1,Prevalencia,Número,405.99289257,313.85977537,484.7707023,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40 a 44 años,2,Prevalencia,Número,112.84244236,92.38698982,136.68232071,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45 a 49 años,2,Prevalencia,Número,146.61610536,117.93292346,170.28727123,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50 a 54 años,2,Prevalencia,Número,173.88736181,140.98434458,221.15118282,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55 a 59 años,2,Prevalencia,Número,195.83686675,160.22245775,250.80488387,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60 a 64 años,2,Prevalencia,Número,217.60174647,172.95713016,270.62461016,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65 a 69 años,2,Prevalencia,Número,236.17729129,191.36982772,287.61325112,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70 a 74 años,2,Prevalencia,Número,250.84299698,197.33693025,305.76089056,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75 a 79 años,2,Prevalencia,Número,257.84128331,197.94513599,309.78036781,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80 años a más,2,Prevalencia,Número,501.00402997,399.35894496,668.4814399,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40 a 44 años,1,Prevalencia,Proporción,0.00884943,0.00651517,0.01151257,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45 a 49 años,1,Prevalencia,Proporción,0.01345035,0.01026711,0.01710041,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50 a 54 años,1,Prevalencia,Proporción,0.01876917,0.01483061,0.0232527,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55 a 59 años,1,Prevalencia,Proporción,0.02457629,0.01989229,0.03078754,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60 a 64 años,1,Prevalencia,Proporción,0.03078908,0.02509798,0.03888491,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65 a 69 años,1,Prevalencia,Proporción,0.03827641,0.03017831,0.05139572,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70 a 74 años,1,Prevalencia,Proporción,0.04735699,0.03776992,0.0635331,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75 a 79 años,1,Prevalencia,Proporción,0.05676114,0.04484875,0.07324765,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80 años a más,1,Prevalencia,Proporción,0.07393947,0.05755932,0.08928915,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00669295,0.00530818,0.00817129,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45 a 49 años,2,Prevalencia,Proporción,0.01048988,0.00840559,0.01283949,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50 a 54 años,2,Prevalencia,Proporción,0.01507286,0.01179056,0.01989831,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55 a 59 años,2,Prevalencia,Proporción,0.02038976,0.01618529,0.02692141,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60 a 64 años,2,Prevalencia,Proporción,0.02660681,0.02085702,0.03450336,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65 a 69 años,2,Prevalencia,Proporción,0.03405001,0.02721829,0.0431504,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70 a 74 años,2,Prevalencia,Proporción,0.04264661,0.03292901,0.05313477,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75 a 79 años,2,Prevalencia,Proporción,0.05173472,0.0384551,0.0642373,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80 años a más,2,Prevalencia,Proporción,0.06882144,0.05441681,0.09083256,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40 a 44 años,1,Prevalencia,Proporción,0.00795269,0.00591933,0.0105382,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45 a 49 años,1,Prevalencia,Proporción,0.01217267,0.00928568,0.0153386,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50 a 54 años,1,Prevalencia,Proporción,0.01700181,0.0134501,0.02083737,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55 a 59 años,1,Prevalencia,Proporción,0.02232273,0.01810174,0.0264832,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60 a 64 años,1,Prevalencia,Proporción,0.02815288,0.02342913,0.03469239,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65 a 69 años,1,Prevalencia,Proporción,0.03506734,0.0291917,0.0458227,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70 a 74 años,1,Prevalencia,Proporción,0.04336223,0.036151,0.05608531,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75 a 79 años,1,Prevalencia,Proporción,0.05236341,0.04269363,0.0656828,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80 años a más,1,Prevalencia,Proporción,0.0708466,0.05267377,0.08427155,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40 a 44 años,2,Prevalencia,Proporción,0.0059943,0.00493627,0.00726937,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45 a 49 años,2,Prevalencia,Proporción,0.00944139,0.00762327,0.01101087,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50 a 54 años,2,Prevalencia,Proporción,0.0136068,0.0108411,0.01706816,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55 a 59 años,2,Prevalencia,Proporción,0.01846051,0.01525467,0.02347179,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60 a 64 años,2,Prevalencia,Proporción,0.02412084,0.01985458,0.02970319,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65 a 69 años,2,Prevalencia,Proporción,0.03088259,0.025431,0.03776899,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70 a 74 años,2,Prevalencia,Proporción,0.03887746,0.03094769,0.04695289,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75 a 79 años,2,Prevalencia,Proporción,0.0475899,0.03637429,0.05778752,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80 años a más,2,Prevalencia,Proporción,0.06501318,0.04969845,0.08208986,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40 a 44 años,1,Prevalencia,Proporción,0.00719962,0.0055084,0.00951666,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45 a 49 años,1,Prevalencia,Proporción,0.01118374,0.00855066,0.01413656,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50 a 54 años,1,Prevalencia,Proporción,0.01576611,0.01220475,0.01921685,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55 a 59 años,1,Prevalencia,Proporción,0.0208848,0.01690563,0.02489425,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60 a 64 años,1,Prevalencia,Proporción,0.02662539,0.02179325,0.03315053,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65 a 69 años,1,Prevalencia,Proporción,0.03333981,0.02708788,0.04398357,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70 a 74 años,1,Prevalencia,Proporción,0.04132268,0.03429722,0.05365667,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75 a 79 años,1,Prevalencia,Proporción,0.05038196,0.04049669,0.06344298,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80 años a más,1,Prevalencia,Proporción,0.06993655,0.05481076,0.0838169,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00542931,0.00443376,0.00666099,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45 a 49 años,2,Prevalencia,Proporción,0.00867658,0.00687919,0.01014741,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50 a 54 años,2,Prevalencia,Proporción,0.01262332,0.01035017,0.01515852,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55 a 59 años,2,Prevalencia,Proporción,0.01725299,0.01418454,0.0206644,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60 a 64 años,2,Prevalencia,Proporción,0.02276053,0.01902538,0.02771861,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65 a 69 años,2,Prevalencia,Proporción,0.02940183,0.02429222,0.0347836,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70 a 74 años,2,Prevalencia,Proporción,0.03723246,0.02953762,0.04528852,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75 a 79 años,2,Prevalencia,Proporción,0.04594891,0.0351597,0.05567967,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80 años a más,2,Prevalencia,Proporción,0.06386602,0.0486824,0.08166371,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40 a 44 años,1,Prevalencia,Proporción,0.00830319,0.00613531,0.01097565,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45 a 49 años,1,Prevalencia,Proporción,0.01269085,0.0094923,0.01630745,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50 a 54 años,1,Prevalencia,Proporción,0.01769599,0.01395353,0.0216834,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55 a 59 años,1,Prevalencia,Proporción,0.02307322,0.01882115,0.02751167,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60 a 64 años,1,Prevalencia,Proporción,0.0287455,0.02398257,0.03566036,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65 a 69 años,1,Prevalencia,Proporción,0.03572152,0.02941485,0.04760423,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70 a 74 años,1,Prevalencia,Proporción,0.0443562,0.03547075,0.05938622,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75 a 79 años,1,Prevalencia,Proporción,0.05338844,0.04250051,0.06899967,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80 años a más,1,Prevalencia,Proporción,0.07050936,0.05450847,0.08419081,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00624267,0.00511103,0.00756154,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45 a 49 años,2,Prevalencia,Proporción,0.00977376,0.00786167,0.01135173,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50 a 54 años,2,Prevalencia,Proporción,0.01396798,0.01132495,0.01776457,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55 a 59 años,2,Prevalencia,Proporción,0.01895624,0.0155089,0.02427692,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60 a 64 años,2,Prevalencia,Proporción,0.02483471,0.01973946,0.03088617,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65 a 69 años,2,Prevalencia,Proporción,0.03179126,0.02575984,0.03871493,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70 a 74 años,2,Prevalencia,Proporción,0.03984797,0.0313482,0.04857202,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75 a 79 años,2,Prevalencia,Proporción,0.04835733,0.03712399,0.05809834,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80 años a más,2,Prevalencia,Proporción,0.06424776,0.051213,0.08572473,FECHA_e5-9101_v2
+9102,ACS carotídea,2023,01,Amazonas,1,13,40 a 44 años,1,Prevalencia,Número,37.87850443,29.99383741,49.02504295,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45 a 49 años,1,Prevalencia,Número,48.52671708,38.94717057,61.39476095,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50 a 54 años,1,Prevalencia,Número,56.54797253,44.87840521,70.3319602,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55 a 59 años,1,Prevalencia,Número,62.0040195,50.52557333,77.82215549,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60 a 64 años,1,Prevalencia,Número,63.86706302,51.40584797,78.96337954,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65 a 69 años,1,Prevalencia,Número,65.30952329,51.80930394,79.91149166,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70 a 74 años,1,Prevalencia,Número,66.40365167,53.25806177,82.28827086,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75 a 79 años,1,Prevalencia,Número,65.89871668,51.96615906,81.10537472,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80 años a más,1,Prevalencia,Número,125.56626287,97.31533628,156.22703034,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,13,40 a 44 años,2,Prevalencia,Número,30.86129317,24.08475336,41.2643182,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45 a 49 años,2,Prevalencia,Número,38.91177468,32.5224692,46.28167516,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50 a 54 años,2,Prevalencia,Número,44.89176201,35.46173154,53.8129942,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55 a 59 años,2,Prevalencia,Número,49.42463748,38.97529887,58.91315113,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60 a 64 años,2,Prevalencia,Número,54.2612755,41.55915211,63.86533646,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65 a 69 años,2,Prevalencia,Número,59.71298578,47.02436914,70.15393149,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70 a 74 años,2,Prevalencia,Número,65.35899385,53.4878937,79.35329005,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75 a 79 años,2,Prevalencia,Número,68.49958312,54.79455029,80.70923708,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80 años a más,2,Prevalencia,Número,140.41166009,108.60907623,179.66256492,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40 a 44 años,1,Prevalencia,Número,2527.07659809,1944.59857197,3061.47365692,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45 a 49 años,1,Prevalencia,Número,3343.99370812,2678.10646458,4005.06124132,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50 a 54 años,1,Prevalencia,Número,4004.73330945,3263.63370682,4688.10577311,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55 a 59 años,1,Prevalencia,Número,4521.75591638,3839.74612519,5460.03418995,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60 a 64 años,1,Prevalencia,Número,4816.19390059,3840.9280364,5835.458471,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65 a 69 años,1,Prevalencia,Número,5068.48888394,3952.79328358,6140.25562417,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70 a 74 años,1,Prevalencia,Número,5288.07255565,4259.14465938,6395.54222746,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75 a 79 años,1,Prevalencia,Número,5431.61431806,4373.31287335,6572.49740102,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80 años a más,1,Prevalencia,Número,11274.73563693,8586.2366212,14125.31894084,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40 a 44 años,2,Prevalencia,Número,2052.327291,1633.63521644,2800.25611685,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45 a 49 años,2,Prevalencia,Número,2665.46486717,2243.46221983,3114.04715545,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50 a 54 años,2,Prevalencia,Número,3164.09715713,2668.40513407,3607.78009806,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55 a 59 años,2,Prevalencia,Número,3586.16595325,2905.70799691,4105.58682446,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60 a 64 años,2,Prevalencia,Número,4046.74568582,3364.85061287,4633.80209748,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65 a 69 años,2,Prevalencia,Número,4569.35949411,3746.22909255,5114.74616805,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70 a 74 años,2,Prevalencia,Número,5154.91011862,4236.95374435,6142.30208112,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75 a 79 años,2,Prevalencia,Número,5600.91653167,4591.68652358,6703.22573044,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80 años a más,2,Prevalencia,Número,12375.40619372,9952.21899651,16028.7223084,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40 a 44 años,1,Prevalencia,Número,733.37742774,535.46213977,866.92241769,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45 a 49 años,1,Prevalencia,Número,1001.8594618,812.37479886,1157.13454589,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50 a 54 años,1,Prevalencia,Número,1231.78196613,1009.7505152,1467.39082815,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55 a 59 años,1,Prevalencia,Número,1427.12007899,1190.56343794,1731.01543104,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60 a 64 años,1,Prevalencia,Número,1562.42529946,1254.95070549,1950.11779258,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65 a 69 años,1,Prevalencia,Número,1678.33849261,1291.81052096,2045.81720758,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70 a 74 años,1,Prevalencia,Número,1781.23581652,1409.7281803,2202.94096545,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75 a 79 años,1,Prevalencia,Número,1878.62882971,1449.36251398,2256.14854489,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80 años a más,1,Prevalencia,Número,4105.5693571,3201.08529811,5139.08816565,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40 a 44 años,2,Prevalencia,Número,594.65559532,488.23564743,817.99255456,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45 a 49 años,2,Prevalencia,Número,796.70331122,687.16826339,935.02117892,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50 a 54 años,2,Prevalencia,Número,971.34700664,821.88050392,1105.87560385,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55 a 59 años,2,Prevalencia,Número,1127.72466951,931.96865739,1298.54326327,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60 a 64 años,2,Prevalencia,Número,1306.16153369,1074.44264144,1540.46593969,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65 a 69 años,2,Prevalencia,Número,1511.12797629,1212.77290951,1744.81567422,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70 a 74 años,2,Prevalencia,Número,1739.30599117,1420.00271016,2105.79899158,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75 a 79 años,2,Prevalencia,Número,1934.29620104,1566.18994773,2342.06926045,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80 años a más,2,Prevalencia,Número,4466.05327777,3570.64756971,5918.84721527,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40 a 44 años,1,Prevalencia,Número,50.11532772,38.9703342,62.89536764,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45 a 49 años,1,Prevalencia,Número,63.82897579,50.85997831,78.95468126,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50 a 54 años,1,Prevalencia,Número,73.50617873,60.39151503,87.34168986,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55 a 59 años,1,Prevalencia,Número,79.29774731,66.41865545,95.74846485,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60 a 64 años,1,Prevalencia,Número,80.2198736,63.93173553,98.26800539,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65 a 69 años,1,Prevalencia,Número,81.12816662,62.82458918,100.05591506,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70 a 74 años,1,Prevalencia,Número,81.96327923,64.5202193,101.04922023,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75 a 79 años,1,Prevalencia,Número,80.74818134,65.95837,98.97158424,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80 años a más,1,Prevalencia,Número,152.46451699,119.71506169,190.09942773,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40 a 44 años,2,Prevalencia,Número,40.61160562,31.824204,55.61517377,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45 a 49 años,2,Prevalencia,Número,50.56111161,40.47576002,59.79640538,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50 a 54 años,2,Prevalencia,Número,57.32646134,47.47132853,66.92218692,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55 a 59 años,2,Prevalencia,Número,62.57861242,50.97403622,72.18894358,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60 a 64 años,2,Prevalencia,Número,68.19403098,54.92432645,79.13506893,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65 a 69 años,2,Prevalencia,Número,74.21986986,60.40497298,89.70845257,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70 a 74 años,2,Prevalencia,Número,80.28531999,65.42463038,98.55865226,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75 a 79 años,2,Prevalencia,Número,83.17710334,67.31464332,103.57539145,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80 años a más,2,Prevalencia,Número,166.09582936,131.37890054,208.71077969,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,13,40 a 44 años,1,Prevalencia,Proporción,0.00307605,0.00243575,0.00398124,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45 a 49 años,1,Prevalencia,Proporción,0.00469038,0.00376447,0.00593415,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50 a 54 años,1,Prevalencia,Proporción,0.00650575,0.00516319,0.00809157,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55 a 59 años,1,Prevalencia,Proporción,0.00849021,0.00691847,0.01065619,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60 a 64 años,1,Prevalencia,Proporción,0.01065517,0.00857622,0.01317374,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65 a 69 años,1,Prevalencia,Proporción,0.01327969,0.01053463,0.01624878,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70 a 74 años,1,Prevalencia,Proporción,0.01646916,0.01320884,0.0204088,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75 a 79 años,1,Prevalencia,Proporción,0.01994513,0.01572826,0.02454763,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80 años a más,1,Prevalencia,Proporción,0.02760305,0.02139269,0.03434316,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00240784,0.00187913,0.0032195,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45 a 49 años,2,Prevalencia,Proporción,0.00361365,0.00302029,0.00429808,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50 a 54 años,2,Prevalencia,Proporción,0.00496206,0.00391972,0.00594816,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55 a 59 años,2,Prevalencia,Proporción,0.00650239,0.00512765,0.00775071,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60 a 64 años,2,Prevalencia,Proporción,0.00831336,0.00636727,0.00978479,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65 a 69 años,2,Prevalencia,Proporción,0.01065923,0.00839421,0.01252302,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70 a 74 años,2,Prevalencia,Proporción,0.01359946,0.0111294,0.0165113,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75 a 79 años,2,Prevalencia,Proporción,0.01662208,0.01329642,0.01958487,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80 años a más,2,Prevalencia,Proporción,0.02278301,0.01762276,0.0291518,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40 a 44 años,1,Prevalencia,Proporción,0.00276788,0.0021299,0.0033532,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45 a 49 años,1,Prevalencia,Proporción,0.00426,0.00341171,0.00510215,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50 a 54 años,1,Prevalencia,Proporción,0.00593253,0.00483468,0.00694486,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55 a 59 años,1,Prevalencia,Proporción,0.0077876,0.00661301,0.00940356,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60 a 64 años,1,Prevalencia,Proporción,0.00986806,0.0078698,0.01195646,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65 a 69 años,1,Prevalencia,Proporción,0.01235906,0.00963854,0.01497247,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70 a 74 años,1,Prevalencia,Proporción,0.0153516,0.01236456,0.01856665,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75 a 79 años,1,Prevalencia,Proporción,0.01878028,0.01512111,0.02272498,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80 años a más,1,Prevalencia,Proporción,0.02709211,0.02063191,0.03394179,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40 a 44 años,2,Prevalencia,Proporción,0.00215974,0.00171913,0.00294681,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45 a 49 años,2,Prevalencia,Proporción,0.00326245,0.00274593,0.0038115,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50 a 54 años,2,Prevalencia,Proporción,0.00450342,0.00379791,0.00513491,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55 a 59 años,2,Prevalencia,Proporción,0.00593408,0.00480812,0.00679357,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60 a 64 años,2,Prevalencia,Proporción,0.00761547,0.00633223,0.00872024,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65 a 69 años,2,Prevalencia,Proporción,0.00978188,0.00801976,0.01094942,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70 a 74 años,2,Prevalencia,Proporción,0.01255678,0.01032074,0.01496196,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75 a 79 años,2,Prevalencia,Proporción,0.01552756,0.01272965,0.01858352,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80 años a más,2,Prevalencia,Proporción,0.02192122,0.0176289,0.02839254,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40 a 44 años,1,Prevalencia,Proporción,0.00250955,0.0018323,0.00296652,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45 a 49 años,1,Prevalencia,Proporción,0.00392654,0.0031839,0.0045351,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50 a 54 años,1,Prevalencia,Proporción,0.00552934,0.00453266,0.00658696,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55 a 59 años,1,Prevalencia,Proporción,0.0073373,0.00612109,0.00889973,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60 a 64 años,1,Prevalencia,Proporción,0.00941668,0.00756354,0.01175329,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65 a 69 años,1,Prevalencia,Proporción,0.01186432,0.00913192,0.01446206,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70 a 74 años,1,Prevalencia,Proporción,0.01477738,0.0116953,0.0182759,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75 a 79 años,1,Prevalencia,Proporción,0.01830184,0.01411987,0.02197968,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80 años a más,1,Prevalencia,Proporción,0.02710662,0.02113486,0.03393033,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00195506,0.00160518,0.00268932,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45 a 49 años,2,Prevalencia,Proporción,0.00300003,0.00258757,0.00352088,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50 a 54 años,2,Prevalencia,Proporción,0.00418928,0.00354465,0.00476948,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55 a 59 años,2,Prevalencia,Proporción,0.00557063,0.00460366,0.00641443,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60 a 64 años,2,Prevalencia,Proporción,0.00723034,0.00594765,0.00852735,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65 a 69 años,2,Prevalencia,Proporción,0.00937832,0.00752667,0.01082862,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70 a 74 años,2,Prevalencia,Proporción,0.01210752,0.00988481,0.01465872,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75 a 79 años,2,Prevalencia,Proporción,0.01510933,0.01223395,0.01829456,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80 años a más,2,Prevalencia,Proporción,0.0217249,0.01736924,0.02879195,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40 a 44 años,1,Prevalencia,Proporción,0.00288566,0.00224393,0.00362154,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45 a 49 años,1,Prevalencia,Proporción,0.00442888,0.003529,0.0054784,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50 a 54 años,1,Prevalencia,Proporción,0.006146,0.00504946,0.00730282,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55 a 59 años,1,Prevalencia,Proporción,0.00798889,0.00669138,0.00964623,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60 a 64 años,1,Prevalencia,Proporción,0.00996768,0.0079438,0.01221024,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65 a 69 años,1,Prevalencia,Proporción,0.01243915,0.00963272,0.01534129,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70 a 74 años,1,Prevalencia,Proporción,0.01551747,0.01221511,0.01913086,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75 a 79 años,1,Prevalencia,Proporción,0.01888405,0.01542525,0.02314583,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80 años a más,1,Prevalencia,Proporción,0.02647873,0.02079108,0.03301484,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00224671,0.00176058,0.00307674,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45 a 49 años,2,Prevalencia,Proporción,0.00337052,0.0026982,0.00398616,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50 a 54 años,2,Prevalencia,Proporción,0.0046049,0.00381326,0.00537571,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55 a 59 años,2,Prevalencia,Proporción,0.00605736,0.00493409,0.0069876,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60 a 64 años,2,Prevalencia,Proporción,0.00778293,0.00626847,0.00903162,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65 a 69 años,2,Prevalencia,Proporción,0.00999056,0.00813097,0.01207544,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70 a 74 años,2,Prevalencia,Proporción,0.01275382,0.01039311,0.01565666,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75 a 79 años,2,Prevalencia,Proporción,0.01559961,0.01262465,0.01942524,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80 años a más,2,Prevalencia,Proporción,0.0212998,0.01684777,0.02676465,FECHA_e5-9102_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40 a 44 años,1,Prevalencia,Número,19.15590606,15.06537367,23.91413666,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45 a 49 años,1,Prevalencia,Número,23.83506157,18.90737995,28.39949521,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50 a 54 años,1,Prevalencia,Número,26.71349851,21.06313992,31.57019922,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55 a 59 años,1,Prevalencia,Número,27.77080602,22.52538108,33.22064065,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60 a 64 años,1,Prevalencia,Número,26.69842486,22.93175081,32.65530021,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65 a 69 años,1,Prevalencia,Número,24.82316199,21.44787685,30.61381338,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70 a 74 años,1,Prevalencia,Número,22.52899791,18.23962657,27.90689799,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75 a 79 años,1,Prevalencia,Número,20.30121178,16.40489726,24.27903809,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80 años a más,1,Prevalencia,Número,33.25523989,26.03145084,42.42987238,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40 a 44 años,2,Prevalencia,Número,18.11656219,14.11038181,21.85653748,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45 a 49 años,2,Prevalencia,Número,21.68547875,17.66662296,26.54514273,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50 a 54 años,2,Prevalencia,Número,23.8366418,19.28944168,29.96217893,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55 a 59 años,2,Prevalencia,Número,24.98462196,20.9965604,29.87212777,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60 a 64 años,2,Prevalencia,Número,25.92495456,22.21988363,31.68976821,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65 a 69 años,2,Prevalencia,Número,25.82138553,20.57062716,31.43787166,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70 a 74 años,2,Prevalencia,Número,24.73227642,19.06227716,30.26292528,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75 a 79 años,2,Prevalencia,Número,23.35448708,17.46245603,29.50932729,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80 años a más,2,Prevalencia,Número,41.30166864,29.79111439,51.50985352,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40 a 44 años,1,Prevalencia,Número,1283.99727998,1013.87260511,1573.40068352,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45 a 49 años,1,Prevalencia,Número,1653.07628814,1367.24047386,1903.8370506,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50 a 54 años,1,Prevalencia,Número,1908.34250943,1526.74743323,2169.24216934,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55 a 59 años,1,Prevalencia,Número,2049.02202735,1652.96509881,2413.83440688,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60 a 64 años,1,Prevalencia,Número,2045.17803098,1746.10524216,2515.05437433,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65 a 69 años,1,Prevalencia,Número,1964.71090414,1665.40518401,2433.7600504,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70 a 74 años,1,Prevalencia,Número,1835.11477395,1523.55492418,2199.60683189,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75 a 79 años,1,Prevalencia,Número,1711.18516508,1424.11441951,2066.79415288,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80 años a más,1,Prevalencia,Número,3035.35042018,2285.41867352,3698.12868984,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40 a 44 años,2,Prevalencia,Número,1214.98001643,966.09103041,1493.49871456,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45 a 49 años,2,Prevalencia,Número,1502.83611562,1273.74433413,1805.89887539,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50 a 54 años,2,Prevalencia,Número,1705.02438461,1374.21695601,2157.94773072,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55 a 59 años,2,Prevalencia,Número,1845.23221124,1552.19492116,2208.0533096,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60 a 64 años,2,Prevalencia,Número,1972.48356611,1651.46829899,2372.92577876,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65 a 69 años,2,Prevalencia,Número,2023.7552332,1668.00158533,2460.10466537,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70 a 74 años,2,Prevalencia,Número,2007.53832628,1622.75084404,2424.36114349,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75 a 79 años,2,Prevalencia,Número,1966.15818982,1582.71485175,2438.53222667,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80 años a más,2,Prevalencia,Número,3722.46276281,2818.13068615,4679.69346934,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40 a 44 años,1,Prevalencia,Número,373.44871394,294.84712044,454.92547008,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45 a 49 años,1,Prevalencia,Número,496.81160458,419.98448253,579.93126842,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50 a 54 años,1,Prevalencia,Número,589.52506207,469.41171503,675.56526761,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55 a 59 años,1,Prevalencia,Número,650.4352054,538.88573564,771.09470514,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60 a 64 años,1,Prevalencia,Número,668.39929804,554.59402936,812.68929956,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65 a 69 años,1,Prevalencia,Número,656.45138782,550.7585271,792.53306069,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70 a 74 años,1,Prevalencia,Número,624.46283082,518.96412935,753.47247647,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75 a 79 años,1,Prevalencia,Número,597.54622846,478.20685455,725.67584384,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80 años a más,1,Prevalencia,Número,1112.00341986,849.3796075,1297.91995594,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40 a 44 años,2,Prevalencia,Número,353.97881478,279.94245907,432.83381057,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45 a 49 años,2,Prevalencia,Número,452.7010162,375.29768931,539.80069053,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50 a 54 años,2,Prevalencia,Número,528.29835433,439.51939547,666.29248632,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55 a 59 años,2,Prevalencia,Número,586.42427688,468.61996003,711.2526686,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60 a 64 años,2,Prevalencia,Número,644.28493713,513.06351702,769.82218771,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65 a 69 años,2,Prevalencia,Número,678.23030475,550.00860881,818.29741751,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70 a 74 años,2,Prevalencia,Número,686.96695234,547.14815673,864.70486738,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75 a 79 años,2,Prevalencia,Número,688.41309821,558.38279546,881.42735327,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80 años a más,2,Prevalencia,Número,1356.95792144,1043.11187053,1749.3008907,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40 a 44 años,1,Prevalencia,Número,25.37881383,19.77974012,31.04642989,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45 a 49 años,1,Prevalencia,Número,31.41155224,25.55077472,36.5333984,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50 a 54 años,1,Prevalencia,Número,34.80164929,27.9506334,39.92831681,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55 a 59 años,1,Prevalencia,Número,35.60094257,28.9500785,42.10196301,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60 a 64 años,1,Prevalencia,Número,33.64240834,28.49427484,41.36465475,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65 a 69 años,1,Prevalencia,Número,30.9837117,25.51372957,38.39660075,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70 a 74 años,1,Prevalencia,Número,27.97648876,22.67831968,34.19008286,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75 a 79 años,1,Prevalencia,Número,25.03970799,20.79907662,30.27577525,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80 años a más,1,Prevalencia,Número,40.66982389,31.8437465,50.25948372,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40 a 44 años,2,Prevalencia,Número,23.8858749,18.39999156,28.54735453,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45 a 49 años,2,Prevalencia,Número,28.22753188,23.42578266,33.90421507,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50 a 54 años,2,Prevalencia,Número,30.50167327,24.30870231,38.40855703,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55 a 59 años,2,Prevalencia,Número,31.75040769,26.40894261,38.41870281,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60 a 64 años,2,Prevalencia,Número,32.73944327,27.09658645,39.94813241,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65 a 69 años,2,Prevalencia,Número,32.27802159,25.92706537,39.59678332,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70 a 74 años,2,Prevalencia,Número,30.58589671,22.89960978,38.63306169,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75 a 79 años,2,Prevalencia,Número,28.53714057,20.68236672,35.61827981,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80 años a más,2,Prevalencia,Número,49.14586185,35.84820616,61.4142231,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40 a 44 años,1,Prevalencia,Proporción,0.00155562,0.00122343,0.00194203,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45 a 49 años,1,Prevalencia,Proporción,0.00230379,0.00182751,0.00274497,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50 a 54 años,1,Prevalencia,Proporción,0.00307334,0.00242328,0.0036321,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55 a 59 años,1,Prevalencia,Proporción,0.00380266,0.0030844,0.0045489,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60 a 64 años,1,Prevalencia,Proporción,0.00445419,0.00382578,0.005448,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65 a 69 años,1,Prevalencia,Proporción,0.00504741,0.0043611,0.00622485,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70 a 74 años,1,Prevalencia,Proporción,0.00558755,0.00452372,0.00692135,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75 a 79 años,1,Prevalencia,Proporción,0.00614443,0.00496516,0.00734838,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80 años a más,1,Prevalencia,Proporción,0.00731045,0.00572246,0.0093273,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00141348,0.00110091,0.00170528,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45 a 49 años,2,Prevalencia,Proporción,0.00201388,0.00164066,0.00246519,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50 a 54 años,2,Prevalencia,Proporción,0.00263476,0.00213214,0.00331184,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55 a 59 años,2,Prevalencia,Proporción,0.00328702,0.00276234,0.00393003,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60 a 64 años,2,Prevalencia,Proporción,0.00397196,0.0034043,0.00485518,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65 a 69 años,2,Prevalencia,Proporción,0.00460932,0.00367201,0.0056119,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70 a 74 años,2,Prevalencia,Proporción,0.00514612,0.00396635,0.0062969,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75 a 79 años,2,Prevalencia,Proporción,0.00566719,0.00423743,0.00716072,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80 años a más,2,Prevalencia,Proporción,0.00670155,0.00483387,0.00835792,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40 a 44 años,1,Prevalencia,Proporción,0.00140635,0.00111048,0.00172333,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45 a 49 años,1,Prevalencia,Proporción,0.0021059,0.00174176,0.00242535,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50 a 54 años,1,Prevalencia,Proporción,0.00282698,0.00226169,0.00321347,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55 a 59 años,1,Prevalencia,Proporción,0.00352893,0.00284682,0.00415723,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60 a 64 años,1,Prevalencia,Proporción,0.00419043,0.00357765,0.00515318,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65 a 69 años,1,Prevalencia,Proporción,0.00479077,0.00406094,0.00593451,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70 a 74 años,1,Prevalencia,Proporción,0.00532745,0.00442297,0.00638559,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75 a 79 años,1,Prevalencia,Proporción,0.00591657,0.004924,0.00714612,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80 años a más,1,Prevalencia,Proporción,0.00729366,0.00549164,0.00888625,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40 a 44 años,2,Prevalencia,Proporción,0.00127857,0.00101665,0.00157166,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45 a 49 años,2,Prevalencia,Proporción,0.00183943,0.00155902,0.00221036,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50 a 54 años,2,Prevalencia,Proporción,0.00242674,0.00195591,0.00307138,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55 a 59 años,2,Prevalencia,Proporción,0.00305333,0.00256844,0.0036537,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60 a 64 años,2,Prevalencia,Proporción,0.00371197,0.00310786,0.00446555,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65 a 69 años,2,Prevalencia,Proporción,0.00433236,0.00357078,0.00526648,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70 a 74 años,2,Prevalencia,Proporción,0.00489014,0.00395284,0.00590547,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75 a 79 años,2,Prevalencia,Proporción,0.00545083,0.0043878,0.00676041,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80 años a más,2,Prevalencia,Proporción,0.0065938,0.00499191,0.00828939,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40 a 44 años,1,Prevalencia,Proporción,0.00127791,0.00100894,0.00155671,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45 a 49 años,1,Prevalencia,Proporción,0.00194713,0.00164602,0.00227289,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50 a 54 años,1,Prevalencia,Proporción,0.00264632,0.00210714,0.00303254,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55 a 59 años,1,Prevalencia,Proporción,0.00334411,0.00277059,0.00396446,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60 a 64 años,1,Prevalencia,Proporción,0.00402842,0.00334252,0.00489805,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65 a 69 años,1,Prevalencia,Proporción,0.00464051,0.00389336,0.00560248,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70 a 74 años,1,Prevalencia,Proporción,0.00518063,0.0043054,0.00625091,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75 a 79 años,1,Prevalencia,Proporción,0.00582137,0.00465875,0.00706963,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80 años a más,1,Prevalencia,Proporción,0.0073419,0.00560795,0.00856939,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00116378,0.00092037,0.00142303,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45 a 49 años,2,Prevalencia,Proporción,0.00170467,0.0014132,0.00203265,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50 a 54 años,2,Prevalencia,Proporción,0.00227847,0.00189558,0.00287362,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55 a 59 años,2,Prevalencia,Proporción,0.00289677,0.00231485,0.00351338,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60 a 64 años,2,Prevalencia,Proporción,0.00356648,0.0028401,0.0042614,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65 a 69 años,2,Prevalencia,Proporción,0.00420921,0.00341345,0.00507849,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70 a 74 años,2,Prevalencia,Proporción,0.00478206,0.00380877,0.00601932,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75 a 79 años,2,Prevalencia,Proporción,0.00537739,0.00436168,0.00688508,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80 años a más,2,Prevalencia,Proporción,0.00660086,0.00507417,0.00850939,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40 a 44 años,1,Prevalencia,Proporción,0.00146132,0.00113893,0.00178767,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45 a 49 años,1,Prevalencia,Proporción,0.00217954,0.00177288,0.00253493,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50 a 54 años,1,Prevalencia,Proporción,0.00290984,0.00233701,0.00333849,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55 a 59 años,1,Prevalencia,Proporción,0.00358664,0.00291659,0.00424158,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60 a 64 años,1,Prevalencia,Proporción,0.00418022,0.00354054,0.00513974,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65 a 69 años,1,Prevalencia,Proporción,0.00475065,0.00391195,0.00588724,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70 a 74 años,1,Prevalencia,Proporción,0.00529657,0.00429351,0.00647294,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75 a 79 años,1,Prevalencia,Proporción,0.00585587,0.00486414,0.0070804,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80 años a más,1,Prevalencia,Proporción,0.00706319,0.00553035,0.00872864,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40 a 44 años,2,Prevalencia,Proporción,0.00132141,0.00101792,0.0015793,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45 a 49 años,2,Prevalencia,Proporción,0.00188171,0.00156161,0.00226013,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50 a 54 años,2,Prevalencia,Proporción,0.00245013,0.00195266,0.00308527,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55 a 59 años,2,Prevalencia,Proporción,0.00307331,0.00255628,0.00371878,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60 a 64 años,2,Prevalencia,Proporción,0.00373653,0.00309251,0.00455925,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65 a 69 años,2,Prevalencia,Proporción,0.00434487,0.00348998,0.00533003,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70 a 74 años,2,Prevalencia,Proporción,0.00485876,0.00363775,0.0061371,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75 a 79 años,2,Prevalencia,Proporción,0.00535205,0.00387891,0.0066801,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80 años a más,2,Prevalencia,Proporción,0.00630237,0.0045971,0.00787564,FECHA_e5-9103_v1

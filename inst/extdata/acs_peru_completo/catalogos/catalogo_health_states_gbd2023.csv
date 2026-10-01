@@ -1,0 +1,4 @@
+healthstate_id,healthstate_name,healthstate_name_pretty,lay_description,dw_mean,dw_lower,dw_upper
+799,asymptomatic,Asintomático,no tiene síntomas.,0,0,0
+9801,arteriopatia_sintomatica_leve,Arteriopatía sintomática leve,tiene síntomas leves por falta de irrigación de una extremidad o un órgano; no le impiden sus actividades diarias.,0.02,0.012,0.031
+9802,arteriopatia_sintomatica_moderada,Arteriopatía sintomática moderada,tiene síntomas moderados por falta de irrigación de una extremidad o un órgano; tiene alguna dificultad para sus actividades diarias.,0.07,0.046,0.102

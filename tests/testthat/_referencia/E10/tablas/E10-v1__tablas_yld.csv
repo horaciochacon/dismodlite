@@ -1,0 +1,577 @@
+causa_gbd_id,causa_gbd,anio,ubigeo,departamento,nivel,edad_id,edad,sexo_id,medida,metrica,valor,inferior,superior,run_origen
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,2.61223893,1.75236059,4.03059579,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,3.26267902,2.28856357,4.64920178,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,3.70190234,2.52946318,5.4681009,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,3.97435329,2.76768517,5.76932806,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,3.93243501,2.83980861,5.68120697,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,3.95075786,2.85625979,5.61983128,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,3.82329365,2.66359476,5.28175052,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,3.65120057,2.51398208,4.89109951,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,6.30928613,4.51183498,8.54896181,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,2.12250788,1.58474402,3.00392968,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,2.68180787,1.96922188,3.80225328,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,3.10025952,2.1659626,4.41633388,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,3.38781518,2.26649609,4.7957111,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,3.65812319,2.42810905,5.08929162,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,3.91741329,2.64130408,5.40599464,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,4.06386036,2.84668619,5.65416985,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,4.17433743,2.88313424,5.795619,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,7.72857398,4.95363735,10.44013751,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40-44 years,1,YLDs (Years Lived with Disability),Number,174.09002472,116.71770564,255.6204144,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45-49 years,1,YLDs (Years Lived with Disability),Number,224.29979987,157.13913125,303.85192187,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50-54 years,1,YLDs (Years Lived with Disability),Number,260.99982825,182.26842517,358.52002113,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55-59 years,1,YLDs (Years Lived with Disability),Number,287.92924647,206.49509191,399.36484658,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60-64 years,1,YLDs (Years Lived with Disability),Number,294.05105586,213.04721078,396.63962178,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65-69 years,1,YLDs (Years Lived with Disability),Number,303.43082927,228.07458086,414.01111721,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70-74 years,1,YLDs (Years Lived with Disability),Number,300.96847335,222.19676286,417.89440439,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75-79 years,1,YLDs (Years Lived with Disability),Number,296.87248255,217.10912278,396.45337938,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80+ years,1,YLDs (Years Lived with Disability),Number,556.85227095,416.26136543,733.67690952,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40-44 years,2,YLDs (Years Lived with Disability),Number,140.89819598,105.06522204,192.29501514,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45-49 years,2,YLDs (Years Lived with Disability),Number,183.15153442,137.43973804,245.59852901,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50-54 years,2,YLDs (Years Lived with Disability),Number,217.59995834,154.29108786,290.0408703,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55-59 years,2,YLDs (Years Lived with Disability),Number,244.44462306,170.74670816,325.63353343,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60-64 years,2,YLDs (Years Lived with Disability),Number,270.83663881,186.7498985,356.4991146,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65-69 years,2,YLDs (Years Lived with Disability),Number,297.38834267,206.97235216,393.2274363,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70-74 years,2,YLDs (Years Lived with Disability),Number,317.86271708,226.68148643,419.53182693,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75-79 years,2,YLDs (Years Lived with Disability),Number,337.78587491,236.91945448,444.61811351,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80+ years,2,YLDs (Years Lived with Disability),Number,672.30419629,446.90600495,870.649001,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,50.44394353,32.67917992,70.52718347,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,67.02395368,45.56292904,89.13431702,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,79.96784754,56.41623578,108.36589452,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,90.41614236,64.38721278,120.26131387,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,94.80406681,67.3477245,126.63866157,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,99.80419096,73.90937818,136.59368618,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,100.68692275,74.57788094,140.05724233,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,101.77265084,75.33162559,136.22426992,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,200.86898622,146.54997682,264.97933629,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,40.8188316,30.08821102,54.26693898,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,54.70685336,40.52224729,72.06527902,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,66.66989427,48.88826107,86.47628579,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,76.6206629,55.12086983,98.62186593,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,87.01825359,61.44377981,112.27645018,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,97.84109096,69.87115743,125.25813705,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,106.70200426,75.27292851,136.66972583,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,115.96617069,79.5346396,148.74324939,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,241.00864579,157.21957752,306.26593164,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,3.4554496,2.29801494,5.27615102,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,4.28819631,3.02415287,6.04001429,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,4.80384432,3.29186115,6.93512785,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,5.07275096,3.55332766,7.06991767,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,4.9307513,3.56523311,6.85169571,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,4.89439645,3.54640387,6.74416907,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,4.70023432,3.34746546,6.65125943,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,4.45409913,3.11008316,6.00810139,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,7.62674206,5.66582971,9.83029011,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,2.78942713,2.00940512,3.83137414,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,3.47806502,2.6251435,4.83579808,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,3.95101682,2.77707031,5.43305167,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,4.28049558,2.94884724,5.89687109,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,4.58584502,3.0811224,6.23978211,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,4.854006,3.30796424,6.57761692,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,4.9781273,3.50927459,6.79290072,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,5.0526823,3.47186958,6.79488323,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,9.12978243,5.86192015,11.90856123,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,21.21356937,14.23063662,32.73181575,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,31.53565645,22.12027421,44.937191,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,42.58976462,29.10104904,62.90958235,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,54.42083108,37.89792098,78.99942575,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,65.60618972,47.37752102,94.78156435,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,80.33261196,58.07766964,114.27066444,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,94.82375116,66.06137807,130.99579656,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,110.50849171,76.08904595,148.03569932,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,138.69611191,99.18300674,187.930574,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,16.56009893,12.36439124,23.43707323,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,24.90534798,18.28772177,35.3106731,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,34.26837096,23.94122476,48.81545134,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,44.57065095,29.81839355,63.09316008,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,56.04601176,37.20099664,77.97290672,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,69.92883409,47.14930524,96.50115384,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,84.55805989,59.23192245,117.6481451,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,101.2942837,69.96200524,140.63622918,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,01,Amazonas,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,125.4027905,80.37704609,169.40025166,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,19.0679107,12.78397652,27.99785481,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,28.57413292,20.01836125,38.70848395,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,38.66394907,27.0008496,53.11037915,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,49.58868247,35.56366597,68.78070502,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,60.24907969,43.65193773,81.26878549,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,73.98893187,55.61397524,100.95295992,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,87.37298335,64.50507538,121.31729423,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,102.64625856,75.06737897,137.077225,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80+ years,1,YLDs (Years Lived with Disability),Rate,133.80629007,100.02363627,176.29556436,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,14.82720622,11.05637799,20.23587189,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,22.41718433,16.82220109,30.06050435,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,30.97076256,21.96008071,41.28119783,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,40.44859681,28.25369881,53.88304041,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,50.96806248,35.14399136,67.08866728,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,63.66354673,44.30770183,84.18034494,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,77.4277801,55.21705862,102.1932309,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,93.64524072,65.6817854,123.26261505,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,123,Perú,0,21,80+ years,2,YLDs (Years Lived with Disability),Rate,119.08885044,79.16285913,154.22273019,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,17.26143122,11.18250036,24.13372234,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,26.26834842,17.85724102,34.93394775,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,35.8967229,25.32465291,48.64430652,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,46.48597051,33.10362504,61.83037391,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,57.13807584,40.59023542,76.32467353,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,70.5524427,52.24717638,96.55925392,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,83.53127043,61.87084649,116.19343471,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,99.14819803,73.38901827,132.71139918,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,132.62180524,96.75820469,174.95004377,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,13.42005162,9.89213383,17.84140049,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,20.60017448,15.25888099,27.13658766,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,28.7537551,21.08479549,37.29596351,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,37.84839183,27.22811576,48.71634991,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,48.1695287,34.01260992,62.15137015,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,60.7218339,43.36322065,77.73731586,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,74.27656835,52.39840487,95.13746534,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,90.58441704,62.12672989,116.18750929,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,15,Lima,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,117.23749996,76.47870952,148.98159371,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,19.89664077,13.23207772,30.38032487,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,29.75434574,20.98357532,41.90961898,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,40.16592244,27.52392264,57.9860188,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,51.1056917,35.79818314,71.22625097,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,61.26679051,44.29961617,85.13538406,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,75.04441051,54.37601762,103.40645615,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,88.98588265,63.37496139,125.92312438,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,104.16508712,72.7334695,140.50751605,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,132.45470749,98.39926554,170.72403809,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,15.43166148,11.11642576,21.19591801,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,23.18555446,17.49979001,32.23650479,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,31.73762408,22.3075774,43.64247464,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,41.43350673,28.54367669,57.07938327,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,52.33787973,35.16460167,71.21413044,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,65.33861899,44.52771894,88.53973508,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,79.08065613,55.74701487,107.90946332,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,94.76148346,65.11383313,127.4359195,FECHA_e5-suma_v1
+9100,Arteriopatía crónica sintética,2023,25,Ucayali,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,117.07851278,75.17209739,152.71301915,FECHA_e5-suma_v1
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,1.776986,1.15923585,3.0423899,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,2.21265808,1.44793811,3.43969986,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,2.53239659,1.59489623,4.14482473,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,2.74596294,1.7246175,4.37321029,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,2.71137344,1.78985669,4.20948204,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,2.76348122,1.80277345,4.22751457,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,2.68205904,1.73165044,4.04112398,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,2.58242074,1.62497055,3.80477381,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,4.41767123,2.98499366,6.31907533,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,1.39588895,0.87559526,2.06821009,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,1.79436278,1.1245409,2.66346824,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,2.1247785,1.26844393,3.18555524,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,2.36535896,1.39496415,3.54722208,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,2.58077674,1.57172447,3.8074567,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,2.78867957,1.73541705,4.1677297,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,2.91806384,1.8716951,4.29954708,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,3.02269123,1.87298622,4.46675123,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,5.55186023,3.18600917,7.55969988,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40-44 years,1,YLDs (Years Lived with Disability),Number,118.29780099,73.66485561,192.70837316,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45-49 years,1,YLDs (Years Lived with Disability),Number,151.8169572,99.94663004,224.39183414,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50-54 years,1,YLDs (Years Lived with Disability),Number,177.96782876,112.33379479,271.08510687,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55-59 years,1,YLDs (Years Lived with Disability),Number,198.05530382,124.46854885,308.8112086,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60-64 years,1,YLDs (Years Lived with Disability),Number,201.6156756,135.39834423,303.88607724,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65-69 years,1,YLDs (Years Lived with Disability),Number,210.87764407,143.53413884,312.4970879,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70-74 years,1,YLDs (Years Lived with Disability),Number,209.62346506,132.87536979,308.47302429,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75-79 years,1,YLDs (Years Lived with Disability),Number,208.3257127,136.3865089,299.43736706,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80+ years,1,YLDs (Years Lived with Disability),Number,386.588749,265.73276334,554.29340703,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40-44 years,2,YLDs (Years Lived with Disability),Number,92.47589237,59.26758898,131.25727807,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45-49 years,2,YLDs (Years Lived with Disability),Number,122.17878647,79.26029077,170.66843588,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50-54 years,2,YLDs (Years Lived with Disability),Number,148.55813347,97.7014067,210.55545866,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55-59 years,2,YLDs (Years Lived with Disability),Number,169.87960427,111.24086089,240.97892072,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60-64 years,2,YLDs (Years Lived with Disability),Number,190.0497458,119.6201185,266.00666434,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65-69 years,2,YLDs (Years Lived with Disability),Number,210.44834531,131.71238443,294.20844981,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70-74 years,2,YLDs (Years Lived with Disability),Number,226.82751896,144.31026397,313.27510919,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75-79 years,2,YLDs (Years Lived with Disability),Number,242.98150343,146.25575841,334.25287475,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80+ years,2,YLDs (Years Lived with Disability),Number,479.40346604,269.10089441,637.01735913,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,34.24914474,20.87066912,53.13451499,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,45.29603144,28.99340509,63.67150119,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,54.40191183,34.20791917,79.50371831,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,62.00933191,38.63342377,92.46363451,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,64.76425389,43.14903913,95.1322726,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,69.09694465,44.92046755,99.7006201,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,69.85286756,43.60787875,100.67695137,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,71.08640573,45.9250245,98.92401808,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,138.81094302,94.28505431,190.4066766,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,26.7631242,16.98594467,37.50926404,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,36.43107458,24.42197192,50.28824008,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,45.40099882,30.3425597,62.05098737,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,53.08529868,35.8479749,72.39656159,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,60.84454344,39.47189777,83.62438326,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,68.97337108,44.51621296,93.59004904,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,75.86470668,49.67121556,102.76691929,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,83.1081504,51.26535104,114.90144709,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,171.19286944,97.89628433,230.87384513,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,2.35022768,1.48947017,3.98022106,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,2.90644734,1.88782343,4.46610643,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,3.28289326,2.08425202,5.26230176,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,3.50129899,2.22298621,5.35783236,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,3.39702828,2.24833842,5.07583892,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,3.41966084,2.23430758,5.07149125,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,3.29137381,2.02301921,4.86618249,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,3.14333152,1.98470723,4.56574255,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,5.32954686,3.71242972,7.63195233,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,1.83344817,1.2291146,2.63664158,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,2.32498733,1.50846992,3.42192593,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,2.7053349,1.69994904,4.0486842,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,2.98499962,1.85133791,4.41397069,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,3.23054857,2.03240742,4.67645677,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,3.4496469,2.18427426,4.95586133,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,3.56873428,2.31152254,5.15038755,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,3.65289518,2.2473885,5.23050326,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,6.55263684,3.78885269,8.92852841,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,14.43061559,9.41396665,24.70675573,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,21.38660429,13.99514894,33.24666398,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,29.13479741,18.34901323,47.68551227,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,37.60047847,23.61519233,59.88238112,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,45.23479208,29.86080567,70.22826225,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,56.19115937,36.65663781,85.96003591,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,66.5193214,42.94767955,100.22628912,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,78.16043404,49.18191734,115.15659238,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,97.11301895,65.61867789,138.91130646,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,10.89091791,6.83151487,16.13646008,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,16.66384452,10.44335898,24.73503192,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,23.48600092,14.02060279,35.21117768,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,31.11904966,18.3523767,46.66783427,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,39.54001441,24.08035033,58.33394669,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,49.7800708,30.97852644,74.39717423,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,60.71710038,38.94496662,89.46206994,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,73.34848908,45.44979899,108.38998377,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,01,Amazonas,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,90.08372925,51.69575166,122.6626624,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,12.95704282,8.06843983,21.10716026,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,19.34035571,12.73246027,28.5858574,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,26.36376856,16.64088497,40.15796039,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,34.11012147,21.43662522,53.18508333,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,41.30969321,27.74220826,62.26420929,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,51.42065385,34.99953398,76.19965909,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,60.85497035,38.57453022,89.55160025,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,72.03043808,47.15682887,103.53308983,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80+ years,1,YLDs (Years Lived with Disability),Rate,92.89358953,63.85304877,133.19141947,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,9.73155914,6.2369341,13.81265896,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,14.95430757,9.70121574,20.88929148,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,21.14411562,13.90573368,29.96812668,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,28.11021791,18.40718227,39.87512215,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,35.76498128,22.51100774,50.05912179,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,45.05182667,28.1963895,62.9828097,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,55.2526305,35.15235598,76.31029045,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,67.36238271,40.5468574,92.66577807,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,123,Perú,0,21,80+ years,2,YLDs (Years Lived with Disability),Rate,84.91930883,47.66728565,112.8383036,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,11.71972718,7.14174179,18.18211884,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,17.75263724,11.36323396,24.95443921,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,24.42044415,15.35557394,35.68838018,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,31.88107676,19.86273857,47.53865488,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,39.03318681,26.00577331,57.33588431,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,48.84522564,31.75466563,70.47922756,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,57.95090972,36.17770226,83.52299803,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,69.25327163,44.74073719,96.37302414,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,91.64858248,62.25079513,125.71416652,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,8.79894142,5.58448749,12.33196149,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,13.71832681,9.1962314,18.93632071,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,19.58079004,13.0863044,26.76168778,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,26.22260248,17.70786298,35.76180793,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,33.68089867,21.84992957,46.29082937,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,42.80603927,27.62751378,58.08356547,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,52.81034887,34.5767398,71.53730764,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,64.91809905,40.0447985,89.75273167,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,15,Lima,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,83.27595036,47.62117804,112.30747478,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,13.53272115,8.57643907,22.91829941,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,20.16685637,13.09896911,30.98880401,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,27.44894028,17.42685634,43.99917859,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,35.27401762,22.39558949,53.97775907,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,42.20959597,27.93661053,63.06956903,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,52.43270225,34.25801251,77.75975541,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,62.31302176,38.3002501,92.12765025,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,73.51102714,46.41504281,106.77601858,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,92.55899373,64.47429174,132.54519498,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,10.14299719,6.79970456,14.58642167,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,15.49888227,10.05579578,22.81131876,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,21.73134307,13.65530594,32.52216402,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,28.89361751,17.92021981,42.7254931,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,36.86999055,23.19570207,53.37202428,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,46.43487549,29.40199571,66.70966921,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,56.69156924,36.71997673,81.81711755,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,68.50891188,42.14907158,98.09646025,FECHA_e5-9101_v2
+9101,ACS de miembros inferiores,2023,25,Ucayali,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,84.02971071,48.58749278,114.49767133,FECHA_e5-9101_v2
+9102,ACS carotídea,2023,01,Amazonas,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,0.53972427,0.36989797,0.75263049,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,0.70159198,0.47289529,0.98001816,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,0.78187148,0.50045356,1.08915554,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,0.82634064,0.54328075,1.17699651,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,0.84992404,0.59882807,1.27085649,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,0.84717378,0.60642605,1.26069477,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,0.83868483,0.58235993,1.26267706,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,0.80292146,0.54123891,1.20116496,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,1.47515848,0.9939244,2.14378027,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,0.44588316,0.28792729,0.70195809,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,0.55785211,0.37511908,0.81971142,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,0.62289825,0.41383407,0.93595939,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,0.66707295,0.42468594,1.01504226,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,0.71810069,0.45077917,1.07833596,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,0.77307097,0.49943757,1.08189373,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,0.82422398,0.54386504,1.05758819,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,0.8477008,0.5362548,1.18401094,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,1.65892638,1.12712656,2.61001016,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40-44 years,1,YLDs (Years Lived with Disability),Number,36.00642419,23.55654189,50.43226501,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45-49 years,1,YLDs (Years Lived with Disability),Number,48.34142201,34.16385533,66.06197687,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50-54 years,1,YLDs (Years Lived with Disability),Number,55.3645611,37.68876659,75.42651176,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55-59 years,1,YLDs (Years Lived with Disability),Number,60.23906819,41.70215192,83.8957203,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60-64 years,1,YLDs (Years Lived with Disability),Number,64.04149384,47.20276889,90.85105662,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65-69 years,1,YLDs (Years Lived with Disability),Number,65.6723591,47.73045014,93.12059332,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70-74 years,1,YLDs (Years Lived with Disability),Number,66.72409943,46.69435804,95.54110565,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75-79 years,1,YLDs (Years Lived with Disability),Number,66.15739969,46.80175526,94.05691666,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80+ years,1,YLDs (Years Lived with Disability),Number,132.31542975,92.86203838,187.01067096,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40-44 years,2,YLDs (Years Lived with Disability),Number,29.63501496,19.61934616,46.66872378,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45-49 years,2,YLDs (Years Lived with Disability),Number,38.18700757,26.51462549,55.03267938,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50-54 years,2,YLDs (Years Lived with Disability),Number,43.87411012,31.01082817,64.11564263,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55-59 years,2,YLDs (Years Lived with Disability),Number,48.36021535,32.52641314,72.83164588,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60-64 years,2,YLDs (Years Lived with Disability),Number,53.49782412,36.19740574,76.62468056,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65-69 years,2,YLDs (Years Lived with Disability),Number,59.11545491,41.76038686,78.95832736,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70-74 years,2,YLDs (Years Lived with Disability),Number,64.97417729,44.19923679,87.58479564,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75-79 years,2,YLDs (Years Lived with Disability),Number,69.25099454,45.06186011,95.30746834,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80+ years,2,YLDs (Years Lived with Disability),Number,146.32177422,101.20641685,245.90557778,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,10.44583604,6.48611203,14.34367041,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,14.48011291,10.04121986,19.62566715,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,17.02771281,12.20253,23.40309286,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,19.0073089,13.89265403,26.41710816,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,20.76700941,14.80384678,28.45421273,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,21.73306541,15.14105296,29.87354373,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,22.46112179,15.33908607,30.84793351,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,22.8721861,15.52811291,31.25008265,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,48.16233027,33.13896741,68.02340032,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,8.59151411,5.67890311,13.32122167,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,11.42312527,7.94741365,16.4882327,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,13.48395948,9.43489429,20.72531511,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,15.22213307,10.54244541,22.65147059,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,17.27661724,12.05141629,24.06092079,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,19.56196394,13.66504625,25.61218793,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,21.93986386,14.36164925,31.02940627,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,23.9315613,15.08080912,34.62837872,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,52.87253284,36.35711669,91.8814286,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,0.71406864,0.47649387,1.03120665,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,0.92298608,0.65241353,1.29245961,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,1.01635676,0.69101697,1.40697805,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,1.05651973,0.73276817,1.47540909,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,1.06656207,0.79260236,1.49944796,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,1.05062866,0.75944853,1.48697753,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,1.03333573,0.72933795,1.50072674,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,0.98298771,0.68734853,1.43960655,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,1.7885148,1.24386774,2.46660874,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,0.58637136,0.37622022,0.90746547,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,0.72466768,0.48483852,1.06099569,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,0.79501439,0.5492809,1.1837766,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,0.84431158,0.55523542,1.27605319,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,0.9019825,0.59459393,1.33435243,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,0.96028661,0.66547732,1.32884419,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,1.012196,0.66717769,1.41751005,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,1.02877093,0.65271589,1.45916976,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,1.96150794,1.32675587,3.3156671,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,4.38301338,3.00388153,6.11199036,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,6.78128725,4.57080315,9.47243531,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,8.99530004,5.75763413,12.53055159,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,11.31508476,7.43914486,16.11661663,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,14.1795803,9.99045827,21.20214362,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,17.22598175,12.33074521,25.63429791,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,20.80071494,14.44345077,31.31639534,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,24.30149697,16.38132295,36.35487181,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,32.42819251,21.84929443,47.12640744,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,3.47884188,2.24644839,5.47677374,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,5.18064735,3.48364673,7.61247607,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,6.88513593,4.57426852,10.34552211,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,8.77612088,5.58723775,13.35406207,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,11.00200234,6.90637619,16.52115766,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,13.79991017,8.91534398,19.31263346,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,17.1498956,11.31637619,22.00558036,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,20.57026934,13.01273477,28.7311561,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,01,Amazonas,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,26.91751386,18.28860233,42.34967003,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,3.94374854,2.58012507,5.52379683,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,6.15833906,4.35222209,8.41580647,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,8.20158613,5.58313222,11.17352003,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,10.37468775,7.18216296,14.44896024,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,13.1216705,9.67152924,18.61476924,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,16.01362563,11.63864935,22.70663548,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,19.370413,13.55565692,27.73616565,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,22.87449984,16.18211641,32.52100196,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80+ years,1,YLDs (Years Lived with Disability),Rate,31.79413589,22.31386221,44.93688073,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,3.11859549,2.06461189,4.91111179,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,4.67397224,3.24530859,6.73583064,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,6.2445538,4.41373704,9.12550884,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,8.00223309,5.38219149,12.05155525,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,10.0676203,6.81189829,14.41980495,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,12.6551683,8.93987409,16.90304038,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,15.82697826,10.76643659,21.33467038,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,19.19863007,12.49261456,26.42233284,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,123,Perú,0,21,80+ years,2,YLDs (Years Lived with Disability),Rate,25.91876115,17.92723578,43.55857473,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,3.5744644,2.21948501,4.90826575,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,5.67511509,3.9354029,7.69178532,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,7.6435606,5.47758695,10.50540142,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,9.77229484,7.14267927,13.58192109,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,12.51620314,8.92222611,17.1492534,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,15.36329123,10.70334082,21.11786551,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,18.6340588,12.72551898,25.59187436,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,22.28237172,15.12768314,30.44422404,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,31.79871271,21.87968269,44.9117921,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,2.82464143,1.86705915,4.37963252,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,4.30144231,2.99264348,6.20873711,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,5.81543548,4.0691326,8.93852678,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,7.51929356,5.20766317,11.18917146,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,9.56358552,6.67114104,13.31908153,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,12.14048529,8.48075855,15.8953565,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,15.27260719,9.99731945,21.59994868,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,18.69361139,11.78004149,27.04919444,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,15,Lima,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,25.71959004,17.68574506,44.69528031,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,4.1116407,2.74367405,5.93773624,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,6.40428865,4.5268771,8.96794069,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,8.49796626,5.77773389,11.76403048,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,10.64396266,7.38231083,14.86408512,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,13.25251076,9.84843889,18.63131161,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,16.10899508,11.64441162,22.7994102,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,19.56334205,13.80798842,28.41209285,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,22.98848716,16.07456797,33.66713176,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,31.06138943,21.60242686,42.8379426,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,3.24392212,2.08132451,5.0202781,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,4.83079578,3.23204135,7.0728331,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,6.38617068,4.41224917,9.50900955,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,8.17260267,5.37445962,12.35169092,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,10.29425358,6.78605261,15.22885676,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,12.92618946,8.9578318,17.88725515,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,16.07936453,10.59853354,22.51803099,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,19.29427851,12.24148337,27.36627451,FECHA_e5-9102_v1
+9102,ACS carotídea,2023,25,Ucayali,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,25.15398741,17.01405322,42.51945494,FECHA_e5-9102_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,0.29552866,0.20448061,0.47490916,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,0.34842896,0.25194244,0.5250448,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,0.38763427,0.27168545,0.53372079,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,0.40204971,0.28332022,0.52679735,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,0.37113753,0.2708034,0.49675331,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,0.34010286,0.24245806,0.46343744,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,0.30254978,0.20794635,0.40129744,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,0.26585837,0.18186787,0.35676846,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,0.41645642,0.25775726,0.59873698,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,0.28073577,0.20253067,0.43332171,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,0.32959299,0.23550679,0.49081861,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,0.35258277,0.23329515,0.49819659,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,0.35538327,0.24891518,0.48100474,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,0.35924575,0.25804156,0.50166619,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,0.35566275,0.2366472,0.47770501,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,0.32157253,0.21824376,0.44346608,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,0.3039454,0.20393958,0.4181141,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,0.51778737,0.33677774,0.72849264,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40-44 years,1,YLDs (Years Lived with Disability),Number,19.78579954,13.65097908,30.6671904,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45-49 years,1,YLDs (Years Lived with Disability),Number,24.14142067,17.45793383,35.89932702,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50-54 years,1,YLDs (Years Lived with Disability),Number,27.66743839,19.63920344,37.81145847,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55-59 years,1,YLDs (Years Lived with Disability),Number,29.63487446,21.15403709,39.09187744,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60-64 years,1,YLDs (Years Lived with Disability),Number,28.39388642,20.04968384,36.98762316,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65-69 years,1,YLDs (Years Lived with Disability),Number,26.8808261,18.45149915,34.39933358,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70-74 years,1,YLDs (Years Lived with Disability),Number,24.62090885,16.58923728,31.28888788,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75-79 years,1,YLDs (Years Lived with Disability),Number,22.38937016,14.81398976,29.11924907,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80+ years,1,YLDs (Years Lived with Disability),Number,37.94809221,24.59052858,54.39795028,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40-44 years,2,YLDs (Years Lived with Disability),Number,18.78728865,13.2508194,27.63223379,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45-49 years,2,YLDs (Years Lived with Disability),Number,22.78574038,16.13226263,32.67677192,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50-54 years,2,YLDs (Years Lived with Disability),Number,25.16771475,17.65584491,35.30370262,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55-59 years,2,YLDs (Years Lived with Disability),Number,26.20480343,18.08973542,34.96646548,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60-64 years,2,YLDs (Years Lived with Disability),Number,27.28906889,19.21922357,39.1688743,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65-69 years,2,YLDs (Years Lived with Disability),Number,27.82454244,19.23162779,37.10513508,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70-74 years,2,YLDs (Years Lived with Disability),Number,26.06102083,17.3158995,34.0215682,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75-79 years,2,YLDs (Years Lived with Disability),Number,25.55337693,17.14826976,34.08843463,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80+ years,2,YLDs (Years Lived with Disability),Number,46.57895602,29.79929272,66.04364678,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,5.74896275,3.92070921,8.71077845,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,7.24780933,5.04678689,10.59502272,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,8.53822289,6.1022262,11.50131692,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,9.39950155,6.74863054,12.37013328,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,9.27280352,6.5492071,12.28698533,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,8.9741809,6.10223843,11.70836472,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,8.3729334,5.55084541,10.85302212,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,7.814059,5.23333311,10.21614019,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,13.89571294,8.87887128,19.69514894,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,5.46419329,3.71077039,8.0111358,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,6.85265351,4.78556932,9.81010226,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,7.78493597,5.41836373,11.17564207,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,8.31323115,5.86646635,11.22302548,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,8.89709291,6.2773528,12.7132865,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,9.30575594,6.32045325,12.47501624,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,8.89743372,5.8384604,11.4665793,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,8.92645899,5.95869153,11.60704282,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,16.94324351,10.73780847,24.47022074,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40-44 years,1,YLDs (Years Lived with Disability),Number,0.39115328,0.2682962,0.61655755,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45-49 years,1,YLDs (Years Lived with Disability),Number,0.45876289,0.32924124,0.67431537,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50-54 years,1,YLDs (Years Lived with Disability),Number,0.5045943,0.36241212,0.67457725,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55-59 years,1,YLDs (Years Lived with Disability),Number,0.51493224,0.36560679,0.66401468,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60-64 years,1,YLDs (Years Lived with Disability),Number,0.46716095,0.32047134,0.60718007,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65-69 years,1,YLDs (Years Lived with Disability),Number,0.42410695,0.27868708,0.55590992,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70-74 years,1,YLDs (Years Lived with Disability),Number,0.37552479,0.2552032,0.47977438,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75-79 years,1,YLDs (Years Lived with Disability),Number,0.32777989,0.22377059,0.42951818,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80+ years,1,YLDs (Years Lived with Disability),Number,0.50868039,0.32371225,0.71211211,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40-44 years,2,YLDs (Years Lived with Disability),Number,0.3696076,0.26853234,0.55316653,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45-49 years,2,YLDs (Years Lived with Disability),Number,0.42841002,0.30093583,0.62549072,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50-54 years,2,YLDs (Years Lived with Disability),Number,0.45066753,0.31440196,0.62733781,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55-59 years,2,YLDs (Years Lived with Disability),Number,0.45118437,0.30777278,0.60598043,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60-64 years,2,YLDs (Years Lived with Disability),Number,0.45331395,0.31499826,0.6354811,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65-69 years,2,YLDs (Years Lived with Disability),Number,0.44407249,0.30183797,0.62762758,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70-74 years,2,YLDs (Years Lived with Disability),Number,0.39719702,0.25506034,0.56392028,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75-79 years,2,YLDs (Years Lived with Disability),Number,0.37101619,0.23740301,0.511828,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80+ years,2,YLDs (Years Lived with Disability),Number,0.61563765,0.39256219,0.91716636,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,2.39994039,1.66055393,3.85666039,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,3.36776491,2.4351676,5.07485793,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,4.45966717,3.12569543,6.1403681,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,5.50526785,3.87950456,7.21343769,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,6.19181735,4.51790796,8.28750932,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,6.91547084,4.93001348,9.42329075,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,7.50371483,5.15739958,9.95281347,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,8.04656071,5.50447547,10.79807702,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,9.15490044,5.66624013,13.16194717,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,2.19033914,1.5801722,3.3808357,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,3.0608561,2.18709876,4.55812231,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,3.89723412,2.57870173,5.50676016,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,4.67548042,3.27476888,6.32817713,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,5.50399501,3.95344816,7.68601491,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,6.34885312,4.22433418,8.52740104,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,6.69106392,4.54106866,9.2273424,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,7.37552528,4.94878863,10.14593785,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,01,Amazonas,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,8.40154739,5.46450984,11.82042246,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,2.16711934,1.49517843,3.35894747,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,3.07543816,2.22401144,4.57330832,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,4.09859438,2.90930905,5.60130753,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,5.10387325,3.64325903,6.73260782,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,5.81771598,4.1080451,7.57851472,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,6.55465239,4.49923535,8.38797414,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,7.1476,4.81595676,9.08335497,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,7.74132065,5.12206659,10.06823517,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80+ years,1,YLDs (Years Lived with Disability),Rate,9.11856465,5.9088695,13.07130867,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,1.97705159,1.39442972,2.90783587,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,2.78890452,1.97453931,3.99953635,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,3.58209314,2.51293697,5.02473714,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,4.33614581,2.99333405,5.7859504,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,5.1354609,3.6168171,7.37109145,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,5.95655177,4.1170196,7.94329892,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,6.34817134,4.21795821,8.28727108,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,7.08422794,4.75405862,9.45042379,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,123,Perú,0,21,80+ years,2,YLDs (Years Lived with Disability),Rate,8.25078046,5.27850865,11.6986656,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,1.96723964,1.3416289,2.98074442,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,2.84059609,1.97796085,4.15245197,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,3.83271816,2.73922495,5.1628198,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,4.83259892,3.46969725,6.3599003,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,5.58868589,3.94718396,7.40532261,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,6.34392582,4.31372493,8.27674392,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,6.94630191,4.6050585,9.00381799,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,7.61255468,5.09837902,9.95269242,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,9.17451006,5.86218888,13.00353159,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,1.79646876,1.21999401,2.63382982,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,2.58040536,1.80203315,3.69404939,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,3.35752958,2.33686142,4.81989178,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,4.10649579,2.89786474,5.54385005,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,4.92504451,3.47487008,7.03752366,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,5.77530934,3.92258006,7.74220582,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,6.19361228,4.06422359,7.98202589,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,6.9727066,4.65450049,9.06658555,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,15,Lima,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,8.24195955,5.22335544,11.90342153,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40-44 years,1,YLDs (Years Lived with Disability),Rate,2.25227892,1.54486208,3.5501673,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45-49 years,1,YLDs (Years Lived with Disability),Rate,3.18320072,2.28449373,4.6788466,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50-54 years,1,YLDs (Years Lived with Disability),Rate,4.2190159,3.03020169,5.64027799,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55-59 years,1,YLDs (Years Lived with Disability),Rate,5.18771142,3.68332451,6.68965022,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60-64 years,1,YLDs (Years Lived with Disability),Rate,5.80468377,3.98199973,7.54448401,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65-69 years,1,YLDs (Years Lived with Disability),Rate,6.50271318,4.27303098,8.52361118,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70-74 years,1,YLDs (Years Lived with Disability),Rate,7.10951884,4.83156385,9.08319534,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75-79 years,1,YLDs (Years Lived with Disability),Rate,7.66557282,5.23317565,10.04485931,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80+ years,1,YLDs (Years Lived with Disability),Rate,8.83432433,5.62195644,12.36735168,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,13,40-44 years,2,YLDs (Years Lived with Disability),Rate,2.04474218,1.4855739,3.06022642,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,14,45-49 years,2,YLDs (Years Lived with Disability),Rate,2.8558764,2.0061051,4.16966017,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,15,50-54 years,2,YLDs (Years Lived with Disability),Rate,3.62011033,2.5255198,5.03926268,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,16,55-59 years,2,YLDs (Years Lived with Disability),Rate,4.36728655,2.97911898,5.86565124,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,17,60-64 years,2,YLDs (Years Lived with Disability),Rate,5.1736356,3.59504971,7.25269463,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,18,65-69 years,2,YLDs (Years Lived with Disability),Rate,5.97755404,4.06296897,8.44834542,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,19,70-74 years,2,YLDs (Years Lived with Disability),Rate,6.30972236,4.05179251,8.95822534,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,20,75-79 years,2,YLDs (Years Lived with Disability),Rate,6.95829307,4.4524195,9.59917481,FECHA_e5-9103_v1
+9103,ACS renovascular,2023,25,Ucayali,1,21,80+ years,2,YLDs (Years Lived with Disability),Rate,7.89481466,5.03413944,11.76155881,FECHA_e5-9103_v1

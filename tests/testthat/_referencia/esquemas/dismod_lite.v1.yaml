@@ -1,0 +1,241 @@
+schema: dismod_lite/v1
+
+tipos_dato: [prev_estudio, prev_admin, incidencia, csmr, proporcion]
+parametros_objetivo: [prevalencia, incidencia, emr, proporcion]
+transformaciones: [log, logit, lineal]
+roles_secuela: [impairment_severity, residual_sin_deterioro, fase_aguda, directa]
+
+tablas:
+  datos:
+    columnas:
+      dato_id: str
+      cause_id: int
+      tipo_dato: {enum: tipos_dato}
+      measure_id: int
+      measure_name: str
+      location_id: str
+      location_name: str
+      location_level: int
+      sex_id: int
+      sex_name: str
+      age_start: num
+      age_end: num
+      age_group_id: {tipo: int, opcional: true}
+      year_start: int
+      year_end: int
+      val: {tipo: num, opcional: true}
+      se: {tipo: num, opcional: true}
+      x: {tipo: int, opcional: true}
+      "n": {tipo: int, opcional: true}
+      n_efectivo: {tipo: num, opcional: true}
+      definicion: str
+      es_referencia: lgl
+      crosswalk_id: {tipo: str, opcional: true}
+      ajuste_completitud: lgl
+      completitud: {tipo: num, opcional: true}
+      outlier: lgl
+      outlier_motivo: {tipo: str, opcional: true}
+      acquisition_id: str
+      nid_ghdx: {tipo: int, opcional: true}
+      cita: str
+    clave: [dato_id]
+    unicidad_semantica: [tipo_dato, location_id, sex_id, age_start, age_end, year_start, year_end, definicion, acquisition_id]
+    reglas: [edad_valida, pareja_val_se_o_x_n, crosswalk_si_alternativa, outlier_con_motivo, nivel_0_o_1, tipos_declarados, doble_uso_acquisition]
+
+  prior_gbd:
+    columnas:
+      cause_id: int
+      measure_id: int
+      location_id: str
+      sex_id: int
+      age_group_id: int
+      age_group_name: str
+      age_start: num
+      age_end: num
+      year: int
+      val: num
+      lower: num
+      upper: num
+      sigma_log: num
+      lambda: num
+      acquisition_id: str
+    clave: [measure_id, location_id, sex_id, age_group_id, year]
+    reglas: [ui_ordenado, lambda_en_0_1, location_es_123]
+
+  betas:
+    columnas:
+      cause_id: int
+      covariate_id: int
+      covariate_name_short: str
+      nombre_impreso: str
+      parametro_objetivo: {enum: parametros_objetivo}
+      transformacion: {enum: transformaciones}
+      transformacion_procedencia: str
+      escala: num
+      beta: num
+      beta_lower: {tipo: num, opcional: true}
+      beta_upper: {tipo: num, opcional: true}
+      modo: {enum: [informativa, fija]}
+      rol: str
+      nivel: str
+      fuente: str
+    clave: [cause_id, covariate_name_short, parametro_objetivo]
+    reglas: [modo_consistente_con_ic, token_transformacion]
+
+  crosswalks:
+    columnas:
+      crosswalk_id: str
+      cause_id: int
+      definicion_alt: str
+      definicion_ref: str
+      escala: {enum: [log, logit]}
+      direccion: {enum: [alt_a_ref, ref_a_alt]}
+      beta: num
+      beta_lower: {tipo: num, opcional: true}
+      beta_upper: {tipo: num, opcional: true}
+      modo: {enum: [informativa, fija]}
+      var_default: {tipo: num, opcional: true}
+      origen: {enum: [gbd, local]}
+      fuente: str
+    clave: [crosswalk_id]
+    reglas: [fija_con_var_default]
+
+  cov_valores:
+    columnas:
+      covariate_id: int
+      covariate_name_short: str
+      location_id: str
+      year: int
+      sex_id: int
+      age_group_id: int
+      val: num
+      lower: {tipo: num, opcional: true}
+      upper: {tipo: num, opcional: true}
+      acquisition_id: str
+    clave: [covariate_id, location_id, year, sex_id]
+    reglas: []
+
+  cov_proxy:
+    columnas:
+      covariate_id_proxy: int
+      covariate_id_gbd: int
+      location_id: str
+      year: int
+      sex_id: int
+      age_group_id: {tipo: int, opcional: true}
+      valor_crudo: num
+      valor_calibrado: num
+      valor_calibrado_se: num
+      n_efectivo: {tipo: num, opcional: true}
+      metodo_calibracion: str
+      ancla_ghdx: num
+      acquisition_id: str
+      metodo_temporal: {tipo: str, opcional: true}
+      n_ediciones: {tipo: int, opcional: true}
+    clave: [covariate_id_proxy, location_id, year, sex_id, age_group_id]
+    reglas: [proxy_acunado, promedio_cierra_ancla, proxy_mapea_config, ancla_igual_cov_valores]
+
+  severidad:
+    columnas:
+      cause_id: int
+      health_state_id: int
+      proportion: num
+      prop_lower: num
+      prop_upper: num
+      dw_mean: num
+      dw_lower: num
+      dw_upper: num
+      beta_covariable: {tipo: str, opcional: true}
+      location_id_fuente: str
+      fuente: {enum: [mod, extraction]}
+    clave: [cause_id, health_state_id]
+    reglas: [proporciones_suman_uno, dw_en_0_1]
+
+  poblacion:
+    columnas:
+      location_id: str
+      location_level: int
+      year: int
+      sex_id: int
+      age_group_id: int
+      val: num
+      acquisition_id: str
+    clave: [location_id, year, sex_id, age_group_id]
+    reglas: [poblacion_no_negativa, nivel1_suma_nivel0]
+
+  impairment_envelope:
+    columnas:
+      rei_id: int
+      location_id: str
+      year: int
+      age_group_id: int
+      sex_id: int
+      val: num
+      lower: num
+      upper: num
+      ui_level: num
+      origen: {enum: [gbd_published, dismodlite]}
+      correcciones_pre_reparto: {tipo: str, opcional: true}
+      acquisition_id: str
+    clave: [rei_id, location_id, year, age_group_id, sex_id]
+    reglas: [ui_ordenado]
+
+  impairment_attribution:
+    columnas:
+      rei_id: int
+      cause_id: int
+      proportion_model: str
+      location_id: str
+      year: int
+      age_group_id: int
+      sex_id: int
+      p_causa: num
+      p_lower: {tipo: num, opcional: true}
+      p_upper: {tipo: num, opcional: true}
+      suma_a_uno_dentro_de: {enum: [modelo_padre, envelope]}
+      fuente: str
+    clave: [rei_id, cause_id, location_id, year, age_group_id, sex_id]
+    reglas: [atribucion_suma_uno, modelo_padre_registrado]
+
+  impairment_severity_split:
+    columnas:
+      rei_id: int
+      rei_id_severidad: {tipo: int, opcional: true}
+      health_state_id: {tipo: int, opcional: true}
+      nivel: str
+      q_h: num
+      q_lower: {tipo: num, opcional: true}
+      q_upper: {tipo: num, opcional: true}
+      invariante_en: str
+      cause_id_override: {tipo: int, opcional: true}
+      location_id: {tipo: str, opcional: true}
+      year: {tipo: int, opcional: true}
+      age_group_id: {tipo: int, opcional: true}
+      sex_id: {tipo: int, opcional: true}
+      fuente: str
+    clave: [rei_id, nivel, cause_id_override, location_id, year, age_group_id, sex_id]
+    reglas: [split_suma_uno_con_asintomatico]
+
+  sequela_map:
+    columnas:
+      cause_id: int
+      sequela_id: int
+      sequela_name: str
+      health_state_id: {tipo: int, opcional: true}
+      rei_id: {tipo: int, opcional: true}
+      rei_id_severidad: {tipo: int, opcional: true}
+      rol: {enum: roles_secuela}
+    clave: [sequela_id]
+    reglas: [rol_deterioro_con_rei, residual_unico_por_causa]
+
+  como_factor:
+    columnas:
+      location_id: str
+      cause_family: str
+      age_group_id: int
+      sex_id: int
+      factor: num
+      dispersion: {tipo: num, opcional: true}
+      fuente: str
+    clave: [location_id, cause_family, age_group_id, sex_id]
+    reglas: [factor_en_0_1]

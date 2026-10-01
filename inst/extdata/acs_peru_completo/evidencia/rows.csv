@@ -1,0 +1,9 @@
+round,component_id,location_id,cause_name,cause_id,rei_id,citation,ghdx_url,provider,provider_url,publication_status,data_collection_method,year_start,year_end,sex,age_start,age_end,age_type,representativeness,urbanicity_type,population_representativeness_covariates,sample_size,sample_size_unit,standard_error,subcomponent,acquisition_id
+2023,4,123,Arteriopatía crónica sintética,9100,,Perú - registro vital (datos sintéticos de ejemplo),,,,,,,,,,,,,,,,,,,sintetico_evidencia_v1
+2023,5,1,Arteriopatía crónica sintética,9100,,Cohorte global sintética (datos sintéticos de ejemplo),,,,,,,,,,,,,,,,,,,sintetico_evidencia_v1
+2023,4,123,ACS de miembros inferiores,9101,,Perú - registro vital (datos sintéticos de ejemplo),,,,,,,,,,,,,,,,,,,sintetico_evidencia_v1
+2023,5,1,ACS de miembros inferiores,9101,,Cohorte global sintética (datos sintéticos de ejemplo),,,,,,,,,,,,,,,,,,,sintetico_evidencia_v1
+2023,4,123,ACS carotídea,9102,,Perú - registro vital (datos sintéticos de ejemplo),,,,,,,,,,,,,,,,,,,sintetico_evidencia_v1
+2023,5,1,ACS carotídea,9102,,Cohorte global sintética (datos sintéticos de ejemplo),,,,,,,,,,,,,,,,,,,sintetico_evidencia_v1
+2023,4,123,ACS renovascular,9103,,Perú - registro vital (datos sintéticos de ejemplo),,,,,,,,,,,,,,,,,,,sintetico_evidencia_v1
+2023,5,1,ACS renovascular,9103,,Cohorte global sintética (datos sintéticos de ejemplo),,,,,,,,,,,,,,,,,,,sintetico_evidencia_v1

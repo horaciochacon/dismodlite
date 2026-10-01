@@ -1,0 +1,4 @@
+cause_id,health_state_id,proportion,prop_lower,prop_upper,dw_mean,dw_lower,dw_upper,beta_covariable,location_id_fuente,fuente,renormalizacion
+9102,799,0.6,0.51,0.69,0,0,0,"",123,mod,1.0000008
+9102,9801,0.25,0.2125,0.2875,0.02,0.012,0.031,"",123,mod,1.0000008
+9102,9802,0.15,0.1275,0.1725,0.07,0.046,0.102,"",123,mod,1.0000008

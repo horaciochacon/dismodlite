@@ -1,0 +1,5 @@
+round,component_id,cause_id,rei_id,covariate_id,location_id,nid,title,type,citation,private,metadata_count,primary_nid,primary_title,primary_type,secondary_nid,secondary_title,secondary_type,underlying_nid,underlying_title,underlying_type,ghdx_url,acquisition_id
+2023,4,9100,,,123,990001,Registro vital sintético,Vital registration,Perú - registro vital (datos sintéticos de ejemplo),,,,,,,,,,,,,sintetico_evidencia_v1
+2023,4,9101,,,123,990001,Registro vital sintético,Vital registration,Perú - registro vital (datos sintéticos de ejemplo),,,,,,,,,,,,,sintetico_evidencia_v1
+2023,4,9102,,,123,990001,Registro vital sintético,Vital registration,Perú - registro vital (datos sintéticos de ejemplo),,,,,,,,,,,,,sintetico_evidencia_v1
+2023,4,9103,,,123,990001,Registro vital sintético,Vital registration,Perú - registro vital (datos sintéticos de ejemplo),,,,,,,,,,,,,sintetico_evidencia_v1

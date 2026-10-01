@@ -1,0 +1,349 @@
+E8-2019:
+  schema: estimates/v1
+  run_id: FECHA_e8-2019_v1
+  method: dismod_lite
+  source: gbd
+  round: '2023'
+  entities: cause
+  causa:
+    cause_id: 9100
+    cause_name: Arteriopatía crónica sintética
+    extraction_cause_id: 9100
+    componente: ~
+  params:
+    seed: 20260929
+    draws: 40
+    chains: 2
+    iter: 2000
+    warmup: 1000
+    thin: 10
+    year: 2019
+    anio_ancla: 2019
+    remision: 0
+    remision_por_edad: ~
+    emr_sd_factor: 1.0
+    emr_prior: informativo_edad
+    csmr_fraccion_aguda: 0.0
+    emr_cota:
+    - 0.0
+    - 0.25
+    emr_cota_origen: impreso
+    emr_cota_k: ~
+    lambda: 1.0
+    fuentes_locales_no_fatales: []
+    rho: 0.5
+    kappa: ~
+    anchor: peru
+    engine: mh
+    opts:
+      draws: 40
+      chains: 2
+      iter: 2000
+      warmup: 1000
+      thin: 10
+      cores: 1
+      engine: mh
+    estadistico_puntual: media
+  inputs:
+    bundle_hash: c3d2fa9c5cd7d1543dc33a2246a6b27caa7d1fd7bd3e1ca02b6c0e935f8bcb78
+    tablas:
+    - tabla: datos
+      sha256: fd7e563c1cee3e31d9d0aadeb0ccbf296d34671609beccca5e525178bc749352
+    - tabla: prior_gbd
+      sha256: 44f3abca90517b73525444e2846957b2fdd3e5f1388fabf232bb48897b46329d
+    - tabla: betas
+      sha256: 19943fd89b1ee65326da1b752fcb1a88ec508f3e76ee53773d3b311b96cf76f8
+    - tabla: crosswalks
+      sha256: 29cd9b7a023bb1418554838876b8cec962975912f423a4d15c16f78e57118ebe
+    - tabla: cov_valores
+      sha256: 9554499b4c2f86bef69c65e02fb6cfd48d6f4ed2bed176bd2cb4a158f3b1cea5
+    - tabla: cov_proxy
+      sha256: 5678ae77d281ed87c8c647d2f276bf2d706e287929e7b4252be999eb00cf8cd9
+    - tabla: severidad
+      sha256: 015aef731e00a0bfc5ffa166beecda8388dd3f3bde2f53f2b8a7648ac7dd609c
+    - tabla: poblacion
+      sha256: 13ceaf3cdde738b5a5e22e7c57ab6ef208b7ab4adb2d92db26eb3deff80758d3
+    - tabla: sequela_map
+      sha256: 42dbb2ab10658537c09f86b7b642591980a5df435a3dbd71c3e7dd7046b3e70c
+    betas:
+      modelo_variante: (todas)
+      filas_excluidas: 0
+      variantes_excluidas: []
+      sin_covariable: []
+    escalas:
+    - covariate_name_short: SEV_scalar_agestd_cvd_pvd
+      parametro_objetivo: prevalencia
+      escala: 1.0
+    - covariate_name_short: LDI_pc
+      parametro_objetivo: prevalencia
+      escala: 1.0
+    - covariate_name_short: haqi
+      parametro_objetivo: emr
+      escala: 1.0
+  files:
+  - path: mod/dismod_lite/FECHA_e8-2019_v1/cause/prevalence/FECHA_e8-2019_v1.csv
+    rows: 18
+  - path: mod/dismod_lite/FECHA_e8-2019_v1/cause/incidence/FECHA_e8-2019_v1.csv
+    rows: 18
+  - path: mod/dismod_lite/FECHA_e8-2019_v1/cause/yld/FECHA_e8-2019_v1.csv
+    rows: 18
+  cascada: ~
+  datos:
+    n_likelihood_por_tipo: []
+    n_heldout: 0
+    heldout_anio: 2019
+  decisiones: Datos sintéticos de ejemplo (dismodlite).
+  validacion:
+    gates:
+      rhat_max: 2.490338
+      ess_min: 16.100000000000001
+      force: yes
+    anchor_identity:
+      err_rel_mediano: 0.026161
+      celdas_fuera_ic95: 0
+      gate_err_mediano: 0.05
+    implied_incidence:
+      err_rel_mediano: 0.03063
+      cobertura: 1.0
+  n_limitaciones: 3
+E8-2019-archivos:
+- cause/incidence/FECHA_e8-2019_v1.csv
+- cause/prevalence/FECHA_e8-2019_v1.csv
+- cause/yld/FECHA_e8-2019_v1.csv
+- diagnostics/aceptacion.csv
+- diagnostics/desplazamiento_splits.csv
+- diagnostics/mcmc.csv
+- diagnostics/validacion.csv
+- draws/incidence_2019.csv.gz
+- draws/prevalence_2019.csv.gz
+- draws/yld_2019.csv.gz
+- etiquetas/FECHA_e8-2019_v1.csv
+- inputs/betas.csv
+- inputs/config_usado.yaml
+- inputs/cov_proxy.csv
+- inputs/cov_valores.csv
+- inputs/crosswalks.csv
+- inputs/datos.csv
+- inputs/ghdx_cov/HAQI.csv
+- inputs/ghdx_cov/LDI_PC.csv
+- inputs/ghdx_cov/SEV_SCALAR_CVD_PVD.csv
+- inputs/hash.json
+- inputs/poblacion.csv
+- inputs/prior_gbd.csv
+- inputs/sequela_map.csv
+- inputs/severidad.csv
+- manifest.yaml
+E8-2024:
+  schema: estimates/v1
+  run_id: FECHA_e8-proyeccion-2024_v1
+  method: dismod_lite
+  source: gbd
+  round: '2023'
+  entities: cause
+  causa:
+    cause_id: 9100
+    cause_name: Arteriopatía crónica sintética
+    extraction_cause_id: 9100
+    componente: ~
+  params:
+    seed: 20260929
+    draws: 40
+    chains: 2
+    iter: 2000
+    warmup: 1000
+    thin: 10
+    year: 2024
+    anio_ancla: 2023
+    remision: 0
+    remision_por_edad: ~
+    emr_sd_factor: 1.0
+    emr_prior: informativo_edad
+    csmr_fraccion_aguda: 0.0
+    emr_cota:
+    - 0.0
+    - 0.25
+    emr_cota_origen: impreso
+    emr_cota_k: ~
+    lambda: 1.0
+    fuentes_locales_no_fatales: []
+    rho: 0.5
+    kappa: 1.0
+    anchor: peru
+    engine: mh
+    opts:
+      draws: 40
+      chains: 2
+      iter: 2000
+      warmup: 1000
+      thin: 10
+      cores: 1
+      engine: mh
+    estadistico_puntual: media
+  inputs:
+    bundle_hash: 9006771c494157860c19fcd9cea50ebe9a426d537818325ed222833c7bd196dc
+    tablas:
+    - tabla: datos
+      sha256: fd7e563c1cee3e31d9d0aadeb0ccbf296d34671609beccca5e525178bc749352
+    - tabla: prior_gbd
+      sha256: 0ef65da1cd2b8eb3a321ee85e2e1906ea6a9f886bec291c21441f4c10ca04ee7
+    - tabla: betas
+      sha256: 981d9884158e5cc90cf858e5344b3a963d76ef6ec0575ff00a2f5b4bad3284b3
+    - tabla: crosswalks
+      sha256: 29cd9b7a023bb1418554838876b8cec962975912f423a4d15c16f78e57118ebe
+    - tabla: cov_valores
+      sha256: 820834b8c27e1bc806c9f45136a956b45100336923d2441b7b850b0c0421913c
+    - tabla: cov_proxy
+      sha256: ba68d8d393fd78f829a41c3b951ee2bec7bea86318d1c28442e27acde2abd0b3
+    - tabla: severidad
+      sha256: 015aef731e00a0bfc5ffa166beecda8388dd3f3bde2f53f2b8a7648ac7dd609c
+    - tabla: poblacion
+      sha256: 518c3d8982398f45533f660036da778cd4ef3353cc0837adbb966afbf0e8cc6c
+    - tabla: sequela_map
+      sha256: 42dbb2ab10658537c09f86b7b642591980a5df435a3dbd71c3e7dd7046b3e70c
+    betas:
+      modelo_variante: (todas)
+      filas_excluidas: 0
+      variantes_excluidas: []
+      sin_covariable: []
+    escalas:
+    - covariate_name_short: SEV_scalar_agestd_cvd_pvd
+      parametro_objetivo: prevalencia
+      escala: 1.0
+    - covariate_name_short: LDI_pc
+      parametro_objetivo: prevalencia
+      escala: 1.0
+    - covariate_name_short: haqi
+      parametro_objetivo: emr
+      escala: 0.01
+  files:
+  - path: mod/dismod_lite/FECHA_e8-proyeccion-2024_v1/cause/prevalence/FECHA_e8-proyeccion-2024_v1.csv
+    rows: 468
+  - path: mod/dismod_lite/FECHA_e8-proyeccion-2024_v1/cause/incidence/FECHA_e8-proyeccion-2024_v1.csv
+    rows: 468
+  - path: mod/dismod_lite/FECHA_e8-proyeccion-2024_v1/cause/yld/FECHA_e8-proyeccion-2024_v1.csv
+    rows: 468
+  cascada:
+    modo: proxy
+    departamentos: 25
+    proxies:
+    - LDI_pc
+    - SEV_scalar_agestd_cvd_pvd
+    - haqi
+    renorm_min: 0.935101
+    renorm_max: 1.037896
+    truncados_emr: 0
+    supuesto_ecologico: yes
+    haqi_nacional: no
+    sustituciones: []
+    dx_por_edad:
+      bandas_por_proxy:
+        LDI_pc: 22
+        SEV_scalar_agestd_cvd_pvd:
+        - 13
+        - 14
+        - 15
+        - 16
+        - 17
+        - 18
+        - 19
+        - 20
+        - 21
+        haqi: 22
+      fuera_de_banda: cero
+      interpolacion: lineal
+      edades_sin_banda: 30-39
+  datos:
+    n_likelihood_por_tipo: []
+    n_heldout: 0
+    heldout_anio: 2019
+  decisiones: Datos sintéticos de ejemplo (dismodlite).
+  validacion:
+    gates:
+      rhat_max: 1.448752
+      ess_min: 15.1
+      force: yes
+    anchor_identity:
+      err_rel_mediano: 0.021638
+      celdas_fuera_ic95: 0
+      gate_err_mediano: 0.05
+    implied_incidence:
+      err_rel_mediano: 0.037818
+      cobertura: 1.0
+  n_limitaciones: 6
+E8-2024-archivos:
+- cause/incidence/FECHA_e8-proyeccion-2024_v1.csv
+- cause/prevalence/FECHA_e8-proyeccion-2024_v1.csv
+- cause/yld/FECHA_e8-proyeccion-2024_v1.csv
+- diagnostics/aceptacion.csv
+- diagnostics/desplazamiento_splits.csv
+- diagnostics/dx_bandas.csv
+- diagnostics/mcmc.csv
+- diagnostics/renorm.csv
+- diagnostics/validacion.csv
+- draws/incidence_2024.csv.gz
+- draws/prevalence_2024.csv.gz
+- draws/yld_2024.csv.gz
+- etiquetas/FECHA_e8-proyeccion-2024_v1.csv
+- inputs/betas.csv
+- inputs/config_usado.yaml
+- inputs/cov_proxy.csv
+- inputs/cov_valores.csv
+- inputs/crosswalks.csv
+- inputs/datos.csv
+- inputs/ghdx_cov/HAQI.csv
+- inputs/ghdx_cov/LDI_PC.csv
+- inputs/ghdx_cov/SEV_SCALAR_CVD_PVD.csv
+- inputs/hash.json
+- inputs/poblacion.csv
+- inputs/prior_gbd.csv
+- inputs/sequela_map.csv
+- inputs/severidad.csv
+- manifest.yaml
+E8-consolidado-2024:
+  schema: estimates/v1
+  source: gbd
+  round: '2023'
+  entities: cause
+  poblacion:
+    acquisition_id: sintetico_poblacion_v1
+  params:
+    years: 2024
+    causas: 9100
+    n_bloques: 1
+  bloques:
+  - cause_id: 9100
+    year: 2024
+    run_fuente: FECHA_e8-proyeccion-2024_v1
+    anio_ancla: 2023
+    agregacion: fit
+    cascada_modo: proxy
+    sustituciones: []
+    hijas_omitidas: []
+    force: yes
+    gate_ancla: 0.05
+    rhat_max: 1.448752
+  huecos: []
+  files:
+  - medida: prevalence
+    rows: 936
+  - medida: incidence
+    rows: 936
+  - medida: yld
+    rows: 936
+  archivos_tablas:
+  - incidence.csv
+  - prevalence.csv
+  - yld.csv
+registro-e8:
+- run_id: FECHA_e8-2019_v1
+  status: active
+  filas:
+  - 18
+  - 18
+  - 18
+- run_id: FECHA_e8-proyeccion-2024_v1
+  status: active
+  filas:
+  - 468
+  - 468
+  - 468

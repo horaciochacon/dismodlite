@@ -1,0 +1,334 @@
+# Claves de la configuración simple de dismodlite (config.yaml o config/<causa>.yaml de un proyecto), una entrada por
+# clave y en el orden en que se documentan. Es su única definición: de aquí salen la revisión de sus valores, la
+# traducción al formato completo (valor por defecto y destino), los nombres que citan los mensajes, lo que print() y
+# el manifiesto informan como tomado por defecto, la configuración comentada de dl_nuevo_proyecto() y la tabla de
+# ?dl_configuracion.
+#
+# Campos de cada clave (los que no se dan están vacíos):
+#   clave        nombre en el YAML: ancla.peso es la clave `peso` del bloque `ancla`; covariables[].beta, la clave
+#                `beta` de cada registro de la lista `covariables`
+#   tipo         entero, número, texto, lógico (true o false), lista de números, lista de enteros, lista de textos,
+#                lista de registros o bloque: la revisión comprueba que el valor lo sea
+#   destino      dónde queda el valor en el formato completo: la clave de la configuración (la que citan los errores
+#                del validador completo) o, si no es una clave, el lugar; vacío si se deriva
+#   descripcion  qué es, en qué unidades y qué valores admite
+#   defecto      el valor por defecto en palabras: «obligatoria», una regla o el nombre de otra clave; vacío si su
+#                ausencia es «ninguno» o si el valor por defecto es `valor`
+#   valor        el valor por defecto cuando es fijo, en YAML
+#   simbolo      símbolo del parámetro en el modelo
+#   ejemplo      un valor de ejemplo, en YAML
+#   vocabulario  los valores admitidos: una lista, o valor admitido -> su valor en el formato completo
+#   largo        los largos admitidos de una lista
+#   unico        true si el valor no se repite entre los registros de la lista
+#   error        qué debe ser el valor, en palabras del formato simple, cuando el mensaje de la revisión o del
+#                validador completo no sirve (porque la forma del valor es otra)
+#
+# `alias`: otros nombres admitidos de una clave (el nombre anterior -> el actual). `sugerencias`: la clave simple que
+# se sugiere cuando la configuración trae una clave del formato completo (anchor -> ancla). `movidas`: claves que
+# cambiaron de lugar (la ruta anterior -> la actual); el mensaje de la clave desconocida dice dónde está ahora.
+# `tablas` y `rutas`: con un proyecto simple, los mensajes de dl_insumos() y dl_correr() nombran el archivo de donde
+# sale cada tabla del contrato y cada argumento de dl_rutas() (y las claves simples en lugar de su destino; ver
+# .dl_texto_simple()).
+
+claves:
+  - clave: causa
+    tipo: entero
+    destino: cause_id
+    defecto: obligatoria
+    ejemplo: "1234"
+    descripcion: "Identificador de la causa: un entero (el cause_id de GBD si la causa existe en GBD)."
+
+  - clave: nombre
+    tipo: texto
+    defecto: el cause_name de la descarga del ancla
+    ejemplo: Enfermedad de ejemplo
+    descripcion: >-
+      Nombre de la causa que muestra print() del proyecto y que llevan las etiquetas en español del proyecto; las
+      tablas de la corrida y su manifiesto llevan el cause_name del ancla.
+
+  - clave: anio
+    tipo: entero
+    destino: years.ajuste
+    defecto: obligatoria
+    ejemplo: "2023"
+    descripcion: Año que se estima.
+
+  - clave: sexos
+    tipo: lista de textos
+    destino: sexos
+    valor: [hombres, mujeres]
+    vocabulario: [hombres, mujeres, "1", "2"]
+    ejemplo: "[mujeres]"
+    descripcion: >-
+      Sexos que se estiman: hombres y mujeres (o sus códigos 1 y 2); una causa de un solo sexo lleva solo ese.
+
+  - clave: edad_inicio
+    tipo: número
+    destino: edad_inicio
+    defecto: obligatoria
+    ejemplo: "30"
+    descripcion: Primera edad del modelo, en años; ahí la prevalencia es 0.
+
+  - clave: ubicacion_nacional
+    tipo: entero
+    destino: anchor.location_id
+    defecto: la única ubicación de la causa en el ancla
+    ejemplo: "130"
+    descripcion: >-
+      location_id de GBD del país (por ejemplo 130, México): el de las filas nacionales del ancla y de las
+      covariables. Hace falta si el ancla trae otras ubicaciones (global, regiones).
+
+  - clave: ancla.peso
+    tipo: número
+    destino: anchor.lambda
+    valor: 1
+    simbolo: λ
+    ejemplo: "0.5"
+    descripcion: >-
+      Peso de la estimación de referencia, en (0, 1]: 1 la toma a peso completo; menos (por ejemplo 0.5) si los
+      datos locales que entran al ajuste ya informaron esa estimación.
+
+  - clave: ancla.correlacion_edad
+    tipo: número
+    destino: anchor.rho_edad
+    valor: 0.5
+    simbolo: ρ
+    ejemplo: "0.8"
+    descripcion: Correlación entre las bandas de edad vecinas del ancla, en [0, 1).
+
+  - clave: ancla.anio
+    tipo: entero
+    destino: years.ancla
+    defecto: anio
+    ejemplo: "2023"
+    descripcion: >-
+      Año de la estimación de referencia cuando no es `anio`: a lo sumo un año antes, para proyectar el último año
+      publicado (por ejemplo 2023 con anio 2024).
+
+  - clave: nudos
+    tipo: lista de números
+    destino: nudos_incidencia
+    defecto: cada 10 años desde edad_inicio hasta 80, y 95
+    ejemplo: "[30, 40, 50, 60, 70, 80, 95]"
+    descripcion: >-
+      Edades de los nudos, crecientes: las de la incidencia y las de la mortalidad en exceso (las mismas para las
+      dos); log i y log f son lineales entre nudos.
+
+  - clave: incidencia.suavidad
+    tipo: número
+    destino: sigma_suavidad
+    valor: 0.5
+    simbolo: σ
+    ejemplo: "1"
+    descripcion: >-
+      Suavidad de la incidencia, un número > 0: la desviación estándar de las segundas diferencias de log i entre
+      nudos. Un valor mayor permite una curva menos suave.
+
+  - clave: mortalidad_exceso.prior
+    tipo: texto
+    destino: emr_prior.tipo
+    valor: desde_ancla
+    vocabulario: {desde_ancla: informativo_edad, plano: plano_cota}
+    ejemplo: plano
+    descripcion: >-
+      Prior de la mortalidad en exceso (EMR): desde_ancla (por edad, de las muertes y la prevalencia del ancla) o
+      plano (sin prior por edad, solo el techo).
+
+  - clave: mortalidad_exceso.techo
+    tipo: número
+    destino: emr_prior.cota
+    defecto: 3 veces la EMR máxima del ancla
+    ejemplo: "0.25"
+    descripcion: Techo de la EMR, un número > 0, por persona-año.
+    error: debe ser un número > 0, por persona-año (sin la clave, 3 veces la EMR máxima del ancla)
+
+  - clave: remision
+    tipo: número
+    destino: remision.valor
+    valor: 0
+    ejemplo: "0.1"
+    descripcion: Remisión, un número >= 0, por persona-año (0 es una causa crónica).
+
+  - clave: datos_en_ajuste
+    tipo: lista de textos
+    destino: medidas_entrada
+    defecto: "ninguno: las nacionales no se usan; las subnacionales de mortalidad validan"
+    vocabulario: {prevalencia_estudio: prev_estudio, incidencia: incidencia, mortalidad: csmr}
+    ejemplo: "[prevalencia_estudio, mortalidad]"
+    descripcion: >-
+      Tipos de datos.csv cuyas filas nacionales entran al ajuste: prevalencia_estudio, incidencia, mortalidad.
+
+  - clave: covariables
+    tipo: lista de registros
+    destino: transformaciones
+    descripcion: >-
+      Covariables con efecto, un registro por covariable con las claves covariables[].* de abajo. Actúan solo en la
+      estimación subnacional y solo las que tienen filas en proxies.csv: mueven las tasas nacionales de cada
+      ubicación según su diferencia con el valor nacional (por subnacional.kappa). El ajuste nacional no cambia. Un
+      subtipo usa las betas de su causa padre: sin covariables, toma las del padre; si las declara, deben ser las
+      mismas.
+
+  - clave: covariables[].nombre
+    tipo: texto
+    destino: transformaciones[].covariate_name_short
+    defecto: obligatoria
+    unico: true
+    ejemplo: haqi
+    descripcion: covariate_name_short de la covariable en la descarga del GHDx (covariables/).
+
+  - clave: covariables[].efecto_sobre
+    tipo: texto
+    destino: "extraccion.yaml: covariables_gbd[].parametro"
+    defecto: obligatoria
+    vocabulario: {prevalencia: Prevalence, incidencia: Incidence, mortalidad_exceso: Excess mortality rate}
+    ejemplo: mortalidad_exceso
+    descripcion: >-
+      Parámetro sobre el que actúa: prevalencia o incidencia (las dos mueven log i, la incidencia) o
+      mortalidad_exceso (mueve log f, la EMR).
+
+  - clave: covariables[].transformacion
+    tipo: texto
+    destino: transformaciones[].transformacion
+    defecto: obligatoria
+    ejemplo: lineal
+    descripcion: "Transformación de la covariable en la regresión publicada: log, lineal o logit."
+
+  - clave: covariables[].beta
+    tipo: lista de números
+    destino: "extraccion.yaml: covariables_gbd[].beta_valor"
+    defecto: obligatoria
+    largo: [1, 3]
+    ejemplo: "[-0.012, -0.018, -0.006]"
+    descripcion: >-
+      Coeficiente publicado: `[media, inferior, superior]`, con su intervalo del 95 %, o un número (beta fija). Es
+      el cambio de log i (o de log f) por unidad de la covariable transformada: la diferencia de log i de una
+      ubicación es beta por la diferencia entre su valor y el nacional (por escala).
+    error: debe ser [media, inferior, superior] o un solo número (beta fija)
+
+  - clave: covariables[].escala
+    tipo: número
+    destino: transformaciones[].escala
+    valor: 1
+    ejemplo: "0.01"
+    descripcion: >-
+      Multiplica la diferencia de la covariable antes de la beta: 0.01 si la beta se estimó con la covariable en 0-1
+      y la descarga viene en 0-100. Solo con transformacion: lineal; con log o logit no interviene (en log, una
+      escala se cancelaría de todos modos) y debe ser 1.
+
+  - clave: covariables[].escala_confirmada
+    tipo: lógico
+    destino: transformaciones[].escala_confirmada
+    valor: false
+    descripcion: >-
+      true confirma una beta lineal de haqi de 0.1 o más en valor absoluto con escala 1 (por punto del índice en
+      0-100). Sin la confirmación, dl_insumos() la rechaza: con la descarga en 0-100, 20 puntos de diferencia
+      multiplicarían la tasa por exp(20 × beta), casi 0, y lo probable es que falte escala: 0.01.
+
+  - clave: subnacional.modo
+    tipo: texto
+    destino: cascada.modo
+    defecto: >-
+      covariables si alguna covariable declarada tiene filas en proxies.csv; si no, plano si la población trae otras
+      ubicaciones; si no, no
+    vocabulario: [covariables, plano, "no"]
+    ejemplo: plano
+    descripcion: >-
+      Estimación subnacional: covariables (gradiente por proxies.csv), plano (las tasas nacionales en cada
+      ubicación) o no (sin estimación subnacional).
+
+  - clave: subnacional.kappa
+    tipo: número
+    destino: cascada.kappa
+    valor: 1
+    simbolo: κ
+    ejemplo: "0.5"
+    descripcion: Fuerza del efecto subnacional de las covariables, en (0, 1].
+
+  - clave: subnacional.anio_validacion
+    tipo: entero
+    destino: cascada.heldout_anio
+    defecto: anio
+    ejemplo: "2019"
+    descripcion: Año de los datos subnacionales de datos.csv reservados para validar.
+
+  - clave: sensibilidad.peso
+    tipo: lista de números
+    destino: sensibilidad.lambda
+    valor: [0.25, 0.5, 1]
+    simbolo: λ
+    ejemplo: "[0.5, 1]"
+    descripcion: Valores de ancla.peso del análisis de sensibilidad.
+
+  - clave: sensibilidad.correlacion_edad
+    tipo: lista de números
+    destino: sensibilidad.rho
+    valor: [0, 0.5, 0.9]
+    simbolo: ρ
+    ejemplo: "[0, 0.9]"
+    descripcion: Valores de ancla.correlacion_edad del análisis de sensibilidad.
+
+  - clave: sensibilidad.kappa
+    tipo: lista de números
+    destino: sensibilidad.kappa
+    valor: [0.5, 1]
+    simbolo: κ
+    ejemplo: "[1]"
+    descripcion: Valores de subnacional.kappa del análisis de sensibilidad.
+
+  - clave: subtipos
+    tipo: lista de enteros
+    ejemplo: "[1011, 1012, 1013]"
+    descripcion: >-
+      Causas hijas cuya suma es esta causa (solo en la configuración de la causa padre): cada una tiene su
+      configuración y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su argumento
+      `omitidas` (ver ?dl_proyecto).
+
+  - clave: notas
+    tipo: lista de textos
+    destino: decisiones
+    ejemplo: "[la encuesta nacional ya entró a la estimación de referencia]"
+    descripcion: Decisiones que quedan registradas en cada corrida.
+
+  - clave: avanzado
+    tipo: bloque
+    ejemplo: "{nsub: 10}"
+    descripcion: "Claves del formato completo, tal cual: se aplican al final, sobre la traducción (para expertos)."
+
+alias:
+  departamentos: subnacional
+
+sugerencias:
+  cause_id: causa
+  years: anio
+  anchor: ancla
+  nudos_incidencia: nudos
+  sigma_suavidad: incidencia
+  emr_prior: mortalidad_exceso
+  medidas_entrada: datos_en_ajuste
+  transformaciones: covariables
+  cascada: subnacional
+  decisiones: notas
+
+movidas:
+  incidencia.nudos: nudos
+
+tablas:
+  prior_gbd: ancla/
+  datos: datos.csv
+  cov_proxy: proxies.csv
+  poblacion: poblacion.csv
+  severidad: severidad.csv
+  cov_valores: covariables/
+  betas: covariables de la configuración
+
+rutas:
+  ancla_prevalencia: la prevalencia de ancla/
+  ancla_mortalidad: la mortalidad de ancla/
+  ancla_incidencia: la incidencia de ancla/
+  ancla_avd: los AVD de ancla/
+  poblacion: poblacion.csv
+  datos: datos.csv
+  proxies: proxies.csv
+  severidad: severidad.csv
+  pesos_80mas: pesos_80mas.csv
+  covariables: covariables/

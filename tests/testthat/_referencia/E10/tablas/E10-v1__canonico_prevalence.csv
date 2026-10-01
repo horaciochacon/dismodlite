@@ -1,0 +1,577 @@
+run_id,source,round,entity,method,location_id,location_name,location_level,year,age_group_id,age_group_name,sex_id,sex_name,cause_id,cause_name,measure_id,measure_name,metric_id,metric_name,val,lower,upper,ui_level
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,166.006270882956,132.121593086456,203.484568754078,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,211.519140482054,168.507607824707,262.57545993594,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,246.403115897888,201.13151455428,300.71035404848,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,269.255482154558,222.825547052387,337.661641147116,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,275.115219678416,234.225105427226,343.812835674099,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,278.376065111355,237.922589726869,362.895107646552,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,279.876020046373,230.630185212392,360.144374744371,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,273.73874422844,223.213613067394,341.97637888728,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,495.172135160482,404.697784169597,585.658728139424,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,134.761382869261,112.885208536475,158.422266779552,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,173.552318974565,149.730156324855,203.450813577847,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,205.092557902866,167.347813730858,254.204696647185,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,229.391797276223,179.182419092884,284.461068714238,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,253.848888754941,198.053833386595,304.096180422559,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,276.282547688939,229.597896396151,323.06420419126,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,295.050898512163,245.070730105175,356.43511423342,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,305.052854966158,250.965824096227,362.972329625114,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,605.859877563008,482.949001518108,821.7288351757,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,11071.8838191897,8797.81822329493,13605.8429906315,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,14552.3151827206,11585.9401579043,17767.2736037263,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,17390.096164014,14194.3522768451,20503.2685608046,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,19532.1360724713,16373.0336253154,23149.3516730921,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,20601.6389466042,17311.1365270279,25034.1030624234,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,21414.4230158798,18117.2094812575,27068.0164821723,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,22059.9143204021,19127.446776276,27269.6493742373,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,22287.2919467642,18911.1487985017,27000.4721017454,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,43793.8202816295,34353.4347207799,50391.0478348856,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,8963.49893062368,7601.93969425969,10746.8474893375,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,11882.0482504129,10505.45427331,13619.9588171537,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,14429.2291694693,12257.4611907311,17321.7707892324,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,16587.7121320551,13878.6396602387,19773.9968300976,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,18836.6795263417,15986.2004140105,21248.8443487326,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,21019.1466433152,18223.0933666035,23858.3573334938,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,23122.7353258297,19330.7029489749,27138.4836418564,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,24733.1320301837,20070.1823325344,29119.1604079828,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,52800.4109059301,43225.9734689641,68579.2252259735,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,3210.80618905921,2564.49202565398,3927.29625321249,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,4352.21465395144,3472.41918844016,5210.56714265388,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,5333.55437362938,4283.86595508775,6273.51733774533,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,6139.6897183912,4967.69645324129,7390.23683165955,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,6648.53657128164,5430.47769453717,8145.72450897875,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,7051.07246599122,5972.07500158298,8978.96475087856,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,7386.65208873207,6104.73608930348,9147.47741460665,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,7647.73253808251,6213.73579579983,9282.8331788201,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,15810.1633680238,13122.392857107,18406.5930604939,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,2600.0300845119,2195.29262986369,3063.5305928477,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,3553.60111439214,3131.04644180972,4092.50487695343,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,4426.55137164655,3832.685045807,5158.27285710289,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,5206.86121501704,4476.05018507103,5947.25199708465,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,6062.13687490794,5212.43197696039,6807.61935160588,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,6926.87542158716,5998.66947993829,7840.79355238248,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,7774.90136885261,6474.45158803185,9252.25264385836,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,8505.08886874224,6873.48342579964,10230.8769523096,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,18952.139503029,15219.2478049722,24109.7303425648,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,219.695586963122,171.736379754712,270.904663597437,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,278.14102282744,216.703226102508,339.536552252764,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,319.951902740231,257.12954569863,377.328538334677,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,343.923454924946,288.942712226737,404.074770597568,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,345.206084892879,296.345323511897,423.252241400814,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,345.087624106416,292.830722978124,445.970156917254,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,344.229197136156,292.880534601533,441.672791640416,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,334.076866025143,283.398124408808,417.739625629759,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,599.127233448349,490.717934621634,706.078386492308,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,177.339922882729,148.069226331936,213.87883031174,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,225.404748858039,196.277117245824,260.117218307986,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,261.715496417893,221.469863969812,318.88812898363,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,290.165886858224,236.550145083656,347.358093698256,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,318.535220712484,260.928844006403,365.701300239357,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,342.675182735518,291.153921698872,388.124340226956,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,361.71421368241,305.143164788718,421.658253946889,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,369.555527227842,303.967271521417,436.130862408111,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,1,Number,716.245721185219,577.579533893288,957.306359046541,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.013481100445262,0.0107293806307013,0.0165246523269513,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0204445331995026,0.0162872228711296,0.0253794181264199,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0283482645993889,0.0231398429077634,0.0345962211284491,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0368691609139474,0.0305115085653002,0.0462360182318384,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0458984350481175,0.0390765941653697,0.0573594987777943,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0566035105960461,0.0483779157639017,0.073789163815891,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0694136954480092,0.0571999467292639,0.0893215215139808,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0828507095122398,0.067558599596669,0.103503746636586,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.108852964423056,0.0889641205033188,0.128744499481078,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0105142687734463,0.0088074595097507,0.0123603235374543,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0161174144664343,0.0139051036705846,0.0188940205774375,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0226696759039312,0.0184976029325586,0.0280982310873422,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0301791602784138,0.0235735323106018,0.0374241637566423,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0388921232962986,0.0303437771390524,0.0465904979964086,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0493185554603604,0.0409849868611479,0.0576694402340699,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0613921969438542,0.0509926612786465,0.0741646097031669,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.07402398810147,0.0608992536025788,0.088078701680445,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0983059999290942,0.0783626483073353,0.133332603468392,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0121269264175134,0.00963616453811055,0.0149023471967486,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0185385715248519,0.0147596294887153,0.022634190392976,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.025761311677578,0.02102720592321,0.0303730978151219,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0336392674786592,0.0281984958283868,0.0398690255893842,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.042211369827427,0.0354693521214196,0.0512931900905902,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0522171820637249,0.0441772176288822,0.0660029711613235,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0640412766512671,0.0555281445267895,0.0791654552412947,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0770602621085206,0.0653869517511009,0.0933564949112796,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.105232373569081,0.0825480273853753,0.12108488220934,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.00943260104583515,0.00799978500197806,0.0113092806338186,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0145432614990843,0.0128583528229749,0.0166704105647562,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0205369630563556,0.0174459095965703,0.0246538857059547,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0274479214011707,0.0229651809433835,0.032720311665565,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0354482710771695,0.0300840264855247,0.0399876630855831,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.044996835201103,0.0390111712423945,0.0510748885919054,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0563243806167417,0.047087416568358,0.066106291512044,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0685682935509711,0.0556410790238487,0.0807277920311798,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0935282015551247,0.0765684866775854,0.121478062185095,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0109870692732192,0.00877544450751613,0.0134388292066744,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0170574077857874,0.0136092713273323,0.0204215039041739,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0239417627602633,0.0192298222177282,0.0281611573166526,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0315662035269108,0.025540593172519,0.0379956855541822,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0400704948215213,0.0327292970421898,0.0490939935811546,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.049844638918085,0.0422171128550129,0.0634730756242255,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0612806923022787,0.0506457390142816,0.0758887439198149,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0745051734398717,0.060534996598048,0.0904345297847974,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.104385074396037,0.0866393295728708,0.121527750300369,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.00854814715962131,0.00721748743227706,0.0100720028170675,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0133812856151682,0.0117901321401906,0.0154105581569613,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0190910718376924,0.0165298128040325,0.0222468801117154,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0257203887306279,0.0221103935718112,0.0293777050947419,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0335573588425571,0.0288537612895676,0.037684026302828,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0429893590367229,0.0372287561592397,0.0486612893463817,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0541220379997397,0.0450694482477592,0.0644060606582323,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0664356262204518,0.0536907000921703,0.0799162392775315,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0921917737398833,0.0740333010899886,0.117280627040345,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.01265017486976,0.00988866123997879,0.0155988175043149,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.019299266085723,0.0150363048919309,0.0235592944943633,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0267518313327952,0.0214991258945343,0.0315492088908593,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0346487462144818,0.0291096828759558,0.0407087215995938,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0428934002103478,0.0368222320467069,0.0525909842694849,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0529113192435474,0.0448989149000496,0.0683793555530901,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.065170238003816,0.0554487948885902,0.0836184762666444,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0781283596878258,0.0662764556615547,0.097694019090215,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.104051273610342,0.0852236774264735,0.12262563155476,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.00981079458302331,0.0081914818727559,0.0118321990657081,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0150259815251009,0.0130842688651306,0.0173399918877399,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.021023013608956,0.0177901730235209,0.0256155618108788,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0280869119018705,0.0228971198416084,0.0336228916560116,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0363541680794891,0.0297795987224838,0.041737194731723,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0461266903668755,0.0391915361016115,0.0522444932328653,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.057460558170359,0.0484738943270402,0.0669830427238903,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0693089886023709,0.0570081154391254,0.0817949854478828,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,2,Percent,0.0918499257739445,0.0740676498965488,0.122763062201403,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,108.971860387069,80.2277786546336,141.765752632012,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,139.157361831064,106.223516059726,176.920826368088,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,163.141644858986,128.907660825765,202.112439052256,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,179.480656635104,145.273400704076,224.841423247304,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,184.549731806353,150.437299199713,233.076142784058,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,188.243379837283,148.41693284003,252.764145883737,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,190.943370469331,152.288300335533,256.165477613093,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,187.538815772333,148.18027761131,242.010243640398,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,336.350632403228,261.837347202078,406.176328540794,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,85.7835275138638,68.0349326727589,104.731399467866,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,112.955065546222,90.511432075984,138.25566277682,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,136.364154090875,106.669202630951,180.020005191197,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,154.982537834865,123.024369512262,204.629604464253,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,173.662658695087,136.133794099029,225.203432823424,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,190.748176377802,152.476876779339,241.72854003151,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,204.959628247427,158.256843763616,255.365726074589,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,213.198784760854,158.473462443786,264.721900133657,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,424.146548837747,335.370830486066,559.801082917741,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,7260.80994111985,5404.34542479892,9621.37391095644,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,9555.24518646124,7289.02396658074,12040.4155864836,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,11477.0203451365,9079.450322127,14066.202906292,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,12961.358128742,10510.5021026096,15377.0723550475,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,13740.2670150432,11434.7961409246,16931.9322839718,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,14381.2232277992,11971.6038312792,18792.0261008672,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,14936.7269908043,12452.7166484316,19319.3693761672,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,15144.4924636276,12347.8086105172,18996.7143491463,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,29483.734224521,21920.8735051414,35070.7020956493,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,5696.19162318528,4690.78132631447,6907.84655831362,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,7713.74726762351,6228.3154666293,8996.03216947354,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,9560.10762772836,7616.93478177017,11992.055023042,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,11156.3139675733,9218.91856587797,14184.7982268093,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,12817.4502744071,10550.4246248541,15783.8308619699,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,14426.0319160039,11879.4549421418,17642.8408682913,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,15960.2868809261,12704.8942601278,19275.474599118,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,17166.0573086959,13120.4984989838,20844.4215962439,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,36702.5419494081,28056.7653356892,46343.0105733503,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,2103.9800473784,1609.7485192964,2781.10122552259,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,2853.54358757166,2181.70851885225,3606.95684681532,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,3512.24734543072,2718.87755716569,4280.97711591404,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,4062.13443400825,3288.1786405024,4841.98130724628,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,4417.71197378011,3615.95722455765,5500.3682597858,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,4716.28258555464,3831.8786895312,6221.95975768288,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,4980.95344138886,4134.11882224139,6467.66755917742,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,5171.55747990584,4156.8639590331,6512.23119961867,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,10592.5905910631,8301.63746044756,12694.9069328325,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,1651.39567441837,1348.58522739058,2026.02744741569,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,2304.19678697025,1826.87287539999,2694.79647979396,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,2926.906010675,2399.84171980321,3514.72967167424,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,3492.71226863181,2871.53300287726,4183.32224875135,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,4111.69040408845,3436.93403586783,5007.36730973812,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,4737.51714054535,3914.20545076732,5604.68194143049,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,5348.62842534882,4243.2261684066,6505.92206990999,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,5882.37956949168,4501.14421164818,7128.11188577221,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,13129.1283038218,10007.7875538629,16787.8541183161,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,144.201445412848,106.551964976926,190.614169452444,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,182.900494797307,136.802995510103,235.023025294346,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,211.644074716555,166.88417016552,259.333515033729,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,229.024765039272,186.81875512946,273.080803364615,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,231.34380296209,193.011750688503,286.994593240057,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,232.975745789661,191.843642193637,310.474808059652,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,234.28942914124,187.356525444065,313.677995195445,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,228.288976691113,181.732169258254,295.042588715488,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,1,Number,405.992892570402,313.859775367613,484.770702296209,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,112.84244236,92.3869898162804,136.682320709009,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,146.616105363706,117.932923457897,170.287271231939,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,173.887361808654,140.98434457788,221.151182819438,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,195.836866745878,160.222457749006,250.804883869733,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,217.601746465865,172.957130160694,270.624610159379,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,236.177291289155,191.369827716217,287.613251116343,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,250.842996982046,197.336930251674,305.760890561281,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,257.841283311512,197.94513598612,309.780367808502,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,1,Number,501.004029974532,399.35894495845,668.481439899523,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00884942832443307,0.00651516799209303,0.0115125672106555,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.01345035393689,0.0102671096133507,0.0171004085026182,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.018769172211112,0.0148306098511004,0.0232526966235913,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.024576291474066,0.0198922909357902,0.0307875425506372,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0307890777121042,0.0250979811811333,0.038884908706049,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0382764090763081,0.0301783108662118,0.0513957189678197,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0473569867235443,0.0377699157578206,0.0635331045667394,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0567611427882364,0.0448487523036652,0.0732476524335346,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0739394663449612,0.0575593201147677,0.089289146744514,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00669294901411124,0.00530817918957314,0.00817128809143061,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0104898835016922,0.00840559361775483,0.0128394931999276,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0150728588582818,0.0117905606975739,0.01989830940546,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0203897563261235,0.0161852873980084,0.0269214056656036,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0266068115052991,0.0208570237626825,0.034503360322265,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.034050013634024,0.0272182928917064,0.0431503998628186,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0426466142836926,0.0329290145159417,0.0531347744641259,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.051734720883488,0.0384550988701251,0.0642372968050611,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0688214422907264,0.0544168149417599,0.0908325625373586,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00795269434952886,0.00591932686177319,0.0105381970547168,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0121726745265279,0.00928567657133124,0.0153385975177345,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0170018092742231,0.0134501009887119,0.0208373682222008,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.022322729647269,0.0181017370682264,0.0264831991785675,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0281528811374101,0.0234291266853486,0.0346923881825184,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0350673446129368,0.0291917002101403,0.0458226984461641,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0433622294080204,0.0361509958905185,0.0560853075391543,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0523634078799374,0.0426936287398725,0.0656828021296882,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0708466015107567,0.0526737684636583,0.0842715524821988,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00599430015867658,0.00493627200570204,0.00726936670319701,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00944138933680881,0.0076232665127272,0.0110108666062926,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0136067959597499,0.0108410994363351,0.0170681599193877,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0184605101939876,0.0152546746763842,0.023471785844929,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0241208356924022,0.0198545774247562,0.0297031923407132,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0308825944147795,0.0254309980029795,0.0377689930281858,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0388774623921538,0.0309476923867014,0.0469528865244709,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0475898990560117,0.0363742930541707,0.0577875223068073,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0650131823243847,0.0496984542028718,0.0820898617872079,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00719961690892056,0.00550840426128423,0.00951666030941739,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0111837444790405,0.00855065635193374,0.0141365577513524,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0157661077039786,0.0122047544447493,0.019216854523522,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0208847951898091,0.0169056289421312,0.024894249453714,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.026625393854787,0.0217932463314327,0.0331505250075988,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0333398080428856,0.0270878806846495,0.0439835697307589,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0413226819873306,0.034297224296416,0.0536566689274537,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.050381964206512,0.0404966921491432,0.0634429764105982,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0699365548069664,0.0548107583549951,0.0838168951065135,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00542931150211685,0.00443375830521982,0.00666099245278252,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00867658308500837,0.00687919294861895,0.0101474082796828,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0126233196501197,0.0103501680710897,0.0151585175497563,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0172529886170875,0.0141845426710857,0.020664402214726,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0227605336511954,0.019025375233146,0.0277186122875069,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0294018316920831,0.0242922202616975,0.0347836029381896,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0372324557122886,0.029537615595744,0.0452885181156938,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0459489108693304,0.0351596954510872,0.0556796741585081,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0638660150108321,0.0486824026202997,0.0816637112768512,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00830318681481244,0.00613531208481174,0.0109756532188889,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0126908475435267,0.00949229777339042,0.0163074538783199,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0176959928692772,0.0139535259335719,0.0216834042670342,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0230732183194914,0.0188211520380274,0.0275116666698181,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0287455023561245,0.0239825733956888,0.0356603619831085,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.035721518826995,0.029414848542416,0.0476042330664907,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0443561963538887,0.0354707545331436,0.0593862164323069,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0533884416957701,0.0425005073101624,0.0689996699521721,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0705093595988888,0.0545084708870463,0.0841908131810019,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.00624266664970125,0.0051110306382098,0.0075615357772189,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.009773755440551,0.00786167078580743,0.0113517279669315,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0139679782961406,0.0113249533760045,0.0177645740878334,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0189562352866013,0.015508901146937,0.0242769222601619,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0248347119910825,0.0197394579046672,0.0308861687011389,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0317912627929943,0.0257598368173667,0.0387149348655731,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0398479741035815,0.0313482017873985,0.0485720239175982,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0483573299533968,0.0371239939958964,0.0580983435499816,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,2,Percent,0.0642477596787037,0.0512129962757694,0.0857247294049145,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,37.8785044336499,29.9938374119185,49.0250429479037,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,48.5267170788046,38.9471705672383,61.3947609531872,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,56.5479725260375,44.8784052104214,70.3319601962501,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,62.0040194991171,50.5255733322399,77.8221554930541,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,63.8670630168571,51.405847968428,78.963379543836,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,65.3095232882708,51.8093039418212,79.9114916641621,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,66.4036516708444,53.2580617675613,82.2882708640424,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,65.898716675673,51.9661590621056,81.1053747246465,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,125.566262865338,97.3153362824722,156.227030340619,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,30.8612931682787,24.0847533586124,41.2643181959188,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,38.9117746771906,32.5224691995822,46.281675161822,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,44.8917620141914,35.4617315384253,53.8129941976741,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,49.4246374823583,38.9752988726976,58.9131511272424,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,54.2612755023516,41.5591521054459,63.8653364582522,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,59.7129857795302,47.0243691385914,70.153931485599,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,65.3589938454327,53.487893695039,79.3532900525339,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,68.4995831224113,54.7945502858088,80.7092370824825,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,140.411660086436,108.609076233069,179.66256492211,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,2527.07659809383,1944.5985719669,3061.47365692249,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,3343.99370812078,2678.10646458349,4005.06124132329,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,4004.73330944638,3263.63370681666,4688.10577311391,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,4521.75591638207,3839.74612519176,5460.03418994883,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,4816.19390058587,3840.92803639729,5835.45847099897,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,5068.48888393719,3952.79328358142,6140.25562417129,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,5288.07255564763,4259.14465937841,6395.54222746458,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,5431.61431805761,4373.31287334772,6572.49740102327,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,11274.7356369294,8586.23662119618,14125.3189408369,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,2052.32729100348,1633.6352164362,2800.25611684906,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,2665.46486717004,2243.46221982667,3114.04715545073,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,3164.09715713494,2668.40513407496,3607.78009805571,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,3586.16595324576,2905.70799691096,4105.58682446019,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,4046.74568582074,3364.85061287421,4633.80209747685,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,4569.35949410843,3746.22909254872,5114.74616805322,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,5154.91011862343,4236.95374435089,6142.30208112209,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,5600.91653166691,4591.68652358295,6703.22573043868,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,12375.4061937152,9952.21899651377,16028.7223083955,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,733.377427736062,535.462139770611,866.922417687673,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,1001.85946179841,812.374798858672,1157.13454589239,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,1231.78196613197,1009.75051520131,1467.3908281491,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,1427.12007898655,1190.56343793736,1731.01543104315,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,1562.42529946169,1254.95070549403,1950.11779258286,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,1678.33849261163,1291.81052096097,2045.81720758023,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,1781.23581651966,1409.72818029567,2202.94096544876,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,1878.62882971465,1449.36251398199,2256.14854488873,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,4105.56935709945,3201.08529811353,5139.08816565158,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,594.655595318333,488.23564743027,817.992554555083,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,796.703311218146,687.168263389978,935.021178916196,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,971.347006643676,821.880503916992,1105.87560384762,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,1127.72466950982,931.968657393893,1298.54326327301,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,1306.16153368977,1074.44264143668,1540.46593969374,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,1511.12797629397,1212.77290950906,1744.81567421773,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,1739.30599116723,1420.00271016297,2105.79899158412,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,1934.29620103692,1566.18994773108,2342.06926044533,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,4466.05327776559,3570.6475697103,5918.84721527477,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,50.1153277207167,38.9703341992894,62.8953676408055,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,63.8289757857615,50.8599783137581,78.9546812639423,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,73.5061787335923,60.3915150329952,87.3416898616889,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,79.2977473148113,66.4186554508354,95.7484648468315,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,80.219873595445,63.9317355303103,98.2680053877001,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,81.1281666185638,62.8245891774739,100.055915056046,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,81.9632792345024,64.5202192961049,101.049220228244,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,80.7481813436374,65.9583699969203,98.9715842365056,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,1,Male,9102,ACS carotídea,5,Prevalence,1,Number,152.46451698888,119.71506169323,190.09942773245,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,40.6116056227903,31.8242039970633,55.6151737684592,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,50.5611116107779,40.4757600204942,59.7964053806753,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,57.3264613377256,47.4713285320301,66.9221869204833,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,62.5786124227643,50.9740362176743,72.18894358343,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,68.1940309765549,54.9243264530141,79.1350689260845,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,74.219869860888,60.4049729790162,89.7084525660721,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,80.2853199904427,65.4246303768426,98.5586522620422,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,83.1771033428021,67.3146433185003,103.575391445666,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,2,Female,9102,ACS carotídea,5,Prevalence,1,Number,166.095829361361,131.37890053513,208.710779689711,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00307605200857966,0.00243575096734761,0.00398124435178688,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00469038440738494,0.00376446651529464,0.0059341543546479,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00650574925518149,0.00516318513695598,0.00809157388359987,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00849021217295866,0.00691846820926194,0.0106561899894638,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.010655165668478,0.00857621754561695,0.0131737369943003,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0132796915998924,0.0105346286990283,0.0162487782969016,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0164691596405864,0.013208844684415,0.0204087973373121,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0199451321657606,0.0157282563747293,0.0245476315752562,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0276030474533607,0.021392687685749,0.0343431590109076,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00240784061545437,0.00187912564239778,0.00321949896199725,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00361364920850581,0.00302028874438913,0.00429807533077842,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00496206057413412,0.00391972273001274,0.00594815896956716,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00650238619686335,0.00512765410770919,0.00775071058113964,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00831335613641054,0.00636726706073938,0.00978479185816641,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0106592263083774,0.00839421084230479,0.0125230152598356,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0135994577289706,0.01112939943717,0.0165112963072272,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0166220779234194,0.0132964208410116,0.0195848670425825,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0227830050440429,0.0176227610308403,0.0291518034921483,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00276788236373913,0.00212989985976659,0.00335320225292715,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00426000026513046,0.00341170924498677,0.00510215133134595,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00593252515668743,0.00483467626227013,0.00694485831818216,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00778760480574211,0.00661301183220398,0.00940355677826661,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00986805673204647,0.00786980270089742,0.0119564611471133,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0123590631717817,0.00963853783947306,0.0149724718526109,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0153515971353977,0.0123645567007827,0.0185666491344947,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0187802817866655,0.0151211119371401,0.0227249848765927,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0270921144766099,0.0206319077409481,0.0339417942989572,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00215973524416636,0.00171913104138643,0.002946806708054,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00326244699254853,0.00274592873540315,0.00381149791246017,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00450342465696591,0.00379791165655889,0.00513491370322106,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00593407942172005,0.00480811603667998,0.00679357246896615,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00761546841898199,0.00633222731705676,0.00872023504140472,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00978187742918582,0.00801975722247518,0.0109494164689392,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0125567808252383,0.010320742420373,0.0149619565075271,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0155275639344481,0.0127296498097712,0.0185835238764837,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0219212211600865,0.0176288996289258,0.0283925360619186,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00250954686377765,0.00183229982640892,0.00296652494631948,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00392653550955479,0.00318389815779155,0.00453509704407347,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00552933926225902,0.0045326635088849,0.00658696258124496,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00733730285028715,0.00612108583941222,0.00889973075363312,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00941668203218215,0.00756354352670267,0.0117532909793387,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0118643194421899,0.00913191989990861,0.0144620581473355,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0147773798845149,0.0116953009034136,0.0182759044073135,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0183018386286462,0.0141198721246796,0.0219796832336915,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0271066245681992,0.0211348560551534,0.0339303325343429,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00195505566199154,0.00160517764300809,0.00268932300955436,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00300003129636114,0.00258757088995153,0.00352087503592791,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00418927827245887,0.00354465099914602,0.00476948053327421,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00557063376247808,0.00460365566952294,0.00641442821994065,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00723034339158465,0.00594764816737711,0.00852735089783413,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00937831549862828,0.00752667355246734,0.0108286208292542,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0121075214309786,0.00988481229447614,0.0146587239677291,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0151093282380637,0.0122339474123659,0.0182945575726084,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0217249019947444,0.0173692438681651,0.0287919484332805,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00288566405946431,0.00224393010878617,0.00362154474813183,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00442887703204007,0.00352900210336928,0.00547839864445894,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00614600156635387,0.00504945777867853,0.00730281687806763,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00798889253624938,0.00669138177018289,0.00964622857614663,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.00996767813064675,0.00794380411658925,0.0122102392380343,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0124391546486605,0.00963271836514472,0.0153412933235275,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0155174705101292,0.0122151115668506,0.0191308633525641,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0188840461514587,0.0154252502331432,0.0231458335445523,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,1,Male,9102,ACS carotídea,5,Prevalence,2,Percent,0.0264787282023063,0.0207910840036871,0.0330148363550626,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00224671418581491,0.00176057778253282,0.00307674119099686,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00337051607298033,0.00269820412109154,0.00398616128129293,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00460490491908793,0.00381326440131979,0.00537570784163252,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00605736254213186,0.00493408539518675,0.00698760464460652,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00778292980786977,0.00626846912269049,0.00903162165328515,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.00999055994896864,0.00813096957585357,0.0120754411853644,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0127538236680608,0.0103931104649472,0.0156566564355905,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.01559960677847,0.0126246517851651,0.0194252422066141,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,2,Female,9102,ACS carotídea,5,Prevalence,2,Percent,0.0212997985844269,0.0168477687272544,0.0267646549999629,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,19.1559060622374,15.0653736734654,23.914136657236,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,23.8350615721852,18.9073799475689,28.3994952074735,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,26.7134985128647,21.0631399243202,31.5701992229388,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,27.7708060203368,22.5253810816595,33.220640647407,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,26.698424855207,22.9317508075108,32.6553002069613,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,24.8231619858008,21.4478768490066,30.6138133766402,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,22.5289979061979,18.2396265727158,27.9068979851147,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,20.301211780434,16.4048972594454,24.2790380932669,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,33.2552398919152,26.0314508396391,42.4298723845311,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,18.1165621871193,14.1103818084577,21.8565374811031,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,21.6854787511526,17.666622959115,26.5451427259212,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,23.8366417977986,19.2894416802926,29.9621789260235,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,24.9846219590006,20.9965604028885,29.8721277665699,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,25.9249545575019,22.2198836270284,31.6897682095205,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,25.8213855316059,20.5706271581086,31.4378716587573,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,24.7322764193035,19.0622771621065,30.2629252824436,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,23.3544870828924,17.4624560305499,29.509327286546,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,41.3016686388244,29.7911143853544,51.5098535209264,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,1283.99727997605,1013.87260510773,1573.40068351799,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,1653.07628813865,1367.24047385537,1903.83705059702,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,1908.34250943112,1526.74743322512,2169.24216933789,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,2049.02202734721,1652.96509880869,2413.83440688085,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,2045.17803097507,1746.1052421621,2515.05437432669,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,1964.71090414334,1665.40518400573,2433.76005040274,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,1835.11477395009,1523.55492417978,2199.60683188982,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,1711.185165079,1424.11441950643,2066.79415287924,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,3035.35042017882,2285.41867351565,3698.1286898429,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,1214.98001643492,966.091030414504,1493.49871456058,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,1502.83611561928,1273.74433412904,1805.89887538833,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,1705.02438460605,1374.21695601349,2157.94773071708,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,1845.23221123603,1552.1949211552,2208.05330959727,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,1972.48356611384,1651.46829898574,2372.92577875817,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,2023.75523320292,1668.00158532865,2460.10466536735,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,2007.53832628018,1622.75084404058,2424.36114348786,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,1966.15818982092,1582.71485174695,2438.53222666538,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,3722.46276280673,2818.13068615107,4679.69346934178,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,373.448713944749,294.847120444773,454.925470081335,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,496.811604581356,419.984482532702,579.931268419209,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,589.525062066671,469.411715031013,675.565267610169,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,650.435205396409,538.885735637918,771.094705141457,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,668.399298039821,554.594029359828,812.689299557616,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,656.451387824961,550.758527099952,792.533060693246,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,624.462830823563,518.96412934962,753.472476474754,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,597.546228462026,478.206854546436,725.675843836895,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,1112.00341986117,849.379607501146,1297.91995594152,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,353.978814775196,279.942459072428,432.833810573756,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,452.701016203744,375.297689313782,539.800690532185,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,528.298354327857,439.519395471317,666.292486321174,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,586.424276875395,468.619960032284,711.252668601809,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,644.284937129726,513.063517015085,769.82218770534,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,678.230304747835,550.008608809626,818.297417510734,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,686.966952336555,547.148156729342,864.704867381584,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,688.41309821363,558.382795459029,881.427353271753,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,1356.95792144165,1043.11187052528,1749.30089070029,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,25.3788138295569,19.7797401190743,31.0464298887615,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,31.4115522443723,25.5507747181392,36.5333983990113,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,34.8016492900822,27.9506333976267,39.9283168115987,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,35.6009425708637,28.9500785014285,42.1019630129133,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,33.6424083353443,28.4942748443925,41.3646547535386,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,30.9837116981908,25.5137295720446,38.3966007453022,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,27.9764887604135,22.6783196837896,34.190082862239,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,25.0397079903926,20.7990766186446,30.2757752527747,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,1,Male,9103,ACS renovascular,5,Prevalence,1,Number,40.6698238890664,31.8437464959913,50.2594837216645,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,23.8858748999394,18.3999915556549,28.5473545265228,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,28.2275318835551,23.4257826609916,33.9042150705402,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,30.5016732715133,24.3087023077969,38.4085570269752,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,31.7504076895818,26.4089426100337,38.4187028115093,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,32.7394432700639,27.0965864526918,39.9481324139751,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,32.2780215854755,25.9270653711442,39.5967833243398,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,30.5858967099211,22.8996097833041,38.6330616890538,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,28.5371405735282,20.6823667179466,35.6182798105567,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,2,Female,9103,ACS renovascular,5,Prevalence,1,Number,49.1458618493268,35.8482061616679,61.414223096578,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00155562011224926,0.00122343460073619,0.00194202831388956,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00230379485522764,0.00182750627755354,0.0027449734397326,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00307334313309534,0.00242327886842156,0.00363209839196259,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00380265726692275,0.00308440107923586,0.00454890327911913,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00445419166753536,0.00382578425217064,0.00544799803252607,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00504740991984562,0.00436109736661379,0.0062248502189183,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00558754908387845,0.00452371690791562,0.00692135366694312,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00614443455824275,0.00496516260879098,0.00734837714687256,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00731045062473404,0.00572245566929854,0.00932729663322292,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00141347914388073,0.00110091143079174,0.00170527716947048,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00201388175623631,0.00164065963587621,0.00246518784601794,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00263475647151526,0.00213213680560325,0.00331183584901332,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.003287017755427,0.00276234185013663,0.0039300260184936,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00397195565458893,0.00340430268531154,0.0048551812792279,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00460931551795893,0.00367201484436069,0.0056119014028485,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.0051461249311909,0.00396634980484945,0.00629690496929746,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00566718929456258,0.00423743169875029,0.00716072004041397,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,01,Amazonas,1,2023,21,80+ years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.0067015525943249,0.00483386571237294,0.00835791879294603,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.0014063497042454,0.00111048478105994,0.00172333043101642,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00210589673319361,0.00174176308016863,0.00242534736851113,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00282697724666745,0.00226169056854577,0.00321346835011176,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00352893302564814,0.00284682304512937,0.00415723200785493,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00419043195797039,0.00357765196863924,0.00515317691985331,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00479077427900634,0.0040609436751395,0.00593450925841249,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00532745010784899,0.00442297286270781,0.00638559278150931,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00591657244191771,0.00492400021957903,0.00714612163405322,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00729365758171394,0.00549164311463452,0.0088862505552942,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00127856564299221,0.0010166511241192,0.00157166053635457,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00183942516972693,0.00155902387734976,0.00221036466374913,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00242674243963981,0.0019559078676761,0.00307138325289437,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00305333178546306,0.00256843884533254,0.00365369697815657,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00371196696578534,0.00310785644868738,0.00446554904402301,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00433236335713764,0.00357078209329119,0.00526648041823356,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00489013739934956,0.0039528384033259,0.00590547086553867,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00545083056051133,0.00438780080216395,0.00676040516613267,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,123,Perú,0,2023,21,80+ years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.0065937980706535,0.00499190612915129,0.0082893921942498,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00127790550052098,0.0010089384243666,0.00155671110606647,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00194712779719208,0.00164602326674284,0.00227289435831805,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.0026463157940256,0.00210713965413523,0.00303254119732358,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00334410548681458,0.00277059225940051,0.00396445643305188,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00402841893455211,0.00334251860439503,0.00489804967157633,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00464051143300953,0.00389335949201513,0.00560248450592917,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00518063043043325,0.00430539854112081,0.00625091238011875,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00582137060471349,0.00465875139601192,0.00706962545263763,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.0073418950208713,0.00560794670210713,0.00856939096752622,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00116377999551292,0.000920369864422785,0.00142303242200319,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00170467123379867,0.00141320463658156,0.00203264997470369,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00227847391511378,0.00189558318621317,0.00287362252311118,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00289676635106226,0.00231484709141075,0.00351338250948083,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00356648179977706,0.00284009696659333,0.00426140153725624,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00420921184601151,0.00341344634028192,0.00507849200962412,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00478206085647249,0.0038087651437774,0.00601931619074577,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00537738711305757,0.00436168407638673,0.00688507540440363,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,15,Lima,1,2023,21,80+ years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00660085673430681,0.00507416767048826,0.00850939029298736,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00146132399548321,0.00113892670691969,0.00178766798461228,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00217954151015628,0.00177288195379817,0.0025349291145581,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00290983689716406,0.00233700948140691,0.00333848802772564,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00358663535874105,0.0029165906207363,0.00424158402306199,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00418021972357658,0.00354054110889569,0.00513974338388899,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00475064576789187,0.00391194872309792,0.00588724329121469,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00529657113979808,0.00429350997421234,0.00647294260928417,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00585587184059695,0.00486414326909368,0.00708039645761804,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00706318580914664,0.00553034847099537,0.00872863558903516,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00132141374750716,0.00101792385238188,0.00157929600168858,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00188171001156957,0.00156161473641701,0.00226013032934739,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00245013039372747,0.00195266304986721,0.00308527247385133,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00307331407313733,0.00255628134837225,0.0037187787059829,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00373652628053685,0.00309251157871397,0.00455924816411494,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00434486762491257,0.00348998053185411,0.00533002871508141,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00485876039871662,0.00363774579560033,0.00613710273058837,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00535205187050416,0.00387891348798699,0.00668009748885159,0.95
+FECHA_e10-v1_v1,gbd,2023,cause,dismod_lite,25,Ucayali,1,2023,21,80+ years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.0063023675108139,0.00459710261113977,0.00787563774000744,0.95

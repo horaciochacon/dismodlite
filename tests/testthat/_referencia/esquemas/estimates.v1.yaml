@@ -1,0 +1,175 @@
+schema: estimates/v1
+
+stages: [raw, std, mod]
+
+sources:
+  gbd:     {prep: gbd_results, url: "https://vizhub.healthdata.org/gbd-results/", descripcion: "herramienta GBD Results del IHME"}
+  endes:   {prep: endes,   url: "https://proyectos.inei.gob.pe/microdatos/", descripcion: "INEI ENDES (microdatos)", round_es_year: true}
+  minsa:   {prep: minsa,   url: null, descripcion: "MINSA (registros administrativos)"}
+  inei:    {prep: inei,    url: null, descripcion: "INEI (censos, proyecciones)"}
+  essalud: {prep: essalud, url: null, descripcion: "EsSalud"}
+  sis:     {prep: sis,     url: null, descripcion: "SIS"}
+  lit:     {prep: null, contrato: observations/v1, url: null, descripcion: "literatura peruana (estudios publicados; sus filas siguen el contrato observations/v1)"}
+  enaho:   {prep: enaho,   url: "https://proyectos.inei.gob.pe/microdatos/", descripcion: "INEI ENAHO (microdatos, módulo SUMARIA)", round_es_year: true}
+  sinadef: {prep: sinadef, url: "https://www.datosabiertos.gob.pe/", descripcion: "MINSA SINADEF (defunciones, datos abiertos)"}
+  ghdx:    {prep: ghdx_covariates, url: "https://ghdx.healthdata.org/record/ihme-data/gbd-2023-covariates-1980-2023", descripcion: "covariables publicadas en el GHDx (GBD 2023 Covariates 1980-2023)"}
+
+partition_dims: [source, round, entity, measure]
+
+anchors:
+  - {id_col: location_id,  name_col: location_name,  catalogo: locations,    cat_id: location_id, cat_name: location_name, name_norm: casefold}
+  - {id_col: age_group_id, name_col: age_group_name, catalogo: demograficos, cat_id: id, cat_name: name, name_norm: casefold, filtro: {tabla: age_group}}
+  - {id_col: sex_id,       name_col: sex_name,       catalogo: demograficos, cat_id: id, cat_name: name, name_norm: casefold, filtro: {tabla: sex}}
+  - {id_col: measure_id,   name_col: measure_name,   catalogo: demograficos, cat_id: id, cat_name: name, name_norm: casefold, filtro: {tabla: measure}}
+  - {id_col: metric_id,    name_col: metric_name,    catalogo: demograficos, cat_id: id, cat_name: name, name_norm: casefold, filtro: {tabla: metric}}
+
+entities:
+  cause:
+    keys: [cause_id, cause_name]
+    id_cols: [cause_id]
+    anchors:
+      - {id_col: cause_id, name_col: cause_name, catalogo: causas, cat_id: cause_id, cat_name: cause_name, name_norm: slug}
+  impairment:
+    keys: [rei_id, rei_name]
+    id_cols: [rei_id]
+    anchors:
+      - {id_col: rei_id, name_col: rei_name, catalogo: rei, cat_id: rei_id, cat_name: rei_name, name_norm: casefold, filtro: {tipo: deterioro}}
+  cause_impairment:
+    keys: [cause_id, cause_name, rei_id, rei_name]
+    id_cols: [cause_id, rei_id]
+    anchors:
+      - {id_col: cause_id, name_col: cause_name, catalogo: causas, cat_id: cause_id, cat_name: cause_name, name_norm: slug}
+      - {id_col: rei_id, name_col: rei_name, catalogo: rei, cat_id: rei_id, cat_name: rei_name, name_norm: casefold, filtro: {tipo: deterioro}}
+  cause_sequela:
+    keys: [cause_id, cause_name, sequela_id, sequela_name]
+    id_cols: [cause_id, sequela_id]
+    anchors:
+      - {id_col: cause_id, name_col: cause_name, catalogo: causas, cat_id: cause_id, cat_name: cause_name, name_norm: slug}
+      - {id_col: sequela_id, name_col: sequela_name, catalogo: sequelas, cat_id: sequela_id, cat_name: sequela_name, name_norm: slug}
+  cause_health_state:
+    keys: [cause_id, cause_name, health_state_id, health_state_name]
+    id_cols: [cause_id, health_state_id]
+    anchors:
+      - {id_col: cause_id, name_col: cause_name, catalogo: causas, cat_id: cause_id, cat_name: cause_name, name_norm: slug}
+      - {id_col: health_state_id, name_col: health_state_name, catalogo: health_states, cat_id: healthstate_id, cat_name: healthstate_name, name_norm: slug}
+  rei:
+    keys: [rei_id, rei_name]
+    id_cols: [rei_id]
+    anchors:
+      - {id_col: rei_id, name_col: rei_name, catalogo: rei, cat_id: rei_id, cat_name: rei_name, name_norm: casefold}
+  sequela:
+    keys: [sequela_id, sequela_name]
+    id_cols: [sequela_id]
+    anchors:
+      - {id_col: sequela_id, name_col: sequela_name, catalogo: sequelas, cat_id: sequela_id, cat_name: sequela_name, name_norm: slug}
+  covariate:
+    keys: [covariate_id, covariate_name_short]
+    id_cols: [covariate_id]
+    anchors:
+      - {id_col: covariate_id, name_col: covariate_name_short, catalogo: covariables, cat_id: covariate_id, cat_name: covariate_name_short, name_norm: casefold}
+  population:
+    keys: []
+    id_cols: []
+    anchors: []
+    split_by: location_level
+  indicator:
+    keys: [indicator_id, indicator_name]
+    id_cols: [indicator_id]
+    anchors:
+      - {id_col: indicator_id, name_col: indicator_name, catalogo: indicadores, cat_id: indicator_id, cat_name: indicator_name, name_norm: casefold}
+    split_by: nivel
+    split_slug: false
+    extra: [nivel, se, cv, "n", deff, n_efectivo, estandarizado, estandar_id]
+
+columnas:
+  prefijo:      [acquisition_id, source, round, entity]
+  demograficas: [location_id, location_name, location_level, year, age_group_id, age_group_name, sex_id, sex_name]
+  medida:       [measure_id, measure_name, metric_id, metric_name]
+  valores:      [val, lower, upper, ui_level]
+  opcionales:   [n_obs, se]
+mod:
+  reemplaza: {acquisition_id: run_id}
+  inserta_tras_entity: [method]
+
+clave_primaria: [location_id, year, age_group_id, sex_id, "<id_cols>", measure_id, metric_id]
+ui_level: 0.95
+location_levels: {"0": nacional, "1": departamento, "2": provincia, "3": distrito}
+
+medidas_acunadas:
+  proportion: {measure_id: 900001, measure_name: Proportion, metric_id: 2}
+  population: {measure_id: 900002, measure_name: Population, metric_id: 1, slug: population}
+  covariate_value: {measure_id: 900003, measure_name: Covariate value, metric_id: 1, slug: value}
+  excess_mortality_rate: {measure_id: 900004, measure_name: Excess mortality rate, metric_id: 3, slug: excess_mortality_rate}
+  remission:  {measure_id: 900005, measure_name: Remission, metric_id: 3, slug: remission}
+  csmr:       {measure_id: 900006, measure_name: Cause-specific mortality rate, metric_id: 3, slug: csmr}
+  indicator_proportion: {measure_id: 900007, measure_name: Indicator proportion, metric_id: 2, slug: proportion}
+  indicator_mean:       {measure_id: 900008, measure_name: Indicator mean, metric_id: 1, slug: mean}
+  indicator_total:      {measure_id: 900009, measure_name: Indicator total, metric_id: 1, slug: total}
+  case_fatality: {measure_id: 900010, measure_name: Case fatality, metric_id: 2, slug: case_fatality}
+  distribution: {measure_id: 900011, measure_name: Distribution of cases, metric_id: 2, slug: distribution}
+  severity: {measure_id: 900012, measure_name: Severity distribution, metric_id: 2, slug: severity}
+  duration: {measure_id: 900013, measure_name: Duration, metric_id: 1, slug: duration}
+
+covariables_acunadas:
+  - {covariate_id: 900101, covariate_name_short: sev_proxy_endes, covariate_id_gbd: 785, descripcion: "proxy departamental del SEV scalar de arteriopatía periférica (causa 502) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900102, covariate_name_short: ldi_proxy_enaho, covariate_id_gbd: 57,  descripcion: "proxy departamental del LDI desde el gasto per cápita de ENAHO"}
+  - {covariate_id: 900103, covariate_name_short: acceso_proxy,    covariate_id_gbd: 1099, descripcion: "proxy de acceso (reservado; sin datos aún)"}
+  - {covariate_id: 900104, covariate_name_short: sev_proxy_endes_cvd,         covariate_id_gbd: 1022, descripcion: "proxy departamental del SEV scalar de enfermedad cardiovascular (causa 491) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900105, covariate_name_short: sev_proxy_endes_ihd,         covariate_id_gbd: 778,  descripcion: "proxy departamental del SEV scalar de cardiopatía isquémica (causa 493) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900106, covariate_name_short: sev_proxy_endes_stroke_isch, covariate_id_gbd: 582,  descripcion: "proxy departamental del SEV scalar de ACV isquémico (causa 495, por edad) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900107, covariate_name_short: sev_proxy_endes_stroke_isch_agestd, covariate_id_gbd: 780, descripcion: "proxy departamental del SEV scalar de ACV isquémico (causa 495, estandarizado por edad) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900108, covariate_name_short: sev_proxy_endes_stroke_cerhem, covariate_id_gbd: 583, descripcion: "proxy departamental del SEV scalar de hemorragia intracerebral (causa 496) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900109, covariate_name_short: sev_proxy_endes_stroke_subhem, covariate_id_gbd: 2193, descripcion: "proxy departamental del SEV scalar de hemorragia subaracnoidea (causa 497) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900110, covariate_name_short: sev_proxy_endes_cmp,         covariate_id_gbd: 782,  descripcion: "proxy departamental del SEV scalar de miocardiopatía (causa 499) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900111, covariate_name_short: sev_proxy_endes_afib,        covariate_id_gbd: 783,  descripcion: "proxy departamental del SEV scalar de fibrilación auricular (causa 500) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900112, covariate_name_short: sbp_proxy_endes,             covariate_id_gbd: 70,   descripcion: "proxy departamental de la presión arterial sistólica media (mmHg) desde ENDES (el mismo constructo)"}
+  - {covariate_id: 900113, covariate_name_short: sev_proxy_endes_stroke_cerhem_agestd, covariate_id_gbd: 781,  descripcion: "proxy departamental del SEV scalar de hemorragia intracerebral (causa 496, estandarizado por edad) desde los factores de riesgo de ENDES"}
+  - {covariate_id: 900114, covariate_name_short: sev_proxy_endes_stroke_subhem_agestd, covariate_id_gbd: 2192, descripcion: "proxy departamental del SEV scalar de hemorragia subaracnoidea (causa 497, estandarizado por edad) desde los factores de riesgo de ENDES"}
+
+edades_acunadas:
+  - {id: 900201, name: "30-44 years", age_start: 30, age_end: 45}
+  - {id: 900202, name: "45-59 years", age_start: 45, age_end: 60}
+  - {id: 900203, name: "60+ years",   age_start: 60, age_end: 125}
+  - {id: 900204, name: "15-29 years", age_start: 15, age_end: 30}
+  - {id: 900205, name: "30-59 years", age_start: 30, age_end: 60}
+  - {id: 900206, name: "15+ years",   age_start: 15, age_end: 125}
+  - {id: 900207, name: "30+ years",   age_start: 30, age_end: 125}
+  - {id: 900208, name: "20-24 years", age_start: 20, age_end: 25}
+  - {id: 900209, name: "25-44 years", age_start: 25, age_end: 45}
+  - {id: 900210, name: "60-74 years", age_start: 60, age_end: 75}
+  - {id: 900211, name: "75+ years",   age_start: 75, age_end: 125}
+
+catalogos:
+  causas:       catalogo_causas_gbd2023.csv
+  rei:          catalogo_rei_gbd2023.csv
+  sequelas:     catalogo_sequelas_gbd2023.csv
+  health_states: catalogo_health_states_gbd2023.csv
+  covariables:  catalogo_covariables_gbd2023.csv
+  demograficos: catalogo_demograficos_gbd2023.csv
+  locations:    catalogo_locations_peru.csv
+  indicadores:  catalogo_indicadores_peru.csv
+  icd:          catalogo_icd_gbd2021_s12.csv
+
+ids:
+  acquisition_id: "^[a-z0-9]+_[a-z0-9-]+_[a-z0-9-]+$"
+  minted_from: 900001
+  run_id: "^[0-9]{4}-[0-9]{2}-[0-9]{2}_[a-z0-9-]+_v[0-9]+$"
+
+manifest:
+  requeridos: [acquisition_id, source, round, external_id, received, obtained_by, citation, files, grain, entities, prep]
+  grain: [location_levels, age_scheme, years, sexes]
+registry:
+  status: [active, superseded, failed]
+
+reglas_duras:
+  - columnas exactas y en orden; ninguna extra salvo el bloque opcional completo
+  - clave primaria única dentro de la partición a través de todos sus archivos
+  - todo id resuelve en su catálogo (de versión fijada); *_name coincide con el catálogo bajo name_norm
+  - lower <= val <= upper; sin nulos en claves ni en val (excepción con aviso: intervalo degenerado lower == upper con val fuera, un artefacto de GBD que se conserva tal cual)
+  - ui_level constante: 0.95 cuando hay intervalo; vacío cuando lower y upper están vacíos en toda la partición (conteos sin incertidumbre publicada)
+  - valores del directorio de partición == valores de las filas
+  - manifest.grain y manifest.entities describen exactamente los datos
+  - fuentes con round_es_year (encuestas): manifest.round == year de toda fila
+  - sha256 del registro == archivo en disco
+  - raw/ se escribe una sola vez; nunca se editan filas: retirar con status superseded
+  - entidad indicator: cv presente donde está definido (val != 0) y vacío donde no (val == 0); proporciones en [0,1]; n >= 1; cv >= 15 da un aviso (valor referencial, criterio del INEI)

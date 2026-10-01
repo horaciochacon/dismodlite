@@ -1,0 +1,25 @@
+Package: dismodlite
+Title: Estimación de Carga de Enfermedad por Edad, Sexo y Ubicación Subnacional
+Version: 1.0.0
+Authors@R: c(
+    person("Horacio", "Chacón", email = "hchacont@u.washington.edu", role = c("aut", "cre")),
+    person("University of Washington", role = "cph"))
+Description: Estima prevalencia, incidencia, mortalidad en exceso y años vividos con discapacidad (AVD)
+    por edad y sexo con un modelo enfermedad-muerte (DisMod-lite). Combina una estimación de referencia
+    externa (el ancla) con datos locales y covariables, desagrega a las ubicaciones subnacionales de un
+    país (departamentos, regiones o provincias) mediante una cascada con covariables proxy, propaga la
+    incertidumbre con simulaciones MCMC y escribe corridas reproducibles con manifiesto. Incluye un
+    proyecto de ejemplo con datos sintéticos para Perú.
+License: MIT + file LICENSE
+URL: https://github.com/horaciochacon/dismodlite, https://horaciochacon.github.io/dismodlite/
+BugReports: https://github.com/horaciochacon/dismodlite/issues
+Depends: R (>= 4.1)
+Imports: data.table, digest, jsonlite, parallel, stats, tools, utils, yaml
+Suggests: knitr, Rcpp, rmarkdown, testthat (>= 3.1.7), withr
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Encoding: UTF-8
+Language: es
+Roxygen: list(markdown = TRUE)
+SystemRequirements: Compilador de C++ opcional (motor "rcpp"; Rtools en Windows).
+RoxygenNote: 7.3.3

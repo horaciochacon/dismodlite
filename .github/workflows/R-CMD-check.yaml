@@ -1,0 +1,91 @@
+# R CMD check del paquete en macOS, Windows y Ubuntu (R actual, en desarrollo, la versión anterior y la 4.1, la
+# mínima que pide DESCRIPTION), con --as-cran: falla con cualquier WARNING o ERROR. NOT_CRAN: true hace que corran
+# también las pruebas marcadas con skip_on_cran() (el paquete instalado en una ruta con espacios y tildes; el motor
+# C++ igual al de R, bit a bit). En R en desarrollo y en las versiones anteriores (ligero) el chequeo no corre los
+# ejemplos en \donttest (--as-cran los corre) ni las guías.
+# En Windows corren además, desde el código fuente, las pruebas que leen R/, man/ y las guías (test-fuente-*.R), que
+# R CMD check omite porque el paquete instalado ya no los tiene; en Ubuntu las corre el flujo pkgdown, que también se
+# activa con los cambios que solo tocan la documentación del sitio y que este flujo ignora (paths-ignore).
+# Basado en los ejemplos de r-lib/actions (v2).
+name: R-CMD-check
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'vignettes/articles/**'
+      - '_pkgdown.yml'
+      - 'pkgdown/**'
+      - 'README.Rmd'
+      - 'README.md'
+      - 'LICENSE.md'
+  pull_request:
+    paths-ignore:
+      - 'vignettes/articles/**'
+      - '_pkgdown.yml'
+      - 'pkgdown/**'
+      - 'README.Rmd'
+      - 'README.md'
+      - 'LICENSE.md'
+  workflow_dispatch:
+
+permissions: read-all
+
+concurrency:
+  group: r-cmd-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  R-CMD-check:
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }} (R ${{ matrix.config.r }})
+
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - {os: macos-latest,   r: 'release'}
+          - {os: windows-latest, r: 'release', fuente: true}
+          - {os: ubuntu-latest,  r: 'release'}
+          - {os: ubuntu-latest,  r: 'devel', http-user-agent: 'release', ligero: true}
+          - {os: ubuntu-latest,  r: 'oldrel-1', ligero: true}
+          - {os: ubuntu-latest,  r: '4.1', ligero: true}
+
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_KEEP_PKG_SOURCE: yes
+      NOT_CRAN: true
+      # --as-cran siempre revisa la hora de los archivos: con _R_CHECK_SYSTEM_CLOCK_ en false la compara con el reloj
+      # de la máquina, sin consultar un servidor de hora.
+      _R_CHECK_SYSTEM_CLOCK_: false
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          r-version: ${{ matrix.config.r }}
+          http-user-agent: ${{ matrix.config.http-user-agent }}
+          use-public-rspm: true
+
+      # Instala también pandoc (el paquete sugiere rmarkdown).
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - uses: r-lib/actions/check-r-package@v2
+        env:
+          _R_CHECK_DONTTEST_EXAMPLES_: ${{ !matrix.config.ligero }}
+        with:
+          args: >-
+            ${{ matrix.config.ligero && 'c("--no-manual", "--as-cran", "--ignore-vignettes")'
+            || 'c("--no-manual", "--as-cran")' }}
+          build_args: ${{ matrix.config.ligero && 'c("--no-manual", "--no-build-vignettes")' || '"--no-manual"' }}
+          error-on: '"warning"'
+          upload-snapshots: true
+
+      - name: Pruebas desde el código fuente (test-fuente-*.R)
+        if: ${{ !cancelled() && matrix.config.fuente }}
+        shell: Rscript {0}
+        run: testthat::test_local(filter = "fuente", stop_on_failure = TRUE)

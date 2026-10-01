@@ -1,0 +1,186 @@
+causa,tipo,location_id,sexo,edad_inicio,edad_fin,anio,valor,error_estandar,casos,muestra,excluir,motivo,fuente,definicion
+9100,mortalidad,123,hombres,50,55,2023,0.000498725225117662,4.98725225117662e-05,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,hombres,55,60,2023,0.000794861935736366,7.94861935736366e-05,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,hombres,60,65,2023,0.00123370102201399,0.000123370102201399,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,hombres,65,70,2023,0.00155324208722131,0.000155324208722131,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,hombres,70,75,2023,0.00253289385864626,0.000253289385864626,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,hombres,75,80,2023,0.00342307143467102,0.000342307143467102,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,hombres,80,125,2023,0.00601997455273197,0.000601997455273197,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,mujeres,50,55,2023,0.000432023675105511,4.32023675105511e-05,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,mujeres,55,60,2023,0.000632388848928495,6.32388848928495e-05,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,mujeres,60,65,2023,0.000848436695764766,8.48436695764766e-05,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,mujeres,65,70,2023,0.00143531665829352,0.000143531665829352,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,mujeres,70,75,2023,0.00202924290357389,0.000202924290357389,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,mujeres,75,80,2023,0.00294523425726364,0.000294523425726364,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,123,mujeres,80,125,2023,0.00508071115697324,0.000508071115697324,,,FALSE,,Registro vital sintético,"registro vital, causa básica (sintético)"
+9100,prevalencia_estudio,123,hombres,60,65,2023,,,32,800,FALSE,,Estudio de prevalencia sintético,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,123,hombres,70,75,2023,,,49,800,FALSE,,Estudio de prevalencia sintético,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,123,hombres,80,125,2023,,,70,800,FALSE,,Estudio de prevalencia sintético,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,123,mujeres,60,65,2023,,,25,800,FALSE,,Estudio de prevalencia sintético,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,123,mujeres,70,75,2023,,,46,800,FALSE,,Estudio de prevalencia sintético,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,123,mujeres,80,125,2023,,,83,800,FALSE,,Estudio de prevalencia sintético,tamizaje vascular estandarizado (sintético)
+9100,incidencia,123,hombres,60,70,2023,0.00458839943796536,0.000917679887593072,,,FALSE,,Cohorte de incidencia sintética,primer diagnóstico en una cohorte (sintético)
+9100,incidencia,123,hombres,70,80,2023,0.00529501916143514,0.00105900383228703,,,FALSE,,Cohorte de incidencia sintética,primer diagnóstico en una cohorte (sintético)
+9100,incidencia,123,mujeres,60,70,2023,0.00281116479346823,0.000562232958693645,,,FALSE,,Cohorte de incidencia sintética,primer diagnóstico en una cohorte (sintético)
+9100,incidencia,123,mujeres,70,80,2023,0.00490712776069181,0.000981425552138362,,,FALSE,,Cohorte de incidencia sintética,primer diagnóstico en una cohorte (sintético)
+9100,prevalencia_estudio,123,mujeres,65,70,2023,0.135691395441734,0.0271382790883467,,,TRUE,valor atípico sintético para el ejemplo,Estudio de prevalencia sintético,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,01,hombres,50,65,2019,,,15,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,01,hombres,65,80,2019,,,33,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,01,mujeres,50,65,2019,,,16,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,01,mujeres,65,80,2019,,,27,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,04,hombres,50,65,2019,,,16,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,04,hombres,65,80,2019,,,42,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,04,mujeres,50,65,2019,,,26,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,04,mujeres,65,80,2019,,,34,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,06,hombres,50,65,2019,,,21,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,06,hombres,65,80,2019,,,33,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,06,mujeres,50,65,2019,,,17,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,06,mujeres,65,80,2019,,,25,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,08,hombres,50,65,2019,,,19,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,08,hombres,65,80,2019,,,39,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,08,mujeres,50,65,2019,,,11,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,08,mujeres,65,80,2019,,,31,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,13,hombres,50,65,2019,,,25,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,13,hombres,65,80,2019,,,46,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,13,mujeres,50,65,2019,,,13,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,13,mujeres,65,80,2019,,,42,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,15,hombres,50,65,2019,,,25,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,15,hombres,65,80,2019,,,42,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,15,mujeres,50,65,2019,,,19,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,15,mujeres,65,80,2019,,,34,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,16,hombres,50,65,2019,,,22,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,16,hombres,65,80,2019,,,45,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,16,mujeres,50,65,2019,,,11,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,16,mujeres,65,80,2019,,,37,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,20,hombres,50,65,2019,,,24,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,20,hombres,65,80,2019,,,42,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,20,mujeres,50,65,2019,,,13,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,20,mujeres,65,80,2019,,,23,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,21,hombres,50,65,2019,,,17,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,21,hombres,65,80,2019,,,36,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,21,mujeres,50,65,2019,,,18,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,21,mujeres,65,80,2019,,,40,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,25,hombres,50,65,2019,,,19,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,25,hombres,65,80,2019,,,25,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,25,mujeres,50,65,2019,,,14,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,prevalencia_estudio,25,mujeres,65,80,2019,,,35,600,FALSE,,Encuesta departamental sintética,tamizaje vascular estandarizado (sintético)
+9100,mortalidad,01,hombres,50,55,2019,0.000603266349198942,6.03266349198942e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,hombres,55,60,2019,0.000815846809604781,8.15846809604781e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,hombres,60,65,2019,0.00142085806541763,0.000142085806541763,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,hombres,65,70,2019,0.0019383910192534,0.00019383910192534,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,hombres,70,75,2019,0.00269344931406866,0.000269344931406866,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,hombres,75,80,2019,0.00433066678077303,0.000433066678077303,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,mujeres,50,55,2019,0.000522359624992048,5.22359624992048e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,mujeres,55,60,2019,0.000785443139253724,7.85443139253724e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,mujeres,60,65,2019,0.00110775767704602,0.000110775767704602,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,mujeres,65,70,2019,0.00163390456882314,0.000163390456882314,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,mujeres,70,75,2019,0.00230628463876023,0.000230628463876024,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,01,mujeres,75,80,2019,0.00340472857499426,0.000340472857499426,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,hombres,50,55,2019,0.000420410045841489,4.20410045841489e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,hombres,55,60,2019,0.000698837177854968,6.98837177854968e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,hombres,60,65,2019,0.00110764440455781,0.000110764440455781,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,hombres,65,70,2019,0.00163652403561135,0.000163652403561135,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,hombres,70,75,2019,0.00243341720028649,0.000243341720028649,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,hombres,75,80,2019,0.0032080106981831,0.00032080106981831,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,mujeres,50,55,2019,0.000424002498294173,4.24002498294173e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,mujeres,55,60,2019,0.000576416669920746,5.76416669920746e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,mujeres,60,65,2019,0.000886586152630279,8.86586152630279e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,mujeres,65,70,2019,0.00134154745334457,0.000134154745334457,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,mujeres,70,75,2019,0.00180813979301304,0.000180813979301304,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,04,mujeres,75,80,2019,0.00267461159245911,0.000267461159245911,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,hombres,50,55,2019,0.000648743699228536,6.48743699228536e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,hombres,55,60,2019,0.000880534830631059,8.80534830631059e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,hombres,60,65,2019,0.0013389098010008,0.00013389098010008,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,hombres,65,70,2019,0.00208922341572809,0.000208922341572809,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,hombres,70,75,2019,0.00253724725281523,0.000253724725281523,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,hombres,75,80,2019,0.00387456085545856,0.000387456085545856,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,mujeres,50,55,2019,0.000467032546339416,4.67032546339416e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,mujeres,55,60,2019,0.000849160107109461,8.49160107109461e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,mujeres,60,65,2019,0.00103133731858124,0.000103133731858124,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,mujeres,65,70,2019,0.0016287251710312,0.00016287251710312,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,mujeres,70,75,2019,0.0023227800583031,0.00023227800583031,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,06,mujeres,75,80,2019,0.003028273503939,0.0003028273503939,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,hombres,50,55,2019,0.000575563271680951,5.75563271680951e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,hombres,55,60,2019,0.000923195502556386,9.23195502556386e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,hombres,60,65,2019,0.00144978764993425,0.000144978764993425,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,hombres,65,70,2019,0.00214642661573335,0.000214642661573335,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,hombres,70,75,2019,0.00276283971862289,0.000276283971862289,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,hombres,75,80,2019,0.00347986457049987,0.000347986457049987,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,mujeres,50,55,2019,0.000514800192131134,5.14800192131134e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,mujeres,55,60,2019,0.000730422590196297,7.30422590196297e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,mujeres,60,65,2019,0.00105173747702056,0.000105173747702056,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,mujeres,65,70,2019,0.00157026962160518,0.000157026962160518,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,mujeres,70,75,2019,0.00238716765969312,0.000238716765969312,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,08,mujeres,75,80,2019,0.00319844204196489,0.000319844204196489,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,hombres,50,55,2019,0.00054568064391267,5.4568064391267e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,hombres,55,60,2019,0.000742784603883357,7.42784603883357e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,hombres,60,65,2019,0.00133063797754942,0.000133063797754942,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,hombres,65,70,2019,0.00186507579291581,0.000186507579291581,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,hombres,70,75,2019,0.00263437029287233,0.000263437029287233,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,hombres,75,80,2019,0.00348970421033396,0.000348970421033396,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,mujeres,50,55,2019,0.000439576463373958,4.39576463373958e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,mujeres,55,60,2019,0.000655657395662679,6.55657395662679e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,mujeres,60,65,2019,0.00105065094013396,0.000105065094013396,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,mujeres,65,70,2019,0.00150462573000348,0.000150462573000348,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,mujeres,70,75,2019,0.0021309876541186,0.00021309876541186,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,13,mujeres,75,80,2019,0.00312377937497275,0.000312377937497275,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,hombres,50,55,2019,0.000439312271099228,4.39312271099228e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,hombres,55,60,2019,0.000726192084338377,7.26192084338377e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,hombres,60,65,2019,0.000904517045203729,9.04517045203729e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,hombres,65,70,2019,0.00144856178830035,0.000144856178830035,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,hombres,70,75,2019,0.00204612798486146,0.000204612798486146,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,hombres,75,80,2019,0.00301152774777334,0.000301152774777334,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,mujeres,50,55,2019,0.000364413963395356,3.64413963395356e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,mujeres,55,60,2019,0.000517775370656511,5.17775370656511e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,mujeres,60,65,2019,0.000888732217900031,8.88732217900031e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,mujeres,65,70,2019,0.00114275333241342,0.000114275333241342,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,mujeres,70,75,2019,0.00184266173393365,0.000184266173393365,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,15,mujeres,75,80,2019,0.00265462718730119,0.000265462718730119,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,hombres,50,55,2019,0.000582281766815925,5.82281766815925e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,hombres,55,60,2019,0.000944438882465628,9.44438882465628e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,hombres,60,65,2019,0.00144550509258035,0.000144550509258035,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,hombres,65,70,2019,0.00195147261935741,0.000195147261935741,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,hombres,70,75,2019,0.00266820204954818,0.000266820204954818,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,hombres,75,80,2019,0.00379793063756419,0.000379793063756419,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,mujeres,50,55,2019,0.000494127235147974,4.94127235147974e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,mujeres,55,60,2019,0.000765182937839884,7.65182937839884e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,mujeres,60,65,2019,0.00111689114344964,0.000111689114344964,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,mujeres,65,70,2019,0.00159452408705396,0.000159452408705396,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,mujeres,70,75,2019,0.00244531940964484,0.000244531940964484,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,16,mujeres,75,80,2019,0.00305217910379184,0.000305217910379184,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,hombres,50,55,2019,0.0004634509604679,4.634509604679e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,hombres,55,60,2019,0.000691062561949429,6.91062561949429e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,hombres,60,65,2019,0.00108145671861099,0.000108145671861099,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,hombres,65,70,2019,0.00171680415489965,0.000171680415489965,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,hombres,70,75,2019,0.00251991708231129,0.000251991708231129,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,hombres,75,80,2019,0.00325654208856217,0.000325654208856217,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,mujeres,50,55,2019,0.000369566180645403,3.69566180645403e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,mujeres,55,60,2019,0.000605245627473331,6.05245627473331e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,mujeres,60,65,2019,0.000868816495433911,8.68816495433911e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,mujeres,65,70,2019,0.00126131392044225,0.000126131392044225,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,mujeres,70,75,2019,0.00170224235800447,0.000170224235800447,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,20,mujeres,75,80,2019,0.00238483013996107,0.000238483013996107,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,hombres,50,55,2019,0.000554309476838736,5.54309476838736e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,hombres,55,60,2019,0.000842962404741019,8.42962404741019e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,hombres,60,65,2019,0.00139351322040678,0.000139351322040678,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,hombres,65,70,2019,0.0017801575862347,0.00017801575862347,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,hombres,70,75,2019,0.00267721093749181,0.000267721093749181,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,hombres,75,80,2019,0.00369944420233635,0.000369944420233635,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,mujeres,50,55,2019,0.000467033119705924,4.67033119705924e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,mujeres,55,60,2019,0.000778475589188149,7.78475589188149e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,mujeres,60,65,2019,0.00110852164117706,0.000110852164117706,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,mujeres,65,70,2019,0.00158891187860458,0.000158891187860458,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,mujeres,70,75,2019,0.00208949797946878,0.000208949797946878,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,21,mujeres,75,80,2019,0.00294200395594842,0.000294200395594842,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,hombres,50,55,2019,0.000594613922707839,5.94613922707839e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,hombres,55,60,2019,0.000911378022261785,9.11378022261785e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,hombres,60,65,2019,0.00126757586956292,0.000126757586956292,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,hombres,65,70,2019,0.00183913280249656,0.000183913280249656,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,hombres,70,75,2019,0.00281923996040339,0.000281923996040339,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,hombres,75,80,2019,0.00409695611888491,0.000409695611888491,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,mujeres,50,55,2019,0.000539863384348634,5.39863384348634e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,mujeres,55,60,2019,0.00071221230521502,7.1221230521502e-05,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,mujeres,60,65,2019,0.00104396304798061,0.000104396304798061,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,mujeres,65,70,2019,0.00172377632096349,0.000172377632096349,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,mujeres,70,75,2019,0.00239426584253523,0.000239426584253523,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"
+9100,mortalidad,25,mujeres,75,80,2019,0.00316968741817025,0.000316968741817025,,,FALSE,,Registro vital departamental sintético,"registro vital, causa básica (sintético)"

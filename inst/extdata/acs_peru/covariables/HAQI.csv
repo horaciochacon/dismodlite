@@ -1,0 +1,7 @@
+covariate_id,covariate_name_short,location_id,location_name,year_id,age_group_id,age_group_name,sex_id,sex,mean_value,lower_value,upper_value
+1099,haqi,1,Global,2019,22,All Ages,3,Both,54.2,51.76,56.64
+1099,haqi,1,Global,2023,22,All Ages,3,Both,56.8,54.24,59.36
+1099,haqi,120,Andean Latin America,2019,22,All Ages,3,Both,44.5,42.5,46.5
+1099,haqi,120,Andean Latin America,2023,22,All Ages,3,Both,48.1,45.94,50.26
+1099,haqi,123,Perú,2019,22,All Ages,3,Both,47.3,45.17,49.43
+1099,haqi,123,Perú,2023,22,All Ages,3,Both,50.9,48.61,53.19

@@ -1,0 +1,135 @@
+E7:
+  schema: estimates/v1
+  run_id: FECHA_e7-severidad-particion_v1
+  method: dismod_lite
+  source: gbd
+  round: '2023'
+  entities: cause
+  causa:
+    cause_id: 9101
+    cause_name: ACS de miembros inferiores
+    extraction_cause_id: 9100
+    componente: ~
+  params:
+    seed: 20260929
+    draws: 40
+    chains: 2
+    iter: 2000
+    warmup: 1000
+    thin: 10
+    year: 2023
+    anio_ancla: 2023
+    remision: 0
+    remision_por_edad: ~
+    emr_sd_factor: 1.0
+    emr_prior: informativo_edad
+    csmr_fraccion_aguda: 0.0
+    emr_cota:
+    - 0.0
+    - 0.2
+    emr_cota_origen: impreso
+    emr_cota_k: ~
+    lambda: 1.0
+    fuentes_locales_no_fatales: []
+    rho: 0.5
+    kappa: ~
+    anchor: peru
+    engine: mh
+    opts:
+      draws: 40
+      chains: 2
+      iter: 2000
+      warmup: 1000
+      thin: 10
+      cores: 1
+      engine: mh
+    estadistico_puntual: media
+  inputs:
+    bundle_hash: 0ffe74c5ba819361e0cd75f80290818e65d5fb46c213829163fdbba13ced6209
+    tablas:
+    - tabla: datos
+      sha256: fd7e563c1cee3e31d9d0aadeb0ccbf296d34671609beccca5e525178bc749352
+    - tabla: prior_gbd
+      sha256: 267deebf83aaefe6b4b827922f890312b8dc457fc7c7cd3dde454c6e6c34a9f2
+    - tabla: betas
+      sha256: 634e3f711db0eee21c72e93b5b092704c77998df53576fddbad14b9b320d05ed
+    - tabla: crosswalks
+      sha256: 29cd9b7a023bb1418554838876b8cec962975912f423a4d15c16f78e57118ebe
+    - tabla: cov_valores
+      sha256: 9554499b4c2f86bef69c65e02fb6cfd48d6f4ed2bed176bd2cb4a158f3b1cea5
+    - tabla: cov_proxy
+      sha256: 5678ae77d281ed87c8c647d2f276bf2d706e287929e7b4252be999eb00cf8cd9
+    - tabla: severidad
+      sha256: b3abd4ed27bd855e894b2adcc19c04992d32ee676f8387ec5712b1201593e721
+    - tabla: poblacion
+      sha256: aa0e6e019785e1f622f9c6727c9bd9b007fd40a42e4acf8bab73c625028713e3
+    - tabla: sequela_map
+      sha256: 44a8c078db8e7ffe85c6ce2cf8caf3655ab12c74003cd9e7c35ae144a436ada0
+    betas:
+      modelo_variante: (todas)
+      filas_excluidas: 0
+      variantes_excluidas: []
+      sin_covariable: []
+    escalas:
+    - covariate_name_short: SEV_scalar_agestd_cvd_pvd
+      parametro_objetivo: prevalencia
+      escala: 1.0
+    - covariate_name_short: LDI_pc
+      parametro_objetivo: prevalencia
+      escala: 1.0
+    - covariate_name_short: haqi
+      parametro_objetivo: emr
+      escala: 1.0
+  files:
+  - path: mod/dismod_lite/FECHA_e7-severidad-particion_v1/cause/prevalence/FECHA_e7-severidad-particion_v1.csv
+    rows: 18
+  - path: mod/dismod_lite/FECHA_e7-severidad-particion_v1/cause/incidence/FECHA_e7-severidad-particion_v1.csv
+    rows: 18
+  - path: mod/dismod_lite/FECHA_e7-severidad-particion_v1/cause/yld/FECHA_e7-severidad-particion_v1.csv
+    rows: 18
+  cascada: ~
+  datos:
+    n_likelihood_por_tipo: []
+    n_heldout: 0
+    heldout_anio: 2019
+  decisiones: Datos sintéticos de ejemplo (dismodlite).
+  validacion:
+    gates:
+      rhat_max: 1.35169
+      ess_min: 17.300000000000001
+      force: yes
+    anchor_identity:
+      err_rel_mediano: 0.032305
+      celdas_fuera_ic95: 0
+      gate_err_mediano: 0.05
+    implied_incidence:
+      err_rel_mediano: 0.053154
+      cobertura: 1.0
+  n_limitaciones: 4
+E7-archivos:
+- cause/incidence/FECHA_e7-severidad-particion_v1.csv
+- cause/prevalence/FECHA_e7-severidad-particion_v1.csv
+- cause/yld/FECHA_e7-severidad-particion_v1.csv
+- diagnostics/aceptacion.csv
+- diagnostics/desplazamiento_splits.csv
+- diagnostics/mcmc.csv
+- diagnostics/validacion.csv
+- draws/incidence_2023.csv.gz
+- draws/prevalence_2023.csv.gz
+- draws/yld_2023.csv.gz
+- etiquetas/FECHA_e7-severidad-particion_v1.csv
+- inputs/betas.csv
+- inputs/config_usado.yaml
+- inputs/cov_proxy.csv
+- inputs/cov_valores.csv
+- inputs/crosswalks.csv
+- inputs/datos.csv
+- inputs/ghdx_cov/HAQI.csv
+- inputs/ghdx_cov/LDI_PC.csv
+- inputs/ghdx_cov/SEV_SCALAR_CVD_PVD.csv
+- inputs/hash.json
+- inputs/poblacion.csv
+- inputs/prior_gbd.csv
+- inputs/sequela_map.csv
+- inputs/severidad.csv
+- manifest.yaml

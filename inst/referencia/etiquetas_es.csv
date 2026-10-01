@@ -1,0 +1,29 @@
+tabla,id,name,name_es,slug,slug_es
+measure,5,Prevalence,Prevalencia,prevalence,prevalencia
+measure,6,Incidence,Incidencia,incidence,incidencia
+measure,3,YLDs (Years Lived with Disability),AVD (años vividos con discapacidad),yld,avd
+metric,1,Number,Número,,
+metric,2,Percent,Proporción,,
+metric,3,Rate,Tasa por 100 000,,
+age_group,1,<5 years,Menores de 5 años,,
+age_group,6,5-9 years,5 a 9 años,,
+age_group,7,10-14 years,10 a 14 años,,
+age_group,8,15-19 years,15 a 19 años,,
+age_group,9,20-24 years,20 a 24 años,,
+age_group,10,25-29 years,25 a 29 años,,
+age_group,11,30-34 years,30 a 34 años,,
+age_group,12,35-39 years,35 a 39 años,,
+age_group,13,40-44 years,40 a 44 años,,
+age_group,14,45-49 years,45 a 49 años,,
+age_group,15,50-54 years,50 a 54 años,,
+age_group,16,55-59 years,55 a 59 años,,
+age_group,17,60-64 years,60 a 64 años,,
+age_group,18,65-69 years,65 a 69 años,,
+age_group,19,70-74 years,70 a 74 años,,
+age_group,20,75-79 years,75 a 79 años,,
+age_group,21,80+ years,80 años y más,,
+age_group,22,All ages,Todas las edades,,
+measure,1,Deaths,Muertes,death,muertes
+sex,1,Male,Hombres,male,hombres
+sex,2,Female,Mujeres,female,mujeres
+sex,3,Both,Ambos sexos,both,ambos

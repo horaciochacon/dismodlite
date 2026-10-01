@@ -1,0 +1,13 @@
+causa,estado,id_estado,proporcion,proporcion_inferior,proporcion_superior,peso_discapacidad,peso_inferior,peso_superior
+9100,Asintomático,799,0.527712791248062,0.448555872560852,0.606869709935271,0,0,0
+9100,Arteriopatía sintomática leve,9801,0.322287208751938,0.273944127439148,0.370630290064729,0.02,0.012,0.031
+9100,Arteriopatía sintomática moderada,9802,0.15,0.1275,0.1725,0.07,0.046,0.102
+9101,Asintomático,799,0.5,0.425,0.575,0,0,0
+9101,Arteriopatía sintomática leve,9801,0.35,0.2975,0.4025,0.02,0.012,0.031
+9101,Arteriopatía sintomática moderada,9802,0.15,0.1275,0.1725,0.07,0.046,0.102
+9102,Asintomático,799,0.6,0.51,0.69,0,0,0
+9102,Arteriopatía sintomática leve,9801,0.25,0.2125,0.2875,0.02,0.012,0.031
+9102,Arteriopatía sintomática moderada,9802,0.15,0.1275,0.1725,0.07,0.046,0.102
+9103,Asintomático,799,0.55,0.4675,0.6325,0,0,0
+9103,Arteriopatía sintomática leve,9801,0.3,0.255,0.345,0.02,0.012,0.031
+9103,Arteriopatía sintomática moderada,9802,0.15,0.1275,0.1725,0.07,0.046,0.102

@@ -1,0 +1,407 @@
+---
+title: "Estimación subnacional"
+description: >
+  Cómo se lleva la estimación nacional a regiones, departamentos o provincias: covariables y proxies, la fuerza
+  kappa, la renormalización, el modo plano, la validación con datos reservados y la escala de una covariable.
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4.5)
+```
+
+## Qué vas a aprender
+
+- Cómo dismodlite pasa de la estimación nacional a las ubicaciones subnacionales (regiones, departamentos,
+  provincias...): qué supone y qué hace en cada paso.
+- Los tres modos de la estimación subnacional (`covariables`, `plano` y `no`) y cuándo conviene cada uno.
+- Qué hacen las covariables y sus valores subnacionales (los *proxies*), la fuerza del efecto κ y la
+  renormalización.
+- Cómo validar el gradiente entre ubicaciones con datos subnacionales reservados (`subnacional.anio_validacion`).
+- Para qué sirve la `escala` de una covariable.
+
+El ejemplo es el proyecto sintético del paquete: una enfermedad ficticia, la arteriopatía crónica sintética (causa
+9100), en el Perú y sus 25 departamentos. Todo vale igual para cualquier país y cualquier nivel subnacional.
+
+```{r setup}
+library(dismodlite)
+library(data.table)
+```
+
+## La idea
+
+La estimación de referencia (el ancla, una descarga de GBD Results) y los datos locales que entran al ajuste son
+nacionales: el ajuste da la prevalencia, la incidencia y la mortalidad en exceso del país, por edad y sexo. Para las
+ubicaciones subnacionales casi nunca hay una estimación de referencia, así que dismodlite parte del ajuste nacional y
+supone que cada ubicación comparte la forma de la enfermedad del país y se aparta de él según sus covariables:
+
+1. **Diferencias de covariables.** Para cada ubicación y cada covariable con valores subnacionales en `proxies.csv`,
+   la diferencia entre el valor de la ubicación y el nacional, en la escala de la transformación de la covariable.
+2. **Desplazamiento de las tasas.** La incidencia (log *i*) o la mortalidad en exceso (log *f*) nacional se mueve, en
+   cada edad, en β × diferencia × κ, con la β publicada de la covariable.
+3. **Nueva solución del modelo.** Con las tasas desplazadas se vuelve a resolver la ecuación del modelo en cada
+   ubicación: sale su prevalencia por edad.
+4. **Renormalización.** Los casos de todas las ubicaciones se escalan para que sumen los casos nacionales.
+
+Todo se hace simulación por simulación, así que la incertidumbre del ajuste nacional, la de las covariables y la de
+las β llegan a las estimaciones subnacionales.
+
+## Los tres modos
+
+La clave `subnacional.modo` de la configuración elige el modo. Sin ella, el paquete lo deduce de los archivos del
+proyecto:
+
+| `subnacional.modo` | Qué hace | Qué necesita | Por defecto si... |
+|---|---|---|---|
+| `covariables` | Desplaza las tasas nacionales según las covariables de cada ubicación (los pasos de arriba). | `covariables` en la configuración, sus descargas en `covariables/` y sus valores subnacionales en `proxies.csv`. | alguna covariable declarada tiene filas en `proxies.csv`. |
+| `plano` | Cada ubicación recibe las tasas nacionales; sus casos difieren solo por su población. | Ubicaciones subnacionales en `poblacion.csv`. | no hay proxies, pero la población trae ubicaciones subnacionales. |
+| `no` | Solo la estimación nacional. | Nada más. | la población trae solo la ubicación nacional. |
+
+## El ejemplo: modo `covariables`
+
+La configuración de la causa 9100 declara tres covariables y el año de los datos reservados para validar:
+
+```{r config}
+cat(readLines(dl_ejemplo("config", "9100.yaml"), encoding = "UTF-8"), sep = "\n")
+```
+
+Cada covariable dice sobre qué actúa (`efecto_sobre`), en qué escala se estimó su β (`transformacion`) y su β con el
+intervalo del 95 % publicado:
+
+- el SEV (el valor resumen de la exposición a un riesgo; más alto, más riesgo) y el LDI (el ingreso por persona)
+  actúan sobre la **prevalencia**, a través de la incidencia (mueven log *i*), en escala log;
+- el HAQ (acceso y calidad de la atención) actúa sobre la **mortalidad en exceso** (mueve log *f*), en escala
+  lineal.
+
+Sus valores subnacionales están en `proxies.csv`, una fila por covariable, ubicación, año, sexo y grupo de edad
+(vacíos: todas las edades), con el valor y su error estándar en la escala de la descarga del GHDx. El promedio de las
+ubicaciones, ponderado por su población, debe ser el valor nacional de la covariable: la guía
+[Preparar tus datos](preparar-datos.html#cierre) explica ese requisito de cierre y cómo recalibrar valores de otra
+fuente.
+
+```{r proxies}
+proxies <- fread(dl_ejemplo("proxies.csv"), colClasses = list(character = "location_id"))
+proxies[anio == 2023 & location_id == "01" & (is.na(edad_inicio) | edad_inicio == 40)]
+```
+
+El SEV viene por sexo y grupo de edad, de 40 a 44 años hasta 80 y más (arriba, solo el primer grupo); el LDI y el
+HAQ, para ambos sexos y todas las edades.
+
+### El ajuste nacional
+
+```{r ajuste}
+proyecto <- dl_proyecto(dl_ejemplo(), causa = 9100)
+proyecto$configuracion$origen$subnacional
+insumos <- dl_insumos(proyecto)
+opciones <- dl_opciones_mcmc(simulaciones = 200, cadenas = 2, iteraciones = 6000, calentamiento = 2000,
+                             nucleos = 4)
+ajuste <- dl_ajustar(insumos, opciones, semilla = 1)
+ajuste
+```
+
+Las cadenas son cortas para que la guía corra en segundos (y `nucleos = 4` las corre en paralelo, con el mismo
+resultado); una estimación para publicar usa las de producción, los valores por defecto de `dl_opciones_mcmc()` (ver
+[Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html)). Las covariables no intervienen en el ajuste
+nacional: actúan solo en la estimación subnacional.
+
+### La cascada
+
+`dl_cascada()` hace los cuatro pasos de arriba sobre cada simulación del ajuste (en una corrida completa, la llama
+`dl_correr()`):
+
+```{r cascada}
+cascada <- dl_cascada(ajuste, insumos, semilla = 1)
+cascada
+```
+
+En cada ubicación, sexo, edad *a* y simulación, el logaritmo de la incidencia es el nacional desplazado por las
+covariables que actúan sobre ella:
+
+$$\log i_d(a) = \log i_{nac}(a) + \sum_{c \in i} \kappa\, \beta_c\, dX_c(a),$$
+
+donde $dX_c(a)$ es la diferencia entre el valor transformado de la covariable *c* en la ubicación y el nacional (por
+su `escala`), κ = `subnacional.kappa` y $\beta_c$ se sortea de su intervalo, como el valor nacional y el
+subnacional de la covariable. Las covariables de `mortalidad_exceso` mueven igual log *f*, sin pasar de su techo
+(`mortalidad_exceso.techo`), y la remisión es la nacional. Con una covariable por grupo de edad, la diferencia se
+interpola entre los puntos medios de los grupos; fuera de ellos vale 0 (en el ejemplo, de 30 a 39 años para el SEV).
+La guía [El modelo](el-modelo.html#subnacional) da cada paso con su ecuación.
+
+Las diferencias quedan en `cascada$dX`, por simulación, ubicación, sexo, grupo de edad y covariable. Su media por
+ubicación muestra quién está por encima y por debajo del país:
+
+```{r dx}
+diferencias <- cascada$dX[, .(dX = mean(dX)), by = .(location_id, covariate_name_short)]
+dcast(diferencias, location_id ~ covariate_name_short, value.var = "dX")[1:6]
+```
+
+Un LDI más bajo que el nacional (dX negativo, β negativa) sube la incidencia; un HAQ más bajo (β negativa) sube la
+mortalidad en exceso.
+
+### El resultado por ubicación
+
+`dl_estimaciones()` da la media y el intervalo de cada ubicación, sexo y edad. Como los datos son sintéticos,
+`verdad.csv` trae las curvas verdaderas de cada ubicación, con las que podemos comparar:
+
+```{r a-los-70}
+verdad <- fread(dl_ejemplo("verdad.csv"), colClasses = list(character = "location_id"))
+verdad70 <- verdad[cause_id == 9100 & anio == 2023 & sex_id == 2 & edad == 70, .(location_id, verdad = p)]
+nombres <- unique(fread(dl_ejemplo("poblacion.csv"), colClasses = list(character = "location_id"))[
+  , .(location_id, location_name)])
+
+# prevalencia de las mujeres a los 70 años, por ubicación, de una cascada
+a_los_70 <- function(cascada) {
+  estimaciones <- dl_estimaciones(cascada)[sex_id == 2 & edad == 70]
+  merge(merge(estimaciones, verdad70, by = "location_id"), nombres, by = "location_id", all.x = TRUE)
+}
+prevalencia_70 <- a_los_70(cascada)
+nacional70 <- prevalencia_70[location_id == "123"]
+prevalencia_70 <- prevalencia_70[location_id != "123"][order(media)]
+```
+
+```{r figura-ubicaciones, fig.height = 6}
+op <- par(mar = c(5, 9, 3, 1))
+filas <- seq_len(nrow(prevalencia_70))
+plot(100 * prevalencia_70$media, filas, yaxt = "n", pch = 19, col = "#08519c",
+     xlim = 100 * range(prevalencia_70$inferior, prevalencia_70$superior, prevalencia_70$verdad),
+     xlab = "Prevalencia a los 70 años, mujeres (%)", ylab = "",
+     main = "Estimación subnacional (modo covariables)", sub = "Datos sintéticos")
+segments(100 * prevalencia_70$inferior, filas, 100 * prevalencia_70$superior, filas, col = "#08519c")
+points(100 * prevalencia_70$verdad, filas, pch = 4, col = "#cb181d", lwd = 2)
+abline(v = 100 * nacional70$media, lty = 2, col = "grey40")
+axis(2, at = filas, labels = prevalencia_70$location_name, las = 1, cex.axis = 0.7)
+legend("bottomright", c("estimación (media e IC 95 %)", "verdad", "nacional"), pch = c(19, 4, NA),
+       lty = c(1, NA, 2), col = c("#08519c", "#cb181d", "grey40"), bty = "n", cex = 0.8)
+par(op)
+```
+
+Las ubicaciones se ordenan como la verdad: las covariables recuperan el gradiente entre ubicaciones, con intervalos
+que reflejan la incertidumbre del ajuste nacional, de las covariables y de las β.
+
+### La renormalización
+
+Desplazar las tasas mueve también el total: la suma de los casos de las ubicaciones ya no es exactamente la
+nacional. La renormalización lo corrige por sexo, grupo de edad de la población y simulación: multiplica la
+prevalencia (y la incidencia poblacional, *i* (1 − *p*)) de todas las ubicaciones por un mismo factor, los casos
+nacionales divididos por la suma de los casos de las ubicaciones, así que después suman exactamente los nacionales.
+Los factores quedan en `cascada$renorm`:
+
+```{r renorm, fig.height = 4}
+factores <- cascada$renorm[medida == "prevalence" & sex_id == 2]
+grupos <- insumos$bandas_pobl[, .(age_group_id, edades = ifelse(age_end >= 125, paste0(age_start, "+"),
+                                                                 paste0(age_start, "-", age_end - 1)))]
+factores[, edades := factor(grupos$edades[match(age_group_id, grupos$age_group_id)], levels = grupos$edades)]
+boxplot(factor ~ edades, data = factores, xlab = "Grupo de edad (años)", las = 2, cex.axis = 0.8,
+        ylab = "Factor de renormalización", main = "Prevalencia, mujeres: un factor por simulación",
+        sub = "Datos sintéticos", col = "#c6dbef")
+abline(h = 1, lty = 2)
+```
+
+Un factor cerca de 1 dice que los desplazamientos casi se compensan entre ubicaciones, como deben hacerlo si los
+proxies cierran en el valor nacional. Suele quedar algo por debajo de 1: desplazamientos que se compensan en escala
+log suben un poco el promedio en la escala de las tasas. Se puede comprobar la suma en un grupo y una simulación:
+
+```{r comprobar-renorm}
+# mujeres de 70 a 74 años (age_group_id 19), simulación 1
+poblacion_70 <- insumos$poblacion[sex_id == 2 & age_group_id == 19, .(location_id, poblacion = val)]
+prevalencia_simulacion1 <- cascada$draws_q[sex_id == 2 & draw == 1 & edad >= 70 & edad < 75,
+                                           .(prevalencia = mean(p)), by = location_id]
+prevalencia_simulacion1 <- merge(prevalencia_simulacion1, poblacion_70, by = "location_id")
+c(nacional = prevalencia_simulacion1[location_id == "123", poblacion * prevalencia],
+  suma_de_ubicaciones = prevalencia_simulacion1[location_id != "123", sum(poblacion * prevalencia)])
+```
+
+La incidencia y la mortalidad en exceso por edad quedan como salen del modelo; se renormalizan la prevalencia y la
+incidencia poblacional, las medidas que se reportan.
+
+## κ, la fuerza del efecto subnacional
+
+κ (`subnacional.kappa`, en (0, 1]) escala el desplazamiento: con 1, las diferencias entre ubicaciones son las que dan
+las β publicadas; con 0.5, la mitad. Conviene bajarlo cuando las β vienen de comparaciones entre países y podrían
+exagerar las diferencias dentro de uno, o cuando la validación (abajo) muestra un gradiente predicho más marcado que
+el observado.
+
+κ no cambia el ajuste nacional, así que para ver su efecto basta con repetir la cascada; `dl_cascada()` lo acepta
+como argumento:
+
+```{r kappa05}
+cascada05 <- dl_cascada(ajuste, insumos, kappa = 0.5, semilla = 1)
+```
+
+En una corrida, κ va en la configuración (`subnacional.kappa: 0.5`), que queda registrada en el manifiesto; da la
+misma cascada.
+
+## Modo plano
+
+En el modo plano cada ubicación recibe las tasas nacionales: no hay gradiente entre ubicaciones y los casos difieren
+solo por la población. Sirve cuando no hay covariables con valores subnacionales creíbles; la corrida lo declara como
+una limitación. Para probarlo, una copia del proyecto de ejemplo en una carpeta temporal (en un proyecto propio basta
+con editar su configuración):
+
+```{r copiar-plano}
+plano <- dl_ejemplo(copiar_en = file.path(tempdir(), "plano"))
+```
+
+Su configuración, `config/9100.yaml`: la del ejemplo sin las covariables, que no hacen falta, y con `modo: plano`:
+
+```{cat, engine.opts = list(file = file.path(plano, "config", "9100.yaml"), lang = "yaml")}
+causa: 9100
+anio: 2023
+edad_inicio: 30
+ubicacion_nacional: 123
+
+mortalidad_exceso:
+  techo: 0.25
+
+subnacional:
+  modo: plano
+  anio_validacion: 2019
+```
+
+```{r plano}
+insumos_plano <- dl_insumos(dl_proyecto(plano, causa = 9100))
+ajuste_plano <- dl_ajustar(insumos_plano, opciones, semilla = 1)
+cascada_plano <- dl_cascada(ajuste_plano, insumos_plano, semilla = 1)
+cascada_plano
+```
+
+El factor de renormalización es 1: la población subnacional ya suma la nacional.
+
+### Los tres resultados, lado a lado
+
+La prevalencia de cada ubicación relativa a la nacional (mujeres, 70 años), con κ = 1, κ = 0.5 y el modo plano,
+frente a la verdad:
+
+```{r figura-kappa, fig.height = 6}
+relativa <- function(cascada) {
+  estimaciones <- a_los_70(cascada)
+  estimaciones[, .(location_id, rel = media / media[location_id == "123"])][location_id != "123"]
+}
+comparacion <- Reduce(function(x, y) merge(x, y, by = "location_id"), list(
+  relativa(cascada)[, .(location_id, k1 = rel)], relativa(cascada05)[, .(location_id, k05 = rel)],
+  relativa(cascada_plano)[, .(location_id, plano = rel)],
+  prevalencia_70[, .(location_id, location_name, verdad = verdad / verdad70[location_id == "123", verdad])]))
+comparacion <- comparacion[order(verdad)]
+op <- par(mar = c(5, 9, 3, 1))
+filas <- seq_len(nrow(comparacion))
+plot(comparacion$verdad, filas, xlim = range(comparacion[, .(k1, k05, plano, verdad)]), yaxt = "n", pch = 4, lwd = 2,
+     col = "#cb181d", xlab = "Prevalencia relativa a la nacional (mujeres, 70 años)", ylab = "",
+     main = "Efecto de κ y del modo plano", sub = "Datos sintéticos")
+points(comparacion$k1, filas, pch = 19, col = "#08519c")
+points(comparacion$k05, filas, pch = 1, col = "#08519c")
+points(comparacion$plano, filas, pch = 15, col = "grey50", cex = 0.8)
+abline(v = 1, lty = 2, col = "grey40")
+axis(2, at = filas, labels = comparacion$location_name, las = 1, cex.axis = 0.7)
+legend("bottomright", c("verdad", "κ = 1", "κ = 0.5", "plano"), pch = c(4, 19, 1, 15),
+       col = c("#cb181d", "#08519c", "#08519c", "grey50"), bty = "n", cex = 0.8)
+par(op)
+```
+
+Con κ = 0.5 las ubicaciones se acercan a la nacional; en el modo plano todas valen lo mismo que el país. En este
+ejemplo sintético las covariables son informativas y κ = 1 reproduce mejor el gradiente verdadero; con datos reales
+no hay verdad, y la validación de la sección siguiente es la forma de decidirlo.
+
+## Validación con datos subnacionales reservados
+
+Las filas subnacionales de `datos.csv` nunca entran al ajuste. Las del año `subnacional.anio_validacion` (2019 en
+el ejemplo; por defecto, el año que se estima) se reservan para validar: con una cascada por covariables, la
+mortalidad por la causa observada en cada ubicación se compara con la predicha.
+
+`dl_validar_ancla()` hace esa comparación cuando recibe la cascada. Por sexo, ajusta la recta de
+log(observada / nacional) sobre log(predicha / nacional) entre ubicaciones: una **pendiente** cerca de 1 dice que el
+gradiente predicho tiene la amplitud del observado; mayor que 1, que el predicho es demasiado plano; menor que 1,
+demasiado marcado. La **correlación de rangos** (Spearman) mide si el orden de las ubicaciones es el correcto. Las
+columnas `_std` repiten el cálculo con tasas estandarizadas por edad, un punto por ubicación.
+
+```{r validacion}
+columnas <- c("sex_id", "kappa", "pendiente", "pendiente_lower", "pendiente_upper", "spearman",
+              "pendiente_std", "n_departamentos")
+validacion <- dl_validar_ancla(ajuste, insumos, cascada = cascada)
+validacion05 <- dl_validar_ancla(ajuste, insumos, cascada = cascada05)
+rbind(attr(validacion, "amplitud")[, ..columnas], attr(validacion05, "amplitud")[, ..columnas])
+```
+
+`n_departamentos` es el número de ubicaciones subnacionales con datos reservados en la comparación (un nombre de la
+versión 0.2.2; ver [los nombres anteriores](corridas-y-consolidado.html#nombres-anteriores)). Con κ = 1 la
+pendiente queda cerca de 1; con κ = 0.5, cerca de 2: el gradiente predicho es más plano que el observado. La
+comparación es entre gradientes (cada ubicación relativa a la nacional), no entre niveles: por eso sirven datos de
+otro año, siempre que las diferencias entre ubicaciones cambien poco entre ese año y el que se estima. La validación
+de amplitud no se calcula en el modo plano (no hay gradiente que comparar) ni sin datos subnacionales de mortalidad;
+la corrida dice por qué. El análisis de sensibilidad repite la cascada con cada valor de `sensibilidad.kappa` (ver
+[Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html)).
+
+## Modo `no`
+
+Con `modo: no` la estimación es solo nacional, aunque la población traiga ubicaciones subnacionales. Es el valor por
+defecto cuando `poblacion.csv` trae solo la ubicación nacional. En la configuración:
+
+```yaml
+subnacional:
+  modo: "no"
+```
+
+`dl_correr()` omite entonces la cascada y lo dice en un mensaje. (Las comillas en `"no"` son opcionales: el paquete
+lee `no` como texto, pero así el archivo se lee igual en cualquier lector de YAML.)
+
+## La escala de una covariable {#escala}
+
+Con una covariable lineal, la diferencia $dX$ entre la ubicación y el país se multiplica por `escala` antes de la β;
+con `log` o `logit`, `escala` no interviene y la configuración la rechaza si no es 1. `escala` (1 por defecto) sirve
+cuando la β publicada se estimó con la covariable en otras unidades que las de la descarga. Por ejemplo, el índice de
+acceso y calidad de la atención viene del GHDx en 0-100; si su β se publicó por unidad del índice en 0-1, se escribe
+tal cual con `escala: 0.01`:
+
+```yaml
+covariables:
+  - nombre: haqi
+    efecto_sobre: mortalidad_exceso
+    transformacion: lineal
+    beta: [-1.2, -1.8, -0.6]   # por unidad del índice en 0-1
+    escala: 0.01               # la descarga del GHDx viene en 0-100
+```
+
+Es lo mismo que la β del ejemplo, `[-0.012, -0.018, -0.006]` por punto del índice en 0-100, con `escala: 1`. La
+escala queda en los insumos (`insumos$betas`) y en el manifiesto de la corrida.
+
+Olvidar la escala es un error frecuente justamente con este índice, y el paquete lo comprueba: una covariable llamada
+`haqi`, lineal, con `escala` 1 y una β de 0.1 o más en valor absoluto detiene `dl_insumos()`. Con la descarga en
+0-100, una ubicación 20 puntos por encima del país tendría su tasa multiplicada por exp(20 × β), casi 0 con
+β = −1.2. Una copia del ejemplo con esa β y sin la escala:
+
+```{r copiar-escala}
+sin_escala <- dl_ejemplo(copiar_en = file.path(tempdir(), "sin_escala"))
+```
+
+```{cat, engine.opts = list(file = file.path(sin_escala, "config", "9100.yaml"), lang = "yaml")}
+causa: 9100
+anio: 2023
+edad_inicio: 30
+ubicacion_nacional: 123
+
+mortalidad_exceso:
+  techo: 0.25
+
+covariables:
+  - nombre: haqi
+    efecto_sobre: mortalidad_exceso
+    transformacion: lineal
+    beta: [-1.2, -1.8, -0.6]
+
+subnacional:
+  anio_validacion: 2019
+```
+
+```{r escala-haqi, error = TRUE}
+dl_insumos(dl_proyecto(sin_escala, causa = 9100))
+```
+
+Si la β de verdad es por punto del índice en 0-100, se confirma en la covariable con `escala_confirmada: true`, y la
+decisión conviene explicarla en `notas`. Las demás claves de una transformación del formato completo (por ejemplo, la
+procedencia de la escala) se declaran en `avanzado`; ver [El formato completo](formato-completo.html).
+
+## Siguientes pasos
+
+- [Preparar tus datos](preparar-datos.html#cierre): `proxies.csv` y el requisito de cierre en el valor nacional.
+- [Datos locales](datos-locales.html): qué datos entran al ajuste nacional y cuáles validan.
+- [Subtipos y suma](subtipos-y-suma.html): la estimación subnacional de una causa que es la suma de otras.
+- [Carga: los años vividos con discapacidad](carga-avd.html): los AVD, también por ubicación.
+- [El modelo](el-modelo.html#subnacional): las ecuaciones completas.
+- Todas las claves, con sus valores por defecto, en `?dl_configuracion`; los archivos, en `?dl_proyecto`.

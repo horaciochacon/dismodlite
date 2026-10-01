@@ -1,0 +1,383 @@
+---
+title: "Preparar tus datos"
+description: >
+  Cómo armar un proyecto propio para cualquier país y causa: cada archivo, sus columnas y unidades, de dónde se
+  descarga, cómo revisarlo con dl_revisar_proyecto() y una lista de verificación antes de correr.
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Preparar tus datos}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+## Qué vas a aprender
+
+Esta guía explica cómo armar un proyecto propio para cualquier país y cualquier causa:
+
+1. qué archivos tiene un proyecto y cuáles son obligatorios;
+2. cómo crear la carpeta con `dl_nuevo_proyecto()`;
+3. qué dice cada clave de la configuración y cuándo cambiarla;
+4. cada archivo, sus columnas y sus unidades, y de dónde se descarga;
+5. cómo revisar el proyecto con `dl_revisar_proyecto()` y corregir lo que encuentre, incluido el requisito de
+   cierre de los valores subnacionales de las covariables;
+6. una lista de verificación antes de correr.
+
+Los ejemplos usan los archivos del proyecto de ejemplo (`dl_ejemplo()`, datos sintéticos de Perú y sus 25
+departamentos), pero nada del formato es propio de ese país: las ubicaciones subnacionales pueden ser departamentos,
+regiones, provincias o estados, con cualquier código.
+
+## 1. La carpeta de un proyecto
+
+```
+mi_proyecto/
+  config.yaml        la configuración (o config/<causa>.yaml, una por causa)
+  ancla/             descargas de GBD Results (CSV), sin editar
+  poblacion.csv      población por ubicación, año, sexo y grupo de edad
+  severidad.csv      estados de salud y pesos de discapacidad (para los AVD)
+  covariables/       descargas de covariables del GHDx (CSV), sin editar
+  proxies.csv        valores subnacionales de las covariables
+  datos.csv          datos locales
+  pesos_80mas.csv    pesos de las bandas de 80 años y más (casi nunca hace falta)
+```
+
+| Archivo | ¿Hace falta? | Qué aporta | De dónde sale |
+|---|---|---|---|
+| `config.yaml` | siempre | la causa, el año, la edad de inicio y las decisiones del modelo | se escribe (sección 3) |
+| `ancla/` | siempre | la estimación de referencia: prevalencia, muertes, incidencia y AVD | GBD Results |
+| `poblacion.csv` | siempre | los pesos para promediar por edad y sumar ubicaciones | instituto de estadística o GBD |
+| `severidad.csv` | para los AVD y para `dl_correr()` | la fracción de casos en cada estado de salud y su peso de discapacidad | GBD o estudios de la causa |
+| `covariables/` | si se declaran covariables | el valor nacional de cada covariable | GHDx |
+| `proxies.csv` | para diferencias entre ubicaciones | el valor de cada covariable en cada ubicación subnacional | fuentes nacionales |
+| `datos.csv` | opcional | estudios, registros y estadísticas vitales locales | fuentes locales |
+| `pesos_80mas.csv` | solo si la población no trae 80-84, …, 95+ | pesos de las bandas de 80 años y más | la población |
+
+Con lo mínimo (configuración, ancla y población) ya se estima la causa en el país y, si la población trae ubicaciones
+subnacionales, en cada una con las tasas nacionales. Las tablas son CSV en UTF-8, separadas por comas y con punto
+decimal (en Excel, «CSV UTF-8»); las columnas de más se ignoran.
+
+## 2. Crear la carpeta: `dl_nuevo_proyecto()`
+
+`dl_nuevo_proyecto()` crea la carpeta con la configuración comentada, las carpetas de las descargas, las plantillas de
+las tablas (solo el encabezado) y un `LEEME.md` con los pasos. No sobrescribe nada. Para esta guía, la causa 9101 del
+ejemplo, en una carpeta temporal:
+
+```{r nuevo}
+library(dismodlite)
+carpeta <- file.path(tempdir(), "mi_proyecto")
+dl_nuevo_proyecto(carpeta, causa = 9101, nombre = "Arteriopatía crónica sintética de miembros inferiores",
+                  anio = 2023, edad_inicio = 30)
+list.files(carpeta, recursive = TRUE, include.dirs = TRUE)
+```
+
+La revisión dice qué falta, con la corrección de cada problema:
+
+```{r revisar-vacio}
+dl_revisar_proyecto(carpeta)
+```
+
+## 3. La configuración
+
+`config.yaml` trae cada clave con su explicación, su símbolo en el modelo y su valor por defecto. Las obligatorias van
+sin comentar; las demás van comentadas (con `#`) y toman su valor por defecto. Para cambiar una, se quita el `#` de su
+línea y el de su bloque, respetando la sangría de dos espacios:
+
+```{r config, comment = ""}
+cat(readLines(file.path(carpeta, "config.yaml"), n = 22, encoding = "UTF-8"), sep = "\n")
+```
+
+Lo mínimo son `causa`, `anio` y `edad_inicio`. Cada clave, en el orden del archivo, con su símbolo en el modelo
+entre paréntesis (la tabla sale de la misma definición que usa el paquete; `?dl_configuracion` agrega el tipo de cada
+clave y su lugar en el formato completo):
+
+```{r claves, echo = FALSE}
+claves <- yaml::read_yaml(system.file("referencia", "config_simple.yaml", package = "dismodlite"))$claves
+texto <- function(k, campo) if (is.null(k[[campo]])) "" else k[[campo]]
+por_defecto <- function(k) {
+  v <- k$valor
+  if (!is.null(v)) {
+    v <- if (is.logical(v)) tolower(v) else format(v)
+    return(paste0("`", if (length(v) > 1) paste0("[", paste(v, collapse = ", "), "]") else v, "`"))
+  }
+  d <- texto(k, "defecto")
+  if (d %in% vapply(claves, `[[`, "", "clave")) paste0("el valor de `", d, "`") else if (nzchar(d)) d else "ninguno"
+}
+tabla <- data.frame(
+  clave = vapply(claves, function(k) paste0("`", k$clave, "`",
+                                             if (nzchar(texto(k, "simbolo"))) paste0(" (", k$simbolo, ")")), ""),
+  que = vapply(claves, texto, "", "descripcion"),
+  defecto = vapply(claves, por_defecto, ""))
+knitr::kable(tabla, col.names = c("Clave", "Qué es", "Por defecto"))
+```
+
+Cuándo cambiar las que no son obligatorias, en breve: `nudos`, si la incidencia cambia rápido en algún tramo de
+edad; `mortalidad_exceso.prior: plano`, si el ancla no trae muertes fiables, y `mortalidad_exceso.techo`, con un
+valor conocido para la causa; `ancla.correlacion_edad`, rara vez (la sensibilidad la explora); `subnacional.kappa`,
+para atenuar diferencias entre ubicaciones poco creíbles. Y `notas`, siempre que se decida algo: por qué
+`ancla.peso` es 0.5, por qué ese techo.
+
+El bloque `subnacional` también se acepta con su nombre anterior, `departamentos`. `print(dl_proyecto(carpeta))` y el
+manifiesto de cada corrida listan las claves que tomaron su valor por defecto, con el valor.
+
+## 4. Cada archivo, sus columnas y sus unidades
+
+### `ancla/`: la estimación de referencia
+
+Una o más descargas de la herramienta GBD Results del IHME (<https://vizhub.healthdata.org/gbd-results/>), en CSV y
+**sin editar**, con las columnas «ID y nombre». Qué pedir en la herramienta:
+
+- **Medidas**: prevalencia (obligatoria), muertes (necesarias para el prior de la mortalidad en exceso por defecto
+  y, sin `mortalidad_exceso.techo`, para su techo), AVD (calibran los AVD del modelo a los de GBD) e incidencia (la
+  usa la validación).
+- **Métricas**: *Percent* para la prevalencia (una proporción entre 0 y 1) y *Rate* (por 100 000) para las demás.
+  Las filas de otras métricas se ignoran.
+- **Ubicación**: el país. Otras ubicaciones (global, regiones) se ignoran si se declara `ubicacion_nacional`.
+- **Edades**: los grupos quinquenales de GBD, incluidos 80-84, 85-89, 90-94 y 95+. Los grupos por debajo de
+  `edad_inicio` y los de todas las edades o estandarizados se descartan.
+- **Sexos**: hombres y mujeres. **Años**: el que se estima (y el anterior, para proyectar).
+
+Una descarga puede traer varias causas y años: cada causa usa sus filas. Las columnas que se usan son `measure_id`
+(5 prevalencia, 1 muertes, 6 incidencia, 3 AVD), `metric_name`, `location_id`, `location_name`, `sex_id`, `age_id`,
+`age_name`, `cause_id`, `cause_name`, `year`, `val`, `lower` y `upper`. La del ejemplo:
+
+```{r ancla}
+ancla <- read.csv(dl_ejemplo("ancla", "sintetico_acs_v1.csv"), encoding = "UTF-8")
+head(ancla[, c("measure_name", "location_name", "sex_id", "age_name", "cause_id", "metric_name", "year", "val",
+               "lower", "upper")], 3)
+table(ancla$measure_name, ancla$metric_name)
+```
+
+Las bandas de 80 a 95+ se agregan a una banda de 80 años y más con los pesos de la población nacional; por eso la
+población debe traer esas bandas en el año del ancla (o, si no, `pesos_80mas.csv`).
+
+Los grupos de edad del ancla son también los de los resultados: las tablas de una corrida (`cause/<medida>/`) tienen
+una fila por grupo de edad del ancla, con 80 años y más como una sola banda. Las edades entre `edad_inicio` y el
+primer grupo del ancla se modelan (la prevalencia crece desde 0 en `edad_inicio`), pero no aparecen en esas tablas.
+En el ejemplo, el ancla empieza en 40-44 años y `edad_inicio` es 30. Si quieres resultados desde `edad_inicio`,
+descarga los grupos del ancla desde esa edad.
+
+### `poblacion.csv`
+
+| Columna | Qué es |
+|---|---|
+| `location_id` | la ubicación: la de `ubicacion_nacional` es la nacional; cualquier otra es subnacional, con cualquier código (texto: `01`, `A`, `norte`) |
+| `location_name` | opcional: el nombre de la ubicación en las salidas |
+| `anio` | el año: al menos el que se estima (y el del ancla, si es otro) |
+| `sexo` | `hombres` o `mujeres` (o 1 y 2) |
+| `edad_inicio`, `edad_fin` | el grupo de edad de GBD, en años, sin incluir `edad_fin` (30 y 35 para 30-34; 95 y 125 para 95 y más); o `age_group_id` |
+| `poblacion` | número de personas |
+
+Los grupos deben cubrir las edades desde `edad_inicio`. Las filas nacionales son opcionales: sin ellas, la población
+nacional es la suma de las subnacionales; si vienen, deben ser esa suma. Un proyecto sin ubicaciones subnacionales
+trae solo las filas nacionales. Fuente habitual: las proyecciones del instituto nacional de estadística, o las
+estimaciones de población de GBD.
+
+```{r poblacion}
+poblacion <- read.csv(dl_ejemplo("poblacion.csv"), colClasses = c(location_id = "character"), encoding = "UTF-8")
+head(poblacion, 3)
+table(poblacion$anio)
+```
+
+### `severidad.csv`
+
+| Columna | Qué es |
+|---|---|
+| `causa` | la causa de la fila (un archivo sirve a todas las causas del proyecto) |
+| `estado` | el nombre del estado de salud (asintomático, leve, moderado…) |
+| `id_estado` | opcional: el identificador del estado (el `health_state_id` de GBD) |
+| `proporcion`, `proporcion_inferior`, `proporcion_superior` | la fracción de los casos prevalentes en el estado y su intervalo del 95 %; las de una causa suman 1 |
+| `peso_discapacidad`, `peso_inferior`, `peso_superior` | el peso de discapacidad del estado, entre 0 y 1, y su intervalo del 95 % (0 si es asintomático) |
+
+Los pesos de discapacidad son los que publica GBD para cada estado de salud; las proporciones salen de la
+distribución de severidad de GBD para la causa o de estudios locales. Para esta guía, las filas de la causa 9101 del
+ejemplo:
+
+```{r severidad}
+severidad <- read.csv(dl_ejemplo("severidad.csv"), encoding = "UTF-8")
+severidad[severidad$causa == 9101, ]
+write.csv(severidad[severidad$causa == 9101, ], file.path(carpeta, "severidad.csv"), row.names = FALSE,
+          fileEncoding = "UTF-8")
+```
+
+Con el ancla, la población y la severidad, el proyecto ya está completo:
+
+```{r revisar-minimo}
+invisible(file.copy(dl_ejemplo("ancla", "sintetico_acs_v1.csv"), file.path(carpeta, "ancla")))
+invisible(file.copy(dl_ejemplo("poblacion.csv"), carpeta, overwrite = TRUE))
+dl_revisar_proyecto(carpeta)
+```
+
+Sin covariables, la estimación subnacional es `plano`: cada ubicación recibe las tasas nacionales.
+
+### `covariables/` y la clave `covariables`
+
+Las covariables mueven las tasas de cada ubicación subnacional según su diferencia con el valor nacional; **no
+cambian el ajuste nacional**. Cada una necesita tres cosas:
+
+1. Su declaración en la configuración, con el coeficiente publicado de su efecto:
+   - `nombre`: el `covariate_name_short` de la descarga del GHDx (`haqi`, `LDI_pc`…);
+   - `efecto_sobre`: `prevalencia` o `incidencia` (mueven la incidencia) o `mortalidad_exceso`;
+   - `transformacion`: la de la regresión publicada, `log`, `lineal` o `logit`;
+   - `beta`: `[media, inferior, superior]`, con su intervalo del 95 %, o un número (fijo). Es el cambio del logaritmo
+     de la tasa por unidad de la covariable transformada. Una fuente habitual es el apéndice metodológico del modelo
+     de GBD de la causa;
+   - `escala` (opcional, solo con `transformacion: lineal`): multiplica la diferencia antes de la beta, por ejemplo
+     0.01 si la beta se estimó con la covariable en 0-1 y la descarga viene en 0-100. La guía
+     [Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html#escala)
+     lo explica con un ejemplo.
+2. Su descarga del GHDx (<https://ghdx.healthdata.org/record/ihme-data/gbd-2023-covariates-1980-2023>), sin editar, en
+   `covariables/`. Se usan `covariate_name_short`, `location_id`, `year_id`, `sex_id`, `age_group_id`, `mean_value`,
+   `lower_value` y `upper_value`, y solo las filas del país.
+3. Sus valores subnacionales en `proxies.csv`.
+
+```{r covariables}
+cat(c("", "covariables:", "  - nombre: LDI_pc", "    efecto_sobre: prevalencia", "    transformacion: log",
+      "    beta: [-0.21, -0.30, -0.12]"), file = file.path(carpeta, "config.yaml"), sep = "\n", append = TRUE)
+invisible(file.copy(dl_ejemplo("covariables", "LDI_PC.csv"), file.path(carpeta, "covariables")))
+covariable <- read.csv(file.path(carpeta, "covariables", "LDI_PC.csv"), encoding = "UTF-8")
+covariable[, c("covariate_name_short", "location_id", "location_name", "year_id", "mean_value")]
+```
+
+### `proxies.csv` y el requisito de cierre {#cierre}
+
+| Columna | Qué es |
+|---|---|
+| `covariable` | el `nombre` de la covariable en la configuración |
+| `location_id` | la ubicación subnacional (los códigos de `poblacion.csv`) |
+| `anio` | el año que se estima |
+| `sexo` | `hombres`, `mujeres` o `ambos` |
+| `edad_inicio`, `edad_fin` | el grupo de edad de GBD (o `age_group_id`); vacías, todas las edades |
+| `valor`, `error_estandar` | el valor de la covariable en la ubicación y su error estándar, en la escala de la descarga del GHDx |
+
+**Requisito de cierre**: el promedio de las ubicaciones, ponderado por su población (del mismo sexo y grupo de edad),
+debe ser el valor nacional de la covariable, el de `covariables/`. Así la diferencia de cada ubicación con el país
+tiene sentido: las ubicaciones se reparten alrededor del valor nacional. Los valores de otra fuente casi nunca
+cierran. Por ejemplo, unos valores subnacionales en otra base de precios:
+
+```{r proxies-crudos}
+proxies <- read.csv(dl_ejemplo("proxies.csv"), colClasses = c(location_id = "character"))
+proxies <- proxies[proxies$covariable == "LDI_pc" & proxies$anio == 2023, ]
+proxies$valor <- proxies$valor * 0.9                     # valores de otra fuente
+proxies$error_estandar <- proxies$error_estandar * 0.9
+write.csv(proxies, file.path(carpeta, "proxies.csv"), row.names = FALSE, na = "")
+dl_revisar_proyecto(carpeta)
+```
+
+La revisión da el promedio, el valor nacional y la diferencia. Para cerrar, se llevan los valores al valor nacional
+$X$ con los pesos $w$ de población: por **escala**, `v * X / (sum(w * v) / sum(w))` (el error estándar se escala
+igual), o por **desplazamiento**, `v + X - sum(w * v) / sum(w)` (el error estándar no cambia). La escala conserva
+las razones entre ubicaciones (lo que compara una covariable con transformación `log`) y sirve para valores
+positivos, como el ingreso; el desplazamiento conserva las diferencias (lo que compara una `lineal`). Aquí, por
+escala, con la población de ambos sexos y todas las edades del año que se estima:
+
+```{r receta}
+poblacion_2023 <- poblacion[poblacion$anio == 2023, ]
+w <- tapply(poblacion_2023$poblacion, poblacion_2023$location_id, sum)[proxies$location_id]
+X <- covariable$mean_value[covariable$location_id == 123 & covariable$year_id == 2023]
+promedio <- sum(w * proxies$valor) / sum(w)
+c(nacional = X, promedio = promedio)
+proxies$valor <- proxies$valor * X / promedio
+proxies$error_estandar <- proxies$error_estandar * X / promedio
+write.csv(proxies, file.path(carpeta, "proxies.csv"), row.names = FALSE, na = "")
+dl_revisar_proyecto(carpeta)
+```
+
+Con una covariable por sexo o por grupo de edad, el cierre se cumple en cada sexo y grupo: `w`, `X` y `promedio` se
+calculan por separado en cada uno. El paquete no recalibra los valores al leerlos: la elección entre escala y
+desplazamiento es del modelador, y conviene dejarla en `notas`.
+
+La comprobación es prácticamente exacta: el promedio y el valor nacional pueden diferir en menos de 1e-8. Escribe los
+valores recalibrados sin redondear (`write.csv()` guarda 15 cifras significativas, como aquí) y no los redondees en
+Excel: con 4 decimales, el cierre ya falla.
+
+### `datos.csv`: los datos locales {#datos}
+
+| Columna | Qué es |
+|---|---|
+| `tipo` | `prevalencia_estudio` (una encuesta o un estudio), `incidencia`, `mortalidad` (por la causa) o `prevalencia_registro` (un registro administrativo: se lee, pero nunca entra al ajuste) |
+| `causa` | opcional: la causa del dato (sin la columna, la que se lee) |
+| `location_id` | la ubicación nacional o una subnacional |
+| `sexo` | `hombres` o `mujeres` (o 1 y 2). Una fila de ambos sexos no se usa: divídela por sexo |
+| `edad_inicio`, `edad_fin` | el intervalo de edad, en años, sin incluir `edad_fin` (cualquier intervalo; 125 para «y más») |
+| `anio` (o `anio_inicio` y `anio_fin`) | el año o los años del dato |
+| `valor`, `error_estandar` | la prevalencia como **proporción** (entre 0 y 1); la incidencia y la mortalidad como **tasa por persona-año** (no por 100 000) |
+| `casos`, `muestra` | en lugar de `valor` y `error_estandar`: personas con la enfermedad entre `muestra` examinadas, o casos nuevos o muertes en `muestra` personas-año |
+| `muestra_efectiva` | opcional: reemplaza a `muestra` (por ejemplo, corregida por el efecto de diseño) |
+| `excluir`, `motivo` | opcional: `TRUE` deja fuera el dato (un valor atípico) y exige su motivo |
+| `fuente`, `definicion` | opcional: la fuente, que identifica el dato en el manifiesto, y la definición de caso |
+
+La incidencia y la mortalidad se comparan con las del modelo por persona-año de **toda** la población (no solo de
+quienes no tienen la enfermedad), como las publica GBD. Los datos del ejemplo, por tipo y nivel:
+
+```{r datos}
+datos <- read.csv(dl_ejemplo("datos.csv"), colClasses = c(location_id = "character"), encoding = "UTF-8")
+table(datos$tipo, ifelse(datos$location_id == "123", "nacional", "subnacional"))
+head(datos[datos$tipo == "prevalencia_estudio" & datos$location_id == "123",
+           c("tipo", "sexo", "edad_inicio", "edad_fin", "anio", "casos", "muestra", "fuente")], 3)
+```
+
+Por defecto los datos locales **no entran al ajuste**: las filas nacionales se dejan fuera (con un mensaje) y las
+subnacionales del año `subnacional.anio_validacion` validan la estimación subnacional. Qué filas entran cuando
+`datos_en_ajuste` lista algún tipo, cómo excluir un dato y cómo evitar contar dos veces lo que ya informó el ancla lo
+explica la guía [Datos locales](https://horaciochacon.github.io/dismodlite/articles/datos-locales.html).
+
+Un error frecuente es escribir la mortalidad por 100 000. La revisión lo detecta:
+
+```{r por-cien-mil}
+dato <- data.frame(causa = 9101, tipo = "mortalidad", location_id = "123", sexo = "hombres", edad_inicio = 60,
+                   edad_fin = 65, anio = 2023, valor = 45, error_estandar = 5, fuente = "registro vital")
+write.csv(dato, file.path(carpeta, "datos.csv"), row.names = FALSE)
+dl_revisar_proyecto(carpeta)
+```
+
+### `pesos_80mas.csv`
+
+Solo hace falta si `poblacion.csv` no trae las bandas de 80-84, 85-89, 90-94 y 95 años y más del año del ancla:
+`age_group_id` (30, 31, 32 y 235), `sex_id` (1, 2) y `peso` (el peso relativo de la banda en su sexo, por ejemplo su
+población).
+
+## 5. Varias causas en un proyecto
+
+Con varias causas, cada una tiene su configuración en `config/<causa>.yaml` y comparten las tablas: `ancla/` y
+`proxies.csv` traen las filas de todas, y `datos.csv` y `severidad.csv` llevan la columna `causa`. Una causa que es la
+suma de otras las declara en `subtipos`. Para agregar una causa, mueve `config.yaml` a `config/<causa>.yaml` y llama
+de nuevo a `dl_nuevo_proyecto()` con la causa nueva. La guía
+[Subtipos y suma](https://horaciochacon.github.io/dismodlite/articles/subtipos-y-suma.html) lo desarrolla.
+
+## 6. Lista de verificación
+
+Antes de correr:
+
+- [ ] `config.yaml` tiene `causa`, `anio` y `edad_inicio`, y `ubicacion_nacional` si el ancla trae varias ubicaciones.
+- [ ] `ancla/` tiene la descarga sin editar, con prevalencia en *Percent* y muertes en *Rate*, de los dos sexos, del
+      año que se estima, con los grupos de 80 años y más.
+- [ ] `poblacion.csv` cubre todas las edades desde `edad_inicio`, los dos sexos, el año que se estima y todas las
+      ubicaciones subnacionales; los códigos de ubicación se leen como texto.
+- [ ] `severidad.csv` tiene los estados de la causa; sus proporciones suman 1.
+- [ ] Cada covariable declarada tiene su descarga en `covariables/` y su beta publicada; si hay `proxies.csv`, sus
+      valores cierran en el valor nacional.
+- [ ] `datos.csv` tiene la prevalencia como proporción y las tasas por persona-año, una fila por sexo, y los datos
+      nacionales que deben entrar son del año que se estima; los datos excluidos tienen motivo; `datos_en_ajuste`
+      lista los tipos que deben entrar, y `ancla.peso` y `notas` reflejan un posible doble conteo.
+- [ ] `dl_revisar_proyecto()` termina en «Todo en orden» (o solo con avisos entendidos).
+- [ ] `dl_correr(carpeta, semilla = 1, rapido = TRUE)` corre de principio a fin (la prueba pasa también por la
+      compuerta del error del ancla; ver
+      [Las dos compuertas](https://horaciochacon.github.io/dismodlite/articles/diagnostico-y-sensibilidad.html#compuertas)).
+      Después, la corrida de producción sin `rapido`.
+
+```{r limpiar, include = FALSE}
+unlink(carpeta, recursive = TRUE)
+```
+
+## Siguientes pasos
+
+- [Primeros pasos](primeros-pasos.html): correr un proyecto y leer sus resultados.
+- [El modelo](el-modelo.html): cómo usa el modelo cada archivo de esta guía.
+- En el sitio del paquete (<https://horaciochacon.github.io/dismodlite/>), las guías
+  [Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html),
+  [Datos locales](https://horaciochacon.github.io/dismodlite/articles/datos-locales.html) y
+  [Carga: los años vividos con discapacidad](https://horaciochacon.github.io/dismodlite/articles/carga-avd.html).
+- La referencia de cada archivo y cada columna: `?dl_proyecto`; de cada clave: `?dl_configuracion`.

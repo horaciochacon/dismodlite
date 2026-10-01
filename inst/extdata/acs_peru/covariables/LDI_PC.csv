@@ -1,0 +1,7 @@
+covariate_id,covariate_name_short,location_id,location_name,year_id,age_group_id,age_group_name,sex_id,sex,mean_value,lower_value,upper_value
+57,LDI_pc,1,Global,2019,22,All Ages,3,Both,15840,15174.7,16505.3
+57,LDI_pc,1,Global,2023,22,All Ages,3,Both,17210,16487.2,17932.8
+57,LDI_pc,120,Andean Latin America,2019,22,All Ages,3,Both,9212,8825.1,9598.9
+57,LDI_pc,120,Andean Latin America,2023,22,All Ages,3,Both,10452,10013,10891
+57,LDI_pc,123,Perú,2019,22,All Ages,3,Both,9800,9388.4,10211.6
+57,LDI_pc,123,Perú,2023,22,All Ages,3,Both,11040,10576.3,11503.7

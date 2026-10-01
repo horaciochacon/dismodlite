@@ -1,0 +1,249 @@
+E10-v1:
+  schema: estimates/v1
+  source: gbd
+  round: '2023'
+  entities: cause
+  poblacion:
+    acquisition_id: sintetico_poblacion_v1
+  params:
+    years: 2023
+    causas:
+    - 9100
+    - 9101
+    - 9102
+    - 9103
+    n_bloques: 4
+  bloques:
+  - cause_id: 9100
+    year: 2023
+    run_fuente: FECHA_e5-suma_v1
+    anio_ancla: 2023
+    agregacion: suma_de_hijas
+    cascada_modo: ninguna
+    sustituciones: []
+    hijas_omitidas: []
+    force: no
+    gate_ancla: ~
+    rhat_max: ~
+  - cause_id: 9101
+    year: 2023
+    run_fuente: FECHA_e5-9101_v2
+    anio_ancla: 2023
+    agregacion: fit
+    cascada_modo: proxy
+    sustituciones: []
+    hijas_omitidas: []
+    force: yes
+    gate_ancla: 0.05
+    rhat_max: 1.35169
+  - cause_id: 9102
+    year: 2023
+    run_fuente: FECHA_e5-9102_v1
+    anio_ancla: 2023
+    agregacion: fit
+    cascada_modo: proxy
+    sustituciones: []
+    hijas_omitidas: []
+    force: yes
+    gate_ancla: 0.05
+    rhat_max: 1.629956
+  - cause_id: 9103
+    year: 2023
+    run_fuente: FECHA_e5-9103_v1
+    anio_ancla: 2023
+    agregacion: fit
+    cascada_modo: proxy
+    sustituciones: []
+    hijas_omitidas: []
+    force: yes
+    gate_ancla: 0.05
+    rhat_max: 1.350663
+  huecos: []
+  files:
+  - medida: prevalence
+    rows: 3744
+  - medida: incidence
+    rows: 3744
+  - medida: yld
+    rows: 3744
+  archivos_tablas:
+  - incidence.csv
+  - prevalence.csv
+  - yld.csv
+E10-v2:
+  schema: estimates/v1
+  source: gbd
+  round: '2023'
+  entities: cause
+  poblacion:
+    acquisition_id: sintetico_poblacion_v1
+  params:
+    years: 2023
+    causas:
+    - 9100
+    - 9101
+    - 9102
+    - 9103
+    n_bloques: 4
+  bloques:
+  - cause_id: 9100
+    year: 2023
+    run_fuente: FECHA_e5-suma_v1
+    anio_ancla: 2023
+    agregacion: suma_de_hijas
+    cascada_modo: ninguna
+    sustituciones: []
+    hijas_omitidas: []
+    force: no
+    gate_ancla: ~
+    rhat_max: ~
+  - cause_id: 9101
+    year: 2023
+    run_fuente: FECHA_e5-9101_v2
+    anio_ancla: 2023
+    agregacion: fit
+    cascada_modo: proxy
+    sustituciones: []
+    hijas_omitidas: []
+    force: yes
+    gate_ancla: 0.05
+    rhat_max: 1.35169
+  - cause_id: 9102
+    year: 2023
+    run_fuente: FECHA_e5-9102_v1
+    anio_ancla: 2023
+    agregacion: fit
+    cascada_modo: proxy
+    sustituciones: []
+    hijas_omitidas: []
+    force: yes
+    gate_ancla: 0.05
+    rhat_max: 1.629956
+  - cause_id: 9103
+    year: 2023
+    run_fuente: FECHA_e5-9103_v1
+    anio_ancla: 2023
+    agregacion: fit
+    cascada_modo: proxy
+    sustituciones: []
+    hijas_omitidas: []
+    force: yes
+    gate_ancla: 0.05
+    rhat_max: 1.350663
+  huecos: []
+  files:
+  - medida: prevalence
+    rows: 3744
+  - medida: incidence
+    rows: 3744
+  - medida: yld
+    rows: 3744
+  archivos_tablas:
+  - avd.csv
+  - incidencia.csv
+  - prevalencia.csv
+E10-omitidas:
+  schema: estimates/v1
+  source: gbd
+  round: '2023'
+  entities: cause
+  poblacion:
+    acquisition_id: sintetico_poblacion_v1
+  params:
+    years: 2023
+    causas:
+    - 9100
+    - 9101
+    - 9102
+    n_bloques: 3
+  bloques:
+  - cause_id: 9100
+    year: 2023
+    run_fuente: FECHA_e10-suma-omitidas_v1
+    anio_ancla: 2023
+    agregacion: suma_de_hijas
+    cascada_modo: ninguna
+    sustituciones: []
+    hijas_omitidas:
+    - cause_id: 9103
+    force: no
+    gate_ancla: ~
+    rhat_max: ~
+  - cause_id: 9101
+    year: 2023
+    run_fuente: FECHA_e5-9101_v2
+    anio_ancla: 2023
+    agregacion: fit
+    cascada_modo: proxy
+    sustituciones: []
+    hijas_omitidas: []
+    force: yes
+    gate_ancla: 0.05
+    rhat_max: 1.35169
+  - cause_id: 9102
+    year: 2023
+    run_fuente: FECHA_e5-9102_v1
+    anio_ancla: 2023
+    agregacion: fit
+    cascada_modo: proxy
+    sustituciones: []
+    hijas_omitidas: []
+    force: yes
+    gate_ancla: 0.05
+    rhat_max: 1.629956
+  huecos: []
+  files:
+  - medida: prevalence
+    rows: 2808
+  - medida: incidence
+    rows: 2808
+  - medida: yld
+    rows: 2808
+  archivos_tablas:
+  - incidence.csv
+  - prevalence.csv
+  - yld.csv
+registro-e10:
+- run_id: FECHA_e10-v1_v1
+  status: active
+  filas:
+  - 3744
+  - 3744
+  - 3744
+- run_id: FECHA_e10-v2_v1
+  status: active
+  filas:
+  - 3744
+  - 3744
+  - 3744
+- run_id: FECHA_e10-omitidas_v1
+  status: active
+  filas:
+  - 2808
+  - 2808
+  - 2808
+registro-e10-omitidas:
+- run_id: FECHA_e5-9101_v1
+  status: active
+  filas:
+  - 468
+  - 468
+  - 468
+- run_id: FECHA_e5-9102_v1
+  status: active
+  filas:
+  - 468
+  - 468
+  - 468
+- run_id: FECHA_e5-9101_v2
+  status: active
+  filas:
+  - 468
+  - 468
+  - 468
+- run_id: FECHA_e10-suma-omitidas_v1
+  status: active
+  filas:
+  - 468
+  - 468
+  - 468
