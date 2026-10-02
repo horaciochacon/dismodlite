@@ -274,8 +274,10 @@
   nudos <- unlist(dado("nudos")) %||% .dl_nudos_defecto(s[["edad_inicio"]])
   pd <- t[!grepl("\\[\\]", t$clave) & nzchar(t$defecto) & t$defecto != "obligatoria", c("clave", "defecto")]
   pd <- pd[vapply(pd$clave, function(k) is.null(dado(k)), NA), ]
-  reglas <- c(nombre = contexto$nombre, ubicacion_gbd = format(ubicacion), subnacional.modo = modo,
-              nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
+  # ubicacion_gbd: la que tomaron los lectores de las descargas (.dl_ubicacion_gbd); sin descargas, no se usó
+  if (!length(contexto$ubicacion_gbd)) pd <- pd[pd$clave != "ubicacion_gbd", ]
+  reglas <- c(nombre = contexto$nombre, ubicacion_gbd = paste(contexto$ubicacion_gbd, collapse = ", "),
+              subnacional.modo = modo, nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
   por_defecto <- stats::setNames(ifelse(pd$clave %in% names(reglas), reglas[pd$clave],
                                         ifelse(pd$defecto == "anio", format(s[["anio"]]), pd$defecto)), pd$clave)
   prior <- val("mortalidad_exceso.prior")

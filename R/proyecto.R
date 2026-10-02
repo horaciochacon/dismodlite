@@ -116,8 +116,8 @@
 
 # Las tablas del contrato del proyecto, una lista nombrada de dl_tabla sin las que no están: cada una de `dadas` o de
 # `carpeta` (.dl_fuente_tabla), por su lector (`opciones`: ubicacion_gbd y metrica_prevalencia, ver
-# .dl_leer_fuente_tabla) y validada sola. Sin ubicacion_gbd, el código de la ubicación nacional de ubicaciones si es
-# un entero (el location_id de GBD del país). Error si falta una tabla obligatoria, con dónde se buscó. Con `paso`
+# .dl_leer_fuente_tabla) y validada sola; los lectores reciben también el código de la ubicación nacional de
+# ubicaciones (`codigo_nacional`, ver .dl_ubicacion_gbd). Error si falta una tabla obligatoria, con dónde se buscó. Con `paso`
 # (la revisión: paso(nombre, expr), como en .dl_traducir_contrato), cada tabla va por su paso, también el error de
 # una obligatoria que falta, y no se detiene.
 .dl_tablas_proyecto <- function(carpeta, dadas, opciones = list(), paso = NULL) {
@@ -133,27 +133,23 @@
                      t, t))
   leer <- function(t) if (!is.null(fuentes[[t]])) paso(t, .dl_tabla_proyecto(fuentes[[t]], t, opciones))
   tablas <- list(ubicaciones = leer("ubicaciones"))
-  if (is.null(opciones$ubicacion_gbd) && !is.null(tablas$ubicaciones))
-    opciones$ubicacion_gbd <- .dl_codigo_gbd(tablas$ubicaciones)
+  if (!is.null(tablas$ubicaciones)) {
+    nacional <- .dl_ubicacion_nacional(tablas)
+    if (!is.na(nacional)) opciones$codigo_nacional <- nacional
+  }
   for (t in setdiff(names(Filter(Negate(is.null), fuentes)), "ubicaciones")) tablas[t] <- list(leer(t))
   Filter(Negate(is.null), tablas)
 }
 
 # La tabla `tabla` del contrato desde `x` (data.frame o ruta): su lector y la validación de una tabla sola, como
-# dl_tabla(). Atributo `lectores`: los lectores por los que pasó (vacío si todo era del contrato).
+# dl_tabla(). Atributos `lectores` y `ubicacion_gbd`: los de .dl_leer_fuente_tabla (vacíos si todo era del contrato).
 .dl_tabla_proyecto <- function(x, tabla, opciones) {
   origen <- if (is.data.frame(x)) sprintf("argumento `%s` (data.frame)", tabla) else x
   d <- .dl_leer_fuente_tabla(x, tabla, opciones)
   t <- .dl_tabla_contrato(d, tabla, origen)
   data.table::setattr(t, "lectores", attr(d, "lectores"))
+  data.table::setattr(t, "ubicacion_gbd", attr(d, "ubicacion_gbd"))
   t
-}
-
-# location_id de GBD del país según la tabla ubicaciones: el código de la ubicación nacional si es un entero; si no,
-# NULL (una descarga de GBD con varias ubicaciones pide entonces ubicacion_gbd).
-.dl_codigo_gbd <- function(u) {
-  nacional <- .dl_ubicacion_nacional(list(ubicaciones = u))
-  if (!is.na(nacional) && grepl("^[0-9]+$", nacional)) as.integer(nacional)
 }
 
 # Opciones de los lectores desde la configuración `s` del proyecto: ubicacion_gbd y la métrica de la prevalencia de
@@ -191,7 +187,8 @@
 # Lo que la traducción de la configuración de `causa` toma de las tablas (.dl_traducir_config_simple): la ubicación
 # nacional (la que no tiene padre en ubicaciones), las betas de la causa (las de `padre` si es un subtipo sin betas
 # propias), las covariables con filas subnacionales, si hay ubicaciones subnacionales, el nombre de la causa en el
-# ancla, la causa padre y el covariate_id de cada covariable (para valor_nacional_de).
+# ancla, la causa padre, el covariate_id de cada covariable (para valor_nacional_de) y los location_id de GBD que los
+# lectores tomaron como el país (ubicacion_gbd; vacío si ninguna tabla vino de una descarga).
 .dl_contexto_tablas <- function(tablas, causa, padre = NULL) {
   nacional <- .dl_ubicacion_nacional(tablas)
   betas <- .dl_betas_de_causa(tablas$betas, causa, padre)
@@ -203,7 +200,8 @@
        covariables_subnacionales = if (is.null(cov)) character()
                                    else unique(cov$covariable[!.dl_es_nacional(cov, nacional)]),
        subnacional = any(!is.na(.dl_col(tablas$ubicaciones, "padre", NA_character_))),
-       nombre = if (length(nombres)) nombres[[1L]], ids_covariable = .dl_ids_covariable(tablas, betas))
+       nombre = if (length(nombres)) nombres[[1L]], ids_covariable = .dl_ids_covariable(tablas, betas),
+       ubicacion_gbd = unique(unlist(lapply(tablas, attr, "ubicacion_gbd"))))
 }
 
 # La configuración validada y las tablas del proyecto de la causa `causa`: las tablas (de `dadas` o de `carpeta`), la

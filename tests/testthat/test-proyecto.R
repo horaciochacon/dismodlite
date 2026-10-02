@@ -134,6 +134,60 @@ test_that("dl_proyecto() se detiene con todos los problemas entre tablas y avisa
   expect_s3_class(p, "dl_proyecto")
 })
 
+test_that("ubicacion_gbd por defecto: el código nacional si está en la descarga, si no la única ubicación", {
+  # el código nacional de ubicaciones no es el location_id de la descarga (999), sea texto o dígitos
+  for (codigo in c("PE", "604")) {
+    d <- proyecto_ficticio()
+    u <- leer_texto(file.path(d, "ubicaciones.csv"))
+    u[ubicacion == "999", ubicacion := codigo][padre == "999", padre := codigo]
+    escribir_texto(u, d, "ubicaciones.csv")
+    p <- dl_proyecto(d)
+    expect_identical(as.character(p$configuracion$anchor$location_id), codigo)
+    expect_identical(p$configuracion$origen$por_defecto[["ubicacion_gbd"]], "999")
+    expect_gt(nrow(p$tablas$ancla), 0L)
+  }
+  # con otra ubicación en la descarga, el código nacional (604) no es ninguna de las dos: error que pide la clave
+  a <- leer_texto(file.path(d, "ancla", "descarga_gbd.csv"))
+  escribir_texto(rbind(a, data.table::copy(a)[, location_id := "1000"]), d, "ancla", "descarga_gbd.csv")
+  expect_error(dl_proyecto(d), paste0("trae varias ubicaciones \\(1000, 999\\) y ninguna es el c\u00f3digo nacional ",
+                                      "de ubicaciones \\(604\\): declara ubicacion_gbd"))
+  # si el código nacional es una de ellas, es esa
+  u[ubicacion == "604", ubicacion := "1000"][padre == "604", padre := "1000"]
+  escribir_texto(u, d, "ubicaciones.csv")
+  expect_identical(dl_proyecto(d)$configuracion$origen$por_defecto[["ubicacion_gbd"]], "1000")
+  # declarada, manda y debe estar en la descarga
+  writeLines(c("causa: 501", "anio: 2020", "edad_inicio: 40", "ubicacion_gbd: 999"), file.path(d, "config.yaml"))
+  p <- dl_proyecto(d)
+  expect_false("ubicacion_gbd" %in% names(p$configuracion$origen$por_defecto))
+  expect_identical(as.character(p$configuracion$anchor$location_id), "1000")
+  writeLines(c("causa: 501", "anio: 2020", "edad_inicio: 40", "ubicacion_gbd: 5"), file.path(d, "config.yaml"))
+  expect_error(dl_proyecto(d), "no trae la ubicaci\u00f3n 5 \\(ubicacion_gbd\\)")
+  # sin descargas de GBD, ubicacion_gbd no se usa y no aparece entre lo tomado por defecto
+  d <- proyecto_ficticio()
+  f <- file.path(withr::local_tempdir(), "ancla.csv")
+  data.table::fwrite(dl_tabla("ancla", file.path(d, "ancla")), f)
+  p <- dl_proyecto(d, ancla = f)
+  expect_false("ubicacion_gbd" %in% names(p$configuracion$origen$por_defecto))
+})
+
+test_that("las fuentes del GHDx van con el código nacional del proyecto y el doble conteo sigue deteniendo", {
+  # el código nacional (PAIS) no es el location_id de GBD del país (999), que se declara: la lista del GHDx trae
+  # también una ubicación subnacional de GBD
+  d <- proyecto_ficticio(config = c("causa: 501", "anio: 2020", "edad_inicio: 40", "ubicacion_gbd: 999"))
+  u <- leer_texto(file.path(d, "ubicaciones.csv"))
+  u[ubicacion == "999", ubicacion := "PAIS"][padre == "999", padre := "PAIS"]
+  escribir_texto(u, d, "ubicaciones.csv")
+  # una fuente no fatal del país y otra de la ubicación subnacional de GBD
+  dir.create(file.path(d, "fuentes_gbd"))
+  writeLines(c("nid,title,cause_id,location_id,component_id", "1001,Encuesta A,501,999,5",
+               "1002,Encuesta B,501,4567,5"), file.path(d, "fuentes_gbd", "ghdx.csv"))
+  expect_warning(p <- dl_proyecto(d), "se descartan las fuentes de .ghdx.csv. de otras ubicaciones de GBD \\(4567\\)")
+  expect_identical(p$tablas$fuentes_gbd$ubicacion, "PAIS")
+  expect_identical(p$tablas$fuentes_gbd$nid, 1001L)
+  # con el ancla a peso completo, una fuente local no fatal del país es doble conteo: dl_insumos() se detiene
+  expect_error(suppressMessages(dl_insumos(p)), "exige 0 fuentes locales no fatales para la causa 501.*nid 1001")
+})
+
 test_that("print() muestra las tablas del proyecto y lo tomado por defecto", {
   p <- dl_proyecto(proyecto_ficticio())
   salida <- paste(capture.output(print(p)), collapse = "\n")

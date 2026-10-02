@@ -24,6 +24,12 @@ test_that("GBD Results con varias ubicaciones y sin ubicacion_gbd pide la clave"
   expect_error(dl_tabla("ancla", fx("gbd_results_mezcla.csv")), "ubicacion_gbd")
 })
 
+test_that("una descarga de GBD Results sin location_id lo dice (no «varias ubicaciones ()»)", {
+  d <- data.table::fread(fx("gbd_results_mezcla.csv"))
+  d[, location_id := NULL]
+  expect_error(dl_tabla("ancla", as.data.frame(d)), "no trae la columna location_id")
+})
+
 test_that("GBD Results en Percent para reproducir corridas anteriores", {
   a <- dl_tabla("ancla", fx("gbd_results_mezcla.csv"), ubicacion_gbd = 123, metrica_prevalencia = "Percent")
   expect_identical(a[causa == 9100L & medida == "prevalencia"]$valor, 0.13)

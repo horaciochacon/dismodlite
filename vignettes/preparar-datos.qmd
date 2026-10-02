@@ -319,7 +319,9 @@ tabla se declara la carpeta de la partición en la configuración (`severidad.pa
 Las fuentes (`nid`) que GBD ya usó para la causa y la ubicación, por componente (`no_fatal`, `causa_de_muerte`). Si
 un dato local que entra al ajuste viene de una de ellas, ya informó el ancla: con el ancla a peso completo
 (`ancla.peso` 1), los insumos se detienen para evitar el doble conteo. Se pone en `fuentes_gbd/` la lista de
-fuentes que exporta el GHDx (<https://ghdx.healthdata.org/>), tal cual: el lector toma 4 de sus columnas.
+fuentes que exporta el GHDx (<https://ghdx.healthdata.org/>), tal cual: el lector toma 4 de sus columnas y las
+filas del país (su `location_id` de GBD, ver `ubicacion_gbd` en la sección 6), que quedan con el código nacional de
+`ubicaciones`; las fuentes de otras ubicaciones de GBD se descartan, con un aviso.
 
 ```{r}
 #| label: col-fuentes
@@ -663,7 +665,9 @@ defecto es:
    ejemplo, `123`); o
 2. la única ubicación de la descarga, si trae una sola.
 
-Si no se cumple ninguna, el error la pide. Las descargas de covariables del ejemplo traen el país, su región y el
+Si no se cumple ninguna, el error la pide; si se declara, la descarga debe traerla. La misma regla vale para las
+descargas de GBD Results, las covariables y la lista de fuentes del GHDx, y `print()` del proyecto muestra la que se
+tomó. Las descargas de covariables del ejemplo traen el país, su región y el
 mundo; leídas solas, sin el proyecto, `dl_tabla()` pide la ubicación:
 
 ```{r}

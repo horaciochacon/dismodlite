@@ -37,9 +37,15 @@
   NA_character_
 }
 
-# location_id de GBD del país entre las ubicaciones `locs` de una descarga (`de`: cuál, para el mensaje).
+# location_id de GBD del país entre las ubicaciones `locs` de una descarga (`de`: cuál, para el mensaje). Es la única
+# regla de los lectores de GBD y del GHDx: ubicacion_gbd si se declaró (`opciones$ubicacion_gbd`; debe estar en la
+# descarga); si no, el código nacional de la tabla ubicaciones (`opciones$codigo_nacional`) si es una de las
+# ubicaciones de la descarga; si no, la única ubicación de la descarga; si no, un error que pide ubicacion_gbd.
 .dl_ubicacion_gbd <- function(locs, opciones, de) {
   locs <- unique(as.character(locs))
+  locs <- locs[!is.na(locs) & nzchar(trimws(locs))]
+  if (!length(locs))
+    .dl_stop("%s no trae la columna location_id (la ubicaci\u00f3n de GBD de cada fila), o la trae vac\u00eda", de)
   u <- opciones$ubicacion_gbd
   if (!is.null(u)) {
     u <- as.character(u)
@@ -47,9 +53,12 @@
       .dl_stop("%s no trae la ubicaci\u00f3n %s (ubicacion_gbd); trae: %s", de, u, .dl_lista(locs))
     return(u)
   }
+  nacional <- opciones$codigo_nacional
+  if (!is.null(nacional) && nacional %in% locs) return(nacional)
   if (length(locs) == 1L) return(locs)
-  .dl_stop("%s trae varias ubicaciones (%s): declara ubicacion_gbd, el location_id de GBD del pa\u00eds", de,
-           .dl_lista(locs))
+  .dl_stop("%s trae varias ubicaciones (%s)%s: declara ubicacion_gbd, el location_id de GBD del pa\u00eds", de,
+           .dl_lista(locs), if (is.null(nacional)) ""
+                            else sprintf(" y ninguna es el c\u00f3digo nacional de ubicaciones (%s)", nacional))
 }
 
 # Límites [edad_inicio, edad_fin) de los grupos de edad de GBD `ids` (de la descarga `de`, para el mensaje). Un id que
@@ -77,16 +86,18 @@
                     "detalladas?"), de, ubicacion)
   escala <- ifelse(percent & d$measure_id == "5", 1, .DL_ESCALA_RATE)
   e <- .dl_edades_gbd(if ("age_id" %in% names(d)) d$age_id else d$age_group_id, de)
-  data.table::data.table(causa = d$cause_id, nombre_causa = d$cause_name, anio = d$year, sexo = d$sex_id,
-                         edad_inicio = e$edad_inicio, edad_fin = e$edad_fin,
-                         medida = unname(.DL_MEDIDA_GBD[d$measure_id]),
-                         valor = as.numeric(d$val) / escala, inferior = as.numeric(d$lower) / escala,
-                         superior = as.numeric(d$upper) / escala)
+  out <- data.table::data.table(causa = d$cause_id, nombre_causa = d$cause_name, anio = d$year, sexo = d$sex_id,
+                                edad_inicio = e$edad_inicio, edad_fin = e$edad_fin,
+                                medida = unname(.DL_MEDIDA_GBD[d$measure_id]),
+                                valor = as.numeric(d$val) / escala, inferior = as.numeric(d$lower) / escala,
+                                superior = as.numeric(d$upper) / escala)
+  data.table::setattr(out, "ubicacion_gbd", ubicacion)
 }
 
 # Descarga de covariables del GHDx -> covariables del contrato, filas nacionales (sin validar).
 .dl_leer_ghdx_covariables <- function(d, opciones, de) {
-  if ("location_id" %in% names(d)) d <- d[d$location_id == .dl_ubicacion_gbd(d$location_id, opciones, de), ]
+  ubicacion <- if ("location_id" %in% names(d)) .dl_ubicacion_gbd(d$location_id, opciones, de)
+  if (!is.null(ubicacion)) d <- d[d$location_id == ubicacion, ]
   if (!"age_group_id" %in% names(d)) d$age_group_id <- as.character(.DL_BANDAS_AGREGADAS[["todas"]])
   agregada <- d$age_group_id %in% as.character(.DL_BANDAS_AGREGADAS)
   # de una misma covariable, año y sexo: la estandarizada (27) antes que todas las edades (22)
@@ -104,14 +115,25 @@
     out[, `:=`(edad_inicio = NA_real_, edad_fin = NA_real_)]
     out[!nacional, `:=`(edad_inicio = e$edad_inicio, edad_fin = e$edad_fin)]
   }
-  out
+  data.table::setattr(out, "ubicacion_gbd", ubicacion)
 }
 
-# Lista de fuentes del GHDx -> fuentes_gbd del contrato (sin validar).
+# Lista de fuentes del GHDx -> fuentes_gbd del contrato (sin validar): las fuentes del país (su location_id de GBD,
+# .dl_ubicacion_gbd), con el código nacional de la tabla ubicaciones (si se conoce); las de otras ubicaciones de GBD
+# (subnacionales de GBD, otros países) se descartan, con un aviso.
 .dl_leer_ghdx_fuentes <- function(d, opciones, de) {
   d <- d[d$component_id %in% names(.DL_COMPONENTE_GHDX), ]
-  data.table::data.table(causa = d$cause_id, ubicacion = d$location_id,
-                         componente = unname(.DL_COMPONENTE_GHDX[d$component_id]), nid = d$nid)
+  ubicacion <- if ("location_id" %in% names(d)) .dl_ubicacion_gbd(d$location_id, opciones, de)
+  if (!is.null(ubicacion)) {
+    otras <- setdiff(d$location_id, ubicacion)
+    if (length(otras))
+      .dl_warn(paste0("se descartan las fuentes de %s de otras ubicaciones de GBD (%s): se usan las del pa\u00eds ",
+                      "(location_id %s, ubicacion_gbd)"), de, .dl_unos(otras), ubicacion)
+    d <- d[d$location_id == ubicacion, ]
+  }
+  out <- data.table::data.table(causa = d$cause_id, ubicacion = opciones$codigo_nacional %||% ubicacion,
+                                componente = unname(.DL_COMPONENTE_GHDX[d$component_id]), nid = d$nid)
+  data.table::setattr(out, "ubicacion_gbd", ubicacion)
 }
 
 # Las columnas numéricas de `d` como el texto más corto que vuelve al mismo double (.dl_num_exacto): así, al juntar la
@@ -123,10 +145,12 @@
 }
 
 # Lee `x` (ruta a un CSV, carpeta de CSV o data.frame) como la tabla `tabla` del contrato, sin validar: cada archivo
-# (o el data.frame) pasa por su lector. Error si un archivo no se reconoce o si su lector produce otra tabla. Atributo
-# `lectores`: los nombres de los lectores por los que pasó (sin él, si todo era del contrato).
+# (o el data.frame) pasa por su lector. Error si un archivo no se reconoce o si su lector produce otra tabla. Atributos
+# `lectores`: los nombres de los lectores por los que pasó (sin él, si todo era del contrato); `ubicacion_gbd`: los
+# location_id de GBD que tomaron como el país (.dl_ubicacion_gbd; sin él, si ninguno lo necesitó).
 .dl_leer_fuente_tabla <- function(x, tabla, opciones = list()) {
   lectores <- character()
+  ubicaciones_gbd <- character()
   una <- function(d, de) {
     d <- data.table::as.data.table(d)
     data.table::setnames(d, tolower(trimws(names(d))))
@@ -141,7 +165,9 @@
                .DL_LECTORES[[lector]]$tabla, tabla)
     for (cn in setdiff(names(d), .DL_COLUMNAS_NUMERICAS_GBD)) data.table::set(d, j = cn, value = as.character(d[[cn]]))
     lectores <<- union(lectores, .DL_LECTORES[[lector]]$nombre)
-    .dl_numeros_a_texto(get(paste0(".dl_leer_", lector))(d, opciones, de))
+    r <- get(paste0(".dl_leer_", lector))(d, opciones, de)
+    ubicaciones_gbd <<- union(ubicaciones_gbd, attr(r, "ubicacion_gbd"))
+    .dl_numeros_a_texto(r)
   }
   out <- if (is.data.frame(x)) una(x, "el data.frame") else {
     archivos <- if (dir.exists(x)) list.files(x, "[.]csv$", ignore.case = TRUE, full.names = TRUE) else x
@@ -155,5 +181,6 @@
   }
   # la salida de un lector es una tabla nueva (no el data.frame que se dio): se le puede poner el atributo
   if (length(lectores)) data.table::setattr(out, "lectores", lectores)
+  if (length(ubicaciones_gbd)) data.table::setattr(out, "ubicacion_gbd", ubicaciones_gbd)
   out
 }

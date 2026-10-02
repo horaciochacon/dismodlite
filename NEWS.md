@@ -19,7 +19,9 @@ de donde vengan los datos. Es una versión mayor porque los proyectos de la vers
 * Las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten solas (el *Rate* entre
   100 000, las edades de GBD a bandas, `measure_id` a `medida`). La clave `ubicacion_gbd` (antes
   `ubicacion_nacional`) dice qué `location_id` de GBD es el país; por defecto, el código nacional de `ubicaciones`
-  si está en la descarga, o la única ubicación de la descarga.
+  si está en la descarga, o la única ubicación de la descarga (la misma regla en los tres lectores). La lista de
+  fuentes del GHDx queda con el código nacional del proyecto; sus fuentes de otras ubicaciones de GBD se descartan,
+  con un aviso.
 * La configuración guarda decisiones y las tablas, números con su fuente. Entran `severidad.particion`,
   `severidad.padre` y `componente.secuelas`, que antes solo existían en el formato completo.
 * La corrida congela las tablas del contrato que usó (`inputs/contrato/`) con su sha256 en el manifiesto: una corrida
