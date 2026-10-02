@@ -13,7 +13,7 @@ dl_configuracion(causa, carpeta_config = NULL, cambios = NULL)
 de una sola causa), la carpeta de un proyecto (con \verb{config/<causa>.yaml}) o la ruta del archivo de configuración.}
 
 \item{cambios}{Lista con nombres que se funde sobre la configuración antes de validar, con las claves del formato
-completo (también para una configuración simple: se aplica sobre su traducción), por ejemplo
+completo (también para la configuración de un proyecto: se aplica sobre su traducción), por ejemplo
 \code{list(anchor = list(lambda = 0.5))}: cada clave reemplaza a la de la configuración y una lista con nombres se
 funde clave a clave; \code{NULL} quita la clave. Una secuencia (\code{c("csmr", "incidencia")}, o \code{list(list(...))} para
 registros como \code{remision.por_edad}) reemplaza entera a la de la configuración. Una clave que la configuración no
@@ -23,19 +23,19 @@ tiene es un error.}
 Objeto de clase \code{dl_config}: la configuración validada, en el formato completo, una lista con sus claves
 (\code{cause_id}, \code{years}, \code{sexos}, \code{edad_inicio}, \code{remision}, \code{emr_prior}, \code{nudos_incidencia}, \code{sigma_suavidad},
 \code{anchor}, \code{medidas_entrada}, \code{cascada}, \code{transformaciones}, \code{covariables}, \code{severidad}, \code{sensibilidad},
-\code{decisiones} y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave simple
-sale cada una). La de una configuración simple trae además \code{origen}: \code{formato} (\code{"simple"}), \code{archivo}, \code{nombre}
+\code{decisiones} y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave del
+proyecto sale cada una). La de un proyecto trae además \code{origen}: \code{formato} (\code{"simple"}), \code{archivo}, \code{nombre}
 (el de la causa), \code{subnacional} (el modo subnacional: \code{covariables}, \code{plano} o \code{no}), \code{unidades}
 (\code{"contrato"}: las tablas del proyecto ya vienen en las unidades del modelo), \code{betas} (la tabla \code{betas} de la
 causa) y \code{por_defecto} (las claves tomadas por defecto, con su valor, como texto).
 }
 \description{
-Lee la configuración de una causa, le aplica los \code{cambios} y valida todos los campos. Lee los dos formatos: el
-\strong{simple} (una configuración corta, con las claves de la tabla de abajo) y el \strong{completo} (\code{schema: dismod_lite/v1}). La configuración simple se traduce a la completa y pasa por la misma validación; sus errores
-citan la clave simple y, entre paréntesis, la del formato completo (\code{ancla.peso (anchor.lambda): ...}). Los errores
+Lee la configuración de una causa, le aplica los \code{cambios} y valida todos los campos. Lee los dos formatos: la
+configuración de un \strong{proyecto} (corta, con las claves de la tabla de abajo) y el formato \strong{completo} (\code{schema: dismod_lite/v1}). La configuración de un proyecto se traduce a la completa y pasa por la misma validación; sus
+errores citan su clave y, entre paréntesis, la del formato completo (\code{ancla.peso (anchor.lambda): ...}). Los errores
 de una configuración completa citan la ruta del campo (\code{config.anchor.lambda}, ...).
 }
-\section{Formato simple}{
+\section{Configuración de un proyecto}{
 
 Lo mínimo son tres claves: \code{causa}, \code{anio} y \code{edad_inicio} (y \code{ubicacion_gbd}, el \code{location_id} de GBD del
 país, si las descargas traen más de una ubicación y el código nacional de \code{ubicaciones} no es su \code{location_id}).
@@ -76,7 +76,7 @@ carpeta del proyecto y sus archivos: ver \code{\link[=dl_proyecto]{dl_proyecto()
 tabla de la sección siguiente.
 }
 
-\section{Claves de la configuración simple}{
+\section{Claves de la configuración de un proyecto}{
 
 Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es el valor de la clave cuando la configuración no la trae; «Formato completo», dónde queda el valor en la traducción al formato completo: la clave que citan los errores y que se puede ajustar en \code{avanzado}, con la forma del formato completo (\code{emr_prior.cota} es \code{[0, techo]}; \code{years.ancla} y \code{cascada.heldout_anio} son \code{\{valor, procedencia\}}; \code{cascada.modo} solo admite \code{plana}), o el archivo de la traducción donde queda.
 
@@ -146,15 +146,15 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 
 \section{Formato completo}{
 
-Una configuración es del formato completo si trae \code{schema: dismod_lite/v1}; si no, es simple. Es el formato de la
-versión 0.2.2: cada decisión va con su procedencia (\code{edad_inicio_fuente}, \code{remision.fuente},
+Una configuración es del formato completo si trae \code{schema: dismod_lite/v1}; si no, es la de un proyecto. Es el
+formato de la versión 0.2.2: cada decisión va con su procedencia (\code{edad_inicio_fuente}, \code{remision.fuente},
 \code{emr_prior.fuente_cota}, los bloques \verb{\{valor, procedencia\}}) y la ubicación del ancla se declara con
 \code{anchor.location_id} (las configuraciones escritas para esa versión usan \code{anchor.location}). La configuración
 completa del ejemplo: \code{system.file("extdata", "acs_peru_completo", "config", "9100.yaml", package = "dismodlite")}.
 
-Una configuración simple se traduce a la completa: cada clave va a la de la columna «Formato completo» de la tabla
-de claves, cada procedencia que el formato completo exige dice «declarado en la configuración simple», y las
-claves tomadas por defecto quedan en \code{origen$por_defecto} (y en el manifiesto de cada corrida, en
+La configuración de un proyecto se traduce a la completa: cada clave va a la de la columna «Formato completo» de la
+tabla de claves, cada procedencia que el formato completo exige dice «declarado en la configuración del proyecto»,
+y las claves tomadas por defecto quedan en \code{origen$por_defecto} (y en el manifiesto de cada corrida, en
 \code{configuracion.por_defecto}). Sobre esa traducción se aplican, en este orden, el bloque \verb{avanzado:} de la
 configuración y el argumento \code{cambios}, los dos con claves del formato completo. Por ejemplo, para aceptar un error
 mayor entre la prevalencia ajustada y la del ancla antes de escribir la corrida:
@@ -164,8 +164,8 @@ mayor entre la prevalencia ajustada y la del ancla antes de escribir la corrida:
     gate_err_mediano: \{valor: 0.08, procedencia: el ancla tiene pocas bandas de edad\}
 }\if{html}{\out{</div>}}
 
-Algunas claves del formato completo sin equivalente simple, útiles en \code{avanzado} (entre paréntesis, el valor cuando
-la clave no está):
+Algunas claves del formato completo sin equivalente en la configuración de un proyecto, útiles en \code{avanzado} (entre
+paréntesis, el valor cuando la clave no está):
 \itemize{
 \item \code{offset_lognormal}: desplazamiento de la verosimilitud log-normal (0). Hace falta si un dato local con \code{valor} y
 \code{error_estandar} vale 0, o si el ancla trae un valor o un límite inferior 0 en una banda donde GBD modela la

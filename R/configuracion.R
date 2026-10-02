@@ -142,13 +142,13 @@
 
 #' Configuración de una causa
 #'
-#' Lee la configuración de una causa, le aplica los `cambios` y valida todos los campos. Lee los dos formatos: el
-#' **simple** (una configuración corta, con las claves de la tabla de abajo) y el **completo** (`schema:
-#' dismod_lite/v1`). La configuración simple se traduce a la completa y pasa por la misma validación; sus errores
-#' citan la clave simple y, entre paréntesis, la del formato completo (`ancla.peso (anchor.lambda): ...`). Los errores
+#' Lee la configuración de una causa, le aplica los `cambios` y valida todos los campos. Lee los dos formatos: la
+#' configuración de un **proyecto** (corta, con las claves de la tabla de abajo) y el formato **completo** (`schema:
+#' dismod_lite/v1`). La configuración de un proyecto se traduce a la completa y pasa por la misma validación; sus
+#' errores citan su clave y, entre paréntesis, la del formato completo (`ancla.peso (anchor.lambda): ...`). Los errores
 #' de una configuración completa citan la ruta del campo (`config.anchor.lambda`, ...).
 #'
-#' @section Formato simple:
+#' @section Configuración de un proyecto:
 #' Lo mínimo son tres claves: `causa`, `anio` y `edad_inicio` (y `ubicacion_gbd`, el `location_id` de GBD del
 #' país, si las descargas traen más de una ubicación y el código nacional de `ubicaciones` no es su `location_id`).
 #' Todo lo demás tiene un valor por defecto, que [dl_proyecto()] muestra y cada corrida registra. Las covariables
@@ -190,7 +190,7 @@
 #' @param carpeta_config La carpeta que tiene la configuración (`<causa>.yaml`, o `config.yaml` en un proyecto
 #'   de una sola causa), la carpeta de un proyecto (con `config/<causa>.yaml`) o la ruta del archivo de configuración.
 #' @param cambios Lista con nombres que se funde sobre la configuración antes de validar, con las claves del formato
-#'   completo (también para una configuración simple: se aplica sobre su traducción), por ejemplo
+#'   completo (también para la configuración de un proyecto: se aplica sobre su traducción), por ejemplo
 #'   `list(anchor = list(lambda = 0.5))`: cada clave reemplaza a la de la configuración y una lista con nombres se
 #'   funde clave a clave; `NULL` quita la clave. Una secuencia (`c("csmr", "incidencia")`, o `list(list(...))` para
 #'   registros como `remision.por_edad`) reemplaza entera a la de la configuración. Una clave que la configuración no
@@ -198,8 +198,8 @@
 #' @return Objeto de clase `dl_config`: la configuración validada, en el formato completo, una lista con sus claves
 #'   (`cause_id`, `years`, `sexos`, `edad_inicio`, `remision`, `emr_prior`, `nudos_incidencia`, `sigma_suavidad`,
 #'   `anchor`, `medidas_entrada`, `cascada`, `transformaciones`, `covariables`, `severidad`, `sensibilidad`,
-#'   `decisiones` y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave simple
-#'   sale cada una). La de una configuración simple trae además `origen`: `formato` (`"simple"`), `archivo`, `nombre`
+#'   `decisiones` y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave del
+#'   proyecto sale cada una). La de un proyecto trae además `origen`: `formato` (`"simple"`), `archivo`, `nombre`
 #'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano` o `no`), `unidades`
 #'   (`"contrato"`: las tablas del proyecto ya vienen en las unidades del modelo), `betas` (la tabla `betas` de la
 #'   causa) y `por_defecto` (las claves tomadas por defecto, con su valor, como texto).
@@ -280,15 +280,15 @@ NULL
 #' @name dl_configuracion
 #' @rdname dl_configuracion
 #' @section Formato completo:
-#' Una configuración es del formato completo si trae `schema: dismod_lite/v1`; si no, es simple. Es el formato de la
-#' versión 0.2.2: cada decisión va con su procedencia (`edad_inicio_fuente`, `remision.fuente`,
+#' Una configuración es del formato completo si trae `schema: dismod_lite/v1`; si no, es la de un proyecto. Es el
+#' formato de la versión 0.2.2: cada decisión va con su procedencia (`edad_inicio_fuente`, `remision.fuente`,
 #' `emr_prior.fuente_cota`, los bloques `{valor, procedencia}`) y la ubicación del ancla se declara con
 #' `anchor.location_id` (las configuraciones escritas para esa versión usan `anchor.location`). La configuración
 #' completa del ejemplo: `system.file("extdata", "acs_peru_completo", "config", "9100.yaml", package = "dismodlite")`.
 #'
-#' Una configuración simple se traduce a la completa: cada clave va a la de la columna «Formato completo» de la tabla
-#' de claves, cada procedencia que el formato completo exige dice «declarado en la configuración simple», y las
-#' claves tomadas por defecto quedan en `origen$por_defecto` (y en el manifiesto de cada corrida, en
+#' La configuración de un proyecto se traduce a la completa: cada clave va a la de la columna «Formato completo» de la
+#' tabla de claves, cada procedencia que el formato completo exige dice «declarado en la configuración del proyecto»,
+#' y las claves tomadas por defecto quedan en `origen$por_defecto` (y en el manifiesto de cada corrida, en
 #' `configuracion.por_defecto`). Sobre esa traducción se aplican, en este orden, el bloque `avanzado:` de la
 #' configuración y el argumento `cambios`, los dos con claves del formato completo. Por ejemplo, para aceptar un error
 #' mayor entre la prevalencia ajustada y la del ancla antes de escribir la corrida:
@@ -297,8 +297,8 @@ NULL
 #'   anchor:
 #'     gate_err_mediano: {valor: 0.08, procedencia: el ancla tiene pocas bandas de edad}
 #' ```
-#' Algunas claves del formato completo sin equivalente simple, útiles en `avanzado` (entre paréntesis, el valor cuando
-#' la clave no está):
+#' Algunas claves del formato completo sin equivalente en la configuración de un proyecto, útiles en `avanzado` (entre
+#' paréntesis, el valor cuando la clave no está):
 #' - `offset_lognormal`: desplazamiento de la verosimilitud log-normal (0). Hace falta si un dato local con `valor` y
 #'   `error_estandar` vale 0, o si el ancla trae un valor o un límite inferior 0 en una banda donde GBD modela la
 #'   causa.
@@ -362,7 +362,7 @@ NULL
     "`avanzado`, con la forma del formato completo",
     "(`emr_prior.cota` es `[0, techo]`; `years.ancla` y `cascada.heldout_anio` son `{valor, procedencia}`;",
     "`cascada.modo` solo admite `plana`), o el archivo de la traducci\u00f3n donde queda.")
-  c("@section Claves de la configuraci\u00f3n simple:", rd(guia), "", "\\ifelse{html}{", tabla, "}{", lista, "}")
+  c("@section Claves de la configuraci\u00f3n de un proyecto:", rd(guia), "", "\\ifelse{html}{", tabla, "}{", lista, "}")
 }
 
 

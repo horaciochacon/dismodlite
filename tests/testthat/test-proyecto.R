@@ -188,6 +188,12 @@ test_that("las fuentes del GHDx van con el código nacional del proyecto y el do
   expect_error(suppressMessages(dl_insumos(p)), "exige 0 fuentes locales no fatales para la causa 501.*nid 1001")
 })
 
+test_that("la procedencia de lo que la configuración completa exige declarar nombra la configuración del proyecto", {
+  cfg <- dl_proyecto(proyecto_ficticio())$configuracion
+  expect_identical(cfg$edad_inicio_fuente, "declarado en la configuraci\u00f3n del proyecto")
+  expect_identical(cfg$remision$fuente, "declarado en la configuraci\u00f3n del proyecto")
+})
+
 test_that("print() muestra las tablas del proyecto y lo tomado por defecto", {
   p <- dl_proyecto(proyecto_ficticio())
   salida <- paste(capture.output(print(p)), collapse = "\n")
@@ -332,6 +338,8 @@ config_9100 <- function() readLines(dl_ejemplo("config", "9100.yaml"), encoding 
 test_that("una clave desconocida de la configuración simple sugiere la más parecida", {
   d <- proyecto_ficticio(config = c("causa: 501", "anio: 2020", "edad_inicio: 40", "ancla:", "  pesos: 0.5"))
   expect_error(dl_proyecto(d), "ancla.pesos: clave desconocida; \u00bfquisiste decir `ancla.peso`\\?")
+  # el error nombra la configuración del proyecto (no «simple»)
+  expect_error(dl_proyecto(d), "la configuraci\u00f3n del proyecto \u00abconfig.yaml\u00bb tiene 1 problema")
   writeLines(c("causa: 501", "anio: 2020", "edad_inicio: 40", "remisio: 0"), file.path(d, "config.yaml"))
   expect_error(dl_proyecto(d), "remisio: clave desconocida; \u00bfquisiste decir `remision`\\?")
   # los errores del validador del formato completo citan la clave simple y la completa

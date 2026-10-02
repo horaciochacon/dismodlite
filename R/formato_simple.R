@@ -4,7 +4,7 @@
 # configuración y de las tablas (.dl_texto_simple). Las tablas: R/contrato.R y R/contrato_traduccion.R.
 
 # Procedencia de lo que la configuración completa exige declarar (edad_inicio_fuente, remision.fuente, ...).
-.DL_PROCEDENCIA_SIMPLE <- "declarado en la configuraci\u00f3n simple"
+.DL_PROCEDENCIA_SIMPLE <- "declarado en la configuraci\u00f3n del proyecto"
 
 # La configuración viene del formato simple: su traducción trae el campo `origen`.
 .dl_es_simple <- function(cfg) identical(cfg$origen$formato, "simple")
@@ -166,10 +166,10 @@
              "fracciones de esas secuelas)"))
 }
 
-# Error con la lista de problemas de la configuración simple `archivo`.
+# Error con la lista de problemas de la configuración del proyecto `archivo`.
 .dl_stop_config_simple <- function(archivo, probs)
-  .dl_stop("la configuraci\u00f3n simple \u00ab%s\u00bb tiene %d problema(s):\n%s\n  archivo: %s", basename(archivo),
-           length(probs), paste0("  - ", probs, collapse = "\n"), archivo, campos = list(problemas = probs))
+  .dl_stop("la configuraci\u00f3n del proyecto \u00ab%s\u00bb tiene %d problema(s):\n%s\n  archivo: %s",
+           basename(archivo), length(probs), paste0("  - ", probs, collapse = "\n"), archivo, campos = list(problemas = probs))
 
 # Problemas del validador completo (`campo`, `msg`) en palabras de `s`: «ancla.peso (anchor.lambda): ...», con el
 # `error` de la clave si su valor viene de ella; uno de `avanzado` (el campo o su bloque), «avanzado: campo: ...».

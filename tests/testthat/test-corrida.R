@@ -203,7 +203,7 @@ test_that("la limitación de la mortalidad de validación de otro año dice qué
   expect_match(sin_casc, paste0("^mortalidad subnacional de validación declarada de 2019 para una ",
                                 "corrida de 2023 \u2014 sin validación de amplitud \\(la corrida no trae la ",
                                 "validación del ancla\\)"))
-  expect_match(sin_casc, "\u2014 declarado en la configuración simple$")   # la procedencia del formato simple
+  expect_match(sin_casc, "\u2014 declarado en la configuración del proyecto$")   # la procedencia de un proyecto
   # el motivo es el que dl_validar_ancla() dejó en el atributo sin_amplitud (con las palabras del manifiesto): sin
   # cascada, o con la cascada y sin mortalidad subnacional de validación (la corrida mínima no trae datos)
   con_validacion <- vapply(list(NULL, x$cascada), function(casc) {
