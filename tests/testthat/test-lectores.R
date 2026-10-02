@@ -68,6 +68,12 @@ test_that("GHDx fuentes: componente en palabras", {
   expect_setequal(t$componente, c("no_fatal", "causa_de_muerte"))
 })
 
+test_that("GHDx fuentes: una fuente repetida en varias filas (por años o títulos) queda una vez", {
+  t <- dl_tabla("fuentes_gbd", fx("ghdx_fuentes_repetidas.csv"), ubicacion_gbd = 123)
+  expect_identical(as.integer(t$nid), c(1001L, 1002L, 1004L))
+  expect_identical(t$componente, c("no_fatal", "causa_de_muerte", "no_fatal"))
+})
+
 test_that("una carpeta mixta conserva el double exacto de la descarga (17 cifras)", {
   d <- withr::local_tempdir()
   v <- 12345.678901234567                      # val: 17 cifras significativas, 100 000 por persona

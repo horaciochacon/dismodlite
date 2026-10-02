@@ -120,7 +120,8 @@
 
 # Lista de fuentes del GHDx -> fuentes_gbd del contrato (sin validar): las fuentes del país (su location_id de GBD,
 # .dl_ubicacion_gbd), con el código nacional de la tabla ubicaciones (si se conoce); las de otras ubicaciones de GBD
-# (subnacionales de GBD, otros países) se descartan, con un aviso.
+# (subnacionales de GBD, otros países) se descartan, con un aviso. Una fila por fuente (causa, ubicación, componente,
+# nid).
 .dl_leer_ghdx_fuentes <- function(d, opciones, de) {
   d <- d[d$component_id %in% names(.DL_COMPONENTE_GHDX), ]
   ubicacion <- if ("location_id" %in% names(d)) .dl_ubicacion_gbd(d$location_id, opciones, de)
@@ -133,6 +134,9 @@
   }
   out <- data.table::data.table(causa = d$cause_id, ubicacion = opciones$codigo_nacional %||% ubicacion,
                                 componente = unname(.DL_COMPONENTE_GHDX[d$component_id]), nid = d$nid)
+  # list.csv del GHDx repite cada fuente en varias filas (una por año, título o detalle que aquí no se lee): quedan una
+  # vez, en el orden en que aparecen, para que la regla de filas repetidas de la tabla no lo cargue al usuario
+  out <- unique(out)
   data.table::setattr(out, "ubicacion_gbd", ubicacion)
 }
 

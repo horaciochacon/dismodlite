@@ -177,10 +177,11 @@ test_that("las fuentes del GHDx van con el código nacional del proyecto y el do
   u <- leer_texto(file.path(d, "ubicaciones.csv"))
   u[ubicacion == "999", ubicacion := "PAIS"][padre == "999", padre := "PAIS"]
   escribir_texto(u, d, "ubicaciones.csv")
-  # una fuente no fatal del país y otra de la ubicación subnacional de GBD
+  # una fuente no fatal del país (repetida, como en la lista real del GHDx) y otra de la ubicación subnacional de GBD
   dir.create(file.path(d, "fuentes_gbd"))
   writeLines(c("nid,title,cause_id,location_id,component_id", "1001,Encuesta A,501,999,5",
-               "1002,Encuesta B,501,4567,5"), file.path(d, "fuentes_gbd", "ghdx.csv"))
+               "1001,Encuesta A (ronda 2),501,999,5", "1002,Encuesta B,501,4567,5"),
+             file.path(d, "fuentes_gbd", "ghdx.csv"))
   expect_warning(p <- dl_proyecto(d), "se descartan las fuentes de .ghdx.csv. de otras ubicaciones de GBD \\(4567\\)")
   expect_identical(p$tablas$fuentes_gbd$ubicacion, "PAIS")
   expect_identical(p$tablas$fuentes_gbd$nid, 1001L)
