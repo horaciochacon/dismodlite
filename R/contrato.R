@@ -486,11 +486,20 @@ NULL
   }))
 }
 
+# Los huecos entre las bandas de edad [inicio, fin) (las distintas, en orden): las edades [fin_i, inicio_i+1) donde
+# una banda termina antes de que empiece la siguiente, como data.table (edad_inicio, edad_fin); sin filas si no hay.
+.dl_huecos_bandas <- function(inicio, fin) {
+  b <- unique(data.table::data.table(edad_inicio = inicio, edad_fin = fin))[order(edad_inicio, edad_fin)]
+  k <- which(utils::head(b$edad_fin, -1L) < utils::tail(b$edad_inicio, -1L))
+  data.table::data.table(edad_inicio = b$edad_fin[k], edad_fin = b$edad_inicio[k + 1L])
+}
+
 # poblacion: trae el año que se estima en los sexos del modelo; sus bandas (las del modelo) son las mismas en todas
-# las ubicaciones, años y sexos; la primera empieza en edad_inicio o antes.
+# las ubicaciones, años y sexos, van seguidas (sin huecos) y la primera empieza en edad_inicio o antes.
 .dl_regla_poblacion <- function(tablas, cfg) {
   p <- tablas$poblacion
   anio <- .dl_anio_ajuste(cfg)
+  huecos <- .dl_huecos_bandas(p$edad_inicio, p$edad_fin)
   falta <- setdiff(.dl_sexos_modelo(cfg), p$sexo[p$anio == anio])
   grupo <- paste(p$ubicacion, p$anio, p$sexo)
   bandas <- tapply(paste(p$edad_inicio, p$edad_fin), grupo, function(b) paste(sort(b), collapse = ";"))
@@ -503,6 +512,10 @@ NULL
       sprintf(paste0("poblacion: las bandas de edad (las del modelo) deben ser las mismas en todas las ubicaciones, ",
                      "a\u00f1os y sexos; %s no traen las mismas que las dem\u00e1s"),
               .dl_unos(names(bandas)[bandas != comunes], 3L)),
+    if (nrow(huecos))
+      sprintf(paste0("poblacion: las bandas de edad dejan un hueco: falta(n) %s; las bandas van seguidas, de la ",
+                     "primera a la \u00faltima"),
+              paste(.dl_nombre_banda(huecos$edad_inicio, huecos$edad_fin), collapse = ", ")),
     if (inicio > as.numeric(cfg$edad_inicio))
       sprintf(paste0("poblacion: la primera banda empieza a los %g a\u00f1os, despu\u00e9s de edad_inicio (%g) de la ",
                      "configuraci\u00f3n: agrega las edades desde %g o sube edad_inicio"), inicio,
@@ -535,9 +548,11 @@ NULL
 }
 
 # Bandas del ancla: cada una es una unión de bandas de la población o se agrupa en una de ellas con poblacion_detalle
-# (.dl_ancla_en_bandas, lo mismo que hace la traducción; sin anchor.agrupar_bandas_finas).
+# (.dl_ancla_en_bandas, lo mismo que hace la traducción; sin anchor.agrupar_bandas_finas). Con un hueco en las bandas
+# de la población, la regla de la población lo nombra: esta espera.
 .dl_regla_bandas_ancla <- function(tablas, cfg) {
   if (isTRUE(cfg$anchor$agrupar_bandas_finas)) return(character())
+  if (nrow(.dl_huecos_bandas(tablas$poblacion$edad_inicio, tablas$poblacion$edad_fin))) return(character())
   a <- data.table::as.data.table(as.data.frame(.dl_filas_de_causa(tablas$ancla, cfg$cause_id)))
   if (!nrow(a)) return(character())
   e <- tryCatch({ .dl_ancla_en_bandas(a, tablas, cfg); NULL }, dl_error = .dl_detalle)

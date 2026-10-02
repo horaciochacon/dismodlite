@@ -38,7 +38,7 @@ tablas (la ubicación nacional, las betas): si \code{ubicaciones}, \code{betas} 
 \item \code{proyecto}: las reglas que cruzan tablas, cada problema con su tabla delante: que toda ubicación esté en
 \code{ubicaciones} (una sola sin \code{padre}, la nacional; las subnacionales con la nacional de padre); que la población
 traiga el año que se estima y los sexos del modelo, con las mismas bandas de edad en todas las ubicaciones, años
-y sexos, desde \code{edad_inicio}; que el ancla traiga la prevalencia de la causa (y la mortalidad, si la usa el prior
+y sexos, seguidas (sin huecos) y desde \code{edad_inicio}; que el ancla traiga la prevalencia de la causa (y la mortalidad, si la usa el prior
 de la mortalidad en exceso) en el año del ancla y en cada sexo, y la columna \code{causa} si el proyecto tiene varias;
 que cada banda del ancla sea una unión de bandas de la población o se pueda agrupar con \code{poblacion_detalle}; que
 cada covariable de \code{betas} (y cada \code{valor_nacional_de}) tenga su valor nacional en el año del ancla y que

@@ -396,6 +396,15 @@ test_that("la población debe traer el año que se estima en cada sexo; un sexo 
   expect_error(dl_proyecto(d), "sexo: M no es hombres, mujeres ni ambos")
 })
 
+test_that("un hueco entre las bandas de la población se nombra (no es una banda del ancla que cruza un límite)", {
+  d <- proyecto_ficticio()
+  pob <- leer_texto(file.path(d, "poblacion.csv"))
+  escribir_texto(pob[edad_inicio != "50"], d, "poblacion.csv")
+  e <- expect_error(dl_proyecto(d), class = "dl_error")
+  expect_identical(e$problemas, paste0("poblacion: las bandas de edad dejan un hueco: falta(n) 50-54 a\u00f1os; ",
+                                       "las bandas van seguidas, de la primera a la \u00faltima"))
+})
+
 test_that("config.yaml: su ruta vale como carpeta_config y cause_id sugiere causa", {
   d <- proyecto_ficticio()
   expect_identical(dl_configuracion(501, file.path(d, "config.yaml"))$cause_id, 501L)
