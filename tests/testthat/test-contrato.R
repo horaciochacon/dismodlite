@@ -92,14 +92,14 @@ test_that("la banda abierta se juzga por fila: con los sexos intercalados la tab
   # la abierta que no es la última de su grupo se sigue rechazando, también con los grupos intercalados
   d$edad_fin <- c(NA, 35, NA, NA)
   e <- expect_error(dl_tabla("poblacion", d), "abierta", class = "dl_error")
-  expect_match(conditionMessage(e), "fila\\(s\\) 2")
+  expect_match(conditionMessage(e), "fila\\(s\\) 1 del data.frame")
 })
 
 test_that("una celda vacía en una columna exigida es un problema (salvo edad_fin, la banda abierta)", {
   d <- pob(); d$sexo <- c("hombres", NA)
   e <- expect_error(dl_tabla("poblacion", d), class = "dl_error")
   expect_match(conditionMessage(e), "sexo: la columna es obligatoria")
-  expect_match(conditionMessage(e), "fila\\(s\\) 3")
+  expect_match(conditionMessage(e), "fila\\(s\\) 2 del data.frame")
   d <- pob(); d$sexo <- c("hombres", "")
   expect_error(dl_tabla("poblacion", d), "sexo: la columna es obligatoria")
   d <- pob(); d$poblacion <- c(100, NA)
@@ -124,7 +124,7 @@ test_that("un grupo que mezcla filas sin edad con filas por banda es un problema
   cov <- data.frame(anio = 2023L, sexo = "ambos", covariable = "sev", valor = c(1, 2), edad_inicio = c(NA, 30),
                     edad_fin = c(NA, 35))
   e <- expect_error(dl_tabla("covariables", cov), class = "dl_error")
-  expect_match(paste(e$problemas, collapse = "\n"), "mezcla filas sin edad.*fila\\(s\\) 2, 3")
+  expect_match(paste(e$problemas, collapse = "\n"), "mezcla filas sin edad.*fila\\(s\\) 1, 2 del data.frame")
   # el orden de las filas no cambia el diagnóstico
   e2 <- expect_error(dl_tabla("covariables", cov[2:1, ]), class = "dl_error")
   expect_match(paste(e2$problemas, collapse = "\n"), "mezcla filas sin edad")
@@ -135,4 +135,28 @@ test_that("un grupo que mezcla filas sin edad con filas por banda es un problema
   # las bandas solapadas se siguen detectando junto a una fila sin edad de otra covariable
   mal <- ok; mal$edad_inicio[3] <- 33
   expect_error(dl_tabla("covariables", mal), "se solapan")
+})
+
+test_that("las filas de los mensajes: la línea del CSV en un archivo, el número de fila en un data.frame", {
+  d <- pob(); d$sexo <- c("hombres", "masculino")
+  e <- expect_error(dl_tabla("poblacion", d), class = "dl_error")
+  expect_match(conditionMessage(e), "masculino no es hombres, mujeres ni ambos \\(fila\\(s\\) 2 del data.frame\\)")
+  f <- withr::local_tempfile(fileext = ".csv")
+  utils::write.csv(d, f, row.names = FALSE)
+  e <- expect_error(dl_tabla("poblacion", f), class = "dl_error")
+  expect_match(conditionMessage(e), "\\(fila\\(s\\) 3\\)")    # la fila 2 es la línea 3 del CSV (tras el encabezado)
+  expect_no_match(conditionMessage(e), "data.frame")
+})
+
+test_that("el texto NA de write.csv() es vacío en columnas de números o lógicas, nunca en las de texto", {
+  f <- withr::local_tempfile(fileext = ".csv")
+  b <- data.frame(covariable = "haqi", efecto_sobre = "mortalidad_exceso", transformacion = "lineal", escala = NA,
+                  beta = -0.012, inferior = NA, superior = NA, escala_confirmada = NA)
+  utils::write.csv(b, f, row.names = FALSE)                       # escribe NA en las celdas vacías
+  t <- dl_tabla("betas", f)
+  expect_true(is.na(t$escala) && is.na(t$inferior) && is.na(t$escala_confirmada))
+  u <- data.frame(ubicacion = c("PAIS", "NA"), nombre = c("País", "Namibia"), padre = c(NA, "PAIS"))
+  utils::write.csv(u, f, row.names = FALSE)
+  t <- dl_tabla("ubicaciones", f)
+  expect_identical(t$ubicacion, c("PAIS", "NA"))                  # NA es un código de ubicación válido
 })

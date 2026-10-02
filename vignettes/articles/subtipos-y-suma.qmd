@@ -97,8 +97,8 @@ corridas <- vapply(c(9101, 9102, 9103), function(causa) {
 basename(corridas)
 ```
 
-Cada corrida tiene la estimación nacional y la de los 25 departamentos (las tres usan las betas de la causa padre),
-con sus simulaciones guardadas en `draws/`.
+Cada corrida tiene la estimación nacional y la de las ubicaciones subnacionales (las tres usan las betas de la causa
+padre), con sus simulaciones guardadas en `draws/`.
 
 ## Sumar: `dl_sumar_hijas()`
 

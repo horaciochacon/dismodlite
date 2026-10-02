@@ -318,14 +318,43 @@
   escribir(locs[, list(location_id, location_name, location_level, parent_id)], pieza$catalogos, cat_arch$locations)
   causas <- .dl_causas_proyecto(causas, x$ancla)
   escribir(causas[, list(cause_id, cause_name = .dl_slugify(nombre_ancla))], pieza$catalogos, cat_arch$causas)
-  escribir(causas[nzchar(hijos), list(cause_id, nombre_es = nombre, hijos)], pieza$registry, "master_gbd.csv")
+  # todas las causas, con su nombre en español (el consolidado lo usa); `hijos`, solo en las que son suma de otras
+  escribir(causas[, list(cause_id, nombre_es = nombre, hijos)], pieza$registry, "master_gbd.csv")
   escribir(rbind(.dl_etiquetas_ref(),
                  causas[, list(tabla = "cause", id = as.character(cause_id), name = nombre_ancla, name_es = nombre,
                                slug = .dl_slugify(nombre_ancla), slug_es = .dl_slugify(nombre))],
+                 .dl_etiquetas_edades_gbd(),
                  b[, list(tabla = "age_group", id = as.character(age_group_id), name = nombre, name_es = nombre,
                           slug = "", slug_es = "")]), pieza$registry, "etiquetas_es.csv")
   writeLines("sequela_id,cause_id,sequela_name,health_state_id,rol",
              file.path(destino, pieza$registry, "sequela_rei.csv"))
+}
+
+# Etiquetas en español de los grupos de edad de GBD que etiquetas_es.csv del paquete no trae (80-84, ..., 95+, los de
+# menos de 5 años...): un proyecto usa las bandas del ancla y de la población tal cual, y el consolidado necesita el
+# nombre de cada una. El nombre sale del de GBD, con la forma de las etiquetas del paquete («40 a 44 años»):
+# «80-84 years» -> «80 a 84 años», «95+ years» -> «95 años y más», «1-5 months» -> «1 a 5 meses», «<1 year» ->
+# «menores de 1 año».
+.dl_etiquetas_edades_gbd <- function() {
+  cat <- .dl_grupos_edad_catalogo()
+  ref <- .dl_etiquetas_ref()
+  cat <- cat[!cat$id %in% ref$id[ref$tabla == "age_group"]]
+  es <- cat$name
+  propios <- c("Age-standardized" = "Estandarizada por edad", "Post Neonatal" = "Posneonatal")
+  es[es %in% names(propios)] <- propios[es[es %in% names(propios)]]
+  es <- sub("^<(.*)$", "menores de \\1", es)
+  es <- sub("^([0-9]+)-([0-9]+) ", "\\1 a \\2 ", es)          # «80-84 years» como «40 a 44 años» del paquete
+  es <- sub("^([0-9]+)[+] (years|year)$", "\\1 \\2 y m\u00e1s", es)
+  for (k in list(c("years", "a\u00f1os"), c("year", "a\u00f1o"), c("months", "meses"), c("days", "d\u00edas")))
+    es <- gsub(sprintf("\\b%s\\b", k[1L]), k[2L], es, perl = TRUE)
+  data.table::data.table(tabla = "age_group", id = cat$id, name = cat$name, name_es = es, slug = "", slug_es = "")
+}
+
+# Grupos de edad del catálogo demográfico de GBD (id y nombre, como texto).
+.dl_grupos_edad_catalogo <- function() {
+  d <- .dl_leer_memo(.dl_inst_archivo("referencia", "catalogo_demograficos_gbd2023.csv"),
+                     function(p) .dl_leer_csv(p, colClasses = "character"))
+  d[d$tabla == "age_group", c("id", "name"), with = FALSE]
 }
 
 # Rutas del proyecto traducido para `cfg` (`tablas`: las del contrato; `causas`: .dl_causas_config), en la carpeta

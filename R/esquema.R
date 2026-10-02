@@ -10,7 +10,7 @@
 #'
 #' @details
 #' El contrato es el formato de las tablas internas del paquete, las del formato completo y las que
-#' [dl_insumos()] arma desde un proyecto simple (y [dl_congelar_insumos()] escribe en cada corrida). Cada tabla
+#' [dl_insumos()] arma desde un proyecto (y [dl_congelar_insumos()] escribe en cada corrida). Cada tabla
 #' declara sus columnas con su tipo (`int`, `num`, `str`, `lgl`, o una lista cerrada de valores) y si son
 #' opcionales, su clave (las columnas que identifican una fila) y sus reglas, que [dl_validar_tabla()] comprueba. El
 #' archivo del paquete está en `system.file("schema", "dismod_lite.v1.yaml", package = "dismodlite")`.

@@ -42,7 +42,7 @@
   linea <- function(i, sangria)
     sub(" +$", "", sprintf("# %s%s: %s", sangria, campo[i], if (fijo[i]) t$defecto[i] else t$ejemplo[i]))
   out <- c(
-    "# Configuraci\u00f3n de una causa en el formato simple de dismodlite (la escribi\u00f3 dl_nuevo_proyecto()).",
+    "# Configuraci\u00f3n de una causa de un proyecto de dismodlite (la escribi\u00f3 dl_nuevo_proyecto()).",
     "# Cada clave va con qu\u00e9 es, su s\u00edmbolo en el modelo y su valor por defecto:",
     "# - las obligatorias van sin \u00ab#\u00bb: completa las que est\u00e1n vac\u00edas;",
     "# - las dem\u00e1s est\u00e1n comentadas con su valor por defecto o, si no tienen un valor fijo, con un",
@@ -306,7 +306,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     anotar(t, "ok", .dl_linea_tabla(p$tablas[[t]], origen = TRUE))
   }
   archivo <- cfg$origen$archivo
-  anotar("configuraci\u00f3n", "ok", sprintf("%s: formato simple", if (identical(archivo, "configuracion"))
+  anotar("configuraci\u00f3n", "ok", sprintf("%s: proyecto", if (identical(archivo, "configuracion"))
     "la configuraci\u00f3n dada como lista" else basename(archivo)))
   causas <- if (!is.null(p$carpeta)) .dl_causas_config(p$carpeta, NULL, cfg$cause_id)
   .dl_revisar_reglas(list(tablas = p$tablas, cfg = cfg, causas = causas), anotar)
@@ -343,7 +343,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   pre <- revisar("configuraci\u00f3n",
                  .dl_config_de_tablas(s, cf$archivo, cf$causa, tablas, .dl_causas_config(carpeta, s, cf$causa),
                                       carpeta),
-                 function(pre) sprintf("%s: formato simple", rel))
+                 function(pre) sprintf("%s: proyecto", rel))
   if (is.null(pre) || errores()) return(omitir())
   .dl_revisar_reglas(pre, anotar)
   function() .dl_proyecto_armado(carpeta, carpeta, pre)
@@ -522,7 +522,7 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' La causa debe tener severidad (sus estados de salud en `severidad.csv`): sin ella los AVD serían cero y la corrida
 #' no se escribe. `dl_correr()` lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
 #' [dl_ajustar()] con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
-#' proyecto simple, los mensajes de todos los pasos citan sus claves y sus archivos (como [dl_insumos()]).
+#' proyecto con las tablas del contrato, los mensajes de todos los pasos citan sus claves y sus tablas (como [dl_insumos()]).
 #'
 #' @inheritParams dl_ajustar
 #' @param proyecto Carpeta del proyecto (con las tablas del contrato de insumos o en el formato completo) o un

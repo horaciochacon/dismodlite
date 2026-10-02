@@ -99,7 +99,7 @@
 #' manifiesto. El intervalo sale de los cuantiles de la suma de simulaciones.
 #'
 #' @details
-#' En un proyecto simple, la causa padre declara sus hijas en `subtipos` (ver [dl_configuracion()]) y las rutas de
+#' En un proyecto, la causa padre declara sus hijas en `subtipos` (ver [dl_configuracion()]) y las rutas de
 #' su proyecto, `dl_proyecto(carpeta, <padre>)$rutas`, traen ese registro. Cada hija se corre por separado (por
 #' ejemplo con [dl_correr()]); antes de sumar se comprueba que las corridas sean de esas hijas, con el mismo año,
 #' año del ancla, ronda de GBD, número de simulaciones y celdas (ubicaciones, sexos y bandas). La simulación k de la

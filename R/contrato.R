@@ -68,9 +68,17 @@
 # Tablas en las que las bandas de edad de un mismo grupo no pueden solaparse.
 .DL_TABLAS_SIN_SOLAPE <- c("poblacion", "ancla", "covariables", "severidad", "poblacion_detalle")
 
-# Filas para un mensaje: «filas 2, 5, 7» (como mucho 5), contando la del encabezado como 1.
-.dl_filas_msg <- function(i) sprintf("fila(s) %s%s", paste(utils::head(i + 1L, 5L), collapse = ", "),
-                                     if (length(i) > 5L) sprintf(" y %d m\u00e1s", length(i) - 5L) else "")
+# Filas para un mensaje: «fila(s) 2, 5, 7» (como mucho 5). De un archivo, la línea del CSV (el encabezado es la
+# 1: la fila i es la línea i + 1); de un data.frame, su número de fila, «fila(s) 1, 4 del data.frame». `df` dice si
+# la tabla vino de un data.frame; por defecto, lo que fijó .dl_tabla_contrato() para la tabla que valida.
+.dl_contexto_filas <- new.env(parent = emptyenv())
+.dl_filas_msg <- function(i, df = isTRUE(.dl_contexto_filas$data_frame)) {
+  sprintf("fila(s) %s%s%s", paste(utils::head(i + if (df) 0L else 1L, 5L), collapse = ", "),
+          if (length(i) > 5L) sprintf(" y %d m\u00e1s", length(i) - 5L) else "", if (df) " del data.frame" else "")
+}
+
+# ¿El origen de una tabla (el texto de sus mensajes) es un data.frame? «argumento `x` (data.frame)».
+.dl_origen_df <- function(origen) isTRUE(endsWith(as.character(origen)[1L], "(data.frame)"))
 
 # Convierte las columnas de `d` al tipo de tablas.csv. Devuelve list(d, problemas).
 .dl_tipar_tabla <- function(d, tabla) {
@@ -82,6 +90,9 @@
     x <- d[[cn]]
     if (is.factor(x)) x <- as.character(x)
     if (is.character(x)) x[!nzchar(trimws(x))] <- NA_character_
+    # el texto NA (lo que escribe write.csv() en una celda vacía) es vacío en una columna de números o lógica; en
+    # una de texto es un valor (NA puede ser el código de una ubicación)
+    if (is.character(x) && t$tipo[i] != "texto") x[trimws(x) == "NA"] <- NA_character_
     y <- switch(t$tipo[i],
                 texto = trimws(as.character(x)),
                 numero = suppressWarnings(as.numeric(x)),
@@ -185,6 +196,9 @@
 # Tabla del contrato `tabla` validada desde `d` (de `origen`, un texto para los mensajes): nombres, tipos y reglas de
 # una tabla sola. Error con todos los problemas juntos (campos: tabla, problemas).
 .dl_tabla_contrato <- function(d, tabla, origen) {
+  previo <- .dl_contexto_filas$data_frame
+  .dl_contexto_filas$data_frame <- .dl_origen_df(origen)
+  on.exit(.dl_contexto_filas$data_frame <- previo, add = TRUE)
   d <- .dl_normalizar_nombres(d, tabla)
   ti <- .dl_tipar_tabla(d, tabla)
   r <- .dl_problemas_tabla(ti$d, tabla)
@@ -663,7 +677,8 @@ NULL
   mal <- which(v > 1 | (!is.na(ref) & v > 1000 * ref))
   if (!length(mal)) return(character())
   sprintf(paste0("datos: %d valor(es) de mortalidad parecen tasas por 100 000, no por persona-a\u00f1o (%s; por ",
-                 "ejemplo %s%s): divide valor y error_estandar por 100 000"), length(mal), .dl_filas_msg(k[mal]),
+                 "ejemplo %s%s): divide valor y error_estandar por 100 000"), length(mal),
+          .dl_filas_msg(k[mal], df = .dl_origen_df(attr(d, "origen"))),
           format(v[mal[1L]]), if (is.na(ref[mal[1L]])) "" else sprintf(", donde el ancla da %s",
                                                                        format(signif(ref[mal[1L]], 3L))))
 }

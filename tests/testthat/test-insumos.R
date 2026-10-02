@@ -217,6 +217,22 @@ test_that("betas materializa escala y rechaza haqi con beta grande en escala 0-1
   expect_silent(.dl_chequear_escala(betas, list()))
 })
 
+test_that("en un proyecto, el error de la escala de haqi cita las columnas de la tabla betas", {
+  carpeta <- dl_ejemplo(copiar_en = withr::local_tempdir())
+  betas <- data.table::fread(file.path(carpeta, "betas.csv"), encoding = "UTF-8")
+  betas[covariable == "haqi", `:=`(beta = -1.2, inferior = -1.8, superior = -0.6)]
+  data.table::fwrite(betas, file.path(carpeta, "betas.csv"))
+  e <- expect_error(suppressMessages(dl_insumos(dl_proyecto(carpeta, causa = 9100))), class = "dl_error")
+  expect_match(conditionMessage(e), "fila de la tabla betas, escribe escala 0.01")
+  expect_match(conditionMessage(e), "escala_confirmada true")
+  expect_no_match(conditionMessage(e), "transformaciones")
+  # en el formato completo, las claves de la configuración, como siempre
+  h <- rbind(fila_beta(), fila_beta(covariate_name_short = "haqi", parametro_objetivo = "emr",
+                                    transformacion = "lineal", beta = -1, beta_lower = -1, beta_upper = -0.99))
+  h[, escala := 1]
+  expect_error(.dl_chequear_escala(h, list(LDI_pc = FALSE, haqi = FALSE)), "transformaciones\\[2\\]\\.escala: 0.01")
+})
+
 # Bandas finas de la infancia: las estimaciones GBD traen 0-6 días, 7-27 días, 1-5 meses, 6-11 meses, 12-23 meses y
 # 2-4 años; la malla anual del modelo y la población (<5) no las alojan. Se agregan a «<5 years» (id 1) como las
 # finas de 80+, con peso igual al ancho de la banda en años (población uniforme dentro de 0-5, aproximación

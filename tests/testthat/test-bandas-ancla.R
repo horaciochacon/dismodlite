@@ -77,3 +77,19 @@ test_that("la corrida con 85+ nombra la banda en sus salidas y el consolidado la
     expect_identical(unique(y[edad_id == 30L]$edad), "80-84 years", info = basename(f))
   }
 })
+
+test_that("el consolidado con perfil_v2 de una corrida del ejemplo nombra en español las bandas finas de GBD", {
+  d <- withr::local_tempdir()
+  reg <- file.path(d, "registro_corridas.yaml"); writeLines("datasets: []", reg)
+  p <- dl_proyecto(dl_ejemplo(), causa = 9101)
+  suppressMessages(dl_correr(p, semilla = 1, rapido = TRUE, sensibilidad = FALSE, carpeta_salida = d,
+                             registro = reg))
+  cons <- suppressMessages(dl_consolidar(reg, d, system.file("perfiles", "perfil_v2.yaml", package = "dismodlite"),
+                                         file.path(p$rutas$registry, "master_gbd.csv"), rutas = p$rutas,
+                                         causas = 9101, anios = 2023))
+  y <- data.table::fread(file.path(cons$dir, "tablas", "prevalencia.csv"), encoding = "UTF-8",
+                         colClasses = c(ubigeo = "character"))
+  # con la forma de las etiquetas del paquete («40 a 44 años», «80 años y más»)
+  expect_true(all(c("40 a 44 años", "80 a 84 años", "85 a 89 años", "90 a 94 años", "95 años y más") %in% y$edad))
+  expect_false(any(grepl("years", y$edad)))
+})

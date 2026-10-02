@@ -86,7 +86,7 @@ simulaciones, 2 cadenas de 2000 iteraciones), las mismas en la sensibilidad, eti
 La causa debe tener severidad (sus estados de salud en \code{severidad.csv}): sin ella los AVD serían cero y la corrida
 no se escribe. \code{dl_correr()} lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
 \code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
-proyecto simple, los mensajes de todos los pasos citan sus claves y sus archivos (como \code{\link[=dl_insumos]{dl_insumos()}}).
+proyecto con las tablas del contrato, los mensajes de todos los pasos citan sus claves y sus tablas (como \code{\link[=dl_insumos]{dl_insumos()}}).
 }
 \examples{
 \donttest{

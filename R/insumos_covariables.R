@@ -117,12 +117,17 @@
              abs(beta) >= .DL_ESCALA_HAQI_BETA_MAX]
   h <- h[!vapply(h$covariate_name_short, function(nm) isTRUE(confirmadas[[nm]]), logical(1))]
   if (nrow(h)) {
+    beta <- paste(signif(h$beta, 3), collapse = ", ")
+    # en un proyecto, las betas son la tabla betas: el mensaje cita sus columnas, no las claves del formato completo
+    if (isTRUE(.dl_estado$simple))
+      .dl_stop(paste0("la beta de haqi (%s por unidad) con escala 1 (0-100) no es cre\u00edble: exp(beta x 20 ",
+                      "puntos) es casi 0. En su fila de la tabla betas, escribe escala 0.01 (beta estimada en 0-1) ",
+                      "o, si la beta es de verdad por punto de 0-100, escala_confirmada true"), beta)
     i <- match(h$covariate_name_short[1L], names(confirmadas))   # su lugar en transformaciones (en el mensaje)
     tr <- if (is.na(i)) "transformaciones[]" else sprintf("transformaciones[%d]", i)
     .dl_stop(paste0("la beta de haqi (%s por unidad) con escala 1 (0-100) no es cre\u00edble: ",
                     "exp(beta x 20 puntos) es casi 0. Declara %s.escala: 0.01 (beta estimada en 0-1) o, si la beta ",
-                    "es de verdad por punto de 0-100, %s.escala_confirmada: true"),
-             paste(signif(h$beta, 3), collapse = ", "), tr, tr)
+                    "es de verdad por punto de 0-100, %s.escala_confirmada: true"), beta, tr, tr)
   }
   invisible(TRUE)
 }

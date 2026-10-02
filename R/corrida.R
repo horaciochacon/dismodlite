@@ -429,7 +429,7 @@
 # qué no salta la compuerta, con los argumentos de cada una.
 .dl_compuerta_ancla <- function(cfg, validacion, remedio = paste0(
   "declara un m\u00e1ximo mayor en la configuraci\u00f3n, con su procedencia: anchor: {gate_err_mediano: {valor: ..., ",
-  "procedencia: ...}} (en un proyecto simple, dentro de avanzado; ver ?dl_configuracion); forzar no la salta")) {
+  "procedencia: ...}} (en un proyecto, dentro de avanzado; ver ?dl_configuracion); forzar no la salta")) {
   gate_ancla <- as.numeric(cfg$anchor$gate_err_mediano$valor %||% .DL_GATE_ERR_MEDIANO_DEFECTO)
   rv <- attr(validacion, "resumen")
   err_ancla <- if (!is.null(rv)) rv[check == "anchor_identity"]$err_rel_mediano

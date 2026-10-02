@@ -9,7 +9,7 @@ dl_configuracion(causa, carpeta_config = NULL, cambios = NULL)
 \arguments{
 \item{causa}{Identificador de la causa (\code{cause_id}).}
 
-\item{carpeta_config}{La carpeta que tiene la configuración (\verb{<causa>.yaml}, o \code{config.yaml} en un proyecto simple
+\item{carpeta_config}{La carpeta que tiene la configuración (\verb{<causa>.yaml}, o \code{config.yaml} en un proyecto
 de una sola causa), la carpeta de un proyecto (con \verb{config/<causa>.yaml}) o la ruta del archivo de configuración.}
 
 \item{cambios}{Lista con nombres que se funde sobre la configuración antes de validar, con las claves del formato
@@ -186,9 +186,11 @@ ajustada y la del ancla con que se escribe la corrida (0.05).
 (por defecto) es la proporción de la población, por 100 000. \code{Percent} repite lo que hacían las versiones hasta la
 1.0.0 y sirve solo para reproducir sus corridas: en GBD Results divide los casos por las personas con alguna causa,
 no por la población, y sobrestima la prevalencia (menos de 1 \% en adultos, hasta 37 \% antes de los 2 años).
-\item \code{anchor.agrupar_bandas_finas}: \code{true} agrupa las bandas de 80-84 a 95+ en 80+ (con \code{pesos_80mas}) y las de menos
-de 5 años en <5, como hasta la 1.0.0; \code{false} usa las bandas tal cual llegan (así las deja la traducción de un
-proyecto). Por defecto \code{true} en el formato completo.
+\item \code{anchor.agrupar_bandas_finas}: \code{true} agrupa las bandas de 80-84 a 95+ en 80+ y las de menos de 5 años en <5,
+como hasta la 1.0.0, con los pesos de su población (en un proyecto, la población nacional de la tabla
+\code{poblacion} en el año del ancla, que entonces debe traer esas bandas; en el formato completo, \code{pesos_80mas});
+\code{false} usa las bandas tal cual llegan (así las deja la traducción de un proyecto, que agrupa con
+\code{poblacion_detalle} solo las que la población no tiene). Por defecto \code{true} en el formato completo.
 \item \code{cascada.dx_fuera_de_banda}: en las edades sin grupo de edad del proxy, \code{cero} (sin diferencia con el valor
 nacional) o \code{vecina} (la del grupo más próximo, con procedencia) (\code{cero}).
 \item \code{cascada.dx_interpolacion}: entre los grupos de edad del proxy, \code{lineal} (interpolada entre sus puntos medios)

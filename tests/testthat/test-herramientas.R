@@ -583,7 +583,7 @@ test_that("dl_revisar_proyecto() de un proyecto armado con data.frame: el ejempl
                              "configuración", "proyecto", "insumos"))
   expect_identical(r$detalle[r$paso == "poblacion"], "leída: 2100 fila(s), de argumento `poblacion` (data.frame)")
   expect_match(r$detalle[r$paso == "ancla"], "^leída: [0-9]+ fila\\(s\\), de ancla \\(descarga de GBD Results\\)$")
-  expect_identical(r$detalle[r$paso == "configuración"], "9100.yaml: formato simple")
+  expect_identical(r$detalle[r$paso == "configuración"], "9100.yaml: proyecto")
   expect_true(all(r$causa == 9100L))
   expect_match(salida[1], "^Revisión del proyecto \\(sin carpeta: las tablas vienen como argumentos\\), causa 9100$")
   # con la carpeta, la cabecera la nombra; sin severidad, los insumos se arman y falta lo que dl_correr() necesita
@@ -595,7 +595,7 @@ test_that("dl_revisar_proyecto() de un proyecto armado con data.frame: el ejempl
                    ancla = dl_ejemplo("ancla"))
   salida <- utils::capture.output(r <- dl_revisar_proyecto(p, causa = 9101))
   expect_match(salida[1], "^Revisión del proyecto \\(sin carpeta: las tablas vienen como argumentos\\), causa 9101$")
-  expect_identical(r$detalle[r$paso == "configuración"], "la configuración dada como lista: formato simple")
+  expect_identical(r$detalle[r$paso == "configuración"], "la configuración dada como lista: proyecto")
   expect_identical(r$estado[r$paso == "proyecto"], "ok")
   expect_identical(r$paso[r$estado == "error"], "severidad")
   expect_error(dl_revisar_proyecto(p, causa = 9100), "`causa` es 9100 y el proyecto es de la causa 9101")

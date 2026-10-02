@@ -17,8 +17,7 @@ knitr:
 - Cómo se nombran las corridas y cómo conviven sus versiones.
 - Cómo volver a resumir una corrida desde sus simulaciones, sin volver a ajustar.
 - Cómo estimar otro año y cómo proyectar un año que todavía no tiene estimación de referencia (`ancla.anio`).
-- Qué es el registro de corridas y cómo se arman las tablas consolidadas con un perfil de columnas (formato
-  completo).
+- Qué es el registro de corridas y cómo se arman las tablas consolidadas con un perfil de columnas.
 
 Todo el recorrido usa el proyecto de ejemplo, con datos sintéticos, y corridas de prueba (`rapido = TRUE`) que
 tardan segundos. Sus cadenas son cortas y no convergen: los números sirven para ver la forma de los resultados, no
@@ -247,30 +246,29 @@ list.files(file.path(proyecto, "resultados", "mod", "dismod_lite"))
 El nombre no dice el año: lo dice el manifiesto (`params$year`). Por eso las corridas de años distintos no compiten
 entre sí cuando se consolidan (abajo): se elige la más reciente de cada causa y año.
 
-## El registro de corridas y las tablas consolidadas (formato completo)
+## El registro de corridas y las tablas consolidadas
 
 Cuando un proyecto cubre varias causas y años, las **tablas consolidadas** reúnen la corrida vigente de cada causa
 y año en una tabla por medida, con tasas y conteos (tasa × población de la corrida) y con las columnas que declara
-un **perfil de columnas**. Esta parte usa piezas del formato completo: la carpeta `registro/` (los nombres de las
-causas en español y cuáles son la suma de sus subtipos, en `master_gbd.csv`, y las etiquetas en español de medidas,
-métricas y edades, en `etiquetas_es.csv`) y los catálogos. El ejemplo en ese formato, el de los proyectos de la
-versión 0.2.2, está en `acs_peru_completo` (ver la sección «Formato completo» de `?dl_proyecto`).
+un **perfil de columnas**. Además del registro de corridas, usa el registro de causas del proyecto: los nombres de
+las causas en español y cuáles son la suma de sus subtipos (`master_gbd.csv`) y las etiquetas en español de medidas,
+métricas y edades (`etiquetas_es.csv`). `dl_proyecto()` los arma con la configuración y las tablas, en la carpeta
+`registry` de sus rutas.
 
 ### El registro de corridas
 
 El registro es un archivo YAML con la lista `datasets`; uno vacío tiene una sola línea, `datasets: []`. Cada corrida
 que se escribe con un registro agrega una entrada al final, sin reescribir las anteriores. `dl_correr()` la anota
 con su argumento `registro` (y `dl_exportar_corrida()`, si la corrida se arma paso a paso). Aquí, una corrida de
-prueba del subtipo 9101 en el formato completo:
+prueba del subtipo 9101 del proyecto de ejemplo:
 
 ```{r}
 #| label: registro
-completo <- system.file("extdata", "acs_peru_completo", package = "dismodlite")
 raiz <- file.path(tempdir(), "corridas")
 dir.create(raiz)
 registro <- file.path(raiz, "registro_corridas.yaml")
 writeLines("datasets: []", registro)
-corrida_9101 <- dl_correr(completo, causa = 9101, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+corrida_9101 <- dl_correr(dl_ejemplo(), causa = 9101, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
                           carpeta_salida = raiz, registro = registro)
 cat(head(readLines(registro), 9), sep = "\n")
 ```
@@ -286,7 +284,7 @@ fecha y la versión de su `run_id`); las demás siguen en el registro, pero no s
 
 ```{r}
 #| label: seleccionar
-proyecto_9101 <- dl_proyecto(completo, causa = 9101)
+proyecto_9101 <- dl_proyecto(dl_ejemplo(), causa = 9101)
 seleccion <- dl_consolidado_seleccionar(registro, carpeta_corridas = raiz, rutas = proyecto_9101$rutas)
 as.data.frame(seleccion)[, c("cause_id", "year", "run_id")]
 ```
@@ -306,7 +304,7 @@ corridas elegidas, `dl_consolidado_conteos()` agrega los conteos (tasa × poblac
 #| label: consolidar
 consolidado <- dl_consolidar(registro, carpeta = raiz,
                              perfil = system.file("perfiles", "perfil_v2.yaml", package = "dismodlite"),
-                             maestro = file.path(completo, "registro", "master_gbd.csv"),
+                             maestro = file.path(proyecto_9101$rutas$registry, "master_gbd.csv"),
                              rutas = proyecto_9101$rutas, causas = 9101, anios = 2023)
 consolidado
 list.files(consolidado$dir, recursive = TRUE)

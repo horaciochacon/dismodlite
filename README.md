@@ -104,7 +104,7 @@ dl_revisar_proyecto(dl_ejemplo(), causa = 9100)
 #>   ✓ betas: leída: 3 fila(s)
 #>   ✓ datos: leída: 185 fila(s)
 #>   ✓ severidad: leída: 12 fila(s)
-#>   ✓ configuración: config/9100.yaml: formato simple
+#>   ✓ configuración: config/9100.yaml: proyecto
 #>   ✓ proyecto: las reglas entre tablas se cumplen
 #>   ✓ insumos: dl_insumos() los arma y los valida (hash 1e144edebc72)
 #> Todo en orden.

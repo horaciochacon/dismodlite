@@ -187,7 +187,7 @@
 #' tabla de la sección siguiente.
 #'
 #' @param causa Identificador de la causa (`cause_id`).
-#' @param carpeta_config La carpeta que tiene la configuración (`<causa>.yaml`, o `config.yaml` en un proyecto simple
+#' @param carpeta_config La carpeta que tiene la configuración (`<causa>.yaml`, o `config.yaml` en un proyecto
 #'   de una sola causa), la carpeta de un proyecto (con `config/<causa>.yaml`) o la ruta del archivo de configuración.
 #' @param cambios Lista con nombres que se funde sobre la configuración antes de validar, con las claves del formato
 #'   completo (también para una configuración simple: se aplica sobre su traducción), por ejemplo
@@ -318,9 +318,11 @@ NULL
 #'   (por defecto) es la proporción de la población, por 100 000. `Percent` repite lo que hacían las versiones hasta la
 #'   1.0.0 y sirve solo para reproducir sus corridas: en GBD Results divide los casos por las personas con alguna causa,
 #'   no por la población, y sobrestima la prevalencia (menos de 1 % en adultos, hasta 37 % antes de los 2 años).
-#' - `anchor.agrupar_bandas_finas`: `true` agrupa las bandas de 80-84 a 95+ en 80+ (con `pesos_80mas`) y las de menos
-#'   de 5 años en <5, como hasta la 1.0.0; `false` usa las bandas tal cual llegan (así las deja la traducción de un
-#'   proyecto). Por defecto `true` en el formato completo.
+#' - `anchor.agrupar_bandas_finas`: `true` agrupa las bandas de 80-84 a 95+ en 80+ y las de menos de 5 años en <5,
+#'   como hasta la 1.0.0, con los pesos de su población (en un proyecto, la población nacional de la tabla
+#'   `poblacion` en el año del ancla, que entonces debe traer esas bandas; en el formato completo, `pesos_80mas`);
+#'   `false` usa las bandas tal cual llegan (así las deja la traducción de un proyecto, que agrupa con
+#'   `poblacion_detalle` solo las que la población no tiene). Por defecto `true` en el formato completo.
 #' - `cascada.dx_fuera_de_banda`: en las edades sin grupo de edad del proxy, `cero` (sin diferencia con el valor
 #'   nacional) o `vecina` (la del grupo más próximo, con procedencia) (`cero`).
 #' - `cascada.dx_interpolacion`: entre los grupos de edad del proxy, `lineal` (interpolada entre sus puntos medios)
