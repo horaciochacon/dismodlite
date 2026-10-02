@@ -95,16 +95,43 @@ test_that("las tablas: argumentos que no son del contrato, sin nombre, rutas que
   # una obligatoria vacía falta, con dónde se buscó
   writeLines(readLines(file.path(d, "poblacion.csv"), n = 1L), file.path(d, "poblacion.csv"))
   expect_error(dl_proyecto(d), "poblacion.*poblacion.csv.*poblacion/")
-  # ubicaciones sin la columna padre es una tabla válida sola (todas sus filas serían nacionales): dl_proyecto() la
-  # acepta y la regla entre tablas que exige una sola nacional es de dl_revisar_proyecto(). Una tabla mal formada
-  # (la población sin sexo) es el error de la tabla del contrato, con su origen
+  # ubicaciones sin la columna padre es una tabla válida sola (todas sus filas serían nacionales), pero no cumple la
+  # regla entre tablas que exige una sola nacional: dl_proyecto() se detiene con ella. Una tabla mal formada (la
+  # población sin sexo) es el error de la tabla del contrato, con su origen
   t <- tablas_de(d, "ubicaciones")$ubicaciones
   t$padre <- NULL
-  expect_s3_class(dl_proyecto(d, poblacion = tablas_de(proyecto_ficticio(), "poblacion")$poblacion,
-                              ubicaciones = t), "dl_proyecto")
+  expect_error(dl_proyecto(d, poblacion = tablas_de(proyecto_ficticio(), "poblacion")$poblacion, ubicaciones = t),
+               "ubicaciones: 4 filas van sin padre")
   pob <- tablas_de(proyecto_ficticio(), "poblacion")$poblacion
   pob$sexo <- NULL
   expect_error(dl_proyecto(d, poblacion = pob), "la tabla poblacion tiene .*faltan las columnas sexo")
+})
+
+test_that("dl_proyecto() se detiene con todos los problemas entre tablas y avisa de las sospechas", {
+  args <- list(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
+               ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"),
+               ancla = dl_ejemplo("ancla"))
+  # dos filas sin padre en ubicaciones
+  u <- leer_texto(dl_ejemplo("ubicaciones.csv"))
+  u$padre[2L] <- ""
+  e <- expect_error(do.call(dl_proyecto, utils::modifyList(args, list(ubicaciones = as.data.frame(u)))),
+                    "entre tablas", class = "dl_error")
+  expect_match(e$problemas, "^ubicaciones: 2 filas van sin padre \\(01, 123\\)", all = FALSE)
+  # read.csv() convierte el código «01» en 1: las ubicaciones de la población no están en ubicaciones (antes el
+  # proyecto corría en modo plano con subnacionales «1», «10»...)
+  pob <- utils::read.csv(dl_ejemplo("poblacion.csv"))
+  e <- expect_error(do.call(dl_proyecto, utils::modifyList(args, list(poblacion = pob))), class = "dl_error")
+  expect_match(e$problemas, "^poblacion: la\\(s\\) ubicaci\u00f3n\\(es\\) 1, 2, 3, 4, 5 y 4 m\u00e1s no est", all = FALSE)
+  # todos los problemas juntos, no solo el primero
+  e <- expect_error(do.call(dl_proyecto, utils::modifyList(args, list(ubicaciones = as.data.frame(u),
+                                                                      poblacion = pob))), class = "dl_error")
+  expect_length(e$problemas, 2L)
+  # una sospecha (mortalidad por 100 000 en datos) es un aviso, que no detiene
+  datos <- leer_texto(dl_ejemplo("datos.csv"))
+  datos[medida == "mortalidad", causa := "9101"]
+  datos[medida == "mortalidad", valor := "5"]
+  expect_warning(p <- do.call(dl_proyecto, c(args, list(datos = as.data.frame(datos)))), "parecen tasas por 100 000")
+  expect_s3_class(p, "dl_proyecto")
 })
 
 test_that("print() muestra las tablas del proyecto y lo tomado por defecto", {
@@ -282,7 +309,7 @@ test_that("la población debe traer el año que se estima en cada sexo; un sexo 
   d <- proyecto_ficticio()
   pob <- leer_texto(file.path(d, "poblacion.csv"))
   escribir_texto(pob[sexo != "mujeres"], d, "poblacion.csv")
-  expect_error(dl_proyecto(d), "la tabla poblacion no trae la poblaci\u00f3n de mujeres para 2020")
+  expect_error(dl_proyecto(d), "poblacion: no trae la poblaci\u00f3n de mujeres de 2020")
   escribir_texto(pob[1L, sexo := "M"], d, "poblacion.csv")
   expect_error(dl_proyecto(d), "sexo: M no es hombres, mujeres ni ambos")
 })

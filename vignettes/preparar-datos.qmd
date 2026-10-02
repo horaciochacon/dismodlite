@@ -493,7 +493,9 @@ dl_tabla("poblacion", pob)
 configuración, las reglas que cruzan tablas (ubicaciones conocidas, población que cubre el año, los sexos y las
 edades, el ancla con la prevalencia de la causa, cada beta con su covariable, la severidad que suma 1...) y, al final,
 los insumos completos. Muestra una línea por comprobación, con `✓` si está en orden, `!` si es un aviso y `✗` si es
-un error, con la corrección sugerida. Acepta una carpeta o un proyecto ya leído:
+un error, con la corrección sugerida. `dl_proyecto()` comprueba las mismas reglas entre tablas, pero se detiene: con
+el primer problema de una tabla sola o, si todas están bien, con todos los problemas entre tablas juntos. La revisión
+acepta una carpeta o un proyecto ya leído:
 
 ```{r}
 #| label: revisar

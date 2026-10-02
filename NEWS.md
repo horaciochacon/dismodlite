@@ -30,7 +30,9 @@ de donde vengan los datos. Es una versión mayor porque los proyectos de la vers
 * `dl_proyecto()` recibe las tablas de la carpeta del proyecto (nombres fijos: `poblacion.csv`, `ancla/`...) o como
   argumentos, un `data.frame` o la ruta de un CSV o de una carpeta: `dl_proyecto(configuracion = list(...),
   ubicaciones = ..., poblacion = ..., ancla = ...)`. Las dos puertas se mezclan (lo que se pasa reemplaza a la tabla
-  de la carpeta) y pasan por el mismo validador.
+  de la carpeta) y pasan por el mismo validador. `dl_proyecto()` se detiene con el problema de una tabla sola o, si
+  todas están bien, con todos los problemas entre tablas juntos (una sola ubicación nacional, ubicaciones conocidas,
+  población y ancla que cubren el modelo...), y avisa de sus sospechas.
 * `dl_tabla()` lee, convierte y valida una tabla suelta; `dl_plantilla()` da la plantilla de una tabla (sus columnas
   y una fila de ejemplo). `dl_nuevo_proyecto()` crea la carpeta con las plantillas de todas.
 * `dl_revisar_proyecto()` revisa cada tabla, la configuración, las reglas que cruzan tablas y los insumos, y acepta

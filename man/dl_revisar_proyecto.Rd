@@ -64,9 +64,10 @@ En un proyecto en el formato completo de la 0.2.2 se revisan la configuración, 
 severidad.
 
 En vez de una carpeta se puede dar un proyecto ya leído con \code{\link[=dl_proyecto]{dl_proyecto()}}, por ejemplo uno armado con tablas de
-R (\code{dl_proyecto(configuracion = ..., ubicaciones = ..., poblacion = ...)}). Sus tablas ya se leyeron y su
-configuración ya se tradujo (si no, \code{dl_proyecto()} se habría detenido): la revisión dice de dónde salió cada tabla
-y sus avisos, y sigue con las reglas entre tablas y los insumos, para su única causa.
+R (\code{dl_proyecto(configuracion = ..., ubicaciones = ..., poblacion = ...)}). Sus tablas ya se leyeron, su
+configuración ya se tradujo y las reglas entre tablas se cumplen (si no, \code{dl_proyecto()} se habría detenido con
+todos sus problemas): la revisión dice de dónde salió cada tabla y sus avisos, los avisos de las reglas entre tablas
+y sigue con los insumos, para su única causa.
 }
 \examples{
 r <- dl_revisar_proyecto(dl_ejemplo(), causa = 9100)
@@ -88,9 +89,16 @@ r <- dl_revisar_proyecto(carpeta, causa = 9100)
 r[r$estado == "error", c("paso", "detalle", "sugerencia")]
 unlink(carpeta, recursive = TRUE)
 
-# un proyecto con las tablas en R (la puerta de los data.frame), con un problema entre tablas
+# un proyecto con las tablas en R (la puerta de los data.frame): con un problema entre tablas,
+# dl_proyecto() se detiene con todos juntos (read.csv() sin colClasses lee el código «01» como 1)
+pob <- read.csv(dl_ejemplo("poblacion.csv"))
+e <- tryCatch(dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
+                          ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = pob,
+                          ancla = dl_ejemplo("ancla")),
+              error = function(e) e)
+e$problemas
+# con los códigos como texto, el proyecto se arma y se revisa
 pob <- read.csv(dl_ejemplo("poblacion.csv"), colClasses = c(ubicacion = "character"))
-pob$ubicacion[pob$ubicacion == "01"] <- "99"
 p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
                  ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = pob,
                  ancla = dl_ejemplo("ancla"))

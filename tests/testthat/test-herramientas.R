@@ -605,18 +605,17 @@ test_that("dl_revisar_proyecto() de un proyecto armado con data.frame: el ejempl
   expect_identical(unique(r$estado), "ok")
 })
 
-test_that("dl_revisar_proyecto() de un proyecto armado con data.frame da el mismo error entre tablas que la carpeta", {
-  p <- proyecto_de_tablas(function(t) { t$poblacion$ubicacion[t$poblacion$ubicacion == "01"] <- "99"; t })
-  r <- revisar_callado(p)
+test_that("un error entre tablas: dl_proyecto() con data.frame se detiene con lo que la revisión de la carpeta dice", {
+  e <- expect_error(proyecto_de_tablas(function(t) { t$poblacion$ubicacion[t$poblacion$ubicacion == "01"] <- "99"; t }),
+                    class = "dl_error")
   d <- dl_ejemplo(copiar_en = withr::local_tempdir())
   pob <- data.table::fread(file.path(d, "poblacion.csv"), colClasses = list(character = "ubicacion"))
   pob[ubicacion == "01", ubicacion := "99"]
   data.table::fwrite(pob, file.path(d, "poblacion.csv"))
   r_carpeta <- revisar_callado(d, 9100)
-  columnas <- c("paso", "estado", "detalle", "sugerencia")
-  expect_identical(r[r$estado == "error", columnas], r_carpeta[r_carpeta$estado == "error", columnas],
-                   ignore_attr = TRUE)
-  expect_identical(r$estado[r$paso == "insumos"], "omitido")
+  expect_identical(e$problemas, r_carpeta$detalle[r_carpeta$estado == "error"])
+  expect_identical(r_carpeta$paso[r_carpeta$estado == "error"], "proyecto")
+  expect_identical(r_carpeta$estado[r_carpeta$paso == "insumos"], "omitido")
 })
 
 test_that("la revisión muestra los avisos de cada tabla (en una carpeta y en un proyecto ya leído)", {

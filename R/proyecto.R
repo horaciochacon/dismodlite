@@ -415,11 +415,14 @@
 #' ```
 #'
 #' Cada tabla pasa por su lector (las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten
-#' solas) y se valida sola; un problema de una tabla detiene `dl_proyecto()` con la tabla, la columna y las filas. Las
-#' reglas que cruzan tablas las comprueban [dl_revisar_proyecto()] (que las ubicaciones estén en `ubicaciones`, que
-#' la población y el ancla cubran el año, los sexos y las edades del modelo, que cada beta tenga su valor nacional, que
-#' la severidad sume 1...) y [dl_insumos()] (la población nacional suma las subnacionales, los proxies cierran en el
-#' valor nacional, los datos tienen valores posibles).
+#' solas) y se valida sola; un problema de una tabla detiene `dl_proyecto()` con la tabla, la columna y las filas.
+#' Después, `dl_proyecto()` comprueba las reglas que cruzan tablas (que haya una sola ubicación nacional y que las
+#' ubicaciones de las demás tablas estén en `ubicaciones`, que la población y el ancla cubran el año, los sexos y las
+#' edades del modelo, que cada beta tenga su valor nacional, que la severidad sume 1...): se detiene con todos sus
+#' problemas juntos (en el campo `problemas` del error) y avisa de sus sospechas (una mortalidad de `datos` que parece
+#' por 100 000, una ubicación subnacional sin proxies...). [dl_revisar_proyecto()] comprueba lo mismo sin detenerse en
+#' el primer problema, y [dl_insumos()] lo que necesita las tablas ya traducidas (la población nacional suma las
+#' subnacionales, los proxies cierran en el valor nacional, los datos tienen valores posibles).
 #'
 #' El proyecto se traduce al formato completo de la versión 0.2.2, el que usa el resto del paquete: la configuración y
 #' las tablas a una carpeta temporal de la sesión, que se reutiliza mientras no cambien. Los números leídos pasan tal
@@ -562,9 +565,22 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL)
 # identifica por la carpeta o, sin ella, por el archivo de la configuración o el contenido de la lista.
 .dl_proyecto_contrato <- function(carpeta, cf, dadas) {
   pre <- .dl_preparar_contrato(cf$s, cf$archivo, cf$causa, carpeta, dadas)
+  .dl_exigir_reglas_proyecto(pre)
   donde <- carpeta %||% if (is.list(cf$origen)) sprintf("configuracion_%s", digest::digest(cf$origen))
                         else normalizePath(cf$archivo, winslash = "/")
   .dl_proyecto_armado(carpeta, donde, pre)
+}
+
+# Las reglas entre tablas (.dl_problemas_proyecto) de `pre` (.dl_preparar_contrato), antes de traducir: sus avisos,
+# uno por uno; sus problemas, todos juntos en un error (campo `problemas`), como los de una tabla sola.
+# dl_revisar_proyecto() las corre en su propio paso, sin detenerse.
+.dl_exigir_reglas_proyecto <- function(pre) {
+  pr <- .dl_problemas_proyecto(pre$tablas, pre$cfg, max(1L, nrow(pre$causas)))
+  for (a in pr$avisos) .dl_warn("%s", a)
+  if (length(pr$problemas))
+    .dl_stop(paste0("el proyecto tiene %d problema(s) entre tablas:\n%s\n  (dl_revisar_proyecto() ",
+                    "revisa todo el proyecto sin detenerse)"), length(pr$problemas),
+             paste0("  - ", pr$problemas, collapse = "\n"), campos = list(problemas = pr$problemas))
 }
 
 # El objeto dl_proyecto de lo que prepara .dl_preparar_contrato (`pre`), con las rutas de su traducción (`donde`:

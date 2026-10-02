@@ -415,9 +415,10 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #' severidad.
 #'
 #' En vez de una carpeta se puede dar un proyecto ya leído con [dl_proyecto()], por ejemplo uno armado con tablas de
-#' R (`dl_proyecto(configuracion = ..., ubicaciones = ..., poblacion = ...)`). Sus tablas ya se leyeron y su
-#' configuración ya se tradujo (si no, `dl_proyecto()` se habría detenido): la revisión dice de dónde salió cada tabla
-#' y sus avisos, y sigue con las reglas entre tablas y los insumos, para su única causa.
+#' R (`dl_proyecto(configuracion = ..., ubicaciones = ..., poblacion = ...)`). Sus tablas ya se leyeron, su
+#' configuración ya se tradujo y las reglas entre tablas se cumplen (si no, `dl_proyecto()` se habría detenido con
+#' todos sus problemas): la revisión dice de dónde salió cada tabla y sus avisos, los avisos de las reglas entre tablas
+#' y sigue con los insumos, para su única causa.
 #'
 #' @param carpeta Carpeta del proyecto, o un proyecto de [dl_proyecto()].
 #' @param causa Causa que se revisa (`cause_id`); `NULL` (por defecto) revisa todas las causas con configuración. Con
@@ -448,9 +449,16 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #' r[r$estado == "error", c("paso", "detalle", "sugerencia")]
 #' unlink(carpeta, recursive = TRUE)
 #'
-#' # un proyecto con las tablas en R (la puerta de los data.frame), con un problema entre tablas
+#' # un proyecto con las tablas en R (la puerta de los data.frame): con un problema entre tablas,
+#' # dl_proyecto() se detiene con todos juntos (read.csv() sin colClasses lee el código «01» como 1)
+#' pob <- read.csv(dl_ejemplo("poblacion.csv"))
+#' e <- tryCatch(dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
+#'                           ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = pob,
+#'                           ancla = dl_ejemplo("ancla")),
+#'               error = function(e) e)
+#' e$problemas
+#' # con los códigos como texto, el proyecto se arma y se revisa
 #' pob <- read.csv(dl_ejemplo("poblacion.csv"), colClasses = c(ubicacion = "character"))
-#' pob$ubicacion[pob$ubicacion == "01"] <- "99"
 #' p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
 #'                  ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = pob,
 #'                  ancla = dl_ejemplo("ancla"))
