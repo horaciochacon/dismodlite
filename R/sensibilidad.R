@@ -21,7 +21,7 @@
 #' subnacional (kappa): un ajuste por (lambda, rho) y una cascada por kappa, con las etiquetas recalculadas.
 #'
 #' @details
-#' En el formato simple, la grilla de la configuración es `sensibilidad.peso` (lambda), `sensibilidad.correlacion_edad`
+#' En un proyecto, la grilla de la configuración es `sensibilidad.peso` (lambda), `sensibilidad.correlacion_edad`
 #' (rho) y `sensibilidad.kappa` (kappa); por defecto, `[0.25, 0.5, 1]`, `[0, 0.5, 0.9]` y `[0.5, 1]` (ver
 #' [dl_configuracion()]). Cada combinación (lambda, rho) es un ajuste completo con `opciones`, así que la grilla
 #' entera tarda varias veces lo que un ajuste; `procesos` reparte las combinaciones entre procesos. El eje opcional

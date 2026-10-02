@@ -92,8 +92,8 @@
 #' Rutas de los archivos de entrada
 #'
 #' Reúne las rutas de los archivos que lee [dl_insumos()] en el formato completo: el ancla, las covariables, la
-#' población, los datos locales, la severidad y los archivos de apoyo. Con un proyecto en el formato simple no hace
-#' falta: [dl_proyecto()] arma las rutas (las de su traducción al formato completo) y [dl_insumos()] las toma del
+#' población, los datos locales, la severidad y los archivos de apoyo. Con un proyecto con las tablas del contrato de
+#' insumos no hace falta: [dl_proyecto()] arma las rutas (las de su traducción al formato completo) y [dl_insumos()] las toma del
 #' proyecto.
 #'
 #' @details

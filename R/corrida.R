@@ -470,14 +470,14 @@
 #'
 #' `manifest.yaml` describe la corrida: identificación, causa, parámetros, insumos (con el sha256 de cada tabla
 #' congelada), cascada, datos, `decisiones` (las de la configuración; una lista vacía si no hay), validación y
-#' limitaciones; en el formato simple, además, `configuracion` (el formato y las claves que tomaron su valor por
-#' defecto). En la cascada, `haqi_nacional` se conserva por compatibilidad con la versión 0.2.2: es `false` solo si la
+#' limitaciones; en un proyecto con las tablas del contrato de insumos, además, `configuracion` (el formato y las
+#' claves que tomaron su valor por defecto). En la cascada, `haqi_nacional` se conserva por compatibilidad con la versión 0.2.2: es `false` solo si la
 #' cascada aplicó un proxy subnacional de una covariable llamada `haqi`; si no (también en un proyecto sin esa
 #' covariable), es `true`.
 #'
 #' `forzar = TRUE` salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 #' (error relativo mediano mayor que `anchor.gate_err_mediano`, 0.05 por defecto), la corrida no se escribe. Ese
-#' máximo se declara, con su procedencia, en la configuración (en el formato simple, en `avanzado`; ver
+#' máximo se declara, con su procedencia, en la configuración (en un proyecto, en `avanzado`; ver
 #' [dl_configuracion()]).
 #'
 #' @param piezas Lista con `resumen` ([dl_resumir()]), `fit` (ajuste o cascada), `yld` ([dl_avd()]) y `bundle`

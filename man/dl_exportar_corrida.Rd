@@ -85,14 +85,14 @@ a medio escribir se borra.
 
 \code{manifest.yaml} describe la corrida: identificación, causa, parámetros, insumos (con el sha256 de cada tabla
 congelada), cascada, datos, \code{decisiones} (las de la configuración; una lista vacía si no hay), validación y
-limitaciones; en el formato simple, además, \code{configuracion} (el formato y las claves que tomaron su valor por
-defecto). En la cascada, \code{haqi_nacional} se conserva por compatibilidad con la versión 0.2.2: es \code{false} solo si la
+limitaciones; en un proyecto con las tablas del contrato de insumos, además, \code{configuracion} (el formato y las
+claves que tomaron su valor por defecto). En la cascada, \code{haqi_nacional} se conserva por compatibilidad con la versión 0.2.2: es \code{false} solo si la
 cascada aplicó un proxy subnacional de una covariable llamada \code{haqi}; si no (también en un proyecto sin esa
 covariable), es \code{true}.
 
 \code{forzar = TRUE} salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 (error relativo mediano mayor que \code{anchor.gate_err_mediano}, 0.05 por defecto), la corrida no se escribe. Ese
-máximo se declara, con su procedencia, en la configuración (en el formato simple, en \code{avanzado}; ver
+máximo se declara, con su procedencia, en la configuración (en un proyecto, en \code{avanzado}; ver
 \code{\link[=dl_configuracion]{dl_configuracion()}}).
 }
 \examples{

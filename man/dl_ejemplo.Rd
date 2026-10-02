@@ -58,13 +58,12 @@ años, de cada causa (\code{cause_id}), ubicación nacional y departamental (\co
 
 La otra, \code{acs_peru_completo}, es el mismo proyecto en el formato completo (el de la versión 0.2.2), con el YAML de
 extracción, el almacén de evidencia, el registro, los catálogos, una tabla de severidad por causa y una partición
-de severidad. Su ruta es \code{system.file("extdata", "acs_peru_completo", package = "dismodlite")}; la usan las guías
-del formato completo.
+de severidad. Su ruta es \code{system.file("extdata", "acs_peru_completo", package = "dismodlite")}.
 
 Las columnas de cada tabla están en \link{dl_tablas}, la carpeta en \code{\link[=dl_proyecto]{dl_proyecto()}} y las claves de la configuración en
 \code{\link[=dl_configuracion]{dl_configuracion()}}.
 Con \code{\link[=dl_rutas_ejemplo]{dl_rutas_ejemplo()}} y \code{\link[=dl_configuracion_ejemplo]{dl_configuracion_ejemplo()}} se toman las rutas y la configuración de una causa del
-ejemplo en cualquiera de los dos formatos.
+proyecto de ejemplo o de su versión en el formato completo.
 }
 
 \examples{

@@ -152,7 +152,10 @@
 #' Lo mínimo son tres claves: `causa`, `anio` y `edad_inicio` (y `ubicacion_gbd`, el `location_id` de GBD del
 #' país, si las descargas traen más de una ubicación y el código nacional de `ubicaciones` no es su `location_id`).
 #' Todo lo demás tiene un valor por defecto, que [dl_proyecto()] muestra y cada corrida registra. Las covariables
-#' con efecto y sus betas no se declaran aquí: son la tabla `betas` del proyecto (ver [dl_tablas]). Un ejemplo con
+#' con efecto y sus betas no se declaran aquí: son la tabla `betas` del proyecto (ver [dl_tablas]). La configuración
+#' guarda decisiones; los números con su fuente van en las tablas. Por eso, con la carpeta de un proyecto,
+#' `dl_configuracion()` lee también sus tablas (de ellas salen la ubicación nacional, las betas y lo que la
+#' traducción necesita): una tabla con un error lo detiene, como a [dl_proyecto()]. Un ejemplo con
 #' datos locales en el ajuste, una partición de severidad y subtipos:
 #' ```yaml
 #' causa: 1234

@@ -132,8 +132,9 @@
 #'
 #' Arma la tabla `severidad` de una causa a partir de una corrida de partición de severidad: proporciones por
 #' estado de salud (de la propia causa, de una hija dentro de la partición del padre o de un componente formado por
-#' algunas secuelas) y pesos de discapacidad del catálogo de estados de salud. Es una función del formato completo:
-#' en el formato simple, la severidad es la tabla `severidad.csv` (ver [dl_proyecto()]).
+#' algunas secuelas) y pesos de discapacidad del catálogo de estados de salud. Recibe las rutas del formato completo.
+#' En un proyecto, la severidad es la tabla `severidad` (ver [dl_tablas]) o, si la configuración declara
+#' `severidad.particion`, sale de la partición con este mismo cálculo.
 #'
 #' @details
 #' Una partición de severidad es una corrida que reparte la prevalencia de una causa (ambos sexos, todas las edades,

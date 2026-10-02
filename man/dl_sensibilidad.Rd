@@ -41,7 +41,7 @@ Recorre una grilla de pesos del ancla (lambda), correlaciones por edad (rho) y f
 subnacional (kappa): un ajuste por (lambda, rho) y una cascada por kappa, con las etiquetas recalculadas.
 }
 \details{
-En el formato simple, la grilla de la configuración es \code{sensibilidad.peso} (lambda), \code{sensibilidad.correlacion_edad}
+En un proyecto, la grilla de la configuración es \code{sensibilidad.peso} (lambda), \code{sensibilidad.correlacion_edad}
 (rho) y \code{sensibilidad.kappa} (kappa); por defecto, \verb{[0.25, 0.5, 1]}, \verb{[0, 0.5, 0.9]} y \verb{[0.5, 1]} (ver
 \code{\link[=dl_configuracion]{dl_configuracion()}}). Cada combinación (lambda, rho) es un ajuste completo con \code{opciones}, así que la grilla
 entera tarda varias veces lo que un ajuste; \code{procesos} reparte las combinaciones entre procesos. El eje opcional

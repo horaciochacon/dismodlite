@@ -54,7 +54,7 @@ sesión), un error pide volver a llamar a \code{\link[=dl_proyecto]{dl_proyecto(
 }
 \examples{
 \donttest{
-# un proyecto (formato simple o completo)
+# un proyecto (con las tablas del contrato de insumos o en el formato completo)
 b <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))
 b
 # o la configuración y las rutas por separado

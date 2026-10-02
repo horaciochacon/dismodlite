@@ -525,7 +525,8 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' proyecto simple, los mensajes de todos los pasos citan sus claves y sus archivos (como [dl_insumos()]).
 #'
 #' @inheritParams dl_ajustar
-#' @param proyecto Carpeta del proyecto (formato simple o completo) o un proyecto de [dl_proyecto()].
+#' @param proyecto Carpeta del proyecto (con las tablas del contrato de insumos o en el formato completo) o un
+#'   proyecto de [dl_proyecto()].
 #' @param causa Causa (`cause_id`); `NULL` si el proyecto tiene una sola (o si `proyecto` ya es un `dl_proyecto`).
 #' @param carpeta_salida Carpeta raíz de las corridas: la corrida se escribe en
 #'   `<carpeta_salida>/mod/dismod_lite/<AAAA-MM-DD>_causa-<causa>_v<n>/`. `NULL` (por defecto) es la carpeta

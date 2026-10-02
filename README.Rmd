@@ -46,16 +46,17 @@ Windows, Rtools). Sin compilador todo funciona con el motor por defecto, `"mh"`,
 
 ## Cómo se usa: tres comandos
 
-Un proyecto es una carpeta con una configuración corta (`config.yaml`), las descargas de GBD Results tal como se
-descargan (`ancla/`), la población y la severidad y, si los hay, las covariables, sus valores subnacionales y los
-datos locales.
+Un proyecto es una configuración corta (`config.yaml`) y unas pocas tablas, el **contrato de insumos**: las
+ubicaciones, la población y el ancla (las descargas de GBD Results, tal como se descargan) y, si los hay, las
+covariables y sus efectos, los datos locales y la severidad. Todas comparten las mismas columnas de causa, ubicación,
+año, sexo y edad, y van en una carpeta o se pasan como `data.frame` de R.
 
 ```r
 library(dismodlite)
 
 # 1. Crear la carpeta del proyecto: la configuración comentada y las plantillas de las tablas
 dl_nuevo_proyecto("mi_proyecto", causa = 1234, nombre = "Mi enfermedad", anio = 2023, edad_inicio = 30)
-# ... poner las descargas en ancla/ y llenar poblacion.csv y severidad.csv ...
+# ... llenar ubicaciones.csv, poblacion.csv y severidad.csv y poner las descargas en ancla/ ...
 
 # 2. Revisar todo antes de correr: una línea por comprobación, con la corrección sugerida
 dl_revisar_proyecto("mi_proyecto")
@@ -65,14 +66,24 @@ dl_correr("mi_proyecto", semilla = 1, rapido = TRUE)  # una prueba corta, de pri
 dl_correr("mi_proyecto", semilla = 1)                 # la corrida de producción
 ```
 
+Las tablas también se pueden pasar desde R, sin carpeta:
+
+```r
+p <- dl_proyecto(configuracion = list(causa = 1234, anio = 2023, edad_inicio = 30),
+                 ubicaciones = mis_ubicaciones, poblacion = mi_poblacion, ancla = "descargas/gbd_2023.csv",
+                 severidad = mi_severidad)
+dl_revisar_proyecto(p)
+dl_correr(p, semilla = 1)
+```
+
 La guía [Preparar tus datos](https://horaciochacon.github.io/dismodlite/articles/preparar-datos.html) describe cada
-archivo, sus columnas y sus unidades, y dónde se descarga cada uno.
+tabla, sus columnas y sus unidades, y de dónde suele salir; `?dl_tablas` es la referencia completa.
 
 ## Ejemplo mínimo
 
 El paquete trae un proyecto de ejemplo completo, `dl_ejemplo()`. Todos sus números son **sintéticos**: la
-enfermedad es inventada (la *arteriopatía crónica sintética*, causa 9100) y la geografía es la de Perú y sus 25
-departamentos, sin ningún dato real. Como las curvas verdaderas se conocen, se puede comprobar si el modelo las
+enfermedad es inventada (la *arteriopatía crónica sintética*, causa 9100) y la geografía es la de un país real
+(Perú, con sus 25 departamentos como ubicaciones subnacionales), sin ningún dato real. Como las curvas verdaderas se conocen, se puede comprobar si el modelo las
 recupera.
 
 ```{r revision}
@@ -127,7 +138,7 @@ En el [sitio del paquete](https://horaciochacon.github.io/dismodlite/):
 
 - las [guías](https://horaciochacon.github.io/dismodlite/articles/): para empezar, el proyecto de ejemplo, el modelo
   y cómo preparar los datos de un proyecto propio; después, una guía por tema (la estimación subnacional, los datos
-  locales, los subtipos, los AVD, las corridas, el diagnóstico y el formato completo);
+  locales, los subtipos, los AVD, las corridas y el diagnóstico);
 - la [referencia](https://horaciochacon.github.io/dismodlite/reference/): la ayuda de cada función, ordenada por
   etapa. Cada etapa de una corrida es una función que se puede llamar por separado; `?dl_correr` las lista en orden.
 
@@ -139,7 +150,12 @@ citation("dismodlite")
 
 ## Licencia
 
-MIT. Ver [LICENSE.md](LICENSE.md).
+El código es MIT. Ver [LICENSE.md](LICENSE.md).
+
+Los catálogos de GBD 2023 que trae el paquete (estados de salud con sus pesos de discapacidad, y secuelas, en
+`inst/referencia/catalogo_*_gbd2023.csv`) son datos del Institute for Health Metrics and Evaluation (IHME) y se
+rigen por sus propios términos de uso (uso no comercial con atribución), no por la licencia MIT: ver
+`inst/referencia/LEEME_catalogos.md`, con su cita.
 
 ## Problemas y sugerencias
 

@@ -451,8 +451,8 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
 #' manifiesto declara el perfil (con su sha256), la procedencia de la población, un bloque por causa y año (la
 #' corrida de origen, si es una suma, sus compuertas) y las limitaciones del consolidado.
 #'
-#' Es una herramienta del formato completo: usa la carpeta `registro` (con `master_gbd.csv` y `etiquetas_es.csv`) y
-#' el registro de corridas, que el formato simple no tiene.
+#' Es una herramienta del formato completo (el de los proyectos de la versión 0.2.2): usa la carpeta `registro` (con
+#' `master_gbd.csv` y `etiquetas_es.csv`) y el registro de corridas.
 #'
 #' @param registro Archivo YAML del registro de corridas.
 #' @param carpeta Carpeta raíz donde se escribe el consolidado.

@@ -20,7 +20,8 @@ dl_configuracion_ejemplo(
 Con 2024, que no tiene ancla, el ancla es la de 2023 (\code{years.ancla}). Equivale a
 \code{cambios = list(years = list(ajuste = anio))}; lo que se pase en \code{cambios} va después.}
 
-\item{formato}{\code{"simple"} (por defecto) o \code{"completo"}.}
+\item{formato}{\code{"simple"} (por defecto: el proyecto de ejemplo, el de \code{\link[=dl_ejemplo]{dl_ejemplo()}}) o \code{"completo"} (el mismo
+ejemplo en el formato completo de la versión 0.2.2, \code{acs_peru_completo}).}
 }
 \value{
 Objeto de clase \code{dl_config}, como el de \code{\link[=dl_configuracion]{dl_configuracion()}}.

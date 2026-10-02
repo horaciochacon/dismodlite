@@ -40,7 +40,10 @@ de una configuración completa citan la ruta del campo (\code{config.anchor.lamb
 Lo mínimo son tres claves: \code{causa}, \code{anio} y \code{edad_inicio} (y \code{ubicacion_gbd}, el \code{location_id} de GBD del
 país, si las descargas traen más de una ubicación y el código nacional de \code{ubicaciones} no es su \code{location_id}).
 Todo lo demás tiene un valor por defecto, que \code{\link[=dl_proyecto]{dl_proyecto()}} muestra y cada corrida registra. Las covariables
-con efecto y sus betas no se declaran aquí: son la tabla \code{betas} del proyecto (ver \link{dl_tablas}). Un ejemplo con
+con efecto y sus betas no se declaran aquí: son la tabla \code{betas} del proyecto (ver \link{dl_tablas}). La configuración
+guarda decisiones; los números con su fuente van en las tablas. Por eso, con la carpeta de un proyecto,
+\code{dl_configuracion()} lee también sus tablas (de ellas salen la ubicación nacional, las betas y lo que la
+traducción necesita): una tabla con un error lo detiene, como a \code{\link[=dl_proyecto]{dl_proyecto()}}. Un ejemplo con
 datos locales en el ajuste, una partición de severidad y subtipos:
 
 \if{html}{\out{<div class="sourceCode yaml">}}\preformatted{causa: 1234

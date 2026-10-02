@@ -83,10 +83,6 @@ navbar:
       - text: Diagnóstico y sensibilidad
         href: articles/diagnostico-y-sensibilidad.html
       - text: ---
-      - text: Avanzado
-      - text: El formato completo
-        href: articles/formato-completo.html
-      - text: ---
       - text: Todas las guías
         href: articles/index.html
     reference:
@@ -106,7 +102,7 @@ articles:
   - el-modelo
   - preparar-datos
 - title: Temas
-  desc: Cada parte de una estimación con más detalle, sobre el formato simple del proyecto.
+  desc: Cada parte de una estimación con más detalle, sobre el proyecto de ejemplo.
   contents:
   - articles/desagregacion-subnacional
   - articles/datos-locales
@@ -114,16 +110,12 @@ articles:
   - articles/carga-avd
   - articles/corridas-y-consolidado
   - articles/diagnostico-y-sensibilidad
-- title: Avanzado
-  desc: El formato completo, para proyectos anteriores y usos que el formato simple no cubre.
-  contents:
-  - articles/formato-completo
-
 reference:
 - title: Proyecto
   desc: >
-    El camino recomendado: crear la carpeta de un proyecto en el formato simple, revisarla y correrla de
-    principio a fin (`dl_nuevo_proyecto()`, `dl_revisar_proyecto()` y `dl_correr()`). `dl_ejemplo()` es un
+    El camino recomendado: crear la carpeta de un proyecto, llenar las tablas del contrato de insumos, revisarla
+    y correrla de principio a fin (`dl_nuevo_proyecto()`, `dl_revisar_proyecto()` y `dl_correr()`). `?dl_tablas`
+    describe las tablas; `dl_tabla()` revisa una sola y `dl_plantilla()` da su plantilla. `dl_ejemplo()` es un
     proyecto completo listo para correr.
   contents:
   - dismodlite-package
@@ -131,11 +123,14 @@ reference:
   - dl_revisar_proyecto
   - dl_correr
   - dl_proyecto
+  - dl_tablas
+  - dl_tabla
+  - dl_plantilla
   - dl_ejemplo
 - title: Configuración
   desc: >
     La configuración de una causa y las rutas de sus archivos. `dl_proyecto()` las arma juntas; estas funciones
-    sirven para cambiar claves con `cambios` y para el formato completo.
+    sirven para cambiar claves con `cambios` y para los proyectos de la versión 0.2.2 (el formato completo).
   contents:
   - dl_configuracion
   - dl_rutas
@@ -201,8 +196,8 @@ reference:
 - title: Avanzado
   desc: >
     Las piezas del modelo por separado (la ecuación de la prevalencia, el muestreador MCMC y el prior de la
-    mortalidad en exceso), el esquema de las tablas de insumos y sus validaciones, y la severidad desde una
-    partición, del formato completo.
+    mortalidad en exceso), el esquema interno de las tablas de insumos (el del formato completo) y sus
+    validaciones, y la severidad desde una partición.
   contents:
   - dl_edo
   - dl_edo_resolver

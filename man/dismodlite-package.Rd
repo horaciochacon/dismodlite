@@ -16,9 +16,11 @@ insumos y sus decisiones.
 }
 \section{Tres comandos}{
 
-Un proyecto es una carpeta en el \strong{formato simple} (ver \code{\link[=dl_proyecto]{dl_proyecto()}}): una configuración corta, las descargas
-de GBD Results (el ancla) y del GHDx (las covariables) tal como se descargan, y unas pocas tablas planas. Tres
-funciones cubren el trabajo:
+Un proyecto es una configuración corta y unas pocas tablas, el \strong{contrato de insumos} (ver \link{dl_tablas}): las
+ubicaciones, la población, el ancla (las descargas de GBD Results, tal como se descargan) y, si hacen falta, las
+covariables (las descargas del GHDx y sus valores subnacionales), sus betas, los datos locales y la severidad. Las
+tablas van en la carpeta del proyecto o se pasan como \code{data.frame} a \code{\link[=dl_proyecto]{dl_proyecto()}}. Tres funciones cubren el
+trabajo:
 \enumerate{
 \item \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}} crea la carpeta con la configuración comentada, las plantillas de las tablas y un
 \code{LEEME.md} que dice de dónde se descarga cada archivo.
@@ -30,7 +32,7 @@ tarda segundos; después, la corrida de producción.
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{dl_nuevo_proyecto("mi_proyecto", causa = 1234, nombre = "Mi enfermedad", anio = 2023,
                   edad_inicio = 30)
-# copiar las descargas a ancla/ y covariables/ y llenar las tablas; después:
+# llenar las tablas y copiar las descargas a ancla/ (y a covariables/); después:
 dl_revisar_proyecto("mi_proyecto")
 prueba <- dl_correr("mi_proyecto", semilla = 1, rapido = TRUE)
 corrida <- dl_correr("mi_proyecto", semilla = 1)
@@ -38,7 +40,7 @@ corrida <- dl_correr("mi_proyecto", semilla = 1)
 
 \code{\link[=dl_ejemplo]{dl_ejemplo()}} es un proyecto completo con datos sintéticos (una enfermedad ficticia, con la geografía del Perú
 como ejemplo), para leerlo, correrlo y copiarlo como punto de partida. \code{\link[=dl_configuracion]{dl_configuracion()}} documenta cada clave de
-la configuración y \code{\link[=dl_proyecto]{dl_proyecto()}}, cada archivo y sus columnas.
+la configuración, \link{dl_tablas} cada tabla y sus columnas y \code{\link[=dl_proyecto]{dl_proyecto()}}, la carpeta y las dos puertas.
 }
 
 \section{Etapas de una corrida}{
@@ -69,23 +71,23 @@ de varias causas en tablas por medida.
 \itemize{
 \item \code{vignette("primeros-pasos", package = "dismodlite")}: el proyecto de ejemplo de principio a fin.
 \item \code{vignette("el-modelo", package = "dismodlite")}: el modelo, su notación y sus supuestos.
-\item \code{vignette("preparar-datos", package = "dismodlite")}: un proyecto propio, archivo por archivo.
+\item \code{vignette("preparar-datos", package = "dismodlite")}: las tablas de un proyecto propio, una por una.
 \item En el sitio del paquete, \url{https://horaciochacon.github.io/dismodlite/}, las guías de temas avanzados: la
 estimación subnacional, los datos locales, los subtipos y su suma, la carga (AVD), las corridas y el
-consolidado, el diagnóstico y la sensibilidad, y el formato completo.
+consolidado, y el diagnóstico y la sensibilidad.
 }
 }
 
 \section{Formato completo y nombres anteriores}{
 
 Los proyectos de la versión 0.2.2 (el \strong{formato completo}, con \code{schema: dismod_lite/v1} en la configuración) se
-leen igual y dan los mismos números. Es el formato de las opciones avanzadas (ver la sección «Formato completo» de
-\code{\link[=dl_proyecto]{dl_proyecto()}} y de \code{\link[=dl_configuracion]{dl_configuracion()}}). Las funciones tienen nombres en español; los nombres de la versión
+leen igual y dan los mismos números (ver la sección «Formato completo» de \code{\link[=dl_proyecto]{dl_proyecto()}} y de
+\code{\link[=dl_configuracion]{dl_configuracion()}}). Los proyectos de la versión 1.0.0 se rehacen con las tablas del contrato de insumos. Las funciones tienen nombres en español; los nombres de la versión
 0.2.2 siguen funcionando (ver \link{dl_nombres_anteriores}).
 }
 
 \examples{
-# el proyecto de ejemplo, en el formato simple
+# el proyecto de ejemplo
 p <- dl_proyecto(dl_ejemplo(), causa = 9100)
 p
 \donttest{

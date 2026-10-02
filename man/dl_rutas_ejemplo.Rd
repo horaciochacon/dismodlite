@@ -31,7 +31,8 @@ hay cascada por proxies); también acepta la ruta de un CSV propio con la tabla 
 \code{poblacion = "mi_poblacion.csv"}, un CSV del formato completo); \code{NULL} quita la pieza (en el formato completo,
 \code{severidad = NULL} deriva la severidad de la partición).}
 
-\item{formato}{\code{"simple"} (por defecto: el ejemplo de \code{\link[=dl_ejemplo]{dl_ejemplo()}}) o \code{"completo"} (\code{acs_peru_completo}).}
+\item{formato}{\code{"simple"} (por defecto: el proyecto de ejemplo, el de \code{\link[=dl_ejemplo]{dl_ejemplo()}}) o \code{"completo"} (el mismo
+ejemplo en el formato completo de la versión 0.2.2, \code{acs_peru_completo}).}
 }
 \value{
 Objeto de clase \code{dl_paths}, como el de \code{\link[=dl_rutas]{dl_rutas()}}. Con \code{anio}, lleva el atributo \code{anio_ejemplo}, que
@@ -39,7 +40,7 @@ Objeto de clase \code{dl_paths}, como el de \code{\link[=dl_rutas]{dl_rutas()}}.
 }
 \description{
 Las rutas completas de \code{\link[=dl_rutas]{dl_rutas()}} para los datos de ejemplo de una causa. Por defecto (\code{formato = "simple"})
-son las del proyecto \code{dl_ejemplo()} traducido al formato completo, como las de \code{\link[=dl_proyecto]{dl_proyecto()}}; en el completo,
+son las del proyecto de ejemplo, \code{dl_ejemplo()}, traducido al formato completo, como las de \code{\link[=dl_proyecto]{dl_proyecto()}}; en el completo,
 las de los archivos de \code{acs_peru_completo}. La causa es obligatoria porque la tabla de severidad es la de cada
 causa.
 }

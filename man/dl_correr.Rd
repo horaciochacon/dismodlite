@@ -16,7 +16,8 @@ dl_correr(
 )
 }
 \arguments{
-\item{proyecto}{Carpeta del proyecto (formato simple o completo) o un proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}.}
+\item{proyecto}{Carpeta del proyecto (con las tablas del contrato de insumos o en el formato completo) o un
+proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}.}
 
 \item{causa}{Causa (\code{cause_id}); \code{NULL} si el proyecto tiene una sola (o si \code{proyecto} ya es un \code{dl_proyecto}).}
 

@@ -48,13 +48,12 @@
 #'
 #' La otra, `acs_peru_completo`, es el mismo proyecto en el formato completo (el de la versión 0.2.2), con el YAML de
 #' extracción, el almacén de evidencia, el registro, los catálogos, una tabla de severidad por causa y una partición
-#' de severidad. Su ruta es `system.file("extdata", "acs_peru_completo", package = "dismodlite")`; la usan las guías
-#' del formato completo.
+#' de severidad. Su ruta es `system.file("extdata", "acs_peru_completo", package = "dismodlite")`.
 #'
 #' Las columnas de cada tabla están en [dl_tablas], la carpeta en [dl_proyecto()] y las claves de la configuración en
 #' [dl_configuracion()].
 #' Con [dl_rutas_ejemplo()] y [dl_configuracion_ejemplo()] se toman las rutas y la configuración de una causa del
-#' ejemplo en cualquiera de los dos formatos.
+#' proyecto de ejemplo o de su versión en el formato completo.
 #'
 #' @param ... Partes de la ruta dentro de la carpeta del ejemplo (por ejemplo `"config"`, `"9100.yaml"`); sin
 #'   ninguna, la carpeta.
@@ -145,7 +144,7 @@ dl_ejemplo <- function(..., copiar_en = NULL) {
 #' Rutas de los datos de ejemplo
 #'
 #' Las rutas completas de [dl_rutas()] para los datos de ejemplo de una causa. Por defecto (`formato = "simple"`)
-#' son las del proyecto `dl_ejemplo()` traducido al formato completo, como las de [dl_proyecto()]; en el completo,
+#' son las del proyecto de ejemplo, `dl_ejemplo()`, traducido al formato completo, como las de [dl_proyecto()]; en el completo,
 #' las de los archivos de `acs_peru_completo`. La causa es obligatoria porque la tabla de severidad es la de cada
 #' causa.
 #'
@@ -161,7 +160,8 @@ dl_ejemplo <- function(..., copiar_en = NULL) {
 #' @param ... Cambios sobre las rutas del ejemplo, con los nombres de los argumentos de [dl_rutas()] (por ejemplo
 #'   `poblacion = "mi_poblacion.csv"`, un CSV del formato completo); `NULL` quita la pieza (en el formato completo,
 #'   `severidad = NULL` deriva la severidad de la partición).
-#' @param formato `"simple"` (por defecto: el ejemplo de [dl_ejemplo()]) o `"completo"` (`acs_peru_completo`).
+#' @param formato `"simple"` (por defecto: el proyecto de ejemplo, el de [dl_ejemplo()]) o `"completo"` (el mismo
+#'   ejemplo en el formato completo de la versión 0.2.2, `acs_peru_completo`).
 #' @return Objeto de clase `dl_paths`, como el de [dl_rutas()]. Con `anio`, lleva el atributo `anio_ejemplo`, que
 #'   [dl_insumos()] compara con el año de la configuración.
 #' @seealso [dl_ejemplo()] (los archivos del ejemplo), [dl_configuracion_ejemplo()].
@@ -219,7 +219,8 @@ dl_rutas_ejemplo <- function(causa, anio = NULL, datos = TRUE, proxies = TRUE, .
 #' @param anio Año de la corrida: 2019, 2023 o 2024 (`years.ajuste`); `NULL` deja el de la configuración (2023).
 #'   Con 2024, que no tiene ancla, el ancla es la de 2023 (`years.ancla`). Equivale a
 #'   `cambios = list(years = list(ajuste = anio))`; lo que se pase en `cambios` va después.
-#' @param formato `"simple"` (por defecto) o `"completo"`.
+#' @param formato `"simple"` (por defecto: el proyecto de ejemplo, el de [dl_ejemplo()]) o `"completo"` (el mismo
+#'   ejemplo en el formato completo de la versión 0.2.2, `acs_peru_completo`).
 #' @return Objeto de clase `dl_config`, como el de [dl_configuracion()].
 #' @seealso [dl_ejemplo()] (los archivos del ejemplo), [dl_rutas_ejemplo()].
 #' @family configuración

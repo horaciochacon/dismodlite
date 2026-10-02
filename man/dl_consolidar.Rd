@@ -66,8 +66,8 @@ valida en memoria antes de escribir, y la escritura va a una carpeta temporal qu
 manifiesto declara el perfil (con su sha256), la procedencia de la población, un bloque por causa y año (la
 corrida de origen, si es una suma, sus compuertas) y las limitaciones del consolidado.
 
-Es una herramienta del formato completo: usa la carpeta \code{registro} (con \code{master_gbd.csv} y \code{etiquetas_es.csv}) y
-el registro de corridas, que el formato simple no tiene.
+Es una herramienta del formato completo (el de los proyectos de la versión 0.2.2): usa la carpeta \code{registro} (con
+\code{master_gbd.csv} y \code{etiquetas_es.csv}) y el registro de corridas.
 }
 \examples{
 \donttest{

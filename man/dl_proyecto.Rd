@@ -63,6 +63,11 @@ bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina)
 
 \code{print()} muestra la causa, el año, las tablas que encontró, el modo subnacional y las claves de la configuración
 que tomaron su valor por defecto.
+
+Sin carpeta, las rutas relativas de la configuración (\code{severidad.particion}) se resuelven contra el directorio de
+trabajo; con carpeta, contra la carpeta del proyecto. Las secuelas y los estados de salud de una partición de
+severidad deben estar en los catálogos de GBD 2023 del paquete: una partición con secuelas propias todavía no se
+puede leer en un proyecto (sí en el formato completo, con sus catálogos).
 }
 \section{La carpeta del proyecto}{
 
@@ -120,8 +125,8 @@ p$tablas$poblacion
 
 # un proyecto mínimo sin carpeta: la configuración y las tablas obligatorias como argumentos
 p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
-                 ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"),
-                 ancla = dl_ejemplo("ancla"))
+                 ubicaciones = dl_ejemplo("ubicaciones.csv"),
+                 poblacion = dl_ejemplo("poblacion.csv"), ancla = dl_ejemplo("ancla"))
 \donttest{
 # el paso siguiente: los insumos
 b <- dl_insumos(p)
