@@ -290,7 +290,7 @@
 # texto vuelva al mismo número. `archivos` y `tablas_hash` (particiones e insumos congelados) solo se conocen
 # después de escribirlos; sin ellos, el manifiesto se prueba antes de escribir nada.
 .dl_manifiesto_corrida <- function(celdas, f, b, res, validacion, convergencia, gate_ancla, archivos = list(),
-                                   tablas_hash = list()) {
+                                   tablas_hash = list(), contrato_hash = list()) {
   cfg <- b$cfg
   casc <- if (inherits(f, "dl_cascade")) f else NULL
   amplitud <- attr(validacion, "amplitud")
@@ -334,9 +334,13 @@
                   # val = media de las simulaciones; lower y upper = sus cuantiles
                   estadistico_puntual = .DL_ESTADISTICO_PUNTUAL,
                   version_paquete = dl_version()),
-    inputs = list(bundle_hash = b$hash,
+    inputs = c(list(bundle_hash = b$hash,
                   tablas = lapply(names(tablas_hash), function(nm)
-                    list(tabla = sub("[.]csv$", "", nm), sha256 = tablas_hash[[nm]])),
+                    list(tabla = sub("[.]csv$", "", nm), sha256 = tablas_hash[[nm]]))),
+                  # las tablas del contrato congeladas en inputs/contrato/ (sin la clave en el formato completo)
+                  if (length(contrato_hash)) list(contrato = lapply(names(contrato_hash), function(nm)
+                    list(tabla = nm, sha256 = contrato_hash[[nm]]))),
+                  list(
                   # qué modelos de la extracción entraron a las betas y cuántas filas quedaron fuera
                   betas = if (!is.null(b$seleccion_betas)) list(
                     modelo_variante = as.list(b$seleccion_betas$modelo_variante %||% "(todas)"),
@@ -346,7 +350,7 @@
                   # escala de la covariable con que se estimó cada beta lineal (por ejemplo, 0-100 o 0-1)
                   escalas = lapply(seq_len(nrow(b$betas)), function(i) list(
                     covariate_name_short = b$betas$covariate_name_short[i],
-                    parametro_objetivo = b$betas$parametro_objetivo[i], escala = as.numeric(b$betas$escala[i])))),
+                    parametro_objetivo = b$betas$parametro_objetivo[i], escala = as.numeric(b$betas$escala[i]))))),
     files = archivos,
     cascada = if (is.null(casc)) NULL else list(
       # con la cascada plana, su procedencia va en las limitaciones (el emisor no pliega escalares largos)
@@ -454,7 +458,10 @@
 #'   (los factores de renormalización), `dx_bandas.csv` (la mediana y el intervalo de dX por ubicación, sexo,
 #'   covariable y banda) y `amplitud.csv` (la validación de la amplitud, si se calculó).
 #' - `inputs/`: los insumos congelados ([dl_congelar_insumos()]), la configuración usada (`config_usado.yaml`) y las
-#'   descargas de covariables (`ghdx_cov/`).
+#'   descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con un proyecto de las tablas
+#'   del contrato ([dl_proyecto()]), `inputs/contrato/<tabla>.csv` guarda las tablas que se usaron (con las
+#'   covariables nacionales; los números escritos exactos) y el manifiesto registra su sha256 en `inputs$contrato`:
+#'   con ellas la corrida se repite sin la carpeta original, también si las tablas se dieron como data.frame.
 #' - `manifest.yaml`: la descripción de la corrida (abajo).
 #'
 #' El identificador `<AAAA-MM-DD>_<nombre>_v<n>` lleva la fecha del día y la versión siguiente a la mayor de ese día
@@ -552,8 +559,9 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   run_id <- .dl_run_id(carpeta, nombre)
   celdas <- .dl_con_run_id(res$celdas, run_id)
   dl_validar_estimaciones(celdas, rutas)
-  manifiesto <- function(archivos = list(), tablas_hash = list())
-    .dl_manifiesto_corrida(celdas, f, b, res, validacion, convergencia, gate_ancla, archivos, tablas_hash)
+  manifiesto <- function(archivos = list(), tablas_hash = list(), contrato_hash = list())
+    .dl_manifiesto_corrida(celdas, f, b, res, validacion, convergencia, gate_ancla, archivos, tablas_hash,
+                           contrato_hash)
   # El emisor falla aquí, antes de escribir, si un valor no se puede escribir en el manifiesto (p. ej. lambda = 1/3).
   .dl_yaml_block(manifiesto())
 
@@ -588,17 +596,40 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   inputs_dir <- file.path(dir_run, "inputs")
   tablas_hash <- dl_congelar_insumos(b, inputs_dir)
   yaml::write_yaml(cfg, file.path(inputs_dir, "config_usado.yaml"))
-  if (!is.null(carpeta_cov)) {
+  # las tablas del contrato del proyecto (si los insumos vienen de uno): con ellas la corrida se repite sin la carpeta
+  # original, también cuando las tablas se dieron como data.frame. Cada columna numérica se escribe con el texto
+  # exacto (.dl_num_exacto), no con los 15 dígitos de fwrite: al releerlas vuelven los mismos números
+  contrato_hash <- .dl_congelar_contrato(b$contrato, file.path(inputs_dir, "contrato"))
+  # con un proyecto del contrato, las covariables nacionales ya van en contrato/covariables.csv: la copia de las
+  # descargas crudas (ghdx_cov/) es solo del formato completo
+  if (!is.null(carpeta_cov) && !length(b$contrato)) {
     dir.create(file.path(inputs_dir, "ghdx_cov"), showWarnings = FALSE)
     file.copy(list.files(carpeta_cov, pattern = "[.]csv$", ignore.case = TRUE, full.names = TRUE),
               file.path(inputs_dir, "ghdx_cov"))
   }
 
   # 4. manifest.yaml y, al final, la entrada en el registro de corridas (sin reescribir las anteriores).
-  man <- manifiesto(archivos, tablas_hash)
+  man <- manifiesto(archivos, tablas_hash, contrato_hash)
   .dl_escribir_manifest(man, dir_run)
   escrita <- TRUE
   .dl_corrida_escrita(man, dir_run, if (registrar) registro)
+}
+
+# Escribe las tablas del contrato (lista nombrada de dl_tabla) en `dir` como <tabla>.csv y devuelve su sha256 (lista
+# nombrada). Las columnas numéricas van con su texto exacto (.dl_num_exacto): releerlas da los mismos doubles. Sin
+# tablas (formato completo), no escribe nada y devuelve list().
+.dl_congelar_contrato <- function(contrato, dir) {
+  hash <- list()
+  if (!length(contrato)) return(hash)
+  dir.create(dir, showWarnings = FALSE)
+  for (nm in names(contrato)) {
+    d <- data.table::as.data.table(unclass(contrato[[nm]]))
+    for (j in names(d)) if (is.double(d[[j]])) data.table::set(d, j = j, value = .dl_num_exacto(d[[j]]))
+    f <- file.path(dir, paste0(nm, ".csv"))
+    data.table::fwrite(d, f, eol = "\n", na = "")
+    hash[[nm]] <- digest::digest(file = f, algo = "sha256")
+  }
+  hash
 }
 
 # Qué es una corrida, según su manifiesto: un consolidado, una suma de hijas, un re-resumen, o el ajuste nacional o

@@ -72,7 +72,10 @@ La carpeta de la corrida:
 (los factores de renormalización), \code{dx_bandas.csv} (la mediana y el intervalo de dX por ubicación, sexo,
 covariable y banda) y \code{amplitud.csv} (la validación de la amplitud, si se calculó).
 \item \verb{inputs/}: los insumos congelados (\code{\link[=dl_congelar_insumos]{dl_congelar_insumos()}}), la configuración usada (\code{config_usado.yaml}) y las
-descargas de covariables (\verb{ghdx_cov/}).
+descargas de covariables (\verb{ghdx_cov/}, solo con los insumos del formato completo). Con un proyecto de las tablas
+del contrato (\code{\link[=dl_proyecto]{dl_proyecto()}}), \verb{inputs/contrato/<tabla>.csv} guarda las tablas que se usaron (con las
+covariables nacionales; los números escritos exactos) y el manifiesto registra su sha256 en \code{inputs$contrato}:
+con ellas la corrida se repite sin la carpeta original, también si las tablas se dieron como data.frame.
 \item \code{manifest.yaml}: la descripción de la corrida (abajo).
 }
 

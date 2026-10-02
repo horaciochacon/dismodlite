@@ -242,3 +242,22 @@ test_that("las limitaciones de una suma salen de lo que hizo la suma, sin texto 
   expect_false(any(grepl("draw|subtipos|GBD|: |\\bfit\\b|inflow|\\brun\\b", c(lim, lim2))),
                label = paste(c(lim, lim2), collapse = "\n"))
 })
+
+test_that("la corrida congela las tablas del contrato y sirven para repetirla", {
+  d <- withr::local_tempdir()
+  r <- suppressMessages(dl_correr(dl_ejemplo(), 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                  carpeta_salida = d))
+  cong <- file.path(r$dir, "inputs", "contrato")
+  expect_true(all(file.exists(file.path(cong, c("ubicaciones.csv", "poblacion.csv", "ancla.csv")))))
+  expect_false(dir.exists(file.path(r$dir, "inputs", "ghdx_cov")))
+  man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  p0 <- dl_proyecto(dl_ejemplo(), 9100)
+  expect_setequal(vapply(man$inputs$contrato, `[[`, "", "tabla"), names(p0$tablas))
+  for (x in man$inputs$contrato)
+    expect_identical(digest::digest(file = file.path(cong, paste0(x$tabla, ".csv")), algo = "sha256"), x$sha256)
+  # las tablas congeladas (sus rutas) arman los mismos insumos
+  rutas <- stats::setNames(as.list(file.path(cong, list.files(cong))), tools::file_path_sans_ext(list.files(cong)))
+  p <- do.call(dl_proyecto, c(list(causa = 9100, configuracion = file.path(dl_ejemplo(), "config", "9100.yaml")),
+                              rutas))
+  expect_identical(dl_insumos(p)$hash, man$inputs$bundle_hash)
+})

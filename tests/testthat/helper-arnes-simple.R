@@ -40,19 +40,29 @@
   "configuracion",
   # consolidado: acquisition_id de la población (el nombre de su archivo)
   c("poblacion", "acquisition_id"),
-  # lista de archivos de cada corrida: las descargas del GHDx congeladas en inputs/ghdx_cov/ llevan su nombre de
-  # archivo en el formato completo (HAQI.csv, LDI_PC.csv, ...) y van juntas en ghdx.csv en la traducción del contrato
-  # (la tabla covariables no guarda de qué archivo salió cada fila); sus valores llegan a cov_valores, que sí se
-  # compara por sus efectos en los números
-  function(m) .archivos_ghdx_juntos(m))
+  # lista de archivos de cada corrida: las descargas del GHDx congeladas en inputs/ghdx_cov/ (formato completo, con el
+  # nombre de cada archivo: HAQI.csv, LDI_PC.csv, ...) no se copian con un proyecto del contrato: sus valores van en
+  # inputs/contrato/covariables.csv y llegan a cov_valores, que sí se compara por sus efectos en los números
+  function(m) .archivos_ghdx_juntos(m),
+  # lista de archivos de cada corrida: las tablas del contrato congeladas en inputs/contrato/ no existen en la
+  # versión 0.2.2 (procedencia: son las tablas que armaron los insumos, cuyos números ya se comparan)
+  function(m) .archivos_sin_contrato(m))
 
-# En cada lista de archivos de los manifiestos (<pieza>-archivos), los archivos de inputs/ghdx_cov/ como uno solo.
+# En cada lista de archivos de los manifiestos (<pieza>-archivos), sin los de inputs/contrato/.
+.archivos_sin_contrato <- function(m) {
+  for (k in grep("-archivos$", names(m))) {
+    a <- unlist(m[[k]])
+    juntos <- a[!grepl("^inputs/contrato/", a)]
+    m[[k]] <- if (is.list(m[[k]])) as.list(juntos) else juntos
+  }
+  m
+}
+
+# En cada lista de archivos de los manifiestos (<pieza>-archivos), sin los de inputs/ghdx_cov/.
 .archivos_ghdx_juntos <- function(m) {
   for (k in grep("-archivos$", names(m))) {
     a <- unlist(m[[k]])
-    ghdx <- grepl("^inputs/ghdx_cov/", a)
-    if (!any(ghdx)) next
-    juntos <- append(a[!ghdx], "inputs/ghdx_cov/*", after = min(which(ghdx)) - 1L)
+    juntos <- a[!grepl("^inputs/ghdx_cov/", a)]
     m[[k]] <- if (is.list(m[[k]])) as.list(juntos) else juntos
   }
   m
