@@ -166,7 +166,8 @@ claves:
     descripcion: >-
       Carpeta de una corrida de partición de severidad, relativa a la carpeta del proyecto (sin carpeta, al directorio
       de trabajo). La tabla severidad de la causa sale de ella (con los pesos de discapacidad de GBD) en vez de la
-      tabla severidad. La corrida no copia esta carpeta en inputs/contrato/.
+      tabla severidad. En una hija o un componente, sus límites pueden pasar de 1 (los de la partición divididos por
+      su cuota): se aceptan con un aviso. La corrida copia esta carpeta en inputs/contrato/particion/<corrida>/.
 
   - clave: severidad.padre
     tipo: entero
