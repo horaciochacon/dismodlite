@@ -111,7 +111,9 @@
 # Dónde se busca la tabla `tabla` (para el mensaje de una tabla obligatoria que falta).
 .dl_donde_tabla <- function(tabla, carpeta)
   paste(c(sprintf("el argumento `%s`", tabla),
-          if (!is.null(carpeta)) sprintf("\u00ab%s\u00bb", file.path(carpeta, paste0(tabla, c(".csv", "/"))))),
+          # la barra de la carpeta va fuera de file.path(): en Windows, file.path() quita la barra final
+          if (!is.null(carpeta)) sprintf("\u00ab%s\u00bb", c(file.path(carpeta, paste0(tabla, ".csv")),
+                                                             paste0(file.path(carpeta, tabla), "/")))),
         collapse = ", ")
 
 # Las tablas del contrato del proyecto, una lista nombrada de dl_tabla sin las que no están: cada una de `dadas` o de
