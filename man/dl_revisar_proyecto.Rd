@@ -7,9 +7,10 @@
 dl_revisar_proyecto(carpeta, causa = NULL)
 }
 \arguments{
-\item{carpeta}{Carpeta del proyecto.}
+\item{carpeta}{Carpeta del proyecto, o un proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}.}
 
-\item{causa}{Causa que se revisa (\code{cause_id}); \code{NULL} (por defecto) revisa todas las causas con configuración.}
+\item{causa}{Causa que se revisa (\code{cause_id}); \code{NULL} (por defecto) revisa todas las causas con configuración. Con
+un proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}, que ya es de una causa, \code{NULL} o esa misma causa.}
 }
 \value{
 Una tabla (data.frame), invisible, con una fila por comprobación: \code{causa}, \code{paso} (la tabla, la
@@ -61,6 +62,11 @@ como aviso.
 
 En un proyecto en el formato completo de la 0.2.2 se revisan la configuración, los insumos completos y la
 severidad.
+
+En vez de una carpeta se puede dar un proyecto ya leído con \code{\link[=dl_proyecto]{dl_proyecto()}}, por ejemplo uno armado con tablas de
+R (\code{dl_proyecto(configuracion = ..., ubicaciones = ..., poblacion = ...)}). Sus tablas ya se leyeron y su
+configuración ya se tradujo (si no, \code{dl_proyecto()} se habría detenido): la revisión dice de dónde salió cada tabla
+y sus avisos, y sigue con las reglas entre tablas y los insumos, para su única causa.
 }
 \examples{
 r <- dl_revisar_proyecto(dl_ejemplo(), causa = 9100)
@@ -81,6 +87,14 @@ write.csv(datos, file.path(carpeta, "datos.csv"), row.names = FALSE, na = "")
 r <- dl_revisar_proyecto(carpeta, causa = 9100)
 r[r$estado == "error", c("paso", "detalle", "sugerencia")]
 unlink(carpeta, recursive = TRUE)
+
+# un proyecto con las tablas en R (la puerta de los data.frame), con un problema entre tablas
+pob <- read.csv(dl_ejemplo("poblacion.csv"), colClasses = c(ubicacion = "character"))
+pob$ubicacion[pob$ubicacion == "01"] <- "99"
+p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
+                 ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = pob,
+                 ancla = dl_ejemplo("ancla"))
+r <- dl_revisar_proyecto(p)
 }
 \seealso{
 \link{dl_tablas} (las tablas y sus columnas), \code{\link[=dl_proyecto]{dl_proyecto()}} (la carpeta), \code{\link[=dl_configuracion]{dl_configuracion()}} (las claves),

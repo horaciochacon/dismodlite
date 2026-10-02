@@ -563,6 +563,74 @@ test_that("regla de la severidad: las proporciones de la causa suman 1, con la t
   expect_identical(problemas(x)$problemas, character())
 })
 
+# ---- dl_revisar_proyecto() de un proyecto ya leído ----
+
+# El proyecto de ejemplo de la causa 9100 por la puerta de los data.frame (sin carpeta), con `cambiar(tablas)` antes.
+proyecto_de_tablas <- function(cambiar = identity) {
+  d <- dl_ejemplo()
+  leer <- function(f) as.data.frame(data.table::fread(f, colClasses = "character", encoding = "UTF-8"))
+  t <- cambiar(list(ubicaciones = leer(file.path(d, "ubicaciones.csv")), poblacion = leer(file.path(d, "poblacion.csv")),
+                    ancla = file.path(d, "ancla"), covariables = file.path(d, "covariables"),
+                    betas = leer(file.path(d, "betas.csv")), datos = leer(file.path(d, "datos.csv")),
+                    severidad = leer(file.path(d, "severidad.csv"))))
+  do.call(dl_proyecto, c(list(causa = 9100, configuracion = file.path(d, "config", "9100.yaml")), t))
+}
+
+test_that("dl_revisar_proyecto() de un proyecto armado con data.frame: el ejemplo, sin errores", {
+  salida <- utils::capture.output(r <- dl_revisar_proyecto(proyecto_de_tablas()))
+  expect_identical(unique(r$estado), "ok")
+  expect_identical(r$paso, c("ubicaciones", "poblacion", "ancla", "covariables", "betas", "datos", "severidad",
+                             "configuración", "proyecto", "insumos"))
+  expect_identical(r$detalle[r$paso == "poblacion"], "leída: 2100 fila(s), de argumento `poblacion` (data.frame)")
+  expect_match(r$detalle[r$paso == "ancla"], "^leída: [0-9]+ fila\\(s\\), de ancla \\(descarga de GBD Results\\)$")
+  expect_identical(r$detalle[r$paso == "configuración"], "9100.yaml: formato simple")
+  expect_true(all(r$causa == 9100L))
+  expect_match(salida[1], "^Revisión del proyecto \\(sin carpeta: las tablas vienen como argumentos\\), causa 9100$")
+  # con la carpeta, la cabecera la nombra; sin severidad, los insumos se arman y falta lo que dl_correr() necesita
+  salida <- utils::capture.output(r <- dl_revisar_proyecto(dl_proyecto(dl_ejemplo(), 9100)))
+  expect_match(salida[1], "^Revisión del proyecto «acs_peru», causa 9100$")
+  expect_identical(unique(r$estado), "ok")
+  p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
+                   ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"),
+                   ancla = dl_ejemplo("ancla"))
+  salida <- utils::capture.output(r <- dl_revisar_proyecto(p, causa = 9101))
+  expect_match(salida[1], "^Revisión del proyecto \\(sin carpeta: las tablas vienen como argumentos\\), causa 9101$")
+  expect_identical(r$detalle[r$paso == "configuración"], "la configuración dada como lista: formato simple")
+  expect_identical(r$estado[r$paso == "proyecto"], "ok")
+  expect_identical(r$paso[r$estado == "error"], "severidad")
+  expect_error(dl_revisar_proyecto(p, causa = 9100), "`causa` es 9100 y el proyecto es de la causa 9101")
+  # del formato completo: la configuración y los insumos
+  r <- revisar_callado(dl_proyecto(ejemplo_completo(), 9101))
+  expect_identical(r$paso, c("configuración", "insumos"))
+  expect_identical(unique(r$estado), "ok")
+})
+
+test_that("dl_revisar_proyecto() de un proyecto armado con data.frame da el mismo error entre tablas que la carpeta", {
+  p <- proyecto_de_tablas(function(t) { t$poblacion$ubicacion[t$poblacion$ubicacion == "01"] <- "99"; t })
+  r <- revisar_callado(p)
+  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
+  pob <- data.table::fread(file.path(d, "poblacion.csv"), colClasses = list(character = "ubicacion"))
+  pob[ubicacion == "01", ubicacion := "99"]
+  data.table::fwrite(pob, file.path(d, "poblacion.csv"))
+  r_carpeta <- revisar_callado(d, 9100)
+  columnas <- c("paso", "estado", "detalle", "sugerencia")
+  expect_identical(r[r$estado == "error", columnas], r_carpeta[r_carpeta$estado == "error", columnas],
+                   ignore_attr = TRUE)
+  expect_identical(r$estado[r$paso == "insumos"], "omitido")
+})
+
+test_that("la revisión muestra los avisos de cada tabla (en una carpeta y en un proyecto ya leído)", {
+  d <- copia_ejemplo()
+  datos <- leer_texto(file.path(d, "datos.csv"))
+  k <- which(datos$medida == "prevalencia")[1]
+  datos$valor[k] <- "1.5"
+  escribir_texto(datos, file.path(d, "datos.csv"))
+  for (x in list(d, suppressMessages(dl_proyecto(d, 9100)))) {
+    r <- revisar_callado(x, causa = 9100)
+    expect_match(r$detalle[r$paso == "datos" & r$estado == "aviso"], "^prevalencia mayor que 1 \\(fila\\(s\\) ")
+  }
+})
+
 # ---- La configuración y los números exactos ----
 
 test_that("severidad.padre y componente.secuelas exigen severidad.particion; una partición que no existe, error", {

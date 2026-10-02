@@ -233,16 +233,30 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 # insumos (dl_insumos()) y la severidad que dl_correr() necesita. Un problema que lleva su tabla (`tabla` del error,
 # también la de una tabla interna de los insumos) va al paso de esa tabla, sin la tabla delante.
 .dl_revisar_causa <- function(carpeta, cf) {
+  rel <- if (basename(dirname(cf$archivo)) == "config") file.path("config", basename(cf$archivo))
+         else basename(cf$archivo)
+  .dl_revisar_pasos(cf$causa, cf$simple, function(revisar, anotar, errores) {
+    if (cf$simple) return(.dl_revisar_contrato(carpeta, cf, rel, revisar, anotar, errores))
+    cfg <- revisar("configuraci\u00f3n", dl_configuracion(cf$causa, cf$archivo),
+                   function(cfg) sprintf("%s: formato completo", rel))
+    if (!is.null(cfg)) function() .dl_proyecto_de(carpeta, cfg)
+  })
+}
+
+# Las filas de la revisión de la causa `causa`: los pasos de `pasos(revisar, anotar, errores)`, que devuelve la
+# función que arma el proyecto (NULL si algo falló), y al final los insumos y la severidad. `revisar(paso, expr, ok)`
+# evalúa `expr` en el paso `paso` y anota sus avisos, sus problemas y, si no falló, la línea en orden `ok(valor)`
+# (NULL: ninguna); devuelve el valor (NULL si falló). En un proyecto con las tablas del contrato (`simple`), un
+# problema que lleva su tabla va al paso de esa tabla, sin la tabla delante.
+.dl_revisar_pasos <- function(causa, simple, pasos) {
   filas <- list()
   anotar <- function(paso, estado, detalle)
-    filas[[length(filas) + 1L]] <<- .dl_fila_revision(cf$causa, paso, estado, detalle)
+    filas[[length(filas) + 1L]] <<- .dl_fila_revision(causa, paso, estado, detalle)
   interna <- attr(.dl_claves_simple(), "tablas")          # tabla interna de los insumos -> tabla del contrato
-  # evalúa `expr` en el paso `paso` y anota sus avisos, sus problemas y, si no falló, la línea en orden `ok(valor)`
-  # (NULL: ninguna); devuelve el valor (NULL si falló)
   revisar <- function(paso, expr, ok) {
     r <- .dl_recoger(expr)
-    donde <- if (cf$simple && isTRUE(r$tabla %in% names(interna))) interna[[r$tabla]]
-             else if (cf$simple && isTRUE(r$tabla %in% .DL_TABLAS)) r$tabla else paso
+    donde <- if (simple && isTRUE(r$tabla %in% names(interna))) interna[[r$tabla]]
+             else if (simple && isTRUE(r$tabla %in% .DL_TABLAS)) r$tabla else paso
     for (a in r$avisos) anotar(paso, "aviso", a)
     for (e in r$error) anotar(donde, "error", sub(paste0("^", donde, ": "), "", e))
     if (length(r$error) && donde != paso && paso == "configuraci\u00f3n")
@@ -251,22 +265,52 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     r$valor
   }
   errores <- function() any(vapply(filas, function(f) f$estado == "error", NA))
-  rel <- if (basename(dirname(cf$archivo)) == "config") file.path("config", basename(cf$archivo))
-         else basename(cf$archivo)
-  p <- if (cf$simple) .dl_revisar_contrato(carpeta, cf, rel, revisar, anotar, errores)
-       else {
-         cfg <- revisar("configuraci\u00f3n", dl_configuracion(cf$causa, cf$archivo),
-                        function(cfg) sprintf("%s: formato completo", rel))
-         if (!is.null(cfg)) function() .dl_proyecto_de(carpeta, cfg)
-       }
+  p <- pasos(revisar, anotar, errores)
   if (errores() || is.null(p)) {
     anotar("insumos", "omitido", "no se armaron: primero corrige los errores de arriba")
   } else {
     b <- revisar("insumos", dl_insumos(p()),
                  function(b) sprintf("dl_insumos() los arma y los valida (hash %s)", substr(b$hash, 1L, 12L)))
-    if (!is.null(b)) revisar("insumos", .dl_en_simple(.dl_exigir_severidad(b$severidad, cf$causa), cf$simple), NULL)
+    if (!is.null(b)) revisar("insumos", .dl_en_simple(.dl_exigir_severidad(b$severidad, causa), simple), NULL)
   }
   do.call(rbind, filas)
+}
+
+# La línea en orden de una tabla leída `t`: sus filas, de dónde (con `origen`) y, si pasó por un lector, cuál.
+.dl_linea_tabla <- function(t, origen = FALSE) {
+  o <- attr(t, "origen")
+  sprintf("le\u00edda: %d fila(s)%s%s", nrow(t),
+          if (origen && length(o)) sprintf(", de %s", if (file.exists(o)) basename(o) else o) else "",
+          if (length(attr(t, "lectores"))) sprintf(" (%s)", paste(attr(t, "lectores"), collapse = ", ")) else "")
+}
+
+# Las reglas entre tablas de `pre` (list(tablas, cfg, causas)) en el paso «proyecto».
+.dl_revisar_reglas <- function(pre, anotar) {
+  pr <- .dl_problemas_proyecto(pre$tablas, pre$cfg, max(1L, nrow(pre$causas)))
+  for (a in pr$avisos) anotar("proyecto", "aviso", a)
+  for (e in pr$problemas) anotar("proyecto", "error", e)
+  if (!length(pr$problemas)) anotar("proyecto", "ok", "las reglas entre tablas se cumplen")
+}
+
+# Los pasos de un proyecto ya armado `p` (dl_proyecto(): sus tablas ya se leyeron y su configuración se tradujo): cada
+# tabla en orden, con sus avisos, la configuración, las reglas entre tablas y, para los insumos, el mismo proyecto. Del
+# formato completo, solo la configuración.
+.dl_revisar_objeto <- function(p, revisar, anotar, errores) {
+  cfg <- p$configuracion
+  if (!identical(p$formato, "simple")) {
+    anotar("configuraci\u00f3n", "ok", "formato completo")
+    return(function() p)
+  }
+  for (t in names(p$tablas)) {
+    for (a in attr(p$tablas[[t]], "avisos")) anotar(t, "aviso", a)
+    anotar(t, "ok", .dl_linea_tabla(p$tablas[[t]], origen = TRUE))
+  }
+  archivo <- cfg$origen$archivo
+  anotar("configuraci\u00f3n", "ok", sprintf("%s: formato simple", if (identical(archivo, "configuracion"))
+    "la configuraci\u00f3n dada como lista" else basename(archivo)))
+  causas <- if (!is.null(p$carpeta)) .dl_causas_config(p$carpeta, NULL, cfg$cause_id)
+  .dl_revisar_reglas(list(tablas = p$tablas, cfg = cfg, causas = causas), anotar)
+  if (!errores()) function() p
 }
 
 # Los pasos de un proyecto con las tablas del contrato (`revisar`, `anotar` y `errores`: los de .dl_revisar_causa):
@@ -278,13 +322,11 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 # error de la traducción queda en la revisión) o NULL si algo falló.
 .dl_revisar_contrato <- function(carpeta, cf, rel, revisar, anotar, errores) {
   s <- .dl_leer_config(cf$archivo)
-  leida <- function(t) sprintf("le\u00edda: %d fila(s)%s", nrow(t),
-                               if (length(attr(t, "lectores"))) sprintf(" (%s)", paste(attr(t, "lectores"),
-                                                                                       collapse = ", ")) else "")
   fallidas <- character()
   tablas <- .dl_tablas_proyecto(carpeta, list(), .dl_opciones_lectores(s), paso = function(t, expr) {
-    v <- revisar(t, expr, leida)
+    v <- revisar(t, expr, .dl_linea_tabla)
     if (is.null(v)) fallidas <<- c(fallidas, t)
+    for (a in attr(v, "avisos")) anotar(t, "aviso", a)
     v
   })
   omitir <- function() {
@@ -303,20 +345,17 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
                                       carpeta),
                  function(pre) sprintf("%s: formato simple", rel))
   if (is.null(pre) || errores()) return(omitir())
-  pr <- .dl_problemas_proyecto(pre$tablas, pre$cfg, nrow(pre$causas))
-  for (a in pr$avisos) anotar("proyecto", "aviso", a)
-  for (e in pr$problemas) anotar("proyecto", "error", e)
-  if (!length(pr$problemas)) anotar("proyecto", "ok", "las reglas entre tablas se cumplen")
+  .dl_revisar_reglas(pre, anotar)
   function() .dl_proyecto_armado(carpeta, carpeta, pre)
 }
 
-# Imprime la revisión `r` de las causas del proyecto `carpeta`: una línea por comprobación y la sugerencia de las que
-# no están en orden; al final, el total.
-.dl_imprimir_revision <- function(r, carpeta) {
+# Imprime la revisión `r` de las causas del proyecto `nombre` («carpeta», o lo que dice que no la tiene): una línea
+# por comprobación y la sugerencia de las que no están en orden; al final, el total.
+.dl_imprimir_revision <- function(r, nombre) {
   s <- .dl_simbolos_revision()
   for (causa in unique(r$causa)) {
     x <- r[r$causa %in% causa, ]
-    cat(sprintf("Revisi\u00f3n del proyecto \u00ab%s\u00bb%s\n", basename(carpeta),
+    cat(sprintf("Revisi\u00f3n del proyecto %s%s\n", nombre,
                 if (is.na(causa)) "" else sprintf(", causa %d", causa)))
     for (i in seq_len(nrow(x))) {
       cat(sprintf("  %s %s: %s\n", s[[x$estado[i]]], x$paso[i], gsub("\n", "\n      ", x$detalle[i], fixed = TRUE)))
@@ -375,8 +414,14 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #' En un proyecto en el formato completo de la 0.2.2 se revisan la configuración, los insumos completos y la
 #' severidad.
 #'
-#' @param carpeta Carpeta del proyecto.
-#' @param causa Causa que se revisa (`cause_id`); `NULL` (por defecto) revisa todas las causas con configuración.
+#' En vez de una carpeta se puede dar un proyecto ya leído con [dl_proyecto()], por ejemplo uno armado con tablas de
+#' R (`dl_proyecto(configuracion = ..., ubicaciones = ..., poblacion = ...)`). Sus tablas ya se leyeron y su
+#' configuración ya se tradujo (si no, `dl_proyecto()` se habría detenido): la revisión dice de dónde salió cada tabla
+#' y sus avisos, y sigue con las reglas entre tablas y los insumos, para su única causa.
+#'
+#' @param carpeta Carpeta del proyecto, o un proyecto de [dl_proyecto()].
+#' @param causa Causa que se revisa (`cause_id`); `NULL` (por defecto) revisa todas las causas con configuración. Con
+#'   un proyecto de [dl_proyecto()], que ya es de una causa, `NULL` o esa misma causa.
 #' @return Una tabla (data.frame), invisible, con una fila por comprobación: `causa`, `paso` (la tabla, la
 #'   configuración, `proyecto` o `insumos`), `estado` (`"ok"`, `"aviso"`, `"error"` u `"omitido"`: un paso que espera a
 #'   que se corrija otro), `detalle` y `sugerencia` (la corrección; vacía si está en orden o se omitió).
@@ -402,15 +447,33 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #' r <- dl_revisar_proyecto(carpeta, causa = 9100)
 #' r[r$estado == "error", c("paso", "detalle", "sugerencia")]
 #' unlink(carpeta, recursive = TRUE)
+#'
+#' # un proyecto con las tablas en R (la puerta de los data.frame), con un problema entre tablas
+#' pob <- read.csv(dl_ejemplo("poblacion.csv"), colClasses = c(ubicacion = "character"))
+#' pob$ubicacion[pob$ubicacion == "01"] <- "99"
+#' p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
+#'                  ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = pob,
+#'                  ancla = dl_ejemplo("ancla"))
+#' r <- dl_revisar_proyecto(p)
 #' @export
 dl_revisar_proyecto <- function(carpeta, causa = NULL) {
-  .dl_exigir_carpeta_existente(carpeta)
   if (!is.null(causa)) causa <- .dl_exigir_causa(causa)
+  if (inherits(carpeta, "dl_proyecto")) {
+    p <- carpeta
+    k <- p$configuracion$cause_id
+    if (!is.null(causa) && causa != k) .dl_stop("`causa` es %d y el proyecto es de la causa %d", causa, k)
+    r <- .dl_revisar_pasos(k, identical(p$formato, "simple"),
+                           function(revisar, anotar, errores) .dl_revisar_objeto(p, revisar, anotar, errores))
+    rownames(r) <- NULL
+    return(.dl_imprimir_revision(r, if (is.null(p$carpeta)) "(sin carpeta: las tablas vienen como argumentos)"
+                                    else sprintf("\u00ab%s\u00bb", basename(p$carpeta))))
+  }
+  .dl_exigir_carpeta_existente(carpeta)
   cf <- .dl_recoger(.dl_elegir_configs(.dl_configs_proyecto(carpeta), causa, carpeta, varias = TRUE))
   r <- if (length(cf$error)) .dl_fila_revision(causa %||% NA_integer_, "configuraci\u00f3n", "error", cf$error)
        else do.call(rbind, lapply(seq_len(nrow(cf$valor)), function(j) .dl_revisar_causa(carpeta, cf$valor[j])))
   rownames(r) <- NULL
-  .dl_imprimir_revision(r, carpeta)
+  .dl_imprimir_revision(r, sprintf("\u00ab%s\u00bb", basename(carpeta)))
 }
 
 # ---- dl_correr() ----
