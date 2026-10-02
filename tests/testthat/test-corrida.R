@@ -252,12 +252,37 @@ test_that("la corrida congela las tablas del contrato y sirven para repetirla", 
   expect_false(dir.exists(file.path(r$dir, "inputs", "ghdx_cov")))
   man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
   p0 <- dl_proyecto(dl_ejemplo(), 9100)
-  expect_setequal(vapply(man$inputs$contrato, `[[`, "", "tabla"), names(p0$tablas))
+  tablas <- Filter(Negate(is.null), lapply(man$inputs$contrato, `[[`, "tabla"))
+  expect_setequal(unlist(tablas), names(p0$tablas))
+  archivo <- function(x) file.path(cong, x$configuracion %||% paste0(x$tabla, ".csv"))
   for (x in man$inputs$contrato)
-    expect_identical(digest::digest(file = file.path(cong, paste0(x$tabla, ".csv")), algo = "sha256"), x$sha256)
-  # las tablas congeladas (sus rutas) arman los mismos insumos
-  rutas <- stats::setNames(as.list(file.path(cong, list.files(cong))), tools::file_path_sans_ext(list.files(cong)))
-  p <- do.call(dl_proyecto, c(list(causa = 9100, configuracion = file.path(dl_ejemplo(), "config", "9100.yaml")),
-                              rutas))
+    expect_identical(digest::digest(file = archivo(x), algo = "sha256"), x$sha256)
+  # la configuración del proyecto, tal como se leyó (no la traducida: esa es config_usado.yaml)
+  expect_true("config.yaml" %in% unlist(lapply(man$inputs$contrato, `[[`, "configuracion")))
+  expect_identical(dismodlite:::.dl_leer_config(file.path(cong, "config.yaml")),
+                   dismodlite:::.dl_leer_config(file.path(dl_ejemplo(), "config", "9100.yaml")))
+  # solo con la carpeta de la corrida (sin dl_ejemplo()): la configuración y las tablas congeladas arman los mismos
+  # insumos
+  csv <- list.files(cong, "[.]csv$")
+  rutas <- stats::setNames(as.list(file.path(cong, csv)), tools::file_path_sans_ext(csv))
+  p <- do.call(dl_proyecto, c(list(configuracion = file.path(cong, "config.yaml")), rutas))
+  expect_identical(p$configuracion$cause_id, 9100L)
   expect_identical(dl_insumos(p)$hash, man$inputs$bundle_hash)
+  # inputs/contrato/ es también la carpeta de un proyecto
+  expect_identical(dl_insumos(dl_proyecto(cong))$hash, man$inputs$bundle_hash)
+})
+
+test_that("la configuración de un proyecto se congela con sus tipos: releída es la misma", {
+  d <- withr::local_tempdir()
+  s <- list(causa = 9101L, anio = 2023, edad_inicio = 30L, nombre = "\u00c1rbol: x",
+            subnacional = list(modo = "no", kappa = 0.1 + 0.2), sensibilidad = list(peso = c(0.1, 0.5, 1)),
+            notas = c("a", "b"), datos_en_ajuste = "prevalencia", avanzado = list(anchor = list(
+              agrupar_bandas_finas = TRUE)))
+  h <- dismodlite:::.dl_congelar_contrato(list(), d, configuracion = s)
+  f <- file.path(d, "config.yaml")
+  expect_identical(h[["config.yaml"]], digest::digest(file = f, algo = "sha256"))
+  y <- dismodlite:::.dl_leer_config(f)
+  expect_identical(y[setdiff(names(s), "sensibilidad")], s[setdiff(names(s), "sensibilidad")])
+  expect_identical(unlist(y$sensibilidad$peso), s$sensibilidad$peso)
+  expect_identical(y$subnacional$kappa, 0.1 + 0.2)           # el double exacto
 })

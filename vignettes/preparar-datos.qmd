@@ -474,8 +474,9 @@ p <- dl_proyecto(carpeta, poblacion = mi_poblacion)
 ```
 
 El proyecto se revisa y se corre igual que una carpeta (`dl_revisar_proyecto(p)`, `dl_correr(p, semilla = 1)`), y
-la corrida guarda las tablas que usó, así que se puede repetir sin los `data.frame` originales. Sin carpeta, las rutas
-relativas de la configuración (como `severidad.particion`) se resuelven contra el directorio de trabajo.
+la corrida guarda las tablas y la configuración que usó (en `inputs/contrato/`, que es la carpeta de un proyecto), así
+que se puede repetir sin los `data.frame` originales. Sin carpeta, las rutas relativas de la configuración (como
+`severidad.particion`) se resuelven contra el directorio de trabajo.
 
 ## 4. Revisar: `dl_tabla()` y `dl_revisar_proyecto()`
 

@@ -24,8 +24,9 @@ de donde vengan los datos. Es una versión mayor porque los proyectos de la vers
   con un aviso.
 * La configuración guarda decisiones y las tablas, números con su fuente. Entran `severidad.particion`,
   `severidad.padre` y `componente.secuelas`, que antes solo existían en el formato completo.
-* La corrida congela las tablas del contrato que usó (`inputs/contrato/`) con su sha256 en el manifiesto: una corrida
-  hecha con tablas de R se puede repetir sin ellas.
+* La corrida congela las tablas del contrato que usó y la configuración del proyecto tal como se leyó
+  (`inputs/contrato/<tabla>.csv` y `inputs/contrato/config.yaml`) con su sha256 en el manifiesto: `inputs/contrato/`
+  es la carpeta de un proyecto, y una corrida hecha con tablas o una configuración de R se repite sin ellas.
 
 ## Dos puertas, una función
 

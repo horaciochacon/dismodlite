@@ -338,8 +338,10 @@
                   tablas = lapply(names(tablas_hash), function(nm)
                     list(tabla = sub("[.]csv$", "", nm), sha256 = tablas_hash[[nm]]))),
                   # las tablas del contrato congeladas en inputs/contrato/ (sin la clave en el formato completo)
+                  # y la configuración del proyecto congelada en inputs/contrato/config.yaml
                   if (length(contrato_hash)) list(contrato = lapply(names(contrato_hash), function(nm)
-                    list(tabla = nm, sha256 = contrato_hash[[nm]]))),
+                    if (nm == .DL_CONFIG_CONGELADA) list(configuracion = nm, sha256 = contrato_hash[[nm]])
+                    else list(tabla = nm, sha256 = contrato_hash[[nm]]))),
                   list(
                   # qué modelos de la extracción entraron a las betas y cuántas filas quedaron fuera
                   betas = if (!is.null(b$seleccion_betas)) list(
@@ -457,11 +459,15 @@
 #'   ([dl_validar_ancla()]), `sensibilidad.csv` ([dl_sensibilidad()], si se da) y, con una cascada, `renorm.csv`
 #'   (los factores de renormalización), `dx_bandas.csv` (la mediana y el intervalo de dX por ubicación, sexo,
 #'   covariable y banda) y `amplitud.csv` (la validación de la amplitud, si se calculó).
-#' - `inputs/`: los insumos congelados ([dl_congelar_insumos()]), la configuración usada (`config_usado.yaml`) y las
-#'   descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con un proyecto de las tablas
-#'   del contrato ([dl_proyecto()]), `inputs/contrato/<tabla>.csv` guarda las tablas que se usaron (con las
-#'   covariables nacionales; los números escritos exactos) y el manifiesto registra su sha256 en `inputs$contrato`:
-#'   con ellas la corrida se repite sin la carpeta original, también si las tablas se dieron como data.frame.
+#' - `inputs/`: los insumos congelados ([dl_congelar_insumos()]), la configuración usada (`config_usado.yaml`, en el
+#'   formato completo) y las descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con un
+#'   proyecto de las tablas del contrato ([dl_proyecto()]), `inputs/contrato/` guarda las tablas que se usaron
+#'   (`<tabla>.csv`, con las covariables nacionales; los números escritos exactos) y la configuración del proyecto tal
+#'   como se leyó (`config.yaml`, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada
+#'   archivo en `inputs$contrato`. `inputs/contrato/` es la carpeta de un proyecto: `dl_proyecto(file.path(run$dir,
+#'   "inputs", "contrato"))` repite la corrida sin la carpeta original, también si las tablas o la configuración se
+#'   dieron en R. Lo que la configuración nombra fuera del proyecto (la carpeta de `severidad.particion`) y la causa
+#'   padre de un subtipo que usa sus betas (la declara la configuración del padre) no se congelan.
 #' - `manifest.yaml`: la descripción de la corrida (abajo).
 #'
 #' El identificador `<AAAA-MM-DD>_<nombre>_v<n>` lleva la fecha del día y la versión siguiente a la mayor de ese día
@@ -595,11 +601,16 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   escribir(attr(validacion, "amplitud"), "amplitud.csv")
   inputs_dir <- file.path(dir_run, "inputs")
   tablas_hash <- dl_congelar_insumos(b, inputs_dir)
-  yaml::write_yaml(cfg, file.path(inputs_dir, "config_usado.yaml"))
-  # las tablas del contrato del proyecto (si los insumos vienen de uno): con ellas la corrida se repite sin la carpeta
-  # original, también cuando las tablas se dieron como data.frame. Cada columna numérica se escribe con el texto
-  # exacto (.dl_num_exacto), no con los 15 dígitos de fwrite: al releerlas vuelven los mismos números
-  contrato_hash <- .dl_congelar_contrato(b$contrato, file.path(inputs_dir, "contrato"))
+  # la configuración traducida al formato completo (sin la del proyecto, que va en contrato/config.yaml)
+  usada <- cfg
+  usada$origen$configuracion <- NULL
+  yaml::write_yaml(usada, file.path(inputs_dir, "config_usado.yaml"))
+  # las tablas del contrato del proyecto (si los insumos vienen de uno) y su configuración tal como se leyó: con ellas
+  # la corrida se repite sin la carpeta original, también cuando las tablas o la configuración se dieron en R. Cada
+  # número se escribe con el texto exacto (.dl_num_exacto), no con los 15 dígitos de fwrite: al releerlos vuelven los
+  # mismos números
+  contrato_hash <- .dl_congelar_contrato(b$contrato, file.path(inputs_dir, "contrato"),
+                                         if (length(b$contrato)) cfg$origen$configuracion)
   # con un proyecto del contrato, las covariables nacionales ya van en contrato/covariables.csv: la copia de las
   # descargas crudas (ghdx_cov/) es solo del formato completo
   if (!is.null(carpeta_cov) && !length(b$contrato)) {
@@ -615,13 +626,22 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   .dl_corrida_escrita(man, dir_run, if (registrar) registro)
 }
 
-# Escribe las tablas del contrato (lista nombrada de dl_tabla) en `dir` como <tabla>.csv y devuelve su sha256 (lista
-# nombrada). Las columnas numéricas van con su texto exacto (.dl_num_exacto): releerlas da los mismos doubles. Sin
-# tablas (formato completo), no escribe nada y devuelve list().
-.dl_congelar_contrato <- function(contrato, dir) {
+# Nombre de la configuración del proyecto congelada en inputs/contrato/.
+.DL_CONFIG_CONGELADA <- "config.yaml"
+
+# Escribe las tablas del contrato (lista nombrada de dl_tabla) en `dir` como <tabla>.csv y la configuración del
+# proyecto `configuracion` (la lista leída, si se da) como config.yaml; devuelve el sha256 de cada archivo (lista
+# nombrada: la tabla, o config.yaml). Las columnas numéricas van con su texto exacto (.dl_num_exacto): releerlas da
+# los mismos doubles. Sin tablas ni configuración (formato completo), no escribe nada y devuelve list().
+.dl_congelar_contrato <- function(contrato, dir, configuracion = NULL) {
   hash <- list()
-  if (!length(contrato)) return(hash)
+  if (!length(contrato) && is.null(configuracion)) return(hash)
   dir.create(dir, showWarnings = FALSE)
+  if (!is.null(configuracion)) {
+    f <- file.path(dir, .DL_CONFIG_CONGELADA)
+    .dl_escribir_config_proyecto(configuracion, f)
+    hash[[.DL_CONFIG_CONGELADA]] <- digest::digest(file = f, algo = "sha256")
+  }
   for (nm in names(contrato)) {
     d <- data.table::as.data.table(unclass(contrato[[nm]]))
     for (j in names(d)) if (is.double(d[[j]])) data.table::set(d, j = j, value = .dl_num_exacto(d[[j]]))
@@ -630,6 +650,21 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
     hash[[nm]] <- digest::digest(file = f, algo = "sha256")
   }
   hash
+}
+
+# Escribe la configuración de un proyecto `s` (la lista leída) en el YAML `f`, para que .dl_leer_config() la relea
+# igual: los lógicos como true y false (el YAML que escribe el paquete yaml usa yes y no, que la lectura de una
+# configuración deja como texto) y cada double con su texto exacto (.dl_num_exacto), con «.0» si es entero (así se
+# relee como double y no como entero).
+.dl_escribir_config_proyecto <- function(s, f) {
+  literal <- function(x) structure(x, class = "verbatim")
+  doble <- function(x) {
+    t <- .dl_num_exacto(x)
+    literal(ifelse(grepl("^-?[0-9]+$", t), paste0(t, ".0"), t))
+  }
+  texto <- yaml::as.yaml(s, handlers = list(logical = function(x) literal(ifelse(x, "true", "false")),
+                                            numeric = doble))
+  writeLines(enc2utf8(texto), f, sep = "", useBytes = TRUE)
 }
 
 # Qué es una corrida, según su manifiesto: un consolidado, una suma de hijas, un re-resumen, o el ajuste nacional o

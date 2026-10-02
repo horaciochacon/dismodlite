@@ -329,8 +329,11 @@
     sensibilidad = list(lambda = num(val("sensibilidad.peso")), rho = num(val("sensibilidad.correlacion_edad")),
                         kappa = num(val("sensibilidad.kappa"))),
     decisiones = if (length(s[["notas"]])) as.character(unlist(s[["notas"]])),
+    # `configuracion`: la configuración del proyecto tal como se leyó, con los nombres de clave de ahora (la corrida
+    # la congela en inputs/contrato/config.yaml, para repetirla)
     origen = list(formato = "simple", archivo = archivo, nombre = s[["nombre"]] %||% contexto$nombre,
-                  subnacional = modo, unidades = "contrato", betas = betas, por_defecto = por_defecto))
+                  subnacional = modo, unidades = "contrato", betas = betas, por_defecto = por_defecto,
+                  configuracion = s))
   Filter(Negate(is.null), cfg)
 }
 
