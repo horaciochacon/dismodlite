@@ -20,13 +20,21 @@ de donde vengan los datos. Es una versión mayor porque los proyectos de la vers
   100 000, las edades de GBD a bandas, `measure_id` a `medida`). La clave `ubicacion_gbd` (antes
   `ubicacion_nacional`) dice qué `location_id` de GBD es el país; por defecto, el código nacional de `ubicaciones`
   si está en la descarga, o la única ubicación de la descarga (la misma regla en los tres lectores). La lista de
-  fuentes del GHDx queda con el código nacional del proyecto; sus fuentes de otras ubicaciones de GBD se descartan,
-  con un aviso.
+  fuentes del GHDx queda con el código nacional del proyecto, con cada fuente una vez (la lista del GHDx la repite en
+  varias filas); sus fuentes de otras ubicaciones de GBD se descartan, con un aviso.
 * La configuración guarda decisiones y las tablas, números con su fuente. Entran `severidad.particion`,
   `severidad.padre` y `componente.secuelas`, que antes solo existían en el formato completo.
 * La corrida congela las tablas del contrato que usó y la configuración del proyecto tal como se leyó
   (`inputs/contrato/<tabla>.csv` y `inputs/contrato/config.yaml`) con su sha256 en el manifiesto: `inputs/contrato/`
-  es la carpeta de un proyecto, y una corrida hecha con tablas o una configuración de R se repite sin ellas.
+  es la carpeta de un proyecto, y una corrida hecha con tablas o una configuración de R se repite sin ellas. La de un
+  subtipo con las betas de su causa padre las congela a su nombre, con la causa padre en `avanzado: extraction`. La
+  carpeta de `severidad.particion` no se congela: para repetir una corrida que la usó, se copia en
+  `inputs/contrato/` con la misma ruta relativa.
+* Los proxies de `covariables` pueden venir en bandas de edad propias, uniones de las de la población (por ejemplo
+  45-59 con bandas de 5 años).
+* Las bandas de la población van seguidas: un hueco entre ellas es un problema de la población. En `datos`,
+  `anio_inicio` mayor que `anio_fin` es un problema de la tabla. Las filas de los mensajes se cuentan como las líneas
+  del CSV (el encabezado es la 1) o, en un `data.frame`, por su número de fila.
 
 ## Dos puertas, una función
 
@@ -50,9 +58,9 @@ de donde vengan los datos. Es una versión mayor porque los proyectos de la vers
 * **Los resultados de un proyecto rehecho cambian en las edades de 80 años y más**: hay una celda por banda del ancla
   y el ajuste usa la información de cada una. Para reproducir la agrupación de la 1.0.0, la configuración declara
   `avanzado: {anchor: {agrupar_bandas_finas: true}}`.
-* Si la población es más gruesa que el ancla (por ejemplo, solo 80 y más), las bandas del ancla se agrupan en las de
-  la población con los pesos de la tabla nueva `poblacion_detalle` (la población nacional con más detalle de edad).
-  Reemplaza a `pesos_80mas.csv`.
+* Si la población es más gruesa que el ancla (por ejemplo, solo 80 y más, o los menores de 5 en una banda), las
+  bandas del ancla se agrupan en las de la población con los pesos de la tabla nueva `poblacion_detalle` (la
+  población nacional con más detalle de edad). Reemplaza a `pesos_80mas.csv`.
 * `ancla.correlacion_edad` (ρ) cuenta la distancia en bandas: con más bandas en las edades altas, la misma ρ las
   correlaciona menos.
 
@@ -60,7 +68,8 @@ de donde vengan los datos. Es una versión mayor porque los proyectos de la vers
 
 * Los catálogos de GBD 2023 de estados de salud (con sus pesos de discapacidad) y de secuelas vienen en
   `inst/referencia/`, con su cita a IHME y sus términos de uso. En la tabla `severidad`, un estado de salud de GBD
-  (por nombre o id) toma sus pesos del catálogo; un estado propio trae los tres pesos.
+  (por nombre o id) toma sus pesos del catálogo; un estado propio trae los tres pesos. En cualquier estado van los tres
+  o ninguno.
 
 ## Los proyectos 1.0.0 se rehacen
 
