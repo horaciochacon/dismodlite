@@ -168,7 +168,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \code{ubicacion} \tab texto \tab sí \tab Ubicación\cr
 \code{anio} \tab entero \tab no \tab Año (o anio_inicio y anio_fin)\cr
 \code{anio_inicio} \tab entero \tab no \tab Primer año del dato\cr
-\code{anio_fin} \tab entero \tab no \tab Último año del dato\cr
+\code{anio_fin} \tab entero \tab no \tab Último año del dato (no antes de anio_inicio)\cr
 \code{sexo} \tab texto \tab sí \tab hombres, mujeres o ambos\cr
 \code{edad_inicio} \tab número \tab sí \tab Primera edad (años)\cr
 \code{edad_fin} \tab número \tab sí \tab Fin de la banda (excluido) (años)\cr
@@ -189,7 +189,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \item{\code{ubicacion}}{Ubicación. Texto, obligatoria.}
 \item{\code{anio}}{Año (o anio_inicio y anio_fin). Entero, opcional.}
 \item{\code{anio_inicio}}{Primer año del dato. Entero, opcional.}
-\item{\code{anio_fin}}{Último año del dato. Entero, opcional.}
+\item{\code{anio_fin}}{Último año del dato (no antes de anio_inicio). Entero, opcional.}
 \item{\code{sexo}}{hombres, mujeres o ambos. Texto, obligatoria.}
 \item{\code{edad_inicio}}{Primera edad (años). Número, obligatoria.}
 \item{\code{edad_fin}}{Fin de la banda (excluido) (años). Número, obligatoria.}

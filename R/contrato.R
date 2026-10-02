@@ -151,6 +151,10 @@
     if (nzchar(t$maximo[i]) && any(x > as.numeric(t$maximo[i]), na.rm = TRUE))
       p("%s: hay valores mayores que %s (%s)", cn, t$maximo[i], .dl_filas_msg(which(x > as.numeric(t$maximo[i]))))
   }
+  if (all(c("anio_inicio", "anio_fin") %in% names(d))) {
+    malos <- which(d$anio_inicio > d$anio_fin)
+    if (length(malos)) p("anio_inicio debe ser menor o igual que anio_fin (%s)", .dl_filas_msg(malos))
+  }
   claves <- intersect(c(.DL_EJE, .DL_CLAVES_TABLA[[tabla]]), names(d))
   grupo <- setdiff(claves, c("edad_inicio", "edad_fin"))
   if (all(c("edad_inicio", "edad_fin") %in% names(d)) && !length(faltan)) {

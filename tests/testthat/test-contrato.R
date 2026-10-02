@@ -160,3 +160,10 @@ test_that("el texto NA de write.csv() es vacío en columnas de números o lógic
   t <- dl_tabla("ubicaciones", f)
   expect_identical(t$ubicacion, c("PAIS", "NA"))                  # NA es un código de ubicación válido
 })
+
+test_that("un dato con anio_inicio mayor que anio_fin es un problema de la tabla datos", {
+  d <- data.frame(ubicacion = "01", anio_inicio = c(2019, 2023), anio_fin = c(2021, 2020), sexo = "ambos",
+                  edad_inicio = 40, edad_fin = 45, medida = "prevalencia", valor = 0.1, error_estandar = 0.01)
+  e <- expect_error(dl_tabla("datos", d), class = "dl_error")
+  expect_identical(e$problemas, "anio_inicio debe ser menor o igual que anio_fin (fila(s) 2 del data.frame)")
+})
