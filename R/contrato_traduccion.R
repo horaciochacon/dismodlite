@@ -491,7 +491,7 @@
   y1 <- ifelse(is.na(col("anio_fin")), col("anio"), col("anio_fin"))
   if (anyNA(y0) || anyNA(y1))
     .dl_stop("la tabla datos: falta anio (o anio_inicio y anio_fin) en %s",
-             paste(utils::head(sprintf("fila_%d", which(is.na(y0) | is.na(y1))), 5L), collapse = ", "))
+             .dl_filas_msg(which(is.na(y0) | is.na(y1)), df = .dl_origen_df(attr(d, "origen"))))
   tipo <- unname(.dl_tipos_datos_simple()[d$medida])
   med <- .DL_TIPOS_DATO$measure_id[match(tipo, .DL_TIPOS_DATO$tipo)]
   med[tipo == "prev_admin"] <- .dl_medida_id("prevalence")

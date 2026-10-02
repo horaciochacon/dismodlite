@@ -338,7 +338,8 @@
 # Valores imposibles en las filas de `datos` que entran: la prevalencia es una proporción (entre 0 y 1, no un
 # porcentaje), una tasa no es negativa, el error estándar y la muestra son positivos y, en una prevalencia con
 # conteos, los casos no superan la muestra (el binomial de la verosimilitud no los admite). Un error lista los
-# dato_id de cada problema (en el formato simple, fila_<n> es la fila n de datos.csv).
+# dato_id de cada problema (en un proyecto, fila_<n> es la fila n de la tabla datos; .dl_filas_de_datos la cita como
+# los mensajes de las tablas).
 .dl_chequear_rango_datos <- function(d) {
   if (!nrow(d)) return(invisible(d))
   num <- function(cn) if (cn %in% names(d)) suppressWarnings(as.numeric(d[[cn]])) else rep(NA_real_, nrow(d))
@@ -488,13 +489,14 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
                else sprintf("dl_proyecto(\"%s\")", configuracion$carpeta))
     if (missing(rutas)) rutas <- configuracion$rutas
     contrato <- configuracion$tablas
+    datos <- contrato$datos
     configuracion <- configuracion$configuracion
   }
   # una lista con cause_id también vale (la versión 0.2.2 no exigía la clase); otro objeto del paquete, no
   if (!is.list(configuracion) || is.null(configuracion$cause_id) ||
       (!inherits(configuracion, "dl_config") && any(names(.DL_DESCRIPCION_CLASES) %in% class(configuracion))))
     .dl_exigir_clase(configuracion, "dl_config", "configuracion", "dl_configuracion()")
-  b <- .dl_en_simple(.dl_armar_insumos(configuracion, rutas), simple)
+  b <- .dl_en_simple(.dl_armar_insumos(configuracion, rutas), simple, if (simple) datos)
   # las tablas del contrato del proyecto, tal como se leyeron (fuera del hash, que es el de las tablas de los insumos)
   if (simple) b$contrato <- contrato
   b

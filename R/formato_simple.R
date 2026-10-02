@@ -187,11 +187,24 @@
 }
 
 # Mientras se evalúa `expr` (si `simple`), .dl_condicion() pasa los mensajes del paquete por .dl_texto_simple().
-.dl_en_simple <- function(expr, simple = TRUE) {
+# `datos`: la tabla datos del proyecto (o NULL), para contar sus filas en los mensajes como en los de las tablas
+# (.dl_filas_de_datos).
+.dl_en_simple <- function(expr, simple = TRUE, datos = NULL) {
   if (!isTRUE(simple) || isTRUE(.dl_estado$simple)) return(expr)
   .dl_estado$simple <- TRUE
-  on.exit(.dl_estado$simple <- FALSE)
+  .dl_estado$datos_df <- .dl_origen_df(attr(datos, "origen"))
+  on.exit({ .dl_estado$simple <- FALSE; .dl_estado$datos_df <- FALSE })
   expr
+}
+
+# Los dato_id de la tabla datos de un proyecto («fila_<n>»: la fila n de la tabla, ver .dl_trad_datos) en un mensaje,
+# como en los mensajes de las tablas (.dl_filas_msg): «fila_3, fila_7» -> «fila(s) 4, 8» (la línea del CSV) o, si la
+# tabla vino de un data.frame (`df`), «fila(s) 3, 7 del data.frame». El dato_id no cambia: entra al hash de los insumos.
+.dl_filas_de_datos <- function(x, df) {
+  m <- gregexpr("\\bfila_[0-9]+(, fila_[0-9]+)*\\b", x, perl = TRUE)
+  regmatches(x, m) <- lapply(regmatches(x, m), function(v) vapply(v, function(s)
+    .dl_filas_msg(as.integer(regmatches(s, gregexpr("[0-9]+", s))[[1L]]), df), ""))
+  x
 }
 
 # Columnas de las tablas del formato completo que vienen de una columna de una tabla del contrato (por su nombre en el
@@ -234,7 +247,7 @@
     stats::setNames(names(tipos), exacta(tipos)),
     "(?m)^(\\s*-?\\s*[^\\s:]+: )[a-z0-9_]+ \u2014 " = "\\1")
   for (i in seq_along(cambios)) x <- gsub(names(cambios)[i], cambios[[i]], x, perl = TRUE)
-  x
+  .dl_filas_de_datos(x, isTRUE(.dl_estado$datos_df))
 }
 
 # Nudos por defecto de la incidencia: cada 10 años desde edad_inicio hasta 80, y 95 (enteros si lo son, como el YAML).

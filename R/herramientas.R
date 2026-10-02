@@ -601,7 +601,7 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
     carpeta_salida <- file.path(p$carpeta, "resultados")
   }
   # con un proyecto simple, los mensajes en sus palabras
-  .dl_en_simple(simple = .dl_es_simple(cfg), {
+  .dl_en_simple(simple = .dl_es_simple(cfg), datos = p$tablas$datos, {
     o <- opciones %||% if (rapido) do.call(dl_opciones_mcmc, .DL_OPCIONES_PRUEBA) else dl_opciones_mcmc()
     if (rapido)
       .dl_message(paste0("corrida de prueba (rapido = TRUE): %d cadena(s) de %d iteraciones y forzar = TRUE, que la ",

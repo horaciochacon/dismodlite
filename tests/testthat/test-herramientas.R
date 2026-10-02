@@ -395,7 +395,8 @@ test_that("dl_revisar_proyecto() ubica en su tabla lo que antes llegaba con pala
   writeLines(enc2utf8(cfg), file.path(d, "config", "9100.yaml"), useBytes = TRUE)
   r <- revisar_callado(d, causa = 9100)
   e <- r[r$paso == "datos" & r$estado == "error", ]
-  expect_match(e$detalle, sprintf("prevalencia fuera de \\[0, 1\\].*fila_%d", k))
+  # la fila como en los mensajes de las tablas: la línea del CSV (el encabezado es la 1)
+  expect_match(e$detalle, sprintf("prevalencia fuera de \\[0, 1\\].*fila\\(s\\) %d$", k + 1L))
   expect_match(e$sugerencia, "^columnas causa, ubicacion, anio")
 })
 

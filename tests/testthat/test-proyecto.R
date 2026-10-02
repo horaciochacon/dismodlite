@@ -194,6 +194,26 @@ test_that("la procedencia de lo que la configuración completa exige declarar no
   expect_identical(cfg$remision$fuente, "declarado en la configuraci\u00f3n del proyecto")
 })
 
+test_that("las filas de datos en los mensajes de dl_insumos() se cuentan como en los de las tablas", {
+  x <- leer_texto(dl_ejemplo("datos.csv"))
+  k <- which(x$medida == "prevalencia" & x$ubicacion == "123")[2L]
+  x$error_estandar[k] <- "0"
+  f <- file.path(withr::local_tempdir(), "datos.csv")
+  escribir_texto(x, f)
+  args <- list(configuracion = list(causa = 9100, anio = 2023, edad_inicio = 30, datos_en_ajuste = "prevalencia",
+                                    ancla = list(peso = 0.5)),
+               ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"),
+               ancla = dl_ejemplo("ancla"))
+  insumos <- function(datos) suppressMessages(dl_insumos(do.call(dl_proyecto, c(args, list(datos = datos)))))
+  # de un CSV, la línea del archivo (el encabezado es la 1); de un data.frame, su fila
+  e <- expect_error(insumos(f), class = "dl_error")
+  expect_match(conditionMessage(e), sprintf("error est\u00e1ndar que no es un n\u00famero positivo: fila\\(s\\) %d$", k + 1L))
+  expect_false(grepl("fila_", conditionMessage(e)))
+  e <- expect_error(insumos(as.data.frame(x)), class = "dl_error")
+  expect_match(conditionMessage(e), sprintf("positivo: fila\\(s\\) %d del data.frame$", k))
+  expect_match(e$problemas, sprintf("fila\\(s\\) %d del data.frame$", k))
+})
+
 test_that("print() muestra las tablas del proyecto y lo tomado por defecto", {
   p <- dl_proyecto(proyecto_ficticio())
   salida <- paste(capture.output(print(p)), collapse = "\n")
@@ -465,7 +485,7 @@ test_that("los mensajes del formato completo, en las palabras de la configuraci�
                                       "corrida escrita en /Users/ana/decisiones/datos.val/csmr/resultados")),
                    c("la tabla covariables", "subnacional.anio_validacion", "ancla.peso = 1",
                      "datos, columna valor: NA en columna", "covariables, columna error_estandar vac\u00edo",
-                     "  - datos: sin valor: fila_1", "el tipo de dato mortalidad",
+                     "  - datos: sin valor: fila(s) 2", "el tipo de dato mortalidad",
                      "la tabla poblacion no trae la poblaci\u00f3n",
                      "corrida escrita en /Users/ana/decisiones/datos.val/csmr/resultados"))
 })
