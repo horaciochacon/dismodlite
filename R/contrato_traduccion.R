@@ -64,13 +64,17 @@
 .dl_nombre_banda <- function(a0, a1)
   ifelse(a1 < .DL_EDAD_ABIERTA, sprintf("%g-%g a\u00f1os", a0, a1 - 1), sprintf("%g a\u00f1os y m\u00e1s", a0))
 
-# Bandas de edad del proyecto que no son grupos de GBD (de la población, del ancla y de poblacion_detalle), con su id
-# sintético en orden de (edad_inicio, edad_fin) y su nombre (.dl_nombre_banda).
+# Bandas de edad del proyecto que no son grupos de GBD (de la población, del ancla, de poblacion_detalle y de
+# covariables: las de los proxies pueden ser uniones de bandas de la población, como 45-59), con su id sintético en
+# orden de (edad_inicio, edad_fin) y su nombre (.dl_nombre_banda). Son las que llegan al catálogo de edades de la
+# traducción; la severidad no (su traducción no lleva bandas).
 .dl_bandas_proyecto <- function(tablas) {
-  todas <- data.table::rbindlist(lapply(tablas[intersect(c("poblacion", "ancla", "poblacion_detalle"), names(tablas))],
+  con_bandas <- c("poblacion", "ancla", "poblacion_detalle", "covariables")
+  todas <- data.table::rbindlist(lapply(tablas[intersect(con_bandas, names(tablas))],
     function(d) if (all(c("edad_inicio", "edad_fin") %in% names(d)))
       unique(data.table::data.table(edad_inicio = d$edad_inicio, edad_fin = d$edad_fin))))
   if (!nrow(todas)) todas <- data.table::data.table(edad_inicio = numeric(), edad_fin = numeric())
+  todas <- todas[!is.na(edad_inicio)]          # filas de covariables sin edades: todas las edades
   b <- unique(todas)[!.dl_es_banda_gbd(edad_inicio, edad_fin)]
   data.table::setorder(b, edad_inicio, edad_fin)
   b[, `:=`(age_group_id = .DL_ID_BANDA_SINTETICA + seq_len(.N), nombre = .dl_nombre_banda(edad_inicio, edad_fin))][]

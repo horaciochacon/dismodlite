@@ -242,6 +242,35 @@ test_that("un subtipo sin betas propias usa las de su causa padre (subtipos en l
   expect_identical(suppressMessages(dl_insumos(hija))$betas$covariate_name_short, "indice")
 })
 
+test_that("proxies en bandas que no son de GBD ni de la población (uniones de sus bandas) llevan su id y cierran", {
+  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
+  f <- file.path(d, "covariables", "proxies.csv")
+  px <- data.table::fread(f, colClasses = list(character = "ubicacion"), encoding = "UTF-8")
+  pob <- data.table::fread(file.path(d, "poblacion.csv"), colClasses = list(character = "ubicacion"))
+  # 45-59, 60-74 y 75+: promedios de las bandas de 5 años, ponderados por la población de la ubicación, el sexo y el
+  # año; así el promedio subnacional sigue cerrando en el valor nacional
+  anchas <- data.table::data.table(a0 = c(45, 60, 75), a1 = c(60, 75, 125))
+  px[, banda := findInterval(edad_inicio, anchas$a0)]
+  px[!is.na(edad_inicio) & edad_inicio < 45, banda := NA_integer_]
+  px[pob, p := i.poblacion, on = c("ubicacion", "anio", "sexo", "edad_inicio", "edad_fin")]
+  px[edad_inicio == 80, p := pob[.SD, on = c("ubicacion", "anio", "sexo"), sum(x.poblacion[x.edad_inicio >= 80]),
+                                 by = .EACHI]$V1]
+  agr <- px[!is.na(banda), list(valor = sum(valor * p) / sum(p), error_estandar = sum(error_estandar * p) / sum(p)),
+            by = list(ubicacion, anio, sexo, banda, covariable, fuente)]
+  agr[, `:=`(edad_inicio = anchas$a0[banda], edad_fin = anchas$a1[banda])]
+  nuevo <- rbind(px[is.na(banda)], agr, fill = TRUE)[, names(data.table::fread(f, nrows = 0L)), with = FALSE]
+  data.table::fwrite(nuevo, f)
+  b <- suppressMessages(dl_insumos(dl_proyecto(d, 9100)))
+  ids <- unique(b$cov_proxy$age_group_id)
+  expect_true(all(c(13L, 22L) %in% ids))
+  sint <- setdiff(ids, c(13L, 22L))
+  expect_length(sint, 3L)
+  expect_true(all(sint > dismodlite:::.DL_ID_BANDA_SINTETICA))
+  lim <- b$bandas_catalogo[age_group_id %in% sint][order(age_start)]
+  expect_identical(as.numeric(lim$age_start), c(45, 60, 75))
+  expect_identical(as.numeric(lim$age_end), c(60, 75, 125))
+})
+
 # Una corrida de partición de severidad mínima en `d` (particion/mini): la causa 302 de GBD con sus cuatro secuelas y
 # sus estados de salud del catálogo del paquete (665 -> 355, 666 -> 356, 667 -> 357, 668 -> 540), con proporciones
 # 0,6, 0,25, 0,1 y 0,05.
