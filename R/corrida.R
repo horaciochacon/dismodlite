@@ -468,8 +468,10 @@
 #'   "inputs", "contrato"))` repite la corrida sin la carpeta original, también si las tablas o la configuración se
 #'   dieron en R. En `betas.csv` van las betas que usó la causa, bajo la causa de la corrida: las de su causa padre
 #'   si es un subtipo sin betas propias, cuya configuración congelada lleva además `avanzado: extraction: cause_id`
-#'   (la causa padre, que [dl_sumar_hijas()] exige). Lo que la configuración nombra fuera del proyecto (la carpeta de
-#'   `severidad.particion`) no se congela.
+#'   (la causa padre, que [dl_sumar_hijas()] exige). Lo que la configuración nombra fuera de las tablas (la carpeta de
+#'   `severidad.particion`) no se congela, y `config.yaml` guarda su ruta tal como se escribió: para repetir una
+#'   corrida que usó una partición con una ruta relativa, copia esa carpeta en `inputs/contrato/` con la misma ruta
+#'   (por ejemplo, `inputs/contrato/particion/<corrida>/`).
 #' - `manifest.yaml`: la descripción de la corrida (abajo).
 #'
 #' El identificador `<AAAA-MM-DD>_<nombre>_v<n>` lleva la fecha del día y la versión siguiente a la mayor de ese día

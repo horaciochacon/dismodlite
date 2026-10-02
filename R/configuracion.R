@@ -202,7 +202,9 @@
 #'   proyecto sale cada una). La de un proyecto trae además `origen`: `formato` (`"simple"`), `archivo`, `nombre`
 #'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano` o `no`), `unidades`
 #'   (`"contrato"`: las tablas del proyecto ya vienen en las unidades del modelo), `betas` (la tabla `betas` de la
-#'   causa) y `por_defecto` (las claves tomadas por defecto, con su valor, como texto).
+#'   causa), `por_defecto` (las claves tomadas por defecto, con su valor, como texto) y `configuracion` (la
+#'   configuración del proyecto tal como se leyó, con los nombres de clave de ahora: la que la corrida congela en
+#'   `inputs/contrato/config.yaml`).
 #' @seealso [dl_proyecto()] (la carpeta del proyecto y sus archivos), [dl_nuevo_proyecto()] (una configuración
 #'   comentada con todas las claves), [dl_configuracion_ejemplo()] y [dl_insumos()] (el paso siguiente).
 #' @family configuración
@@ -323,6 +325,10 @@ NULL
 #'   `poblacion` en el año del ancla, que entonces debe traer esas bandas; en el formato completo, `pesos_80mas`);
 #'   `false` usa las bandas tal cual llegan (así las deja la traducción de un proyecto, que agrupa con
 #'   `poblacion_detalle` solo las que la población no tiene). Por defecto `true` en el formato completo.
+#' - `extraction`: `{cause_id, motivo}`: la causa padre de un subtipo que se lee sin la configuración de su padre
+#'   (en su propia carpeta). La corrida la declara en su manifiesto y [dl_sumar_hijas()] la exige para sumar el
+#'   subtipo; no cambia las betas, que van en `betas` bajo la causa del subtipo. En un proyecto con la configuración
+#'   del padre (`subtipos`) sale sola, y la corrida congelada de un subtipo la escribe.
 #' - `cascada.dx_fuera_de_banda`: en las edades sin grupo de edad del proxy, `cero` (sin diferencia con el valor
 #'   nacional) o `vecina` (la del grupo más próximo, con procedencia) (`cero`).
 #' - `cascada.dx_interpolacion`: entre los grupos de edad del proxy, `lineal` (interpolada entre sus puntos medios)

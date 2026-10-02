@@ -86,10 +86,13 @@ puede leer en un proyecto (sí en el formato completo, con sus catálogos).
   severidad.csv
   fuentes_gbd/
   poblacion_detalle.csv
+  particion/<corrida>/ # opcional: la partición de severidad que nombra severidad.particion
 }\if{html}{\out{</div>}}
 
-Cada tabla es \verb{<tabla>.csv} o una carpeta \verb{<tabla>/} cuyos CSV se juntan (cada uno pasa por su lector). Las rutas
-no se declaran. Una tabla opcional ausente, o con solo el encabezado, no existe (así quedan las plantillas de
+Cada tabla es \verb{<tabla>.csv} o una carpeta \verb{<tabla>/} cuyos CSV se juntan (cada uno pasa por su lector), como
+\verb{poblacion_detalle/} con un CSV por fuente. Las rutas no se declaran, salvo la de la partición de severidad
+(\code{severidad.particion}, relativa a la carpeta). Los demás archivos de la carpeta (un \code{LEEME.md}, la carpeta
+\verb{resultados/} que escribe \code{\link[=dl_correr]{dl_correr()}}) no se leen. Una tabla opcional ausente, o con solo el encabezado, no existe (así quedan las plantillas de
 \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}}). Las obligatorias son \code{ubicaciones}, \code{poblacion} y \code{ancla}: con ellas se estima la causa en
 el país y, si hay ubicaciones subnacionales, en cada una con las tasas nacionales. \code{\link[=dl_correr]{dl_correr()}}, que calcula los
 años vividos con discapacidad (AVD), necesita también \code{severidad} (o \code{severidad.particion} en la configuración).
@@ -98,7 +101,10 @@ columnas de cada tabla, sus unidades y sus valores están en \link{dl_tablas}.
 
 Con varias causas, cada una tiene su configuración en \verb{config/<causa>.yaml} y comparten las tablas, que traen las
 filas de todas en la columna \code{causa} (sin ella, una fila vale para todas). Una causa que es la suma de otras las
-declara en \code{subtipos}; un subtipo sin betas propias usa las de su causa padre. Cada subtipo se corre por separado y
+declara en \code{subtipos}; un subtipo sin betas propias usa las de su causa padre. El subtipo encuentra a su padre por
+esa clave, en otra configuración del mismo proyecto: leído solo (en su propia carpeta), no lo conoce (ver
+\code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}). La causa padre se lee con \code{dl_proyecto()} aunque solo se sume: necesita su prevalencia en el
+ancla (y su mortalidad, con el prior por defecto de la mortalidad en exceso). Cada subtipo se corre por separado y
 sus corridas se suman con \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, con las rutas del proyecto de la causa padre:
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{corridas <- vapply(c(1011, 1012), function(k) dl_correr(carpeta, k, semilla = 1)$dir, "")

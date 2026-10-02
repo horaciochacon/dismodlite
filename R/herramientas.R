@@ -89,6 +89,7 @@
     "severidad.csv          # estados de salud y sus proporciones (para los AVD)",
     "fuentes_gbd/           # la lista de fuentes del GHDx que GBD ya us\u00f3",
     "poblacion_detalle.csv  # poblaci\u00f3n nacional con m\u00e1s detalle de edad, si el ancla es m\u00e1s fina",
+    "particion/<corrida>/   # (opcional) la partici\u00f3n de severidad que nombra severidad.particion",
     "```", "",
     "Una tabla con solo el encabezado no se usa: las obligatorias son `ubicaciones`, `poblacion` y `ancla`.", "",
     sprintf("1. Completa `%s`.", archivo_config),
@@ -388,17 +389,18 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #'    tablas (la ubicación nacional, las betas): si `ubicaciones`, `betas` o `covariables` tienen un error, espera
 #'    (`-`);
 #' 3. `proyecto`: las reglas que cruzan tablas, cada problema con su tabla delante: que toda ubicación esté en
-#'    `ubicaciones` (una sola sin `padre`, la nacional; las subnacionales con la nacional de padre); que la población
-#'    traiga el año que se estima y los sexos del modelo, con las mismas bandas de edad en todas las ubicaciones, años
-#'    y sexos, seguidas (sin huecos) y desde `edad_inicio`; que el ancla traiga la prevalencia de la causa (y la mortalidad, si la usa el prior
-#'    de la mortalidad en exceso) en el año del ancla y en cada sexo, y la columna `causa` si el proyecto tiene varias;
-#'    que cada banda del ancla sea una unión de bandas de la población o se pueda agrupar con `poblacion_detalle`; que
-#'    cada covariable de `betas` (y cada `valor_nacional_de`) tenga su valor nacional en el año del ancla y que
-#'    `escala` vaya solo con la transformación lineal; que cada ubicación subnacional con proxies los traiga de todas
-#'    las covariables; que las proporciones de `severidad` sumen 1. Avisa (`!`) de una covariable con proxies y sin
-#'    beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación subnacional) y de
-#'    valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por persona-año (mayores que 1, o más de
-#'    1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+#'    `ubicaciones` (sin códigos repetidos, una sola sin `padre`, la nacional; las subnacionales con la nacional de
+#'    padre); que la población traiga el año que se estima y los sexos del modelo, con las mismas bandas de edad en
+#'    todas las ubicaciones, años y sexos, seguidas (sin huecos) y desde `edad_inicio`; que el ancla traiga la
+#'    prevalencia de la causa (y la mortalidad, si la usa el prior de la mortalidad en exceso) en el año del ancla y en
+#'    cada sexo, y la columna `causa` si el proyecto tiene varias; que cada banda del ancla sea una unión de bandas de
+#'    la población o se pueda agrupar con `poblacion_detalle`; que cada covariable de `betas` (y cada
+#'    `valor_nacional_de`) tenga su valor nacional en el año del ancla y que `escala` vaya solo con la transformación
+#'    lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
+#'    que se anclan traiga su intervalo (`inferior` y `superior`); que las proporciones de `severidad` sumen 1. Avisa
+#'    (`!`) de una covariable con proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera
+#'    de la estimación subnacional) y de valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por
+#'    persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
 #' 4. `insumos`: si nada falló, los insumos completos ([dl_insumos()]), con las reglas que necesitan todo armado: que
 #'    la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
 #'    población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la
@@ -527,8 +529,8 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' `ancla.correlacion_edad` de la configuración y la corrida escrita con `forzar = TRUE`, sin exigir la convergencia
 #' (el manifiesto lo declara). Su nombre termina en `-prueba` y sus números no sirven para publicar.
 #'
-#' La causa debe tener severidad (sus estados de salud en `severidad.csv`): sin ella los AVD serían cero y la corrida
-#' no se escribe. `dl_correr()` lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
+#' La causa debe tener severidad (sus estados de salud en `severidad.csv` o desde `severidad.particion`): sin ella los
+#' AVD serían cero y la corrida no se escribe. `dl_correr()` lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
 #' [dl_ajustar()] con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
 #' proyecto con las tablas del contrato, los mensajes de todos los pasos citan sus claves y sus tablas (como [dl_insumos()]).
 #'

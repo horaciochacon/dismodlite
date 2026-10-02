@@ -448,9 +448,12 @@
 #'   severidad.csv
 #'   fuentes_gbd/
 #'   poblacion_detalle.csv
+#'   particion/<corrida>/ # opcional: la partición de severidad que nombra severidad.particion
 #' ```
-#' Cada tabla es `<tabla>.csv` o una carpeta `<tabla>/` cuyos CSV se juntan (cada uno pasa por su lector). Las rutas
-#' no se declaran. Una tabla opcional ausente, o con solo el encabezado, no existe (así quedan las plantillas de
+#' Cada tabla es `<tabla>.csv` o una carpeta `<tabla>/` cuyos CSV se juntan (cada uno pasa por su lector), como
+#' `poblacion_detalle/` con un CSV por fuente. Las rutas no se declaran, salvo la de la partición de severidad
+#' (`severidad.particion`, relativa a la carpeta). Los demás archivos de la carpeta (un `LEEME.md`, la carpeta
+#' `resultados/` que escribe [dl_correr()]) no se leen. Una tabla opcional ausente, o con solo el encabezado, no existe (así quedan las plantillas de
 #' [dl_nuevo_proyecto()]). Las obligatorias son `ubicaciones`, `poblacion` y `ancla`: con ellas se estima la causa en
 #' el país y, si hay ubicaciones subnacionales, en cada una con las tasas nacionales. [dl_correr()], que calcula los
 #' años vividos con discapacidad (AVD), necesita también `severidad` (o `severidad.particion` en la configuración).
@@ -459,7 +462,10 @@
 #'
 #' Con varias causas, cada una tiene su configuración en `config/<causa>.yaml` y comparten las tablas, que traen las
 #' filas de todas en la columna `causa` (sin ella, una fila vale para todas). Una causa que es la suma de otras las
-#' declara en `subtipos`; un subtipo sin betas propias usa las de su causa padre. Cada subtipo se corre por separado y
+#' declara en `subtipos`; un subtipo sin betas propias usa las de su causa padre. El subtipo encuentra a su padre por
+#' esa clave, en otra configuración del mismo proyecto: leído solo (en su propia carpeta), no lo conoce (ver
+#' [dl_sumar_hijas()]). La causa padre se lee con `dl_proyecto()` aunque solo se sume: necesita su prevalencia en el
+#' ancla (y su mortalidad, con el prior por defecto de la mortalidad en exceso). Cada subtipo se corre por separado y
 #' sus corridas se suman con [dl_sumar_hijas()], con las rutas del proyecto de la causa padre:
 #' ```r
 #' corridas <- vapply(c(1011, 1012), function(k) dl_correr(carpeta, k, semilla = 1)$dir, "")

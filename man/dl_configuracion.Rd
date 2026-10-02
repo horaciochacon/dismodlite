@@ -27,7 +27,9 @@ Objeto de clase \code{dl_config}: la configuración validada, en el formato comp
 proyecto sale cada una). La de un proyecto trae además \code{origen}: \code{formato} (\code{"simple"}), \code{archivo}, \code{nombre}
 (el de la causa), \code{subnacional} (el modo subnacional: \code{covariables}, \code{plano} o \code{no}), \code{unidades}
 (\code{"contrato"}: las tablas del proyecto ya vienen en las unidades del modelo), \code{betas} (la tabla \code{betas} de la
-causa) y \code{por_defecto} (las claves tomadas por defecto, con su valor, como texto).
+causa), \code{por_defecto} (las claves tomadas por defecto, con su valor, como texto) y \code{configuracion} (la
+configuración del proyecto tal como se leyó, con los nombres de clave de ahora: la que la corrida congela en
+\code{inputs/contrato/config.yaml}).
 }
 \description{
 Lee la configuración de una causa, le aplica los \code{cambios} y valida todos los campos. Lee los dos formatos: la
@@ -98,7 +100,7 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \code{mortalidad_exceso.techo} \tab número \tab Techo de la EMR, un número > 0, por persona-año. Ejemplo: \code{0.25}. \tab 3 veces la EMR máxima del ancla \tab \code{emr_prior.cota} \cr
 \code{remision} \tab número \tab Remisión, un número >= 0, por persona-año (0 es una causa crónica). Ejemplo: \code{0.1}. \tab \code{0} \tab \code{remision.valor} \cr
 \code{datos_en_ajuste} \tab lista de textos \tab Tipos de la tabla datos cuyas filas nacionales entran al ajuste: prevalencia (de estudios; también se admite prevalencia_estudio), incidencia, mortalidad. Ejemplo: \code{[prevalencia, mortalidad]}. \tab ninguno: las nacionales no se usan; las subnacionales de mortalidad validan \tab \code{medidas_entrada} \cr
-\code{severidad.particion} \tab texto \tab Carpeta de una corrida de partición de severidad, relativa al proyecto. La tabla severidad de la causa sale de ella (con los pesos de discapacidad de GBD) en vez de la tabla severidad. Ejemplo: \code{particion/mi_corrida}. \tab sin valor \tab \code{severidad.run_id} \cr
+\code{severidad.particion} \tab texto \tab Carpeta de una corrida de partición de severidad, relativa a la carpeta del proyecto (sin carpeta, al directorio de trabajo). La tabla severidad de la causa sale de ella (con los pesos de discapacidad de GBD) en vez de la tabla severidad. La corrida no copia esta carpeta en inputs/contrato/. Ejemplo: \code{particion/mi_corrida}. \tab sin valor \tab \code{severidad.run_id} \cr
 \code{severidad.padre} \tab entero \tab Causa padre cuya partición reparte las secuelas de esta causa (la causa es una hija dentro de la partición del padre). Solo con severidad.particion. Ejemplo: \code{1010}. \tab sin valor \tab \code{severidad.padre} \cr
 \code{componente.secuelas} \tab lista de enteros \tab Secuelas que forman el componente que se modela: el ancla se escala a su fracción de prevalencia y la severidad es la del componente. Necesita severidad.particion. Ejemplo: \code{[5001, 5002]}. \tab sin valor \tab \code{anchor.componente.sequela_ids} \cr
 \code{subnacional.modo} \tab texto \tab Estimación subnacional: covariables (gradiente por las covariables de la tabla betas), plano (las tasas nacionales en cada ubicación) o no (sin estimación subnacional). Ejemplo: \code{plano}. \tab covariables si alguna covariable de la tabla betas tiene filas subnacionales en la tabla covariables; si no, plano si la población trae otras ubicaciones; si no, no \tab \code{cascada.modo} \cr
@@ -107,7 +109,7 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \code{sensibilidad.peso} (λ) \tab lista de números \tab Valores de ancla.peso del análisis de sensibilidad. Ejemplo: \code{[0.5, 1]}. \tab \code{[0.25, 0.5, 1]} \tab \code{sensibilidad.lambda} \cr
 \code{sensibilidad.correlacion_edad} (ρ) \tab lista de números \tab Valores de ancla.correlacion_edad del análisis de sensibilidad. Ejemplo: \code{[0, 0.9]}. \tab \code{[0, 0.5, 0.9]} \tab \code{sensibilidad.rho} \cr
 \code{sensibilidad.kappa} (κ) \tab lista de números \tab Valores de subnacional.kappa del análisis de sensibilidad. Ejemplo: \code{[1]}. \tab \code{[0.5, 1]} \tab \code{sensibilidad.kappa} \cr
-\code{subtipos} \tab lista de enteros \tab Causas hijas cuya suma es esta causa (solo en la configuración de la causa padre): cada una tiene su configuración y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su argumento \code{omitidas} (ver ?dl_proyecto). Ejemplo: \code{[1011, 1012, 1013]}. \tab sin valor \tab  \cr
+\code{subtipos} \tab lista de enteros \tab Causas hijas cuya suma es esta causa (solo en la configuración de la causa padre): cada una tiene su configuración en el mismo proyecto (config/<causa>.yaml), que la reconoce como subtipo (sin betas propias, usa las de esta causa), y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su argumento \code{omitidas} (ver ?dl_proyecto). Ejemplo: \code{[1011, 1012, 1013]}. \tab sin valor \tab  \cr
 \code{notas} \tab lista de textos \tab Decisiones que quedan registradas en cada corrida. Ejemplo: \code{[la encuesta nacional ya entró a la estimación de referencia]}. \tab sin valor \tab \code{decisiones} \cr
 \code{avanzado} \tab bloque \tab Claves del formato completo, tal cual: se aplican al final, sobre la traducción (para expertos). Ejemplo: \code{\{nsub: 10\}}. \tab sin valor \tab  \cr
 }
@@ -128,7 +130,7 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \item{\code{mortalidad_exceso.techo}}{Techo de la EMR, un número > 0, por persona-año. Ejemplo: \code{0.25}. Número; por defecto, 3 veces la EMR máxima del ancla. Formato completo: \code{emr_prior.cota}.}
 \item{\code{remision}}{Remisión, un número >= 0, por persona-año (0 es una causa crónica). Ejemplo: \code{0.1}. Número; por defecto, \code{0}. Formato completo: \code{remision.valor}.}
 \item{\code{datos_en_ajuste}}{Tipos de la tabla datos cuyas filas nacionales entran al ajuste: prevalencia (de estudios; también se admite prevalencia_estudio), incidencia, mortalidad. Ejemplo: \code{[prevalencia, mortalidad]}. Lista de textos; por defecto, ninguno: las nacionales no se usan; las subnacionales de mortalidad validan. Formato completo: \code{medidas_entrada}.}
-\item{\code{severidad.particion}}{Carpeta de una corrida de partición de severidad, relativa al proyecto. La tabla severidad de la causa sale de ella (con los pesos de discapacidad de GBD) en vez de la tabla severidad. Ejemplo: \code{particion/mi_corrida}. Texto; por defecto, sin valor. Formato completo: \code{severidad.run_id}.}
+\item{\code{severidad.particion}}{Carpeta de una corrida de partición de severidad, relativa a la carpeta del proyecto (sin carpeta, al directorio de trabajo). La tabla severidad de la causa sale de ella (con los pesos de discapacidad de GBD) en vez de la tabla severidad. La corrida no copia esta carpeta en inputs/contrato/. Ejemplo: \code{particion/mi_corrida}. Texto; por defecto, sin valor. Formato completo: \code{severidad.run_id}.}
 \item{\code{severidad.padre}}{Causa padre cuya partición reparte las secuelas de esta causa (la causa es una hija dentro de la partición del padre). Solo con severidad.particion. Ejemplo: \code{1010}. Entero; por defecto, sin valor. Formato completo: \code{severidad.padre}.}
 \item{\code{componente.secuelas}}{Secuelas que forman el componente que se modela: el ancla se escala a su fracción de prevalencia y la severidad es la del componente. Necesita severidad.particion. Ejemplo: \code{[5001, 5002]}. Lista de enteros; por defecto, sin valor. Formato completo: \code{anchor.componente.sequela_ids}.}
 \item{\code{subnacional.modo}}{Estimación subnacional: covariables (gradiente por las covariables de la tabla betas), plano (las tasas nacionales en cada ubicación) o no (sin estimación subnacional). Ejemplo: \code{plano}. Texto; por defecto, covariables si alguna covariable de la tabla betas tiene filas subnacionales en la tabla covariables; si no, plano si la población trae otras ubicaciones; si no, no. Formato completo: \code{cascada.modo}.}
@@ -137,7 +139,7 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \item{\code{sensibilidad.peso} (\eqn{\lambda}{λ})}{Valores de ancla.peso del análisis de sensibilidad. Ejemplo: \code{[0.5, 1]}. Lista de números; por defecto, \code{[0.25, 0.5, 1]}. Formato completo: \code{sensibilidad.lambda}.}
 \item{\code{sensibilidad.correlacion_edad} (\eqn{\rho}{ρ})}{Valores de ancla.correlacion_edad del análisis de sensibilidad. Ejemplo: \code{[0, 0.9]}. Lista de números; por defecto, \code{[0, 0.5, 0.9]}. Formato completo: \code{sensibilidad.rho}.}
 \item{\code{sensibilidad.kappa} (\eqn{\kappa}{κ})}{Valores de subnacional.kappa del análisis de sensibilidad. Ejemplo: \code{[1]}. Lista de números; por defecto, \code{[0.5, 1]}. Formato completo: \code{sensibilidad.kappa}.}
-\item{\code{subtipos}}{Causas hijas cuya suma es esta causa (solo en la configuración de la causa padre): cada una tiene su configuración y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su argumento \code{omitidas} (ver ?dl_proyecto). Ejemplo: \code{[1011, 1012, 1013]}. Lista de enteros; por defecto, sin valor.}
+\item{\code{subtipos}}{Causas hijas cuya suma es esta causa (solo en la configuración de la causa padre): cada una tiene su configuración en el mismo proyecto (config/<causa>.yaml), que la reconoce como subtipo (sin betas propias, usa las de esta causa), y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su argumento \code{omitidas} (ver ?dl_proyecto). Ejemplo: \code{[1011, 1012, 1013]}. Lista de enteros; por defecto, sin valor.}
 \item{\code{notas}}{Decisiones que quedan registradas en cada corrida. Ejemplo: \code{[la encuesta nacional ya entró a la estimación de referencia]}. Lista de textos; por defecto, sin valor. Formato completo: \code{decisiones}.}
 \item{\code{avanzado}}{Claves del formato completo, tal cual: se aplican al final, sobre la traducción (para expertos). Ejemplo: \code{\{nsub: 10\}}. Bloque; por defecto, sin valor.}
 }
@@ -191,6 +193,10 @@ como hasta la 1.0.0, con los pesos de su población (en un proyecto, la poblaci�
 \code{poblacion} en el año del ancla, que entonces debe traer esas bandas; en el formato completo, \code{pesos_80mas});
 \code{false} usa las bandas tal cual llegan (así las deja la traducción de un proyecto, que agrupa con
 \code{poblacion_detalle} solo las que la población no tiene). Por defecto \code{true} en el formato completo.
+\item \code{extraction}: \verb{\{cause_id, motivo\}}: la causa padre de un subtipo que se lee sin la configuración de su padre
+(en su propia carpeta). La corrida la declara en su manifiesto y \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} la exige para sumar el
+subtipo; no cambia las betas, que van en \code{betas} bajo la causa del subtipo. En un proyecto con la configuración
+del padre (\code{subtipos}) sale sola, y la corrida congelada de un subtipo la escribe.
 \item \code{cascada.dx_fuera_de_banda}: en las edades sin grupo de edad del proxy, \code{cero} (sin diferencia con el valor
 nacional) o \code{vecina} (la del grupo más próximo, con procedencia) (\code{cero}).
 \item \code{cascada.dx_interpolacion}: entre los grupos de edad del proxy, \code{lineal} (interpolada entre sus puntos medios)

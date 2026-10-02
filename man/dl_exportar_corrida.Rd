@@ -79,8 +79,10 @@ como se leyó (\code{config.yaml}, con los nombres de clave de ahora), y el mani
 archivo en \code{inputs$contrato}. \verb{inputs/contrato/} es la carpeta de un proyecto: \code{dl_proyecto(file.path(run$dir, "inputs", "contrato"))} repite la corrida sin la carpeta original, también si las tablas o la configuración se
 dieron en R. En \code{betas.csv} van las betas que usó la causa, bajo la causa de la corrida: las de su causa padre
 si es un subtipo sin betas propias, cuya configuración congelada lleva además \code{avanzado: extraction: cause_id}
-(la causa padre, que \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} exige). Lo que la configuración nombra fuera del proyecto (la carpeta de
-\code{severidad.particion}) no se congela.
+(la causa padre, que \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} exige). Lo que la configuración nombra fuera de las tablas (la carpeta de
+\code{severidad.particion}) no se congela, y \code{config.yaml} guarda su ruta tal como se escribió: para repetir una
+corrida que usó una partición con una ruta relativa, copia esa carpeta en \verb{inputs/contrato/} con la misma ruta
+(por ejemplo, \verb{inputs/contrato/particion/<corrida>/}).
 \item \code{manifest.yaml}: la descripción de la corrida (abajo).
 }
 

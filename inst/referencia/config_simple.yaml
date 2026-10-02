@@ -164,8 +164,9 @@ claves:
     destino: severidad.run_id
     ejemplo: particion/mi_corrida
     descripcion: >-
-      Carpeta de una corrida de partición de severidad, relativa al proyecto. La tabla severidad de la causa sale de
-      ella (con los pesos de discapacidad de GBD) en vez de la tabla severidad.
+      Carpeta de una corrida de partición de severidad, relativa a la carpeta del proyecto (sin carpeta, al directorio
+      de trabajo). La tabla severidad de la causa sale de ella (con los pesos de discapacidad de GBD) en vez de la
+      tabla severidad. La corrida no copia esta carpeta en inputs/contrato/.
 
   - clave: severidad.padre
     tipo: entero
@@ -239,8 +240,9 @@ claves:
     ejemplo: "[1011, 1012, 1013]"
     descripcion: >-
       Causas hijas cuya suma es esta causa (solo en la configuración de la causa padre): cada una tiene su
-      configuración y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su argumento
-      `omitidas` (ver ?dl_proyecto).
+      configuración en el mismo proyecto (config/<causa>.yaml), que la reconoce como subtipo (sin betas propias,
+      usa las de esta causa), y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su
+      argumento `omitidas` (ver ?dl_proyecto).
 
   - clave: notas
     tipo: lista de textos

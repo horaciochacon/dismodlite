@@ -83,8 +83,8 @@ simulaciones, 2 cadenas de 2000 iteraciones), las mismas en la sensibilidad, eti
 \code{ancla.correlacion_edad} de la configuración y la corrida escrita con \code{forzar = TRUE}, sin exigir la convergencia
 (el manifiesto lo declara). Su nombre termina en \code{-prueba} y sus números no sirven para publicar.
 
-La causa debe tener severidad (sus estados de salud en \code{severidad.csv}): sin ella los AVD serían cero y la corrida
-no se escribe. \code{dl_correr()} lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
+La causa debe tener severidad (sus estados de salud en \code{severidad.csv} o desde \code{severidad.particion}): sin ella los
+AVD serían cero y la corrida no se escribe. \code{dl_correr()} lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
 \code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
 proyecto con las tablas del contrato, los mensajes de todos los pasos citan sus claves y sus tablas (como \code{\link[=dl_insumos]{dl_insumos()}}).
 }
