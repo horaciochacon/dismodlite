@@ -466,8 +466,10 @@
 #'   como se leyó (`config.yaml`, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada
 #'   archivo en `inputs$contrato`. `inputs/contrato/` es la carpeta de un proyecto: `dl_proyecto(file.path(run$dir,
 #'   "inputs", "contrato"))` repite la corrida sin la carpeta original, también si las tablas o la configuración se
-#'   dieron en R. Lo que la configuración nombra fuera del proyecto (la carpeta de `severidad.particion`) y la causa
-#'   padre de un subtipo que usa sus betas (la declara la configuración del padre) no se congelan.
+#'   dieron en R. En `betas.csv` van las betas que usó la causa, bajo la causa de la corrida: las de su causa padre
+#'   si es un subtipo sin betas propias, cuya configuración congelada lleva además `avanzado: extraction: cause_id`
+#'   (la causa padre, que [dl_sumar_hijas()] exige). Lo que la configuración nombra fuera del proyecto (la carpeta de
+#'   `severidad.particion`) no se congela.
 #' - `manifest.yaml`: la descripción de la corrida (abajo).
 #'
 #' El identificador `<AAAA-MM-DD>_<nombre>_v<n>` lleva la fecha del día y la versión siguiente a la mayor de ese día
@@ -609,8 +611,8 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   # la corrida se repite sin la carpeta original, también cuando las tablas o la configuración se dieron en R. Cada
   # número se escribe con el texto exacto (.dl_num_exacto), no con los 15 dígitos de fwrite: al releerlos vuelven los
   # mismos números
-  contrato_hash <- .dl_congelar_contrato(b$contrato, file.path(inputs_dir, "contrato"),
-                                         if (length(b$contrato)) cfg$origen$configuracion)
+  congelado <- .dl_contrato_congelado(b$contrato, cfg)
+  contrato_hash <- .dl_congelar_contrato(congelado$tablas, file.path(inputs_dir, "contrato"), congelado$configuracion)
   # con un proyecto del contrato, las covariables nacionales ya van en contrato/covariables.csv: la copia de las
   # descargas crudas (ghdx_cov/) es solo del formato completo
   if (!is.null(carpeta_cov) && !length(b$contrato)) {
@@ -624,6 +626,26 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   .dl_escribir_manifest(man, dir_run)
   escrita <- TRUE
   .dl_corrida_escrita(man, dir_run, if (registrar) registro)
+}
+
+# Las tablas del contrato `contrato` y la configuración del proyecto que congela la corrida de `cfg`, para que
+# inputs/contrato/ sea un proyecto por sí solo: la tabla betas, solo con las betas que usó la causa
+# (.dl_betas_de_causa) y las de su causa padre (extraction.cause_id: un subtipo sin betas propias) puestas a su nombre;
+# y la configuración tal como se leyó, más `avanzado: extraction` si la causa usa las betas de su padre (la relación
+# la declara la configuración del padre, que no se congela). Sin tablas (formato completo), configuración NULL.
+.dl_contrato_congelado <- function(contrato, cfg) {
+  if (!length(contrato)) return(list(tablas = contrato, configuracion = NULL))
+  s <- cfg$origen$configuracion
+  padre <- cfg$extraction$cause_id
+  if (!is.null(contrato$betas)) {
+    b <- .dl_betas_de_causa(contrato$betas, cfg$cause_id, padre)
+    if ("causa" %in% names(b) && !is.null(padre))
+      b[!is.na(causa) & causa == padre, causa := as.integer(cfg$cause_id)]
+    contrato$betas <- if (nrow(b)) b
+  }
+  if (!is.null(padre) && !is.null(s) && is.null(s$avanzado$extraction))
+    s$avanzado$extraction <- cfg$extraction
+  list(tablas = contrato, configuracion = s)
 }
 
 # Nombre de la configuración del proyecto congelada en inputs/contrato/.

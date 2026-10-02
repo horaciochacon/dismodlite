@@ -77,8 +77,10 @@ proyecto de las tablas del contrato (\code{\link[=dl_proyecto]{dl_proyecto()}}),
 (\verb{<tabla>.csv}, con las covariables nacionales; los números escritos exactos) y la configuración del proyecto tal
 como se leyó (\code{config.yaml}, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada
 archivo en \code{inputs$contrato}. \verb{inputs/contrato/} es la carpeta de un proyecto: \code{dl_proyecto(file.path(run$dir, "inputs", "contrato"))} repite la corrida sin la carpeta original, también si las tablas o la configuración se
-dieron en R. Lo que la configuración nombra fuera del proyecto (la carpeta de \code{severidad.particion}) y la causa
-padre de un subtipo que usa sus betas (la declara la configuración del padre) no se congelan.
+dieron en R. En \code{betas.csv} van las betas que usó la causa, bajo la causa de la corrida: las de su causa padre
+si es un subtipo sin betas propias, cuya configuración congelada lleva además \code{avanzado: extraction: cause_id}
+(la causa padre, que \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} exige). Lo que la configuración nombra fuera del proyecto (la carpeta de
+\code{severidad.particion}) no se congela.
 \item \code{manifest.yaml}: la descripción de la corrida (abajo).
 }
 

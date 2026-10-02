@@ -272,6 +272,22 @@ test_that("la corrida congela las tablas del contrato y sirven para repetirla", 
   expect_identical(dl_insumos(dl_proyecto(cong))$hash, man$inputs$bundle_hash)
 })
 
+test_that("la corrida de un subtipo con las betas de su causa padre se repite desde inputs/contrato/", {
+  d <- withr::local_tempdir()
+  r <- suppressMessages(dl_correr(dl_ejemplo(), 9101, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                  carpeta_salida = d))
+  man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  cong <- file.path(r$dir, "inputs", "contrato")
+  # betas.csv congela las betas que usó la causa (las de su padre), bajo la causa del subtipo
+  b <- data.table::fread(file.path(cong, "betas.csv"))
+  expect_identical(unique(b$causa), 9101L)
+  expect_setequal(b$covariable, c("SEV_scalar_agestd_cvd_pvd", "LDI_pc", "haqi"))
+  p <- dl_proyecto(cong)
+  expect_identical(p$configuracion$extraction$cause_id, 9100L)    # dl_sumar_hijas() la exige
+  expect_identical(dl_insumos(p)$hash, man$inputs$bundle_hash)
+  expect_identical(man$causa$extraction_cause_id, 9100L)
+})
+
 test_that("la configuración de un proyecto se congela con sus tipos: releída es la misma", {
   d <- withr::local_tempdir()
   s <- list(causa = 9101L, anio = 2023, edad_inicio = 30L, nombre = "\u00c1rbol: x",
