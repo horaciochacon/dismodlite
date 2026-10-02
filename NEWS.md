@@ -29,8 +29,8 @@ de donde vengan los datos. Es una versión mayor porque los proyectos de la vers
   (`inputs/contrato/<tabla>.csv` y `inputs/contrato/config.yaml`) con su sha256 en el manifiesto: `inputs/contrato/`
   es la carpeta de un proyecto, y una corrida hecha con tablas o una configuración de R se repite sin ellas. La de un
   subtipo con las betas de su causa padre las congela a su nombre, con la causa padre en `avanzado: extraction`. La
-  carpeta de `severidad.particion` no se congela: para repetir una corrida que la usó, se copia en
-  `inputs/contrato/` con la misma ruta relativa.
+  carpeta de `severidad.particion` se congela en `inputs/contrato/particion/<corrida>/`, con la ruta de la
+  configuración congelada cambiada a ella.
 * Los proxies de `covariables` pueden venir en bandas de edad propias, uniones de las de la población (por ejemplo
   45-59 con bandas de 5 años).
 * Las bandas de la población van seguidas: un hueco entre ellas es un problema de la población. En `datos`,

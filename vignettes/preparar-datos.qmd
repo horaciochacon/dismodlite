@@ -814,15 +814,10 @@ cat(tail(readLines(file.path(congelada, "config.yaml"), encoding = "UTF-8"), 4),
 dl_proyecto(congelada)$configuracion$extraction$cause_id
 ```
 
-`dl_correr(congelada, semilla = 1, carpeta_salida = ...)` repite la corrida. **Una limitación**: la carpeta de la
-partición de severidad no se congela, y `config.yaml` guarda su ruta tal como se escribió. Para repetir una corrida
-que usó `severidad.particion` con una ruta relativa, copia antes la partición en `inputs/contrato/` con la misma ruta:
-
-```r
-dir.create(file.path(congelada, "particion"))
-file.copy(file.path("una_causa", "particion", "<corrida>"), file.path(congelada, "particion"), recursive = TRUE)
-dl_correr(congelada, semilla = 1, carpeta_salida = "resultados")
-```
+`dl_correr(congelada, semilla = 1, carpeta_salida = ...)` repite la corrida. Una corrida que usó
+`severidad.particion` congela también esa partición, en `inputs/contrato/particion/<corrida>/`, con la ruta de
+`severidad.particion` de `config.yaml` cambiada a esa carpeta y el sha256 de cada archivo en el manifiesto: también
+se repite sola.
 
 ## 8. Lista de verificación
 

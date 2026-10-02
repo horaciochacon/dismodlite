@@ -337,10 +337,13 @@
     inputs = c(list(bundle_hash = b$hash,
                   tablas = lapply(names(tablas_hash), function(nm)
                     list(tabla = sub("[.]csv$", "", nm), sha256 = tablas_hash[[nm]]))),
-                  # las tablas del contrato congeladas en inputs/contrato/ (sin la clave en el formato completo)
-                  # y la configuración del proyecto congelada en inputs/contrato/config.yaml
+                  # las tablas del contrato congeladas en inputs/contrato/ (sin la clave en el formato completo),
+                  # la configuración del proyecto congelada en inputs/contrato/config.yaml y cada archivo de la
+                  # partición de severidad congelada en inputs/contrato/particion/<corrida>/
                   if (length(contrato_hash)) list(contrato = lapply(names(contrato_hash), function(nm)
                     if (nm == .DL_CONFIG_CONGELADA) list(configuracion = nm, sha256 = contrato_hash[[nm]])
+                    else if (startsWith(nm, paste0(.DL_PARTICION_CONGELADA, "/")))
+                      list(particion = nm, sha256 = contrato_hash[[nm]])
                     else list(tabla = nm, sha256 = contrato_hash[[nm]]))),
                   list(
                   # qué modelos de la extracción entraron a las betas y cuántas filas quedaron fuera
@@ -468,10 +471,9 @@
 #'   "inputs", "contrato"))` repite la corrida sin la carpeta original, también si las tablas o la configuración se
 #'   dieron en R. En `betas.csv` van las betas que usó la causa, bajo la causa de la corrida: las de su causa padre
 #'   si es un subtipo sin betas propias, cuya configuración congelada lleva además `avanzado: extraction: cause_id`
-#'   (la causa padre, que [dl_sumar_hijas()] exige). Lo que la configuración nombra fuera de las tablas (la carpeta de
-#'   `severidad.particion`) no se congela, y `config.yaml` guarda su ruta tal como se escribió: para repetir una
-#'   corrida que usó una partición con una ruta relativa, copia esa carpeta en `inputs/contrato/` con la misma ruta
-#'   (por ejemplo, `inputs/contrato/particion/<corrida>/`).
+#'   (la causa padre, que [dl_sumar_hijas()] exige). La carpeta de `severidad.particion` se copia en
+#'   `inputs/contrato/particion/<corrida>/`, con la ruta de la configuración congelada cambiada a ella y el sha256 de
+#'   cada archivo en `inputs$contrato` (`particion`).
 #' - `manifest.yaml`: la descripción de la corrida (abajo).
 #'
 #' El identificador `<AAAA-MM-DD>_<nombre>_v<n>` lleva la fecha del día y la versión siguiente a la mayor de ese día
@@ -613,8 +615,9 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   # la corrida se repite sin la carpeta original, también cuando las tablas o la configuración se dieron en R. Cada
   # número se escribe con el texto exacto (.dl_num_exacto), no con los 15 dígitos de fwrite: al releerlos vuelven los
   # mismos números
-  congelado <- .dl_contrato_congelado(b$contrato, cfg)
-  contrato_hash <- .dl_congelar_contrato(congelado$tablas, file.path(inputs_dir, "contrato"), congelado$configuracion)
+  congelado <- .dl_contrato_congelado(b$contrato, cfg, .dl_path(rutas, "severity_split", opcional = TRUE))
+  contrato_hash <- .dl_congelar_contrato(congelado$tablas, file.path(inputs_dir, "contrato"), congelado$configuracion,
+                                         congelado$particion)
   # con un proyecto del contrato, las covariables nacionales ya van en contrato/covariables.csv: la copia de las
   # descargas crudas (ghdx_cov/) es solo del formato completo
   if (!is.null(carpeta_cov) && !length(b$contrato)) {
@@ -634,8 +637,11 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
 # inputs/contrato/ sea un proyecto por sí solo: la tabla betas, solo con las betas que usó la causa
 # (.dl_betas_de_causa) y las de su causa padre (extraction.cause_id: un subtipo sin betas propias) puestas a su nombre;
 # y la configuración tal como se leyó, más `avanzado: extraction` si la causa usa las betas de su padre (la relación
-# la declara la configuración del padre, que no se congela). Sin tablas (formato completo), configuración NULL.
-.dl_contrato_congelado <- function(contrato, cfg) {
+# la declara la configuración del padre, que no se congela). Si la configuración declara severidad.particion, la
+# carpeta de esa partición (`particion`, la de las rutas del proyecto) va también: `particion` = list(origen, ruta),
+# con ruta = particion/<corrida>, relativa a inputs/contrato/, que pasa a ser la de severidad.particion en la
+# configuración congelada. Sin tablas (formato completo), configuración y partición NULL.
+.dl_contrato_congelado <- function(contrato, cfg, particion = NULL) {
   if (!length(contrato)) return(list(tablas = contrato, configuracion = NULL))
   s <- cfg$origen$configuracion
   padre <- cfg$extraction$cause_id
@@ -647,17 +653,28 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   }
   if (!is.null(padre) && !is.null(s) && is.null(s$avanzado$extraction))
     s$avanzado$extraction <- cfg$extraction
-  list(tablas = contrato, configuracion = s)
+  part <- NULL
+  if (!is.null(s) && !is.null(.dl_valor_en(s, "severidad.particion")) && !is.null(particion)) {
+    part <- list(origen = particion, ruta = paste(.DL_PARTICION_CONGELADA, basename(particion), sep = "/"))
+    s$severidad$particion <- part$ruta
+  }
+  list(tablas = contrato, configuracion = s, particion = part)
 }
+
+# Carpeta de inputs/contrato/ donde se congela la partición de severidad (particion/<corrida>/), la misma que propone
+# la estructura de un proyecto (ver ?dl_proyecto).
+.DL_PARTICION_CONGELADA <- "particion"
 
 # Nombre de la configuración del proyecto congelada en inputs/contrato/.
 .DL_CONFIG_CONGELADA <- "config.yaml"
 
-# Escribe las tablas del contrato (lista nombrada de dl_tabla) en `dir` como <tabla>.csv y la configuración del
-# proyecto `configuracion` (la lista leída, si se da) como config.yaml; devuelve el sha256 de cada archivo (lista
-# nombrada: la tabla, o config.yaml). Las columnas numéricas van con su texto exacto (.dl_num_exacto): releerlas da
-# los mismos doubles. Sin tablas ni configuración (formato completo), no escribe nada y devuelve list().
-.dl_congelar_contrato <- function(contrato, dir, configuracion = NULL) {
+# Escribe las tablas del contrato (lista nombrada de dl_tabla) en `dir` como <tabla>.csv, la configuración del
+# proyecto `configuracion` (la lista leída, si se da) como config.yaml y copia la carpeta de la partición de severidad
+# (`particion`, de .dl_contrato_congelado: su origen y su ruta en `dir`); devuelve el sha256 de cada archivo (lista
+# nombrada: la tabla, config.yaml, o la ruta de cada archivo de la partición, relativa a `dir`). Las columnas
+# numéricas van con su texto exacto (.dl_num_exacto): releerlas da los mismos doubles. Sin tablas ni configuración
+# (formato completo), no escribe nada y devuelve list().
+.dl_congelar_contrato <- function(contrato, dir, configuracion = NULL, particion = NULL) {
   hash <- list()
   if (!length(contrato) && is.null(configuracion)) return(hash)
   dir.create(dir, showWarnings = FALSE)
@@ -672,6 +689,15 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
     f <- file.path(dir, paste0(nm, ".csv"))
     data.table::fwrite(d, f, eol = "\n", na = "")
     hash[[nm]] <- digest::digest(file = f, algo = "sha256")
+  }
+  if (!is.null(particion)) {
+    destino <- file.path(dir, particion$ruta)
+    archivos <- list.files(particion$origen, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+    for (a in sort(archivos)) {
+      dir.create(dirname(file.path(destino, a)), recursive = TRUE, showWarnings = FALSE)
+      file.copy(file.path(particion$origen, a), file.path(destino, a))
+      hash[[paste(particion$ruta, a, sep = "/")]] <- digest::digest(file = file.path(destino, a), algo = "sha256")
+    }
   }
   hash
 }

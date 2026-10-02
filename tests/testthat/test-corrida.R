@@ -288,6 +288,25 @@ test_that("la corrida de un subtipo con las betas de su causa padre se repite de
   expect_identical(man$causa$extraction_cause_id, 9100L)
 })
 
+test_that("la corrida con severidad.particion congela la partición y se repite desde inputs/contrato/", {
+  config <- c("causa: 302", "anio: 2020", "edad_inicio: 40", "severidad:", "  particion: particion/mini")
+  d <- escribir_particion_mini(escribir_pais_ficticio(file.path(withr::local_tempdir(), "pf"), 302L, 2020L, config))
+  unlink(file.path(d, "severidad.csv"))
+  r <- suppressMessages(dl_correr(d, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                  carpeta_salida = withr::local_tempdir()))
+  man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  cong <- file.path(r$dir, "inputs", "contrato")
+  # cada archivo de la partición, copiado con la ruta de severidad.particion en la configuración congelada
+  part <- unlist(lapply(man$inputs$contrato, `[[`, "particion"))
+  expect_setequal(part, paste0("particion/mini/", c("cause_sequela", "cause_health_state"), "/proportion/mini.csv"))
+  for (x in Filter(function(x) !is.null(x$particion), man$inputs$contrato))
+    expect_identical(digest::digest(file = file.path(cong, x$particion), algo = "sha256"), x$sha256)
+  expect_identical(dismodlite:::.dl_leer_config(file.path(cong, "config.yaml"))$severidad$particion, "particion/mini")
+  # sin la carpeta original del proyecto
+  unlink(d, recursive = TRUE)
+  expect_identical(suppressMessages(dl_insumos(dl_proyecto(cong)))$hash, man$inputs$bundle_hash)
+})
+
 test_that("la configuración de un proyecto se congela con sus tipos: releída es la misma", {
   d <- withr::local_tempdir()
   s <- list(causa = 9101L, anio = 2023, edad_inicio = 30L, nombre = "\u00c1rbol: x",
