@@ -87,7 +87,7 @@
                stringsAsFactors = FALSE)))
   filas <- lapply(cov, function(x) {
     tr <- trans[trans$covariate_name_short == x$covariate_name_short, ]
-    if (!nrow(tr))
+    if (is.null(tr) || !nrow(tr))
       .dl_stop("la configuraci\u00f3n no declara en `transformaciones` la transformaci\u00f3n de \u00ab%s\u00bb",
                x$covariate_name_short)
     data.table::data.table(

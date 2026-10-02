@@ -15,7 +15,8 @@ de donde vengan los datos. Es una versión mayor porque los proyectos de la vers
 * Las ubicaciones se declaran una vez en `ubicaciones`, con códigos propios: la nacional sin `padre` y las
   subnacionales con la nacional de padre. Salen `location_id`, `age_group_id`, `sex_id` y los ids inventados.
 * Una sola tabla `covariables` para el valor nacional de cada covariable y sus valores subnacionales (los proxies).
-  Las betas pasan de la configuración a la tabla `betas`; un subtipo sin filas propias usa las de su causa padre.
+  Las betas pasan de la configuración a la tabla `betas`; un subtipo sin filas propias usa las de su causa padre (la
+  que lo declara en `subtipos` o, en su propia carpeta, la de `avanzado: extraction`).
 * Las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten solas (el *Rate* entre
   100 000, las edades de GBD a bandas, `measure_id` a `medida`). La clave `ubicacion_gbd` (antes
   `ubicacion_nacional`) dice qué `location_id` de GBD es el país; por defecto, el código nacional de `ubicaciones`

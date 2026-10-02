@@ -195,8 +195,9 @@ como hasta la 1.0.0, con los pesos de su población (en un proyecto, la poblaci�
 \code{poblacion_detalle} solo las que la población no tiene). Por defecto \code{true} en el formato completo.
 \item \code{extraction}: \verb{\{cause_id, motivo\}}: la causa padre de un subtipo que se lee sin la configuración de su padre
 (en su propia carpeta). La corrida la declara en su manifiesto y \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} la exige para sumar el
-subtipo; no cambia las betas, que van en \code{betas} bajo la causa del subtipo. En un proyecto con la configuración
-del padre (\code{subtipos}) sale sola, y la corrida congelada de un subtipo la escribe.
+subtipo. Un subtipo sin filas propias en \code{betas} usa las de esta causa (las filas del padre sirven tal cual);
+con filas propias, las suyas. En un proyecto con la configuración del padre (\code{subtipos}) sale sola, y la corrida
+congelada de un subtipo la escribe.
 \item \code{cascada.dx_fuera_de_banda}: en las edades sin grupo de edad del proxy, \code{cero} (sin diferencia con el valor
 nacional) o \code{vecina} (la del grupo más próximo, con procedencia) (\code{cero}).
 \item \code{cascada.dx_interpolacion}: entre los grupos de edad del proxy, \code{lineal} (interpolada entre sus puntos medios)

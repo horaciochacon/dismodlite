@@ -232,8 +232,9 @@ head(cov[cov$ubicacion %in% "01" & cov$anio == 2023 & cov$covariable == "LDI_pc"
 
 El efecto de cada covariable: el coeficiente $\beta$ publicado, que es el cambio del logaritmo de la tasa por unidad
 de la covariable transformada. Una fuente habitual es el apéndice metodológico del modelo de GBD de la causa. Sin
-`causa`, la beta vale para todas las causas; un subtipo sin filas propias usa las de su causa padre, si la
-configuración del padre está en el mismo proyecto (sección 7). La estimación
+`causa`, la beta vale para todas las causas; un subtipo sin filas propias usa las de su causa padre: la que lo
+declara en `subtipos` en el mismo proyecto o, en su propia carpeta, la de `avanzado: extraction` (sección 7). La
+estimación
 subnacional usa las betas cuya covariable tiene filas subnacionales en `covariables`.
 
 - `efecto_sobre`: `prevalencia` o `incidencia` (las dos mueven el logaritmo de la incidencia) o `mortalidad_exceso`.
@@ -765,20 +766,21 @@ Hay dos formas de organizar varias causas:
    la causa nueva.
 
 2. **Una carpeta por causa**: cada carpeta es un proyecto de una causa, con su `config.yaml` y sus tablas. Es cómodo
-   cuando cada causa tiene fuentes propias, pero un subtipo leído solo **no conoce a su causa padre**: sus betas van
-   bajo su propia causa (las filas del padre copiadas con la causa del subtipo) y su corrida declara al padre con
-   `avanzado: {extraction: {cause_id, motivo}}`, para que se pueda sumar:
+   cuando cada causa tiene fuentes propias, pero un subtipo leído solo **no conoce a su causa padre**: lo declara con
+   `avanzado: {extraction: {cause_id, motivo}}`, para que su corrida se pueda sumar. Sin filas propias en `betas`,
+   usa las de esa causa, así que la tabla `betas` del padre sirve tal cual; con filas propias, las suyas:
 
    ```{r}
    #| label: subtipo-solo
-   betas_subtipo <- read.csv(dl_ejemplo("betas.csv"), encoding = "UTF-8")
-   betas_subtipo$causa <- 9101                              # las betas del padre, a nombre del subtipo
+   betas_padre <- read.csv(dl_ejemplo("betas.csv"), encoding = "UTF-8")
+   unique(betas_padre$causa)                                # solo las del padre
    config_subtipo <- list(causa = 9101, anio = 2023, edad_inicio = 30,
                           avanzado = list(extraction = list(cause_id = 9100, motivo = "subtipo de la causa 9100")))
    p <- dl_proyecto(configuracion = config_subtipo, ubicaciones = ubicaciones, poblacion = poblacion,
-                    ancla = dl_ejemplo("ancla"), covariables = dl_ejemplo("covariables"), betas = betas_subtipo,
+                    ancla = dl_ejemplo("ancla"), covariables = dl_ejemplo("covariables"), betas = betas_padre,
                     severidad = severidad[severidad$causa == 9101, ])
    p$configuracion$extraction$cause_id
+   p$configuracion$origen$betas$covariable                  # las betas del padre
    ```
 
    La causa que solo es la suma de sus subtipos no se ajusta, pero `dl_sumar_hijas()` necesita las rutas de su

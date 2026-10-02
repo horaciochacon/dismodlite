@@ -256,6 +256,17 @@
   if (all(n == round(n))) as.integer(n) else n
 }
 
+# Por qué la causa `causa` no tiene betas aunque la tabla betas trae filas (las de otras causas,
+# contexto$causas_betas): el texto que se agrega al error, o "" si la tabla no trae filas con causa o la causa tiene
+# las suyas. Nombra la causa de la que un subtipo toma las betas (contexto$padre) y lo que hay que hacer.
+.dl_betas_de_otras_causas <- function(contexto, causa) {
+  if (!is.null(contexto$betas) || !length(contexto$causas_betas)) return("")
+  sprintf(paste0("; la tabla betas no trae filas de la causa %s%s (trae las de %s): agrega las de la causa o, si es ",
+                 "un subtipo que usa las de otra causa, decl\u00e1rala en avanzado: extraction: cause_id"),
+          causa, if (!is.null(contexto$padre)) sprintf(" ni de la causa %d, de la que toma las betas", contexto$padre)
+                 else "", paste(contexto$causas_betas, collapse = ", "))
+}
+
 # Configuración completa (sin validar) desde la simple `s` de `archivo` y lo que se toma del proyecto (`contexto`):
 #   ubicacion (el código nacional), nombre, betas (la tabla betas de la causa, ya resuelta para un subtipo),
 #   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es) e
@@ -283,7 +294,8 @@
     .dl_stop_config_simple(archivo, sprintf(paste0(
       "subnacional.modo: es covariables y ninguna covariable de la tabla betas (%s) tiene filas subnacionales en la ",
       "tabla covariables (trae: %s): revisa los nombres o usa subnacional.modo: plano (las tasas nacionales en cada ",
-      "ubicaci\u00f3n)"), .dl_lista(nombres, "ninguna"), .dl_lista(contexto$covariables_subnacionales, "ninguna")))
+      "ubicaci\u00f3n)%s"), .dl_lista(nombres, "ninguna"), .dl_lista(contexto$covariables_subnacionales, "ninguna"),
+      .dl_betas_de_otras_causas(contexto, s[["causa"]])))
   nudos <- unlist(dado("nudos")) %||% .dl_nudos_defecto(s[["edad_inicio"]])
   pd <- t[!grepl("\\[\\]", t$clave) & nzchar(t$defecto) & t$defecto != "obligatoria", c("clave", "defecto")]
   pd <- pd[vapply(pd$clave, function(k) is.null(dado(k)), NA), ]

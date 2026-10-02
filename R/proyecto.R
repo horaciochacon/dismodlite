@@ -184,10 +184,18 @@
   if (!is.na(k)) causas$causa[[k]]
 }
 
+# La causa cuyas betas usa un subtipo sin filas propias: la que declara avanzado.extraction.cause_id en la configuración
+# `s` (un subtipo en su propia carpeta, sin la configuración de su padre), o NULL; un valor que no es un entero lo
+# rechaza después la validación. Sin ella, la causa padre es la que declara al subtipo en `subtipos`.
+.dl_padre_extraction <- function(s) {
+  ec <- .dl_valor_en(s, "avanzado.extraction.cause_id")
+  if (.dl_es_entero1(ec)) as.integer(ec)
+}
+
 # Lo que la traducción de la configuración de `causa` toma de las tablas (.dl_traducir_config_simple): la ubicación
 # nacional (la que no tiene padre en ubicaciones), las betas de la causa (las de `padre` si es un subtipo sin betas
 # propias), las covariables con filas subnacionales, si hay ubicaciones subnacionales, el nombre de la causa en el
-# ancla, la causa padre, el covariate_id de cada covariable (para valor_nacional_de) y los location_id de GBD que los
+# ancla, la causa padre, las causas con filas en la tabla betas, el covariate_id de cada covariable (para valor_nacional_de) y los location_id de GBD que los
 # lectores tomaron como el país (ubicacion_gbd; vacío si ninguna tabla vino de una descarga).
 .dl_contexto_tablas <- function(tablas, causa, padre = NULL) {
   nacional <- .dl_ubicacion_nacional(tablas)
@@ -197,6 +205,7 @@
   nombres <- if (!is.null(tablas$ancla))          # la revisión traduce la configuración aunque el ancla falle
     stats::na.omit(.dl_col(.dl_filas_de_causa(tablas$ancla, causa), "nombre_causa", NA_character_))
   list(ubicacion = nacional, padre = padre, betas = betas,
+       causas_betas = if (!is.null(tablas$betas)) sort(unique(stats::na.omit(.dl_col(tablas$betas, "causa")))),
        covariables_subnacionales = if (is.null(cov)) character()
                                    else unique(cov$covariable[!.dl_es_nacional(cov, nacional)]),
        subnacional = any(!is.na(.dl_col(tablas$ubicaciones, "padre", NA_character_))),
@@ -229,7 +238,7 @@
     particion <- ruta
     tablas$severidad <- .dl_severidad_particion(s, causa, particion)
   }
-  ctx <- .dl_contexto_tablas(tablas, causa, .dl_padre_de(causas, causa))
+  ctx <- .dl_contexto_tablas(tablas, causa, .dl_padre_extraction(s) %||% .dl_padre_de(causas, causa))
   list(cfg = .dl_config_simple(s, archivo, causa, ctx, cambios), tablas = tablas, causas = causas,
        particion = particion)
 }
@@ -463,7 +472,8 @@
 #' Con varias causas, cada una tiene su configuración en `config/<causa>.yaml` y comparten las tablas, que traen las
 #' filas de todas en la columna `causa` (sin ella, una fila vale para todas). Una causa que es la suma de otras las
 #' declara en `subtipos`; un subtipo sin betas propias usa las de su causa padre. El subtipo encuentra a su padre por
-#' esa clave, en otra configuración del mismo proyecto: leído solo (en su propia carpeta), no lo conoce (ver
+#' esa clave, en otra configuración del mismo proyecto; leído solo (en su propia carpeta), lo declara con
+#' `avanzado: {extraction: {cause_id: <padre>, motivo: ...}}` y, sin betas propias, usa las de esa causa (ver
 #' [dl_sumar_hijas()]). La causa padre se lee con `dl_proyecto()` aunque solo se sume: necesita su prevalencia en el
 #' ancla (y su mortalidad, con el prior por defecto de la mortalidad en exceso). Cada subtipo se corre por separado y
 #' sus corridas se suman con [dl_sumar_hijas()], con las rutas del proyecto de la causa padre:

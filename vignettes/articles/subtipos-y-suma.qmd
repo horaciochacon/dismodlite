@@ -79,8 +79,8 @@ Tres reglas:
   suyas.
 - `subtipos` va solo en la causa padre; con ella el paquete arma el registro de padres e hijos que usa la suma, y
   cada subtipo encuentra a su padre. Por eso las configuraciones van en el mismo proyecto: un subtipo leído solo, en
-  su propia carpeta, no conoce a su padre (sus betas van entonces bajo su propia causa y declara al padre en
-  `avanzado`; ver la sección 7 de [Preparar tus datos](preparar-datos.html)).
+  su propia carpeta, no conoce a su padre: lo declara en `avanzado: extraction` y, sin filas propias en `betas`, usa
+  las de esa causa (ver la sección 7 de [Preparar tus datos](preparar-datos.html)).
 
 ## Correr cada subtipo
 

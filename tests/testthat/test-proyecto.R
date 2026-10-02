@@ -243,6 +243,39 @@ test_that("un subtipo sin betas propias usa las de su causa padre (subtipos en l
   expect_identical(suppressMessages(dl_insumos(hija))$betas$covariate_name_short, "indice")
 })
 
+# Un subtipo (502) en su propia carpeta, sin la configuración de su padre (501): declara la causa de sus betas en
+# avanzado.extraction; la tabla betas trae una beta de la causa `causa_betas`. `config`: líneas que se agregan.
+subtipo_en_su_carpeta <- function(causa_betas, config = character(), env = parent.frame()) {
+  d <- escribir_pais_ficticio(file.path(withr::local_tempdir(.local_envir = env), "subtipo"), 502L, 2020L,
+                              c("causa: 502", "anio: 2020", "edad_inicio: 40", config, "avanzado:", "  extraction:",
+                                "    cause_id: 501", "    motivo: subtipo de la causa 501"))
+  data.table::fwrite(data.table::data.table(causa = causa_betas, covariable = "indice", efecto_sobre = "prevalencia",
+                                            transformacion = "log", beta = 0.5), file.path(d, "betas.csv"))
+  data.table::fwrite(data.table::data.table(ubicacion = c("999", "A", "B", "C"), covariable = "indice",
+                                            valor = 50)[, `:=`(inferior = valor * 0.9,
+                                                                               superior = valor * 1.1)],
+                     file.path(d, "covariables.csv"))
+  d
+}
+
+test_that("un subtipo en su propia carpeta usa las betas de la causa de avanzado.extraction si no tiene las suyas", {
+  hija <- dl_proyecto(subtipo_en_su_carpeta(501L))
+  expect_identical(hija$configuracion$origen$betas$covariable, "indice")
+  expect_identical(hija$configuracion$extraction$cause_id, 501L)
+  expect_identical(hija$configuracion$extraction$motivo, "subtipo de la causa 501")
+  b <- suppressMessages(dl_insumos(hija))
+  expect_identical(b$betas$covariate_name_short, "indice")
+  # lo mismo que con las betas bajo el subtipo
+  propia <- suppressMessages(dl_insumos(dl_proyecto(subtipo_en_su_carpeta(502L))))
+  expect_identical(b$hash, propia$hash)
+})
+
+test_that("un subtipo sin betas propias ni de la causa de avanzado.extraction: el error dice qué hacer", {
+  d <- subtipo_en_su_carpeta(777L, c("subnacional:", "  modo: covariables"))
+  expect_error(dl_proyecto(d), paste0("la tabla betas no trae filas de la causa 502 ni de la causa 501, de la que ",
+                                      "toma las betas \\(trae las de 777\\).*avanzado: extraction: cause_id"))
+})
+
 test_that("proxies en bandas que no son de GBD ni de la población (uniones de sus bandas) llevan su id y cierran", {
   d <- dl_ejemplo(copiar_en = withr::local_tempdir())
   f <- file.path(d, "covariables", "proxies.csv")

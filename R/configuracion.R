@@ -327,8 +327,9 @@ NULL
 #'   `poblacion_detalle` solo las que la población no tiene). Por defecto `true` en el formato completo.
 #' - `extraction`: `{cause_id, motivo}`: la causa padre de un subtipo que se lee sin la configuración de su padre
 #'   (en su propia carpeta). La corrida la declara en su manifiesto y [dl_sumar_hijas()] la exige para sumar el
-#'   subtipo; no cambia las betas, que van en `betas` bajo la causa del subtipo. En un proyecto con la configuración
-#'   del padre (`subtipos`) sale sola, y la corrida congelada de un subtipo la escribe.
+#'   subtipo. Un subtipo sin filas propias en `betas` usa las de esta causa (las filas del padre sirven tal cual);
+#'   con filas propias, las suyas. En un proyecto con la configuración del padre (`subtipos`) sale sola, y la corrida
+#'   congelada de un subtipo la escribe.
 #' - `cascada.dx_fuera_de_banda`: en las edades sin grupo de edad del proxy, `cero` (sin diferencia con el valor
 #'   nacional) o `vecina` (la del grupo más próximo, con procedencia) (`cero`).
 #' - `cascada.dx_interpolacion`: entre los grupos de edad del proxy, `lineal` (interpolada entre sus puntos medios)
