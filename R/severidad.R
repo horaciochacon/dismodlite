@@ -239,7 +239,8 @@ dl_severidad_desde_particion <- function(corrida, causa, rutas = dl_rutas(), bet
 
 # Severidad del contrato con los pesos de discapacidad completos: los estados sin peso toman el de GBD (por id_estado,
 # o por nombre: healthstate_name o healthstate_name_pretty, sin distinguir mayúsculas); `catalogo` por defecto el del
-# paquete. Error con los estados sin peso que no son de GBD.
+# paquete. Los tres pesos de un estado van juntos (los tres o ninguno). Error con los estados que traen solo parte de
+# sus pesos y con los estados sin peso que no son de GBD.
 .dl_pesos_gbd <- function(sev, catalogo = .dl_catalogo_referencia("health_states")) {
   sev <- data.table::copy(sev)
   # columnas ausentes con NA del tipo que recibirán (si no, asignar a un subconjunto de filas las fuerza a lógico);
@@ -250,6 +251,13 @@ dl_severidad_desde_particion <- function(corrida, causa, rutas = dl_rutas(), bet
     if (!cn %in% names(sev)) sev[, (cn) := tipos[[cn]]]
     else if (is.logical(sev[[cn]])) sev[, (cn) := rep(tipos[[cn]], .N)]
   }
+  pesos <- c("peso_discapacidad", "peso_inferior", "peso_superior")
+  n <- rowSums(!is.na(as.matrix(sev[, pesos, with = FALSE])))
+  parcial <- n > 0L & n < length(pesos)
+  if (any(parcial))
+    .dl_stop(paste0("severidad: el estado %s trae solo parte de sus pesos de discapacidad: escribe los tres ",
+                    "(peso_discapacidad, peso_inferior, peso_superior) o ninguno (un estado de salud de GBD toma los ",
+                    "suyos)"), paste(unique(sev$estado[parcial]), collapse = ", "))
   falta <- is.na(sev$peso_discapacidad)
   if (!any(falta)) return(sev)
   nombre <- tolower(trimws(sev$estado))

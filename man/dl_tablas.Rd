@@ -221,7 +221,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \code{proporcion} \tab número \tab sí \tab Proporción de los casos en el estado (proporción)\cr
 \code{inferior} \tab número \tab sí \tab Límite inferior del 95 \% (proporción)\cr
 \code{superior} \tab número \tab sí \tab Límite superior del 95 \% (proporción)\cr
-\code{peso_discapacidad} \tab número \tab no \tab Peso de discapacidad (vacío: el de GBD)\cr
+\code{peso_discapacidad} \tab número \tab no \tab Peso de discapacidad (vacío: el de GBD); con sus dos límites o ninguno\cr
 \code{peso_inferior} \tab número \tab no \tab Límite inferior del peso\cr
 \code{peso_superior} \tab número \tab no \tab Límite superior del peso\cr
 }
@@ -236,7 +236,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \item{\code{proporcion}}{Proporción de los casos en el estado (proporción). Número, obligatoria.}
 \item{\code{inferior}}{Límite inferior del 95 \% (proporción). Número, obligatoria.}
 \item{\code{superior}}{Límite superior del 95 \% (proporción). Número, obligatoria.}
-\item{\code{peso_discapacidad}}{Peso de discapacidad (vacío: el de GBD). Número, opcional.}
+\item{\code{peso_discapacidad}}{Peso de discapacidad (vacío: el de GBD); con sus dos límites o ninguno. Número, opcional.}
 \item{\code{peso_inferior}}{Límite inferior del peso. Número, opcional.}
 \item{\code{peso_superior}}{Límite superior del peso. Número, opcional.}
 }

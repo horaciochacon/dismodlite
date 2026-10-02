@@ -292,7 +292,7 @@ todas.
 
 El `estado` puede ser un estado de salud de GBD, por su nombre o su id: sus pesos de discapacidad salen solos del
 catálogo de GBD 2023 que trae el paquete. Un estado propio necesita los tres pesos (`peso_discapacidad`,
-`peso_inferior` y `peso_superior`).
+`peso_inferior` y `peso_superior`); en cualquier estado van los tres o ninguno.
 
 ```{r}
 #| label: col-severidad

@@ -90,6 +90,21 @@ test_that("un estado propio sin pesos es un error que lo nombra", {
   expect_error(dismodlite:::.dl_pesos_gbd(sev), "Estado inventado")
 })
 
+test_that("los pesos de un estado van los tres o ninguno: uno parcial es un error que lo nombra", {
+  sev <- data.table::data.table(causa = 1L, estado = c("leve", "grave"), proporcion = c(0.7, 0.3),
+                                peso_discapacidad = c(0.01, 0.1), peso_inferior = c(0.005, NA),
+                                peso_superior = c(0.02, NA))
+  expect_error(dismodlite:::.dl_pesos_gbd(sev),
+               "severidad: el estado grave trae solo parte de sus pesos de discapacidad")
+  # en un proyecto, dl_proyecto() se detiene con el mismo mensaje (antes fallaba en dl_insumos() por el tipo)
+  d <- escribir_pais_ficticio(file.path(withr::local_tempdir(), "p"), 501L, 2020L,
+                              c("causa: 501", "anio: 2020", "edad_inicio: 40"))
+  t <- data.table::fread(file.path(d, "severidad.csv"))
+  t[estado == "grave", c("peso_inferior", "peso_superior") := NA]
+  data.table::fwrite(t, file.path(d, "severidad.csv"), na = "")
+  expect_error(dl_proyecto(d), "el estado grave trae solo parte de sus pesos de discapacidad.*peso_inferior")
+})
+
 test_that("la partición de severidad da la tabla del contrato con los mismos números", {
   completo <- system.file("extdata", "acs_peru_completo", package = "dismodlite")
   corrida <- file.path(completo, "particion", "acs_v1")
