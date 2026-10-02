@@ -58,7 +58,8 @@ severidad[causa == 9100]
   causa, o de un estudio local.
 - Los pesos de discapacidad suelen ser los que publica GBD para cada estado de salud (un estado asintomático pesa
   0). Si `estado` es un estado de salud de GBD (por su nombre o su id), los pesos pueden quedar vacíos: salen del
-  catálogo de GBD 2023 que trae el paquete. Un estado propio, como los del ejemplo, necesita sus tres pesos.
+  catálogo de GBD 2023 que trae el paquete. Un estado propio, como los del ejemplo, necesita sus tres pesos. En
+  cualquier estado van los tres pesos (`peso_discapacidad`, `peso_inferior` y `peso_superior`) o ninguno.
 - `id_estado` es opcional: el identificador del estado (el de GBD, si es uno de GBD).
 
 Sin severidad no hay AVD: `dl_correr()` lo comprueba antes de ajustar y `dl_revisar_proyecto()` lo marca como error.

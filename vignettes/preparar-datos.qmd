@@ -2,8 +2,8 @@
 title: "Preparar tus datos"
 description: >
   Las tablas que necesita un proyecto, para cualquier país y causa: el eje común y la regla de omisión, las nueve
-  tablas con sus columnas y sus fuentes, la carpeta y la puerta de R, cómo revisarlas, las bandas de edad del ancla y
-  qué bajar de GBD.
+  tablas con sus columnas y sus fuentes, la carpeta y la puerta de R, cómo revisarlas, las bandas de edad del ancla,
+  qué bajar de GBD y cómo se organiza la carpeta de un proyecto de modelación.
 vignette: >
   %\VignetteIndexEntry{Preparar tus datos}
   %\VignetteEngine{quarto::html}
@@ -27,7 +27,9 @@ explica:
 3. las dos formas de pasarlas al paquete: **la carpeta** del proyecto y **la puerta de R** (`data.frame`);
 4. cómo revisar una tabla con `dl_tabla()` y el proyecto entero con `dl_revisar_proyecto()`;
 5. las **bandas de edad** del ancla y de la población, y cuándo hace falta `poblacion_detalle`;
-6. qué filtrar al bajar las descargas de GBD y para qué sirve `ubicacion_gbd`.
+6. qué filtrar al bajar las descargas de GBD y para qué sirve `ubicacion_gbd`;
+7. cómo se organiza la carpeta de un proyecto de modelación: una causa, varias, subtipos y su suma, la partición de
+   severidad, `avanzado` y cómo repetir una corrida.
 
 Los ejemplos usan el proyecto de ejemplo (`dl_ejemplo()`: datos sintéticos de un país, con código nacional `123`, y
 sus 25 ubicaciones subnacionales), pero nada del contrato es propio de ese país: las ubicaciones subnacionales pueden
@@ -103,7 +105,7 @@ Los nombres de columna no distinguen mayúsculas y algunos sinónimos fijos se a
 | `datos` | opcional | estudios, registros y estadísticas vitales locales | encuestas y registros propios |
 | `severidad` | para los AVD | los estados de salud de la causa y sus proporciones | GBD, estudios de la causa o una partición |
 | `fuentes_gbd` | opcional | las fuentes que GBD ya usó (doble conteo) | GHDx |
-| `poblacion_detalle` | si el ancla tiene bandas más finas que la población | la población nacional con más detalle de edad | GBD o la ONU |
+| `poblacion_detalle` | si el ancla tiene bandas más finas que la población (80 y más, menores de 5) | la población nacional con más detalle de edad | GBD o la ONU |
 
 Con las tres obligatorias (y la configuración) ya se estima la causa en el país y, si hay ubicaciones subnacionales,
 en cada una con las tasas nacionales. Cada tabla, con sus columnas (la definición es la misma que usa el validador;
@@ -144,7 +146,7 @@ head(proyecto$tablas$ubicaciones, 3)
 ### `poblacion`
 
 La población por ubicación, año, sexo y banda de edad. Sus bandas son **las bandas del modelo**: reparten las edades
-sin solaparse, desde `edad_inicio`, y son las mismas en todas las ubicaciones, años y sexos. Trae al menos el año que
+sin solaparse y seguidas (sin huecos), desde `edad_inicio`, y son las mismas en todas las ubicaciones, años y sexos. Trae al menos el año que
 se estima (y el del ancla, si es otro) y los dos sexos. Las filas nacionales son opcionales: sin ellas, la población
 nacional es la suma de las subnacionales; si vienen, deben ser esa suma. Fuente habitual: las proyecciones del
 instituto nacional de estadística, o las de GBD o de la ONU.
@@ -210,7 +212,9 @@ La incertidumbre va como `error_estandar` o como `inferior` y `superior` (el int
 **no cambian el ajuste nacional**: mueven las tasas de cada ubicación subnacional según su diferencia con el valor
 nacional, con el efecto de la tabla `betas`. Por eso los proxies deben **cerrar** en el valor nacional: su promedio,
 ponderado por la población del mismo sexo y banda, debe ser el valor nacional (la sección 4 muestra cómo revisarlo y
-cómo corregirlo).
+cómo corregirlo). Los proxies pueden traer sus propias bandas de edad, más anchas que las de la población (por
+ejemplo 25-44, 45-59, 60-74 y 75 y más), siempre que cada una sea una unión de bandas de la población: el cierre se
+comprueba en cada una, con la población de las bandas que la forman.
 
 ```{r}
 #| label: col-covariables
@@ -228,7 +232,8 @@ head(cov[cov$ubicacion %in% "01" & cov$anio == 2023 & cov$covariable == "LDI_pc"
 
 El efecto de cada covariable: el coeficiente $\beta$ publicado, que es el cambio del logaritmo de la tasa por unidad
 de la covariable transformada. Una fuente habitual es el apéndice metodológico del modelo de GBD de la causa. Sin
-`causa`, la beta vale para todas las causas; un subtipo sin filas propias usa las de su causa padre. La estimación
+`causa`, la beta vale para todas las causas; un subtipo sin filas propias usa las de su causa padre, si la
+configuración del padre está en el mismo proyecto (sección 7). La estimación
 subnacional usa las betas cuya covariable tiene filas subnacionales en `covariables`.
 
 - `efecto_sobre`: `prevalencia` o `incidencia` (las dos mueven el logaritmo de la incidencia) o `mortalidad_exceso`.
@@ -321,7 +326,8 @@ un dato local que entra al ajuste viene de una de ellas, ya informó el ancla: c
 (`ancla.peso` 1), los insumos se detienen para evitar el doble conteo. Se pone en `fuentes_gbd/` la lista de
 fuentes que exporta el GHDx (<https://ghdx.healthdata.org/>), tal cual: el lector toma 4 de sus columnas y las
 filas del país (su `location_id` de GBD, ver `ubicacion_gbd` en la sección 6), que quedan con el código nacional de
-`ubicaciones`; las fuentes de otras ubicaciones de GBD se descartan, con un aviso.
+`ubicaciones`; las fuentes de otras ubicaciones de GBD se descartan, con un aviso. La lista del GHDx repite cada
+fuente en varias filas (una por año o por título): el lector la deja una vez.
 
 ```{r}
 #| label: col-fuentes
@@ -336,8 +342,11 @@ dl_plantilla("fuentes_gbd")
 
 ### `poblacion_detalle`
 
-La población nacional con más detalle de edad que `poblacion`. Solo hace falta cuando el ancla tiene bandas más
-finas que la población (sección 5). Fuente típica: la población de GBD o de la ONU.
+La población nacional con más detalle de edad que `poblacion`, por sexo, del año del ancla. Solo hace falta cuando
+el ancla tiene bandas más finas que la población (sección 5): lo habitual es el detalle de 80 años y más (80-84, ...,
+95 y más) y el de menores de 5 (menores de 1 y 1 a 4 años, o los grupos de GBD de esas edades). Puede ser
+`poblacion_detalle.csv` o una carpeta `poblacion_detalle/` con un CSV por fuente. Fuente típica: la población de GBD
+o de la ONU.
 
 ```{r}
 #| label: col-detalle
@@ -372,11 +381,13 @@ mi_proyecto/
   severidad.csv
   fuentes_gbd/
   poblacion_detalle.csv
+  particion/<corrida>/   opcional: la partición de severidad (severidad.particion)
 ```
 
-Los nombres son fijos y las rutas no se declaran. Cada tabla es `<tabla>.csv` o una carpeta `<tabla>/` cuyos CSV se
+Los nombres son fijos y las rutas no se declaran (salvo la de la partición de severidad, relativa a la carpeta). Cada tabla es `<tabla>.csv` o una carpeta `<tabla>/` cuyos CSV se
 juntan: cada archivo se reconoce por sus columnas (una descarga de GBD, una del GHDx o una tabla del contrato) y pasa
-por su lector. Una tabla opcional que no está, o que solo trae el encabezado, no existe.
+por su lector. Una tabla opcional que no está, o que solo trae el encabezado, no existe. Los demás archivos (notas,
+resultados) no se leen. La sección 7 muestra la carpeta de un proyecto de modelación completo.
 
 `dl_nuevo_proyecto()` crea la carpeta con la configuración comentada, las plantillas de las tablas (solo el
 encabezado), las carpetas de las descargas y un `LEEME.md` con los pasos. No sobrescribe nada. Para esta guía, la
@@ -475,14 +486,16 @@ p <- dl_proyecto(carpeta, poblacion = mi_poblacion)
 
 El proyecto se revisa y se corre igual que una carpeta (`dl_revisar_proyecto(p)`, `dl_correr(p, semilla = 1)`), y
 la corrida guarda las tablas y la configuración que usó (en `inputs/contrato/`, que es la carpeta de un proyecto), así
-que se puede repetir sin los `data.frame` originales. Sin carpeta, las rutas relativas de la configuración (como
-`severidad.particion`) se resuelven contra el directorio de trabajo.
+que se puede repetir sin los `data.frame` originales (sección 7). Sin carpeta, las rutas relativas de la configuración
+(como `severidad.particion`) se resuelven contra el directorio de trabajo.
 
 ## 4. Revisar: `dl_tabla()` y `dl_revisar_proyecto()`
 
 `dl_tabla()` lee, convierte y valida **una** tabla, sin armar el proyecto: sirve para preparar las tablas en R y
 comprobar cada una antes de seguir. Devuelve la tabla en el contrato (con el sexo en palabras y la banda abierta con
-`edad_fin` 125) o un error que dice la tabla, su origen, la columna, las filas y qué se esperaba:
+`edad_fin` 125) o un error que dice la tabla, su origen, la columna, las filas y qué se esperaba. Las filas se
+cuentan como las líneas del CSV (el encabezado es la línea 1, así que la primera fila de datos es la 2) o, en un
+`data.frame`, por su número de fila («fila(s) 2 del data.frame»):
 
 ```{r}
 #| label: dl-tabla
@@ -578,7 +591,10 @@ Las bandas de la población son las bandas del modelo. Las del ancla se comparan
 - **Una banda del ancla es más fina que la población** (el ancla trae 80-84, ..., 95 y más y la población, solo 80 y
   más): las bandas del ancla que caben en una banda de la población se agrupan en ella, con un promedio ponderado por
   su población en `poblacion_detalle`, del año del ancla. Sin esa tabla, es un error que lo dice.
-- Las bandas de menos de un año de GBD se agrupan en $[0, 1)$, ponderadas por su ancho.
+- Las bandas de menos de un año de GBD se agrupan en $[0, 1)$, ponderadas por su ancho. Si la población trae
+  a los menores de 5 en una sola banda (0-4), las del ancla que caben en ella ($[0, 1)$ y las de 1 a 4 años) se
+  agrupan como las de 80 y más, con `poblacion_detalle`. Si no hay población de menores de 5 con detalle, una
+  aproximación es repartir la de 0-4 por el ancho de cada banda (población uniforme); conviene dejarla en `notas`.
 
 Por ejemplo, una población subnacional que solo tiene 80 años y más:
 
@@ -681,13 +697,130 @@ dl_tabla("covariables", dl_ejemplo("covariables", "HAQI.csv"), ubicacion_gbd = 1
 En un proyecto cuyo código nacional no es el `location_id` de GBD (por ejemplo, `PAIS`), la configuración lo declara:
 `ubicacion_gbd: 123`.
 
-## 7. Varias causas en un proyecto
+## 7. La carpeta de un proyecto de modelación
 
-Con varias causas, cada una tiene su configuración en `config/<causa>.yaml` y comparten las tablas: sus filas dicen de
-qué causa son en la columna `causa` (una fila sin `causa` vale para todas). Una causa que es la suma de otras las
-declara en `subtipos`; un subtipo sin betas propias usa las de su causa padre. Para agregar una causa, mueve
-`config.yaml` a `config/<causa>.yaml` y llama de nuevo a `dl_nuevo_proyecto()` con la causa nueva. La guía
-[Subtipos y suma](https://horaciochacon.github.io/dismodlite/articles/subtipos-y-suma.html) lo desarrolla.
+### Una causa
+
+Una carpeta de trabajo real trae, además de las tablas, lo que la configuración nombra y lo que el modelador agrega
+para sí. Por ejemplo, una causa con estimación subnacional por covariables, la severidad desde una partición y un
+ancla más fina que la población en 80 y más y en menores de 5:
+
+```
+una_causa/
+  config.yaml              causa, anio, edad_inicio, las decisiones y sus notas
+  ubicaciones.csv
+  poblacion.csv            bandas de 5 años: 0-4, 5-9, ..., 80 y más
+  ancla.csv                la tabla del contrato (o ancla/ con las descargas de GBD Results)
+  covariables.csv          valores nacionales y proxies subnacionales (o covariables/ con las descargas del GHDx)
+  betas.csv
+  fuentes_gbd.csv
+  poblacion_detalle/
+    ancla.csv              la población nacional de 0-1, 1-4, 80-84, ..., 95 y más, del año del ancla
+  particion/
+    <corrida>/             la partición de severidad
+  LEEME.md                 notas del modelador: el paquete no lo lee
+  resultados/              lo escribe dl_correr()
+```
+
+- **Las tablas** siguen las reglas de la sección 3: cada una es `<tabla>.csv` o una carpeta `<tabla>/`, cada archivo
+  se reconoce por sus columnas y una tabla con solo el encabezado no existe.
+- **La partición de severidad** es la única ruta que se declara: `severidad.particion: particion/<corrida>`, relativa
+  a la carpeta del proyecto. La severidad sale de ella en vez de `severidad.csv`; con `severidad.padre`, si es la
+  partición de la causa padre. Sus límites deben quedar en $[0, 1]$, como los de la tabla `severidad`, y sus secuelas
+  y estados de salud deben estar en los catálogos de GBD 2023 del paquete (ver
+  [Subtipos y suma](https://horaciochacon.github.io/dismodlite/articles/subtipos-y-suma.html)).
+- **`poblacion_detalle`** hace falta solo si una banda del ancla cabe dentro de una banda de la población (sección 5).
+- **`avanzado`** lleva, tal cual, las claves del formato completo que la configuración no tiene, cada una con su
+  procedencia. Las más usadas: `anchor.gate_err_mediano` (el error máximo del ancla con que se escribe la corrida),
+  `emr_prior.fraccion_aguda` (la parte de las muertes que ocurre en la fase aguda), `emr_prior.factor_techo` (el
+  factor del techo de la mortalidad en exceso, 3 por defecto), `nsub`, `offset_lognormal` y `extraction` (abajo).
+  La lista completa está en `?dl_configuracion`.
+
+```yaml
+avanzado:
+  anchor:
+    gate_err_mediano: {valor: 0.08, procedencia: el ancla tiene pocas bandas de edad}
+  emr_prior:
+    factor_techo: 6
+```
+
+Lo que no tiene clave ni tabla (las decisiones, de dónde sale cada número) va en `notas`, que cada corrida guarda en su
+manifiesto.
+
+### Varias causas, subtipos y su suma
+
+Hay dos formas de organizar varias causas:
+
+1. **Un proyecto con varias causas**: cada causa tiene su `config/<causa>.yaml` y comparten las tablas, cuyas filas
+   dicen de qué causa son en la columna `causa` (una fila sin `causa` vale para todas). Es la forma natural de los
+   subtipos: la causa padre los declara en `subtipos`, y cada subtipo encuentra ahí a su padre, usa sus betas si no
+   tiene filas propias y su corrida lo declara, que es lo que pide `dl_sumar_hijas()`. Así está el ejemplo:
+
+   ```{r}
+   #| label: varias-causas
+   list.files(dl_ejemplo(), pattern = "[.]yaml$", recursive = TRUE)
+   ```
+
+   Para agregar una causa, mueve `config.yaml` a `config/<causa>.yaml` y llama de nuevo a `dl_nuevo_proyecto()` con
+   la causa nueva.
+
+2. **Una carpeta por causa**: cada carpeta es un proyecto de una causa, con su `config.yaml` y sus tablas. Es cómodo
+   cuando cada causa tiene fuentes propias, pero un subtipo leído solo **no conoce a su causa padre**: sus betas van
+   bajo su propia causa (las filas del padre copiadas con la causa del subtipo) y su corrida declara al padre con
+   `avanzado: {extraction: {cause_id, motivo}}`, para que se pueda sumar:
+
+   ```{r}
+   #| label: subtipo-solo
+   betas_subtipo <- read.csv(dl_ejemplo("betas.csv"), encoding = "UTF-8")
+   betas_subtipo$causa <- 9101                              # las betas del padre, a nombre del subtipo
+   config_subtipo <- list(causa = 9101, anio = 2023, edad_inicio = 30,
+                          avanzado = list(extraction = list(cause_id = 9100, motivo = "subtipo de la causa 9100")))
+   p <- dl_proyecto(configuracion = config_subtipo, ubicaciones = ubicaciones, poblacion = poblacion,
+                    ancla = dl_ejemplo("ancla"), covariables = dl_ejemplo("covariables"), betas = betas_subtipo,
+                    severidad = severidad[severidad$causa == 9101, ])
+   p$configuracion$extraction$cause_id
+   ```
+
+   La causa que solo es la suma de sus subtipos no se ajusta, pero `dl_sumar_hijas()` necesita las rutas de su
+   proyecto (el registro de sus hijas y sus nombres): su carpeta trae un `config.yaml` con `subtipos`, `ubicaciones`,
+   `poblacion` y el ancla de la causa (la prevalencia y, con el prior por defecto, la mortalidad), que
+   `dl_proyecto()` exige aunque no ajuste nada. `dl_revisar_proyecto()` la marca con un error por no tener severidad,
+   que en una causa que no se corre no importa.
+
+La suma es la misma en las dos formas: cada subtipo se corre con `dl_correr()` y sus corridas se suman con las rutas
+del proyecto de la causa padre, `dl_sumar_hijas(corridas, causa = <padre>, ..., rutas = dl_proyecto(<carpeta del
+padre>)$rutas)`. La guía
+[Subtipos y suma](https://horaciochacon.github.io/dismodlite/articles/subtipos-y-suma.html) lo desarrolla, con
+`omitidas` para un subtipo que no se estima.
+
+### Repetir una corrida
+
+Cada corrida congela en `inputs/contrato/` las tablas que usó y la configuración tal como se leyó, y esa carpeta es
+la de un proyecto: se lee y se corre igual. Las betas quedan bajo la causa de la corrida; la de un subtipo con las
+betas de su padre lleva además `avanzado: extraction`, así que el subtipo se repite solo. Una corrida de prueba del
+subtipo 9101 del ejemplo:
+
+```{r}
+#| label: repetir
+#| message: false
+salida <- file.path(tempdir(), "resultados")
+corrida <- dl_correr(dl_ejemplo(), causa = 9101, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                     carpeta_salida = salida)
+congelada <- file.path(corrida$dir, "inputs", "contrato")
+list.files(congelada)
+cat(tail(readLines(file.path(congelada, "config.yaml"), encoding = "UTF-8"), 4), sep = "\n")
+dl_proyecto(congelada)$configuracion$extraction$cause_id
+```
+
+`dl_correr(congelada, semilla = 1, carpeta_salida = ...)` repite la corrida. **Una limitación**: la carpeta de la
+partición de severidad no se congela, y `config.yaml` guarda su ruta tal como se escribió. Para repetir una corrida
+que usó `severidad.particion` con una ruta relativa, copia antes la partición en `inputs/contrato/` con la misma ruta:
+
+```r
+dir.create(file.path(congelada, "particion"))
+file.copy(file.path("una_causa", "particion", "<corrida>"), file.path(congelada, "particion"), recursive = TRUE)
+dl_correr(congelada, semilla = 1, carpeta_salida = "resultados")
+```
 
 ## 8. Lista de verificación
 
@@ -697,9 +830,9 @@ Antes de correr:
       `location_id` de GBD y las descargas traen varias ubicaciones).
 - [ ] `ubicaciones` tiene una sola ubicación sin `padre`, la nacional, y las subnacionales con la nacional de padre.
 - [ ] `poblacion` cubre las edades desde `edad_inicio`, los dos sexos, el año que se estima y todas las ubicaciones
-      subnacionales, con las mismas bandas en todas.
+      subnacionales, con las mismas bandas en todas, seguidas y sin huecos.
 - [ ] `ancla/` tiene la descarga sin editar, con todas las medidas en *Rate*, de los dos sexos y del año que se
-      estima; si sus bandas son más finas que las de la población, hay `poblacion_detalle`.
+      estima; si sus bandas son más finas que las de la población (80 y más, menores de 5), hay `poblacion_detalle`.
 - [ ] Cada beta de `betas` tiene su covariable en `covariables`, con su valor nacional; los proxies subnacionales
       cierran en el valor nacional.
 - [ ] `datos` tiene la prevalencia como proporción y las tasas por persona-año, una fila por sexo; los datos
@@ -715,7 +848,7 @@ Antes de correr:
 ```{r}
 #| label: limpiar
 #| include: false
-unlink(carpeta, recursive = TRUE)
+unlink(c(carpeta, salida), recursive = TRUE)
 ```
 
 ## Siguientes pasos
