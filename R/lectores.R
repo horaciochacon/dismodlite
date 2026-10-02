@@ -123,8 +123,10 @@
 }
 
 # Lee `x` (ruta a un CSV, carpeta de CSV o data.frame) como la tabla `tabla` del contrato, sin validar: cada archivo
-# (o el data.frame) pasa por su lector. Error si un archivo no se reconoce o si su lector produce otra tabla.
+# (o el data.frame) pasa por su lector. Error si un archivo no se reconoce o si su lector produce otra tabla. Atributo
+# `lectores`: los nombres de los lectores por los que pasó (sin él, si todo era del contrato).
 .dl_leer_fuente_tabla <- function(x, tabla, opciones = list()) {
+  lectores <- character()
   una <- function(d, de) {
     d <- data.table::as.data.table(d)
     data.table::setnames(d, tolower(trimws(names(d))))
@@ -138,14 +140,20 @@
       .dl_stop("%s es una %s: va en la tabla %s, no en %s", de, .DL_LECTORES[[lector]]$nombre,
                .DL_LECTORES[[lector]]$tabla, tabla)
     for (cn in setdiff(names(d), .DL_COLUMNAS_NUMERICAS_GBD)) data.table::set(d, j = cn, value = as.character(d[[cn]]))
+    lectores <<- union(lectores, .DL_LECTORES[[lector]]$nombre)
     .dl_numeros_a_texto(get(paste0(".dl_leer_", lector))(d, opciones, de))
   }
-  if (is.data.frame(x)) return(una(x, "el data.frame"))
-  archivos <- if (dir.exists(x)) list.files(x, "[.]csv$", ignore.case = TRUE, full.names = TRUE) else x
-  if (!length(archivos)) .dl_stop("la carpeta \u00ab%s\u00bb no tiene archivos CSV", x)
-  data.table::rbindlist(fill = TRUE, lapply(archivos, function(f) {
-    d <- tryCatch(.dl_leer_memo(f, function(p) .dl_leer_csv(p, colClasses = "character", na.strings = "", tabla = tabla)),
-                  dl_error = function(e) .dl_stop("no se pudo leer la tabla %s: %s", tabla, e$detalle))
-    una(d, sprintf("\u00ab%s\u00bb", basename(f)))
-  }))
+  out <- if (is.data.frame(x)) una(x, "el data.frame") else {
+    archivos <- if (dir.exists(x)) list.files(x, "[.]csv$", ignore.case = TRUE, full.names = TRUE) else x
+    if (!length(archivos)) .dl_stop("la carpeta \u00ab%s\u00bb no tiene archivos CSV", x)
+    data.table::rbindlist(fill = TRUE, lapply(archivos, function(f) {
+      d <- tryCatch(.dl_leer_memo(f, function(p) .dl_leer_csv(p, colClasses = "character", na.strings = "",
+                                                               tabla = tabla)),
+                    dl_error = function(e) .dl_stop("no se pudo leer la tabla %s: %s", tabla, e$detalle))
+      una(d, sprintf("\u00ab%s\u00bb", basename(f)))
+    }))
+  }
+  # la salida de un lector es una tabla nueva (no el data.frame que se dio): se le puede poner el atributo
+  if (length(lectores)) data.table::setattr(out, "lectores", lectores)
+  out
 }

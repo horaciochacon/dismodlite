@@ -151,7 +151,19 @@
   }
   for (k in t$clave[t$defecto == "obligatoria" & !grepl("[.[]", t$clave)])
     if (is.null(s[[k]])) p(k, sprintf("falta (obligatoria): %s", t$descripcion[t$clave == k]))
-  probs
+  c(probs, .dl_problemas_particion(s))
+}
+
+# severidad.padre y componente.secuelas se leen de la corrida de partición: sin severidad.particion no tienen de
+# dónde salir.
+.dl_problemas_particion <- function(s) {
+  if (!is.null(.dl_valor_en(s, "severidad.particion"))) return(character())
+  c(if (!is.null(.dl_valor_en(s, "severidad.padre")))
+      paste0("severidad.padre: exige severidad.particion (la carpeta de la corrida de partici\u00f3n que reparte las ",
+             "secuelas de la causa padre)"),
+    if (!is.null(.dl_valor_en(s, "componente.secuelas")))
+      paste0("componente.secuelas: exige severidad.particion (la carpeta de la corrida de partici\u00f3n con las ",
+             "fracciones de esas secuelas)"))
 }
 
 # Error con la lista de problemas de la configuración simple `archivo`.
@@ -215,7 +227,10 @@
     stats::setNames(sprintf("%s, columna %s", tablas[sub("[.].*$", "", names(col))], col), exacta(punto(names(col)))),
     stats::setNames(paste("la tabla", tablas), exacta(paste("la tabla", names(tablas)))),
     stats::setNames(paste0("\\1", tablas, ":"), sprintf("(?m)^(\\s*-?\\s*)%s:", names(tablas))),
-    stats::setNames(rutas, sprintf("(?:`%s`|\u00ab%s\u00bb)(?: de dl_rutas\\(\\))?", names(rutas), names(rutas))),
+    # «la tabla `severidad`» -> «la tabla severidad», no «la tabla la tabla severidad»
+    stats::setNames(rutas, sprintf("%s(?:`%s`|\u00ab%s\u00bb)(?: de dl_rutas\\(\\))?",
+                                   ifelse(startsWith(rutas, "la tabla "), "(?:la tabla )?", ""), names(rutas),
+                                   names(rutas))),
     stats::setNames(names(tipos), exacta(tipos)),
     "(?m)^(\\s*-?\\s*[^\\s:]+: )[a-z0-9_]+ \u2014 " = "\\1")
   for (i in seq_along(cambios)) x <- gsub(names(cambios)[i], cambios[[i]], x, perl = TRUE)
@@ -317,10 +332,9 @@
   Filter(Negate(is.null), cfg)
 }
 
-# Configuración simple `s` (de `archivo`) -> dl_config, con lo que toma de las tablas del proyecto (`contexto`, ver
-# .dl_traducir_config_simple), validado por el validador completo con los errores citados por la clave simple.
-# `cambios` (claves del formato completo) van después de `avanzado`.
-.dl_config_simple <- function(s, archivo, causa, contexto, cambios = NULL) {
+# Las claves de la configuración simple `s` (de `archivo`), con los nombres anteriores (alias) cambiados por los de
+# ahora: error con sus problemas de forma (.dl_problemas_config_simple), que no dependen de las tablas.
+.dl_claves_config_simple <- function(s, archivo) {
   if (!is.list(s) || is.null(names(s)))
     .dl_stop_config_simple(archivo, "el archivo no es una lista de claves (clave: valor, una por l\u00ednea)")
   alias <- attr(.dl_claves_simple(), "alias")
@@ -331,6 +345,14 @@
   }
   probs <- .dl_problemas_config_simple(s)
   if (length(probs)) .dl_stop_config_simple(archivo, probs)
+  s
+}
+
+# Configuración simple `s` (de `archivo`) -> dl_config, con lo que toma de las tablas del proyecto (`contexto`, ver
+# .dl_traducir_config_simple), validado por el validador completo con los errores citados por la clave simple.
+# `cambios` (claves del formato completo) van después de `avanzado`.
+.dl_config_simple <- function(s, archivo, causa, contexto, cambios = NULL) {
+  s <- .dl_claves_config_simple(s, archivo)
   cfg <- .dl_traducir_config_simple(s, archivo, contexto)
   cfg <- tryCatch(.dl_fundir_cambios(cfg, s[["avanzado"]]),
                   dl_error = function(e) .dl_stop_config_simple(archivo, paste("avanzado:", .dl_detalle(e))))
@@ -339,33 +361,4 @@
   if (length(v$problemas))
     .dl_stop_config_simple(archivo, .dl_problema_en_simple(v$campos, v$mensajes, s))
   v$cfg
-}
-
-# ---- El ancla que falta ----
-
-# Lo que el ajuste necesita del ancla de la causa (`a`) en la ubicación nacional, el año del ancla y cada sexo, y no
-# está: la prevalencia y, si la usa el prior de la mortalidad en exceso, la mortalidad (con su medida de .DL_MEDIDAS).
-.dl_ancla_faltante <- function(a, cfg) {
-  anio <- .dl_anio_ancla(cfg)
-  pista <- c(prevalence = "", csmr = paste0(": la usa el prior de la mortalidad en exceso (desde_ancla, por defecto, ",
-    "o plano sin techo); agr\u00e9gala a ancla/ o declara mortalidad_exceso: {prior: plano, techo: ...}, por ",
-    "persona-a\u00f1o"))
-  unlist(lapply(c("prevalence", if (.dl_prior_usa_csmr(cfg)) "csmr"), function(slug) {
-    med <- .dl_medida(slug)
-    met <- .dl_metrica_std(med, cfg)
-    m <- a[measure_id == as.character(med$measure_id_gbd)]
-    mn <- m[metric_name == met$metric_std & location_id == .dl_loc_ancla(cfg)]
-    fs <- setdiff(unlist(cfg$sexos), as.integer(mn$sex_id[mn$year == anio]))
-    hay <- mn$year[as.integer(mn$sex_id) %in% fs]                   # los años de los sexos que faltan
-    if (nrow(mn) && !length(fs)) return(NULL)
-    sprintf("ancla/ no trae la %s (measure_id %d, m\u00e9trica %s) de la causa %d %s%s%s", med$nombre_es,
-            med$measure_id_gbd, met$metric_std, cfg$cause_id,
-            if (!nrow(mn)) sprintf("en la ubicaci\u00f3n %s (m\u00e9tricas que trae: %s; ubicaciones: %s)",
-                                   .dl_loc_ancla(cfg), .dl_lista(m$metric_name, "ninguna"),
-                                   .dl_lista(m$location_id, "ninguna"))
-            else sprintf("de %s para %d (a\u00f1os que trae: %s)", .dl_nombres_sexo(fs), anio, .dl_lista(hay)),
-            if (as.character(anio - 1L) %in% hay && is.null(cfg$years$ancla))
-              sprintf("; si %d a\u00fan no tiene estimaci\u00f3n de GBD, proyecta desde %d con ancla: {anio: %d}", anio,
-                      anio - 1L, anio - 1L) else "", pista[[slug]])
-  }))
 }

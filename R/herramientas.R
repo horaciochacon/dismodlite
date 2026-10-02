@@ -1,8 +1,8 @@
-# Herramientas para la carpeta de un proyecto (R/proyecto.R y R/formato_simple.R): dl_nuevo_proyecto() la crea en el
-# formato simple (la configuración comentada y las plantillas, desde las dos tablas de inst/referencia);
-# dl_revisar_proyecto() la revisa con los lectores y validadores de siempre, sin detenerse en el primer problema; y
-# dl_correr() hace una corrida en una llamada. Su única comprobación propia es un aviso de la revisión: la mortalidad de
-# datos.csv que parece una tasa por 100 000 (.dl_aviso_unidades).
+# Herramientas para la carpeta de un proyecto (R/proyecto.R y el contrato de insumos, R/contrato.R):
+# dl_nuevo_proyecto() la crea (la configuración comentada, desde la tabla de claves, y las plantillas de las tablas
+# del contrato); dl_revisar_proyecto() la revisa con los lectores y validadores de siempre, tabla por tabla, y con las
+# reglas entre tablas (.dl_problemas_proyecto), sin detenerse en el primer problema; y dl_correr() hace una corrida en
+# una llamada.
 
 # ---- dl_nuevo_proyecto() ----
 
@@ -66,49 +66,72 @@
   out
 }
 
-# LEEME.md de un proyecto nuevo: los pasos, con las direcciones de GBD Results y del GHDx del contrato estimates/v1
-# (inst/schema) y las llamadas para revisar y correr el proyecto.
+# Las tablas con plantilla en un proyecto nuevo (solo el encabezado: una tabla opcional sin filas es como si no
+# estuviera) y las carpetas para las descargas tal cual.
+.DL_PLANTILLAS_NUEVO <- c("ubicaciones", "poblacion", "betas", "datos", "severidad", "poblacion_detalle")
+.DL_CARPETAS_NUEVO <- c("ancla", "covariables", "fuentes_gbd")
+
+# LEEME.md de un proyecto nuevo: la carpeta del proyecto (la de ?dl_proyecto), los pasos, con las direcciones de GBD
+# Results y del GHDx del contrato estimates/v1 (inst/schema), y las llamadas para revisar y correr el proyecto.
 .dl_plantilla_leeme <- function(carpeta, causa, archivo_config) {
   url <- .dl_schema_estimates()$sources
   ruta <- gsub("\\", "/", carpeta, fixed = TRUE)
   c(sprintf("# Proyecto de dismodlite: causa %d", causa), "",
-    sprintf("1. Completa `%s` (las claves: `?dl_configuracion`).", archivo_config),
-    sprintf("2. Pon en `ancla/` las descargas de GBD Results (%s), sin editar.", url$gbd$url),
-    sprintf("3. Si declaras covariables, pon en `covariables/` sus descargas del GHDx (%s), sin editar.", url$ghdx$url),
-    paste0("4. Llena `poblacion.csv`, `severidad.csv` y, si los usas, `proxies.csv` y `datos.csv` (las columnas y ",
-           "sus unidades: `?dl_proyecto`)."),
-    sprintf("5. Revisa el proyecto: `dl_revisar_proyecto(\"%s\")`.", ruta),
-    sprintf(paste0("6. Pru\u00e9balo con `dl_correr(\"%s\", semilla = 1, rapido = TRUE)`; la corrida final, con ",
+    "Las tablas y sus columnas, unidades y valores: `?dl_tablas`. La carpeta del proyecto (`?dl_proyecto`):", "",
+    "```",
+    sprintf("%-22s # la configuraci\u00f3n (las claves: ?dl_configuracion)", archivo_config),
+    "ubicaciones.csv        # la nacional (sin padre) y las subnacionales (con la nacional de padre)",
+    "poblacion.csv          # por ubicaci\u00f3n, a\u00f1o, sexo y banda de edad: las bandas del modelo",
+    "ancla/                 # descargas de GBD Results tal cual, o la tabla ancla",
+    "covariables/           # descargas del GHDx (valor nacional) y la tabla con los proxies subnacionales",
+    "betas.csv              # el efecto de cada covariable",
+    "datos.csv              # datos locales",
+    "severidad.csv          # estados de salud y sus proporciones (para los AVD)",
+    "fuentes_gbd/           # la lista de fuentes del GHDx que GBD ya us\u00f3",
+    "poblacion_detalle.csv  # poblaci\u00f3n nacional con m\u00e1s detalle de edad, si el ancla es m\u00e1s fina",
+    "```", "",
+    "Una tabla con solo el encabezado no se usa: las obligatorias son `ubicaciones`, `poblacion` y `ancla`.", "",
+    sprintf("1. Completa `%s`.", archivo_config),
+    "2. Llena `ubicaciones.csv` y `poblacion.csv`.",
+    sprintf("3. Pon en `ancla/` las descargas de GBD Results (%s), sin editar.", url$gbd$url),
+    sprintf(paste0("4. Si usas covariables, llena `betas.csv` y pon en `covariables/` sus descargas del GHDx (%s), ",
+                   "sin editar, y la tabla de sus proxies subnacionales."), url$ghdx$url),
+    "5. Llena las dem\u00e1s tablas que uses (`severidad.csv`, para los AVD; `datos.csv`; ...).",
+    sprintf("6. Revisa el proyecto: `dl_revisar_proyecto(\"%s\")`.", ruta),
+    sprintf(paste0("7. Pru\u00e9balo con `dl_correr(\"%s\", semilla = 1, rapido = TRUE)`; la corrida final, con ",
                    "`rapido = FALSE`."), ruta))
 }
 
 #' Crear la carpeta de un proyecto nuevo
 #'
-#' Crea la carpeta de un proyecto en el formato simple (ver [dl_proyecto()]) con lo que hay que llenar: la
-#' configuración comentada, las carpetas de las descargas, las plantillas de las tablas y un `LEEME.md` con los
-#' pasos. No sobrescribe nada: un archivo que ya existe queda como está.
+#' Crea la carpeta de un proyecto (ver [dl_proyecto()]) con lo que hay que llenar: la configuración comentada, las
+#' plantillas de las tablas del contrato de insumos ([dl_tablas]), las carpetas de las descargas y un `LEEME.md` con
+#' los pasos. No sobrescribe nada: un archivo que ya existe queda como está.
 #'
 #' @details
 #' Lo que se crea en `carpeta`:
 #' - `config.yaml` (o `config/<causa>.yaml`, si el proyecto ya tiene la carpeta `config/` de un proyecto con varias
-#'   causas): cada clave de la configuración simple con qué es, su símbolo en el modelo y su valor por defecto (la
+#'   causas): cada clave de la configuración con qué es, su símbolo en el modelo y su valor por defecto (la
 #'   tabla de [dl_configuracion()]). Las claves obligatorias (`causa`, `anio`, `edad_inicio`) van sin comentar, con el
 #'   valor dado o vacías; `nombre`, si se da, también. Las demás van comentadas con su valor por defecto o, si no
 #'   tienen un valor fijo, con un ejemplo. Para usar otro valor se quita el `#` de la línea (y el de su
 #'   bloque, como `ancla:` para `ancla.peso`).
-#' - `ancla/` y `covariables/`, vacías: ahí van las descargas de GBD Results y del GHDx, sin editar.
-#' - `poblacion.csv`, `severidad.csv`, `proxies.csv` y `datos.csv`, con el encabezado (las columnas de
-#'   [dl_proyecto()]). Las dos últimas son opcionales: con solo el encabezado no se usan.
-#' - `LEEME.md`: los pasos, de dónde se descarga cada archivo y cómo revisar y correr el proyecto.
+#' - `ubicaciones.csv`, `poblacion.csv`, `betas.csv`, `datos.csv`, `severidad.csv` y `poblacion_detalle.csv`, con
+#'   solo el encabezado (las columnas de [dl_plantilla()]). Una tabla con solo el encabezado es como si no estuviera:
+#'   las opcionales que no se llenan no se usan.
+#' - `ancla/`, `covariables/` y `fuentes_gbd/`, vacías: ahí van las descargas de GBD Results y del GHDx, sin editar
+#'   (o las tablas del contrato).
+#' - `LEEME.md`: la carpeta del proyecto, los pasos, de dónde se descarga cada archivo y cómo revisar y correr el
+#'   proyecto.
 #'
-#' Después: llenar los archivos, revisar el proyecto con [dl_revisar_proyecto()] y correrlo con [dl_correr()]. Los
+#' Después: llenar las tablas, revisar el proyecto con [dl_revisar_proyecto()] y correrlo con [dl_correr()]. Los
 #' valores de `nombre`, `anio` y `edad_inicio` van a la configuración tal como se dan: la revisión dice si alguno no
 #' vale.
 #'
 #' Un proyecto de una sola causa tiene `config.yaml`. Para agregar otra causa, crea la carpeta `config/`, mueve ahí
 #' la configuración como `config/<causa>.yaml` y vuelve a llamar a `dl_nuevo_proyecto()` con la causa nueva: escribe
-#' `config/<causa nueva>.yaml` y deja lo demás como está. Agrega a `ancla/` la descarga de la causa nueva antes de
-#' revisar el proyecto.
+#' `config/<causa nueva>.yaml` y deja lo demás como está. Las tablas son las mismas para todas las causas: sus filas
+#' dicen de qué causa son en la columna `causa`.
 #'
 #' @param carpeta Carpeta del proyecto; se crea si no existe.
 #' @param causa Identificador de la causa: un número entero (el `cause_id` de GBD si la causa existe en GBD).
@@ -117,9 +140,9 @@
 #' @param edad_inicio Primera edad del modelo, en años (opcional aquí; la configuración la exige).
 #' @return La ruta de `carpeta`, invisible. Un mensaje lista lo que se creó, lo que ya existía y los pasos
 #'   siguientes.
-#' @seealso [dl_proyecto()] (los archivos y sus columnas), [dl_configuracion()] (las claves de la configuración),
-#'   [dl_revisar_proyecto()] y [dl_correr()] (los pasos siguientes) y [dl_ejemplo()] (un proyecto lleno, para
-#'   comparar).
+#' @seealso [dl_tablas] (las tablas y sus columnas), [dl_proyecto()] (la carpeta), [dl_configuracion()] (las claves
+#'   de la configuración), [dl_revisar_proyecto()] y [dl_correr()] (los pasos siguientes) y [dl_ejemplo()] (un
+#'   proyecto lleno, para comparar).
 #' @family proyecto
 #' @examples
 #' carpeta <- file.path(tempdir(), "proyecto_nuevo")
@@ -127,7 +150,7 @@
 #'                   anio = 2023, edad_inicio = 30)
 #' list.files(carpeta, recursive = TRUE, include.dirs = TRUE)
 #' cat(readLines(file.path(carpeta, "config.yaml"), n = 20, encoding = "UTF-8"), sep = "\n")
-#' # la revisión dice qué falta: las descargas del ancla, la población y la severidad
+#' # la revisión dice qué falta: las tablas obligatorias
 #' dl_revisar_proyecto(carpeta)
 #' unlink(carpeta, recursive = TRUE)
 #' @export
@@ -143,23 +166,19 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
                     "la carpeta config/, mueve ah\u00ed config.yaml como config/%d.yaml y vuelve a llamar a ",
                     "dl_nuevo_proyecto()"), otra[1L], causa, otra[1L])
   dadas <- Filter(Negate(is.null), list(causa = causa, nombre = nombre, anio = anio, edad_inicio = edad_inicio))
-  # las tablas con sus columnas obligatorias y las opcionales más usadas: una tabla opcional con solo el encabezado
-  # es como si no estuviera
-  plantillas <- lapply(stats::setNames(nm = grep("[.]csv$", .dl_archivos_simple(), value = TRUE)), function(f)
-    paste(.dl_columnas_simple(f, c("obligatoria", "plantilla")), collapse = ","))
-  plantillas <- plantillas[nzchar(plantillas)]
+  plantillas <- lapply(stats::setNames(.DL_PLANTILLAS_NUEVO, paste0(.DL_PLANTILLAS_NUEVO, ".csv")),
+                       function(t) paste(names(dl_plantilla(t)), collapse = ","))
   archivos <- c(stats::setNames(list(.dl_plantilla_config(dadas)), archivo_config),
                 list(LEEME.md = .dl_plantilla_leeme(carpeta, causa, archivo_config)), plantillas)
-  for (d in sub("/$", "", grep("/$", .dl_archivos_simple(), value = TRUE)))
-    dir.create(file.path(carpeta, d), recursive = TRUE, showWarnings = FALSE)
+  for (d in .DL_CARPETAS_NUEVO) dir.create(file.path(carpeta, d), recursive = TRUE, showWarnings = FALSE)
   nuevos <- !file.exists(file.path(carpeta, names(archivos)))
   for (a in names(archivos)[nuevos]) {
     dir.create(dirname(file.path(carpeta, a)), recursive = TRUE, showWarnings = FALSE)
     writeLines(enc2utf8(archivos[[a]]), file.path(carpeta, a), useBytes = TRUE)
   }
   .dl_message(paste0("proyecto de la causa %d en %s\n  archivos nuevos: %s\n  ya exist\u00edan (no se tocaron): %s\n",
-                     "  siguientes pasos: lee LEEME.md, completa %s, pon las descargas en ancla/ (y en ",
-                     "covariables/), llena las tablas y revisa el proyecto con dl_revisar_proyecto()"),
+                     "  siguientes pasos: lee LEEME.md, completa %s, llena las tablas, pon las descargas en ancla/ ",
+                     "(y en covariables/) y revisa el proyecto con dl_revisar_proyecto()"),
               causa, carpeta, .dl_lista(names(archivos)[nuevos]), .dl_lista(names(archivos)[!nuevos]), archivo_config)
   invisible(carpeta)
 }
@@ -191,91 +210,104 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 }
 
 # Una fila de la revisión. La sugerencia de un problema, por lo que nombra: ?dl_configuracion si es de la
-# configuración o nombra una de sus claves (ancla.peso, datos_en_ajuste...), las columnas de su tabla si es de una
-# tabla del proyecto con plantilla, si no ?dl_proyecto; ninguna si está en orden o se omitió.
+# configuración o nombra una de sus claves (ancla.peso, datos_en_ajuste...); si es de una tabla (su paso, o en el paso
+# «proyecto» la tabla con que empieza: «poblacion: ...»), sus columnas; si no, ?dl_proyecto. Ninguna si está en orden
+# o se omitió.
 .dl_fila_revision <- function(causa, paso, estado, detalle) {
-  columnas <- .dl_columnas_simple(paso, c("obligatoria", "plantilla"))
-  claves <- setdiff(grep("^[a-z_]+[._][a-z_.]+$", .dl_claves_simple()$clave, value = TRUE), .dl_columnas_ref()$columna)
+  claves <- setdiff(grep("^[a-z_]+[._][a-z_.]+$", .dl_claves_simple()$clave, value = TRUE), .dl_tablas_ref()$columna)
   clave <- grepl(sprintf("(?<![\\w.])(%s)(?!\\w)", paste(gsub(".", "[.]", claves, fixed = TRUE), collapse = "|")),
                  detalle, perl = TRUE)
+  tabla <- if (paso == "proyecto") sub("^([a-z_]+): .*$", "\\1", detalle) else paso
   sugerencia <- if (estado %in% c("ok", "omitido")) ""
                 else if (paso == "configuraci\u00f3n" || clave) "ver ?dl_configuracion"
-                else if (endsWith(paso, ".csv") && length(columnas))
-                  sprintf("columnas %s (ver ?dl_proyecto)", paste(columnas, collapse = ", "))
+                else if (tabla %in% .DL_TABLAS)
+                  sprintf("columnas %s (ver ?dl_tablas)", paste(names(dl_plantilla(tabla)), collapse = ", "))
                 else "ver ?dl_proyecto"
   data.frame(causa = causa, paso = paso, estado = estado, detalle = detalle, sugerencia = sugerencia,
              stringsAsFactors = FALSE)
 }
 
-# Aviso de los valores de mortalidad de la causa de `cfg` en `datos` (la tabla traducida de datos.csv) que parecen
-# tasas por 100 000 y no por persona-año, o NULL: mayores que 1, o más de 1000 veces la mortalidad del ancla (`ancla`:
-# muertes, Rate por 100 000, en la ubicación nacional) de la misma causa, sexo, grupo de edad y año. Una tasa por
-# 100 000 es 100 000 veces la de persona-año: con el margen de 1000, un dato por persona-año pasa aunque sea hasta 1000
-# veces el del ancla, y uno por 100 000 se detecta salvo que su valor verdadero sea menos de la centésima parte del
-# ancla. Cita cada valor por su fila (fila_<n>, como los demás mensajes de datos.csv).
-.dl_aviso_unidades <- function(datos, ancla, cfg) {
-  med <- .dl_medida("csmr")
-  m <- datos[datos$tipo_dato == "csmr" & !is.na(datos$val) & datos$cause_id == as.character(cfg$cause_id)]
-  a <- ancla[ancla$measure_id == med$measure_id_gbd & ancla$metric_name == med$metric_std &
-               ancla$location_id == .dl_loc_ancla(cfg)]
-  clave <- function(d, anio) paste(d$cause_id, d$sex_id, d$age_group_id, anio)
-  v <- as.numeric(m$val)
-  ref <- as.numeric(a$val[match(clave(m, m$year_start), clave(a, a$year))]) / med$escala_std
-  k <- which(v > 1 | (!is.na(ref) & v > 1000 * ref))
-  if (!length(k)) return(NULL)
-  sprintf(paste0("%d valor(es) de mortalidad parecen tasas por 100 000, no por persona-a\u00f1o ",
-                 "(%s; por ejemplo %s%s): divide valor y error_estandar por 100 000"), length(k),
-          paste(utils::head(m$dato_id[k], 5L), collapse = ", "), format(v[k[1L]]),
-          if (is.na(ref[k[1L]])) "" else sprintf(", donde el ancla da %s", format(signif(ref[k[1L]], 3L))))
-}
-
 # Revisión de una causa del proyecto `carpeta` (`cf`: su fila de .dl_configs_proyecto()): una fila por comprobación
-# (causa, paso, estado, detalle, sugerencia). En orden: la configuración (dl_configuracion()); en el formato simple,
-# los pasos de la traducción de las tablas (.dl_traducir_tablas, sin detenerse; sin la configuración, solo la lectura
-# de la población) y el aviso de las unidades; si nada falló, los insumos (dl_insumos(), con esa misma traducción) y la
-# severidad que dl_correr() necesita. En el formato simple, un problema que lleva su tabla (`tabla` del error) va al
-# paso del archivo de donde sale, sin el archivo delante; una configuración que no se tradujo por un problema de otro
-# archivo queda omitida.
+# (causa, paso, estado, detalle, sugerencia). Un proyecto con las tablas del contrato se revisa por pasos
+# (.dl_revisar_contrato); uno del formato completo, su configuración (dl_configuracion()). Al final, si nada falló, los
+# insumos (dl_insumos()) y la severidad que dl_correr() necesita. Un problema que lleva su tabla (`tabla` del error,
+# también la de una tabla interna de los insumos) va al paso de esa tabla, sin la tabla delante.
 .dl_revisar_causa <- function(carpeta, cf) {
   filas <- list()
   anotar <- function(paso, estado, detalle)
     filas[[length(filas) + 1L]] <<- .dl_fila_revision(cf$causa, paso, estado, detalle)
-  archivo <- attr(.dl_claves_simple(), "tablas")          # tabla del contrato -> archivo del formato simple
-  # la línea en orden de un archivo del proyecto: las filas que trae el archivo (los pesos de 80+ se calculan)
-  leido <- function(paso, f = file.path(carpeta, sub("/$", "", paso)))
-    if (file.exists(f)) sprintf("le\u00eddo: %d fila(s)", .dl_filas_csv(f)) else "calculados desde poblacion.csv"
+  interna <- attr(.dl_claves_simple(), "tablas")          # tabla interna de los insumos -> tabla del contrato
   # evalúa `expr` en el paso `paso` y anota sus avisos, sus problemas y, si no falló, la línea en orden `ok(valor)`
   # (NULL: ninguna); devuelve el valor (NULL si falló)
-  revisar <- function(paso, expr, ok = function(v) leido(paso)) {
+  revisar <- function(paso, expr, ok) {
     r <- .dl_recoger(expr)
-    donde <- if (cf$simple && isTRUE(r$tabla %in% names(archivo))) archivo[[r$tabla]] else paso
-    if (!donde %in% c(paso, .dl_archivos_simple())) donde <- "configuraci\u00f3n"     # las betas: sus covariables
+    donde <- if (cf$simple && isTRUE(r$tabla %in% names(interna))) interna[[r$tabla]]
+             else if (cf$simple && isTRUE(r$tabla %in% .DL_TABLAS)) r$tabla else paso
     for (a in r$avisos) anotar(paso, "aviso", a)
-    for (e in r$error) anotar(donde, "error", sub(paste0("^", gsub("([.])", "[.]", donde), ": "), "", e))
+    for (e in r$error) anotar(donde, "error", sub(paste0("^", donde, ": "), "", e))
     if (length(r$error) && donde != paso && paso == "configuraci\u00f3n")
-      anotar(paso, "omitido", sprintf("su traducci\u00f3n espera a %s", donde))
+      anotar(paso, "omitido", sprintf("su traducci\u00f3n espera a la tabla %s", donde))
     if (!length(r$error) && !is.null(r$valor) && !is.null(ok)) anotar(paso, "ok", ok(r$valor))
     r$valor
   }
+  errores <- function() any(vapply(filas, function(f) f$estado == "error", NA))
   rel <- if (basename(dirname(cf$archivo)) == "config") file.path("config", basename(cf$archivo))
          else basename(cf$archivo)
-  cfg <- revisar("configuraci\u00f3n", dl_configuracion(cf$causa, cf$archivo),
-                 function(cfg) sprintf("%s: formato %s", rel, if (cf$simple) "simple" else "completo"))
-  x <- NULL
-  if (cf$simple && is.null(cfg)) revisar("poblacion.csv", .dl_leer_poblacion_simple(carpeta))
-  if (cf$simple && !is.null(cfg)) {
-    x <- .dl_traducir_tablas(carpeta, cfg, paso = revisar)
-    u <- if (!is.null(x$datos) && !is.null(x$ancla)) .dl_aviso_unidades(x$datos, x$ancla, cfg)
-    if (!is.null(u)) anotar("datos.csv", "aviso", u)
-  }
-  if (any(vapply(filas, function(f) f$estado == "error", NA))) {
+  p <- if (cf$simple) .dl_revisar_contrato(carpeta, cf, rel, revisar, anotar, errores)
+       else {
+         cfg <- revisar("configuraci\u00f3n", dl_configuracion(cf$causa, cf$archivo),
+                        function(cfg) sprintf("%s: formato completo", rel))
+         if (!is.null(cfg)) function() .dl_proyecto_de(carpeta, cfg)
+       }
+  if (errores() || is.null(p)) {
     anotar("insumos", "omitido", "no se armaron: primero corrige los errores de arriba")
   } else {
-    b <- revisar("insumos", dl_insumos(.dl_proyecto_de(carpeta, cfg, x)),
+    b <- revisar("insumos", dl_insumos(p()),
                  function(b) sprintf("dl_insumos() los arma y los valida (hash %s)", substr(b$hash, 1L, 12L)))
     if (!is.null(b)) revisar("insumos", .dl_en_simple(.dl_exigir_severidad(b$severidad, cf$causa), cf$simple), NULL)
   }
   do.call(rbind, filas)
+}
+
+# Los pasos de un proyecto con las tablas del contrato (`revisar`, `anotar` y `errores`: los de .dl_revisar_causa):
+#   1. cada tabla, leída por su lector y validada sola (las obligatorias que faltan, un error en su paso);
+#   2. la configuración: sus claves y, si las tablas de las que toma algo (ubicaciones, betas, covariables) se leyeron,
+#      su traducción, con la severidad de la partición si la declara;
+#   3. «proyecto»: las reglas entre tablas (.dl_problemas_proyecto), si nada falló antes.
+# Devuelve la función que arma el proyecto (como dl_proyecto(), con su traducción: dentro del paso «insumos», donde un
+# error de la traducción queda en la revisión) o NULL si algo falló.
+.dl_revisar_contrato <- function(carpeta, cf, rel, revisar, anotar, errores) {
+  s <- .dl_leer_config(cf$archivo)
+  leida <- function(t) sprintf("le\u00edda: %d fila(s)%s", nrow(t),
+                               if (length(attr(t, "lectores"))) sprintf(" (%s)", paste(attr(t, "lectores"),
+                                                                                       collapse = ", ")) else "")
+  fallidas <- character()
+  tablas <- .dl_tablas_proyecto(carpeta, list(), .dl_opciones_lectores(s), paso = function(t, expr) {
+    v <- revisar(t, expr, leida)
+    if (is.null(v)) fallidas <<- c(fallidas, t)
+    v
+  })
+  omitir <- function() {
+    anotar("proyecto", "omitido", "las reglas entre tablas esperan a que se corrijan los errores de arriba")
+    NULL
+  }
+  s <- revisar("configuraci\u00f3n", .dl_claves_config_simple(s, cf$archivo), NULL)
+  if (is.null(s)) return(omitir())
+  espera <- intersect(c("ubicaciones", "betas", "covariables"), fallidas)
+  if (length(espera)) {
+    anotar("configuraci\u00f3n", "omitido", sprintf("su traducci\u00f3n espera a la tabla %s", espera[1L]))
+    return(omitir())
+  }
+  pre <- revisar("configuraci\u00f3n",
+                 .dl_config_de_tablas(s, cf$archivo, cf$causa, tablas, .dl_causas_config(carpeta, s, cf$causa),
+                                      carpeta),
+                 function(pre) sprintf("%s: formato simple", rel))
+  if (is.null(pre) || errores()) return(omitir())
+  pr <- .dl_problemas_proyecto(pre$tablas, pre$cfg, nrow(pre$causas))
+  for (a in pr$avisos) anotar("proyecto", "aviso", a)
+  for (e in pr$problemas) anotar("proyecto", "error", e)
+  if (!length(pr$problemas)) anotar("proyecto", "ok", "las reglas entre tablas se cumplen")
+  function() .dl_proyecto_armado(carpeta, carpeta, pre)
 }
 
 # Imprime la revisión `r` de las causas del proyecto `carpeta`: una línea por comprobación y la sugerencia de las que
@@ -300,61 +332,75 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 
 #' Revisar la carpeta de un proyecto
 #'
-#' Revisa la carpeta de un proyecto antes de correrlo, sin detenerse en el primer problema: la configuración de
-#' cada causa, cada archivo (ancla, población, pesos de 80 años y más, covariables, proxies, datos, severidad) y, al
-#' final, los insumos completos. Muestra una línea por comprobación, marcada como en orden, aviso (`!`) o error, con la
-#' corrección sugerida. No ajusta nada.
+#' Revisa la carpeta de un proyecto antes de correrlo, sin detenerse en el primer problema: cada tabla del contrato
+#' de insumos ([dl_tablas]), la configuración de cada causa, las reglas que cruzan tablas y, al final, los insumos
+#' completos. Muestra una línea por comprobación, marcada como en orden, aviso (`!`) o error, con la corrección
+#' sugerida. No ajusta nada.
 #'
 #' @details
-#' La revisión usa los mismos lectores y validadores que [dl_proyecto()] y [dl_insumos()], en el mismo orden: lo que
-#' pasa la revisión es lo que ellos aceptan. En orden:
-#' 1. la configuración, como la lee [dl_configuracion()] (claves, valores admitidos y dominios);
-#' 2. en el formato simple, cada archivo, para reportar juntos los problemas de archivos distintos: una columna que
-#'    falta, un CSV guardado desde Excel con «;» o coma decimal, un sexo o un grupo de edad que no se reconoce, una
-#'    medida, un año o una ubicación que el ancla no trae, la población del año que se estima, una covariable que
-#'    falta en las descargas, proxies de otras ubicaciones o de otro año...; sin la configuración, solo la población;
-#' 3. si nada de eso falló, los insumos completos, con las reglas que cruzan tablas: por ejemplo, que la población
-#'    nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la población, sea el
-#'    valor nacional de la covariable (?dl_proyecto da la receta para llevarlos a ese valor) o que los datos locales
-#'    tengan valores posibles (una prevalencia entre 0 y 1, casos que no superan la muestra); y la severidad: una
-#'    causa sin estados de salud es un error, porque sin ellos no hay AVD y [dl_correr()] no puede escribir la
-#'    corrida (los insumos sí se arman).
+#' La revisión usa los mismos lectores y validadores que [dl_proyecto()] y [dl_insumos()]: lo que pasa la revisión es
+#' lo que ellos aceptan. Sus pasos, en orden:
+#' 1. cada tabla (`ubicaciones`, `poblacion`, `ancla`, ...), leída por su lector y validada sola, como en [dl_tabla()]:
+#'    una columna que falta, un CSV guardado desde Excel con «;» o coma decimal, un sexo, una medida o un número que no
+#'    se reconoce, bandas de edad que se solapan... La línea en orden dice cuántas filas trae
+#'    (`leída: N fila(s)`) y, si pasó por un lector, cuál (`descarga de GBD Results`). Una tabla obligatoria que falta
+#'    (o que solo trae el encabezado) es un error;
+#' 2. `configuración`: sus claves y valores, como los lee [dl_configuracion()]. Su traducción toma cosas de las
+#'    tablas (la ubicación nacional, las betas): si `ubicaciones`, `betas` o `covariables` tienen un error, espera
+#'    (`-`);
+#' 3. `proyecto`: las reglas que cruzan tablas, cada problema con su tabla delante: que toda ubicación esté en
+#'    `ubicaciones` (una sola sin `padre`, la nacional; las subnacionales con la nacional de padre); que la población
+#'    traiga el año que se estima y los sexos del modelo, con las mismas bandas de edad en todas las ubicaciones, años
+#'    y sexos, desde `edad_inicio`; que el ancla traiga la prevalencia de la causa (y la mortalidad, si la usa el prior
+#'    de la mortalidad en exceso) en el año del ancla y en cada sexo, y la columna `causa` si el proyecto tiene varias;
+#'    que cada banda del ancla sea una unión de bandas de la población o se pueda agrupar con `poblacion_detalle`; que
+#'    cada covariable de `betas` (y cada `valor_nacional_de`) tenga su valor nacional en el año del ancla y que
+#'    `escala` vaya solo con la transformación lineal; que cada ubicación subnacional con proxies los traiga de todas
+#'    las covariables; que las proporciones de `severidad` sumen 1. Avisa (`!`) de una covariable con proxies y sin
+#'    beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación subnacional) y de
+#'    valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por persona-año (mayores que 1, o más de
+#'    1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+#' 4. `insumos`: si nada falló, los insumos completos ([dl_insumos()]), con las reglas que necesitan todo armado: que
+#'    la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
+#'    población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la
+#'    severidad: una causa sin estados de salud es un error, porque sin ellos no hay AVD y [dl_correr()] no puede
+#'    escribir la corrida. Un problema de los insumos que es de una tabla va al paso de esa tabla. Avisa también de lo
+#'    que no detiene los insumos pero conviene mirar (datos locales en el ajuste con `ancla.peso` 1, un posible doble
+#'    conteo, las filas de `datos` que quedan fuera).
 #'
-#' Cada problema va en el paso de su archivo (en el formato simple, también los de las reglas de los insumos), con una
-#' sugerencia: [dl_configuracion()] si nombra una clave de la configuración, las columnas de la tabla o [dl_proyecto()].
-#' Una línea en orden (`leído: N fila(s)`) dice cuántas filas de datos trae el archivo (o los CSV de la carpeta): una
-#' regla de los insumos puede encontrar después un error en ese mismo archivo. Avisa (`!`) de lo que no detiene los
-#' insumos pero conviene mirar: los avisos de la lectura y de los insumos (por ejemplo, datos locales en el ajuste con
-#' `ancla.peso` 1, un posible doble conteo), las filas de `datos.csv` de la causa que quedan fuera (de otro año, de
-#' ambos sexos o por debajo de `edad_inicio`), un `datos_en_ajuste` sin ninguna fila nacional que entre al ajuste y
-#' los valores de mortalidad de `datos.csv` que parecen tasas por 100 000 en vez de por persona-año: mayores que 1, o
-#' más de 1000 veces la mortalidad del ancla en la misma causa, sexo, grupo de edad y año. Un paso que espera a que se
-#' corrija otro (`-`) no cuenta como error ni como aviso: los insumos, si algo falló antes, o la configuración, si su
-#' traducción necesita un archivo con problemas (como `ancla/`).
+#' Cada problema lleva una sugerencia: [dl_configuracion()] si nombra una clave de la configuración, las columnas de
+#' su tabla ([dl_tablas]) o [dl_proyecto()]. Un paso que espera a que se corrija otro (`-`) no cuenta como error ni
+#' como aviso.
 #'
-#' En un proyecto en el formato completo se revisan la configuración, los insumos completos y la severidad.
+#' En un proyecto en el formato completo de la 0.2.2 se revisan la configuración, los insumos completos y la
+#' severidad.
 #'
 #' @param carpeta Carpeta del proyecto.
 #' @param causa Causa que se revisa (`cause_id`); `NULL` (por defecto) revisa todas las causas con configuración.
-#' @return Una tabla (data.frame), invisible, con una fila por comprobación: `causa`, `paso` (la configuración, el
-#'   archivo o `insumos`), `estado` (`"ok"`, `"aviso"`, `"error"` u `"omitido"`: un paso que espera a que se corrija
-#'   otro), `detalle` y `sugerencia` (la corrección; vacía si está en orden o se omitió).
-#' @seealso [dl_proyecto()] (los archivos y sus columnas, y la receta para que los proxies cierren en el valor
-#'   nacional), [dl_configuracion()] (las claves), [dl_nuevo_proyecto()] y [dl_correr()].
+#' @return Una tabla (data.frame), invisible, con una fila por comprobación: `causa`, `paso` (la tabla, la
+#'   configuración, `proyecto` o `insumos`), `estado` (`"ok"`, `"aviso"`, `"error"` u `"omitido"`: un paso que espera a
+#'   que se corrija otro), `detalle` y `sugerencia` (la corrección; vacía si está en orden o se omitió).
+#' @seealso [dl_tablas] (las tablas y sus columnas), [dl_proyecto()] (la carpeta), [dl_configuracion()] (las claves),
+#'   [dl_nuevo_proyecto()] y [dl_correr()].
 #' @family proyecto
 #' @examples
 #' r <- dl_revisar_proyecto(dl_ejemplo(), causa = 9100)
 #' table(r$estado)
 #'
-#' # un proyecto con un problema: la población sin la columna `sexo`
-#' carpeta <- file.path(tempdir(), "proyecto_con_error")
-#' dir.create(file.path(carpeta, "ancla"), recursive = TRUE)
-#' invisible(file.copy(dl_ejemplo("ancla", "sintetico_acs_v1.csv"), file.path(carpeta, "ancla")))
-#' writeLines(c("causa: 9101", "anio: 2023", "edad_inicio: 30"), file.path(carpeta, "config.yaml"))
-#' pob <- read.csv(dl_ejemplo("poblacion.csv"), colClasses = c(location_id = "character"))
+#' # una copia con un problema de una tabla (la población sin la columna `sexo`)
+#' carpeta <- dl_ejemplo(copiar_en = file.path(tempdir(), "proyecto_con_errores"))
+#' pob <- read.csv(file.path(carpeta, "poblacion.csv"), colClasses = c(ubicacion = "character"))
 #' write.csv(pob[names(pob) != "sexo"], file.path(carpeta, "poblacion.csv"), row.names = FALSE)
-#' r <- dl_revisar_proyecto(carpeta)
-#' r[r$estado == "error", c("paso", "sugerencia")]
+#' r <- dl_revisar_proyecto(carpeta, causa = 9100)
+#' r[r$estado == "error", c("paso", "detalle", "sugerencia")]
+#'
+#' # y uno entre tablas (un dato de una ubicación que no está en ubicaciones.csv)
+#' write.csv(pob, file.path(carpeta, "poblacion.csv"), row.names = FALSE)
+#' datos <- read.csv(file.path(carpeta, "datos.csv"), colClasses = c(ubicacion = "character"))
+#' datos$ubicacion[1] <- "99"
+#' write.csv(datos, file.path(carpeta, "datos.csv"), row.names = FALSE, na = "")
+#' r <- dl_revisar_proyecto(carpeta, causa = 9100)
+#' r[r$estado == "error", c("paso", "detalle", "sugerencia")]
 #' unlink(carpeta, recursive = TRUE)
 #' @export
 dl_revisar_proyecto <- function(carpeta, causa = NULL) {

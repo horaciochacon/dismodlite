@@ -95,7 +95,9 @@ test_that("las tablas: argumentos que no son del contrato, sin nombre, rutas que
   # una obligatoria vacía falta, con dónde se buscó
   writeLines(readLines(file.path(d, "poblacion.csv"), n = 1L), file.path(d, "poblacion.csv"))
   expect_error(dl_proyecto(d), "poblacion.*poblacion.csv.*poblacion/")
-  # una tabla mal formada: el error de la tabla del contrato, con su origen
+  # ubicaciones sin la columna padre es una tabla válida sola (todas sus filas serían nacionales): dl_proyecto() la
+  # acepta y la regla entre tablas que exige una sola nacional es de dl_revisar_proyecto(). Una tabla mal formada
+  # (la población sin sexo) es el error de la tabla del contrato, con su origen
   t <- tablas_de(d, "ubicaciones")$ubicaciones
   t$padre <- NULL
   expect_s3_class(dl_proyecto(d, poblacion = tablas_de(proyecto_ficticio(), "poblacion")$poblacion,

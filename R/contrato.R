@@ -362,7 +362,8 @@ NULL
 # hexadecimal de todos (.dl_num_hex): sin long double (R en arm64, como en los Mac con procesador Apple), as.numeric() y
 # fread() no redondean bien todos los decimales de 17 cifras, y el double de una tasa / 100 000 puede no tener ningún
 # texto decimal que vuelva a él. Toda la columna va en un mismo formato porque fread() lee como texto una columna que
-# mezcla decimales y hexadecimales; por eso `x` es siempre una columna entera.
+# mezcla decimales y hexadecimales; por eso `x` es siempre una columna entera. Si tampoco el hexadecimal vuelve a `x`
+# (no debería pasar), un error: nunca se escribe en silencio un número distinto.
 .dl_num_exacto <- function(x) {
   s <- vapply(x, function(v) {
     if (is.na(v)) return(NA_character_)
@@ -370,7 +371,14 @@ NULL
     NA_character_
   }, "", USE.NAMES = FALSE)
   if (identical(is.na(s), is.na(x)) && identical(.dl_leer_numeros(s), as.numeric(x))) return(s)
-  .dl_num_hex(x)
+  h <- .dl_num_hex(x)
+  y <- .dl_leer_numeros(h)
+  vuelve <- !is.null(y) && identical(is.na(y), is.na(x)) && all(y[!is.na(x)] == x[!is.na(x)])
+  if (!vuelve)
+    .dl_stop(paste0("no hay un texto que vuelva exactamente a los n\u00fameros %s (ni decimal ni hexadecimal): la ",
+                    "traducci\u00f3n no puede escribirlos sin cambiarlos. Es un error del paquete: rep\u00f3rtalo con ",
+                    "estos valores"), paste(utils::head(format(x[!is.na(x)], digits = 17L), 3L), collapse = ", "))
+  h
 }
 
 # Números -> su texto hexadecimal, exacto, en la forma que leen fread() y as.numeric() (fread() pide la parte
@@ -406,3 +414,256 @@ NULL
 # Los valores de `v`, sin repetir y en orden, para un mensaje («2019, 2023»); `vacio` si no hay ninguno.
 .dl_lista <- function(v, vacio = "ninguno")
   if (length(v)) paste(sort(unique(v), method = "radix"), collapse = ", ") else vacio
+
+# ---- Reglas entre tablas ----
+# Lo que una tabla sola no puede comprobar (el nivel «proyecto» de ?dl_tablas): cada regla recibe las tablas del
+# proyecto (`tablas`, lista nombrada de dl_tabla sin las que no están; trae siempre las obligatorias) y la
+# configuración traducida `cfg` de una causa, y devuelve sus problemas como texto, cada uno con su tabla delante
+# («poblacion: ...»). Las reglas de la configuración que cruzan claves están en .dl_problemas_config_simple; las que
+# necesitan las tablas del formato completo (las subnacionales suman la nacional, los proxies cierran en el valor
+# nacional, los datos tienen valores posibles), en R/reglas.R: las corre dl_insumos().
+
+# Problemas (list(problemas, avisos)) de las tablas de un proyecto para la causa de `cfg`. `n_causas`: cuántas causas
+# tienen configuración en el proyecto (con más de una, el ancla dice de qué causa es cada fila).
+.dl_problemas_proyecto <- function(tablas, cfg, n_causas = 1L) list(
+  problemas = c(.dl_regla_ubicaciones(tablas), .dl_regla_ubicaciones_conocidas(tablas),
+                .dl_regla_poblacion(tablas, cfg), .dl_regla_ancla(tablas, cfg, n_causas),
+                .dl_regla_bandas_ancla(tablas, cfg), .dl_regla_betas(tablas, cfg),
+                .dl_regla_proxies_incompletos(tablas, cfg), .dl_regla_intervalo_nacional(tablas, cfg),
+                .dl_regla_severidad(tablas, cfg)),
+  avisos = c(.dl_regla_covariables_sin_beta(tablas, cfg), .dl_regla_ubicaciones_sin_proxy(tablas, cfg),
+             .dl_regla_unidades_datos(tablas, cfg)))
+
+# Los sexos del modelo (cfg$sexos) en palabras del contrato: «hombres», «mujeres».
+.dl_sexos_modelo <- function(cfg) unname(.DL_SEXOS_CONTRATO[as.character(unlist(cfg$sexos))])
+
+# Unos pocos valores para un mensaje: «01, 02, 03, 04, 05 y 20 más».
+.dl_unos <- function(v, n = 5L) {
+  v <- sort(unique(v), method = "radix")
+  paste0(paste(utils::head(v, n), collapse = ", "), if (length(v) > n) sprintf(" y %d m\u00e1s", length(v) - n) else "")
+}
+
+# ubicaciones: una sola fila sin padre (la nacional); el padre de las demás es la nacional; sin códigos repetidos.
+.dl_regla_ubicaciones <- function(tablas) {
+  u <- tablas$ubicaciones
+  padre <- .dl_col(u, "padre", NA_character_)
+  raiz <- u$ubicacion[is.na(padre)]
+  otros <- unique(padre[!is.na(padre) & !padre %in% raiz])
+  repetidos <- unique(u$ubicacion[duplicated(u$ubicacion)])
+  c(if (length(raiz) != 1L)
+      sprintf(paste0("ubicaciones: %s; solo la nacional va sin padre y las subnacionales llevan la nacional como ",
+                     "padre"),
+              if (!length(raiz)) "todas las filas tienen padre" else sprintf("%d filas van sin padre (%s)",
+                                                                              length(raiz), .dl_unos(raiz))),
+    if (length(raiz) == 1L && length(otros))
+      sprintf(paste0("ubicaciones: el padre de una ubicaci\u00f3n subnacional es la nacional (%s), y trae %s: el ",
+                     "modelo usa dos niveles, la nacional y sus subnacionales"), raiz, .dl_unos(otros)),
+    if (length(repetidos)) sprintf("ubicaciones: c\u00f3digos repetidos: %s", .dl_unos(repetidos)))
+}
+
+# Toda ubicación de poblacion, covariables, datos y fuentes_gbd está en ubicaciones.
+.dl_regla_ubicaciones_conocidas <- function(tablas) {
+  codigos <- tablas$ubicaciones$ubicacion
+  unlist(lapply(intersect(c("poblacion", "covariables", "datos", "fuentes_gbd"), names(tablas)), function(t) {
+    x <- setdiff(stats::na.omit(.dl_col(tablas[[t]], "ubicacion", NA_character_)), codigos)
+    if (length(x))
+      sprintf(paste0("%s: la(s) ubicaci\u00f3n(es) %s no est\u00e1(n) en la tabla ubicaciones: ",
+                     "agr\u00e9gala(s) ah\u00ed o corrige el c\u00f3digo"), t, .dl_unos(x))
+  }))
+}
+
+# poblacion: trae el año que se estima en los sexos del modelo; sus bandas (las del modelo) son las mismas en todas
+# las ubicaciones, años y sexos; la primera empieza en edad_inicio o antes.
+.dl_regla_poblacion <- function(tablas, cfg) {
+  p <- tablas$poblacion
+  anio <- .dl_anio_ajuste(cfg)
+  falta <- setdiff(.dl_sexos_modelo(cfg), p$sexo[p$anio == anio])
+  grupo <- paste(p$ubicacion, p$anio, p$sexo)
+  bandas <- tapply(paste(p$edad_inicio, p$edad_fin), grupo, function(b) paste(sort(b), collapse = ";"))
+  comunes <- names(which.max(table(bandas)))
+  inicio <- min(p$edad_inicio)
+  c(if (length(falta))
+      sprintf("poblacion: no trae la poblaci\u00f3n de %s de %d (el a\u00f1o que se estima; a\u00f1os que trae: %s)",
+              paste(falta, collapse = " y "), anio, .dl_lista(p$anio)),
+    if (length(unique(bandas)) > 1L)
+      sprintf(paste0("poblacion: las bandas de edad (las del modelo) deben ser las mismas en todas las ubicaciones, ",
+                     "a\u00f1os y sexos; %s no traen las mismas que las dem\u00e1s"),
+              .dl_unos(names(bandas)[bandas != comunes], 3L)),
+    if (inicio > as.numeric(cfg$edad_inicio))
+      sprintf(paste0("poblacion: la primera banda empieza a los %g a\u00f1os, despu\u00e9s de edad_inicio (%g) de la ",
+                     "configuraci\u00f3n: agrega las edades desde %g o sube edad_inicio"), inicio,
+              as.numeric(cfg$edad_inicio), as.numeric(cfg$edad_inicio)))
+}
+
+# ancla: trae la prevalencia de la causa en el año del ancla y en cada sexo del modelo y, si la usa el prior de la
+# mortalidad en exceso (.dl_prior_usa_csmr), la mortalidad. Con más de una causa en el proyecto, trae la columna causa.
+.dl_regla_ancla <- function(tablas, cfg, n_causas = 1L) {
+  sin_causa <- if (n_causas > 1L && !"causa" %in% names(tablas$ancla))
+    sprintf(paste0("ancla: falta la columna causa: el proyecto tiene %d causas con configuraci\u00f3n y cada fila del ",
+                   "ancla dice de cu\u00e1l es"), n_causas)
+  a <- .dl_filas_de_causa(tablas$ancla, cfg$cause_id)
+  anio <- .dl_anio_ancla(cfg)
+  pista <- c(prevalencia = "", mortalidad = paste0(
+    ": la usa el prior de la mortalidad en exceso (desde_ancla, por defecto, o plano sin techo); agr\u00e9gala a la ",
+    "tabla ancla o declara mortalidad_exceso: {prior: plano, techo: ...}, por persona-a\u00f1o"))
+  c(sin_causa, unlist(lapply(c("prevalencia", if (.dl_prior_usa_csmr(cfg)) "mortalidad"), function(m) {
+    x <- a[a$medida %in% m]
+    falta <- setdiff(.dl_sexos_modelo(cfg), x$sexo[x$anio == anio])
+    if (!length(falta)) return(NULL)
+    hay <- x$anio[x$sexo %in% falta]
+    sprintf("ancla: no trae la %s de la causa %d %s%s%s", m, cfg$cause_id,
+            if (!nrow(x)) sprintf("(medidas que trae de la causa: %s)", .dl_lista(a$medida, "ninguna"))
+            else sprintf("de %s de %d (a\u00f1os que trae: %s)", paste(falta, collapse = " y "), anio, .dl_lista(hay)),
+            if ((anio - 1L) %in% hay && is.null(cfg$years$ancla))
+              sprintf("; si %d a\u00fan no tiene estimaci\u00f3n de GBD, proyecta desde %d con ancla: {anio: %d}", anio,
+                      anio - 1L, anio - 1L) else "", pista[[m]])
+  })))
+}
+
+# Bandas del ancla: cada una es una unión de bandas de la población o se agrupa en una de ellas con poblacion_detalle
+# (.dl_ancla_en_bandas, lo mismo que hace la traducción; sin anchor.agrupar_bandas_finas).
+.dl_regla_bandas_ancla <- function(tablas, cfg) {
+  if (isTRUE(cfg$anchor$agrupar_bandas_finas)) return(character())
+  a <- data.table::as.data.table(as.data.frame(.dl_filas_de_causa(tablas$ancla, cfg$cause_id)))
+  if (!nrow(a)) return(character())
+  e <- tryCatch({ .dl_ancla_en_bandas(a, tablas, cfg); NULL }, dl_error = .dl_detalle)
+  if (is.null(e)) character()
+  else if (startsWith(e, "poblacion_detalle ")) sub("^poblacion_detalle ", "poblacion_detalle: ", e)
+  else paste0("ancla: ", sub("^ancla: ", "", e))
+}
+
+# Covariables con valor nacional en la tabla covariables en `anio` (o sin año).
+.dl_covariables_nacionales <- function(tablas, anio) {
+  cov <- tablas$covariables
+  if (is.null(cov)) return(character())
+  a <- .dl_col(cov, "anio", NA_integer_)
+  unique(cov$covariable[.dl_es_nacional(cov, .dl_ubicacion_nacional(tablas)) & (is.na(a) | a == anio)])
+}
+
+# betas (las de la causa): cada covariable y cada valor_nacional_de tiene valor nacional en el año del ancla; escala
+# solo con la transformación lineal (con log o logit, vacía o 1).
+.dl_regla_betas <- function(tablas, cfg) {
+  b <- .dl_betas_de_causa(tablas$betas, cfg$cause_id, cfg$extraction$cause_id)
+  if (is.null(b) || !nrow(b)) return(character())
+  anio <- .dl_anio_ancla(cfg)
+  nac <- .dl_covariables_nacionales(tablas, anio)
+  donde <- sprintf("de %d (el a\u00f1o del ancla) en la tabla covariables%s", anio,
+                   if (is.null(tablas$covariables)) ", que no est\u00e1" else "")
+  sin <- setdiff(b$covariable, nac)
+  vn <- .dl_col(b, "valor_nacional_de", NA_character_)
+  vn_sin <- setdiff(vn[!is.na(vn)], nac)
+  escala <- .dl_col(b, "escala", NA_real_)
+  mal <- b$transformacion %in% c("log", "logit") & !is.na(escala) & escala != 1
+  c(if (length(sin)) sprintf("betas: %s no tiene(n) valor nacional %s: agrega su fila nacional", .dl_unos(sin), donde),
+    if (length(vn_sin)) sprintf("betas: valor_nacional_de nombra %s, sin valor nacional %s", .dl_unos(vn_sin), donde),
+    if (any(mal))
+      sprintf(paste0("betas: escala solo se usa con la transformaci\u00f3n lineal; con log o logit va vac\u00eda o 1 ",
+                     "(%s)"), .dl_unos(b$covariable[mal])))
+}
+
+# Proxies del año que se estima (filas subnacionales de covariables) de las covariables con proxy de la configuración
+# (cfg$covariables, en el modo subnacional por covariables): una lista ubicación subnacional -> covariables que trae.
+# NULL si la estimación subnacional no es por covariables.
+.dl_proxies_por_ubicacion <- function(tablas, cfg) {
+  if (!identical(cfg$origen$subnacional, "covariables") || is.null(tablas$covariables)) return(NULL)
+  decl <- vapply(cfg$covariables, function(cv) cv$covariate_name_short, "")
+  cov <- tablas$covariables
+  a <- .dl_col(cov, "anio", NA_integer_)
+  k <- !.dl_es_nacional(cov, .dl_ubicacion_nacional(tablas)) & (is.na(a) | a == .dl_anio_ajuste(cfg)) &
+    cov$covariable %in% decl
+  u <- tablas$ubicaciones
+  subs <- u$ubicacion[!is.na(.dl_col(u, "padre", NA_character_))]
+  lapply(stats::setNames(nm = subs), function(s) unique(cov$covariable[k & cov$ubicacion %in% s]))
+}
+
+# Una ubicación subnacional con proxies de unas covariables y no de otras: la estimación subnacional por covariables
+# necesita el de todas (sin ninguno, la ubicación queda fuera: .dl_regla_ubicaciones_sin_proxy).
+.dl_regla_proxies_incompletos <- function(tablas, cfg) {
+  px <- .dl_proxies_por_ubicacion(tablas, cfg)
+  if (is.null(px)) return(character())
+  decl <- vapply(cfg$covariables, function(cv) cv$covariate_name_short, "")
+  unlist(lapply(decl, function(cv) {
+    faltan <- names(px)[lengths(px) > 0L & !vapply(px, function(x) cv %in% x, NA)]
+    if (length(faltan))
+      sprintf(paste0("covariables: %s no trae(n) el proxy de %s de %d (el a\u00f1o que se estima) y s\u00ed ",
+                     "el de otras covariables: la estimaci\u00f3n subnacional necesita el de todas"), .dl_unos(faltan), cv,
+              .dl_anio_ajuste(cfg))
+  }))
+}
+
+# El valor nacional en que se anclan los proxies (el de la covariable o el de su valor_nacional_de, en el año del
+# ancla) trae su intervalo (inferior y superior): la estimación subnacional sortea el valor nacional de él.
+.dl_regla_intervalo_nacional <- function(tablas, cfg) {
+  if (is.null(.dl_proxies_por_ubicacion(tablas, cfg))) return(character())
+  ref <- unique(vapply(cfg$covariables, function(cv) cv$sustituye$covariate_name_short %||% cv$covariate_name_short, ""))
+  cov <- tablas$covariables
+  a <- .dl_col(cov, "anio", NA_integer_)
+  k <- .dl_es_nacional(cov, .dl_ubicacion_nacional(tablas)) & (is.na(a) | a == .dl_anio_ancla(cfg)) &
+    cov$covariable %in% ref
+  sin <- unique(cov$covariable[k & (is.na(.dl_col(cov, "inferior", NA_real_)) |
+                                      is.na(.dl_col(cov, "superior", NA_real_)))])
+  if (length(sin))
+    sprintf(paste0("covariables: el valor nacional de %s de %d (el a\u00f1o del ancla) no trae su intervalo (inferior ",
+                   "y superior; en una descarga del GHDx, lower_value y upper_value): la estimaci\u00f3n subnacional ",
+                   "lo usa"), .dl_unos(sin), .dl_anio_ancla(cfg))
+  else character()
+}
+
+# severidad (de la causa): las proporciones suman 1, por sexo y banda si los trae, con la tolerancia del redondeo.
+.dl_regla_severidad <- function(tablas, cfg) {
+  s <- if (!is.null(tablas$severidad)) .dl_filas_de_causa(tablas$severidad, cfg$cause_id)
+  if (is.null(s) || !nrow(s)) return(character())
+  por <- intersect(c("sexo", "edad_inicio", "edad_fin"), names(s))
+  grupo <- if (length(por)) do.call(paste, unname(as.list(s[, por, with = FALSE]))) else rep("", nrow(s))
+  suma <- tapply(s$proporcion, grupo, sum)
+  mal <- which(abs(suma - 1) > .DL_TOLERANCIA_SUMA_PARTICION)
+  if (length(mal))
+    sprintf("severidad: las proporciones de la causa %d suman %s%s; deben sumar 1", cfg$cause_id,
+            format(signif(suma[[mal[1L]]], 6L)), if (length(por)) sprintf(" en %s %s", paste(por, collapse = ", "),
+                                                                           names(suma)[mal[1L]]) else "")
+  else character()
+}
+
+# Aviso: una covariable con filas subnacionales (proxies) y sin beta de la causa no se usa.
+.dl_regla_covariables_sin_beta <- function(tablas, cfg) {
+  cov <- tablas$covariables
+  if (is.null(cov)) return(character())
+  con_proxy <- unique(cov$covariable[!.dl_es_nacional(cov, .dl_ubicacion_nacional(tablas))])
+  b <- .dl_betas_de_causa(tablas$betas, cfg$cause_id, cfg$extraction$cause_id)
+  sin <- setdiff(con_proxy, b$covariable)
+  sprintf("covariables: la covariable %s tiene proxies pero no tiene beta: no se usa", sin)
+}
+
+# Aviso: una ubicación subnacional sin ningún proxy del año que se estima queda fuera de la estimación subnacional
+# por covariables (si ninguna los trae, la traducción lo dice como error).
+.dl_regla_ubicaciones_sin_proxy <- function(tablas, cfg) {
+  px <- .dl_proxies_por_ubicacion(tablas, cfg)
+  sin <- names(px)[!lengths(px)]
+  if (is.null(px) || !length(sin) || length(sin) == length(px)) return(character())
+  sprintf(paste0("covariables: la(s) ubicaci\u00f3n(es) subnacional(es) %s no tiene(n) proxies de %d (el a\u00f1o ",
+                 "que se estima): queda(n) fuera de la estimaci\u00f3n subnacional por covariables"), .dl_unos(sin),
+          .dl_anio_ajuste(cfg))
+}
+
+# Aviso de los valores de mortalidad de la causa en datos que parecen tasas por 100 000 y no por persona-año: mayores
+# que 1, o más de 1000 veces la mortalidad del ancla de la misma causa, año, sexo y banda. Una tasa por 100 000 es
+# 100 000 veces la de persona-año: con el margen de 1000, un dato por persona-año pasa aunque sea hasta 1000 veces el
+# del ancla, y uno por 100 000 se detecta salvo que su valor verdadero sea menos de la centésima parte del ancla.
+.dl_regla_unidades_datos <- function(tablas, cfg) {
+  d <- tablas$datos
+  if (is.null(d) || !"valor" %in% names(d)) return(character())
+  causa <- .dl_col(d, "causa", NA_integer_)
+  k <- which(d$medida == "mortalidad" & !is.na(d$valor) & (is.na(causa) | causa == cfg$cause_id))
+  a <- .dl_filas_de_causa(tablas$ancla, cfg$cause_id)
+  a <- a[a$medida %in% "mortalidad"]
+  anio <- ifelse(is.na(.dl_col(d, "anio", NA_integer_)), .dl_col(d, "anio_inicio", NA_integer_), .dl_col(d, "anio"))
+  clave <- function(x, anio) paste(anio, x$sexo, x$edad_inicio, x$edad_fin)
+  ref <- a$valor[match(clave(d[k], anio[k]), clave(a, a$anio))]
+  v <- d$valor[k]
+  mal <- which(v > 1 | (!is.na(ref) & v > 1000 * ref))
+  if (!length(mal)) return(character())
+  sprintf(paste0("datos: %d valor(es) de mortalidad parecen tasas por 100 000, no por persona-a\u00f1o (%s; por ",
+                 "ejemplo %s%s): divide valor y error_estandar por 100 000"), length(mal), .dl_filas_msg(k[mal]),
+          format(v[mal[1L]]), if (is.na(ref[mal[1L]])) "" else sprintf(", donde el ancla da %s",
+                                                                       format(signif(ref[mal[1L]], 3L))))
+}

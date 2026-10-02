@@ -190,21 +190,25 @@
 # ---- Ancla ----
 
 # ancla -> el ancla del formato completo (.dl_ancla_completa) de la causa de `cfg`, en la ubicación nacional. Sin
-# anchor.agrupar_bandas_finas, en las bandas de la población (.dl_agrupar_menores_1 y .dl_agrupar_ancla); las bandas
-# enteramente por debajo de edad_inicio pasan tal cual, sin esas comprobaciones: dl_insumos() las deja fuera y lo dice.
+# anchor.agrupar_bandas_finas, en las bandas de la población (.dl_ancla_en_bandas).
 .dl_trad_ancla <- function(tablas, cfg, bandas) {
   a <- data.table::as.data.table(as.data.frame(.dl_filas_de_causa(tablas$ancla, cfg$cause_id)))
   if (!nrow(a))
     .dl_stop("la tabla ancla no trae filas de la causa %d (causas que trae: %s): agr\u00e9galas o revisa la causa",
              cfg$cause_id, .dl_lista(tablas$ancla$causa))
-  if (!isTRUE(cfg$anchor$agrupar_bandas_finas)) {
-    bajo <- a$edad_fin <= as.numeric(cfg$edad_inicio)
-    pob <- unique(data.table::data.table(edad_inicio = tablas$poblacion$edad_inicio,
-                                         edad_fin = tablas$poblacion$edad_fin))
-    a <- rbind(a[bajo], .dl_agrupar_ancla(.dl_agrupar_menores_1(a[!bajo]), pob, tablas$poblacion_detalle,
-                                          .dl_anio_ancla(cfg)))
-  }
+  if (!isTRUE(cfg$anchor$agrupar_bandas_finas)) a <- .dl_ancla_en_bandas(a, tablas, cfg)
   .dl_ancla_completa(a, cfg, tablas, bandas)
+}
+
+# El ancla `a` (de una causa) en las bandas de la población (.dl_agrupar_menores_1 y .dl_agrupar_ancla); las bandas
+# enteramente por debajo de edad_inicio pasan tal cual, sin esas comprobaciones: dl_insumos() las deja fuera y lo dice.
+# Error si no se puede; la revisión lo comprueba con esta misma función (.dl_regla_bandas_ancla).
+.dl_ancla_en_bandas <- function(a, tablas, cfg) {
+  bajo <- a$edad_fin <= as.numeric(cfg$edad_inicio)
+  pob <- unique(data.table::data.table(edad_inicio = tablas$poblacion$edad_inicio,
+                                       edad_fin = tablas$poblacion$edad_fin))
+  rbind(a[bajo], .dl_agrupar_ancla(.dl_agrupar_menores_1(a[!bajo]), pob, tablas$poblacion_detalle,
+                                   .dl_anio_ancla(cfg)))
 }
 
 # Columnas del eje y de la clave del ancla `a` que no son la edad ni los valores: las que agrupan al agregar bandas.

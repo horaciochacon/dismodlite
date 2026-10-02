@@ -117,16 +117,21 @@
 # Las tablas del contrato del proyecto, una lista nombrada de dl_tabla sin las que no están: cada una de `dadas` o de
 # `carpeta` (.dl_fuente_tabla), por su lector (`opciones`: ubicacion_gbd y metrica_prevalencia, ver
 # .dl_leer_fuente_tabla) y validada sola. Sin ubicacion_gbd, el código de la ubicación nacional de ubicaciones si es
-# un entero (el location_id de GBD del país). Cada tabla va por `paso(nombre, expr)`, como en .dl_traducir_contrato.
-# Error si falta una tabla obligatoria, con dónde se buscó.
-.dl_tablas_proyecto <- function(carpeta, dadas, opciones = list(), paso = function(nombre, expr) expr) {
+# un entero (el location_id de GBD del país). Error si falta una tabla obligatoria, con dónde se buscó. Con `paso`
+# (la revisión: paso(nombre, expr), como en .dl_traducir_contrato), cada tabla va por su paso, también el error de
+# una obligatoria que falta, y no se detiene.
+.dl_tablas_proyecto <- function(carpeta, dadas, opciones = list(), paso = NULL) {
   fuentes <- lapply(stats::setNames(nm = .DL_TABLAS), function(t) .dl_fuente_tabla(carpeta, dadas, t))
   faltan <- .DL_TABLAS_OBLIGATORIAS[vapply(fuentes[.DL_TABLAS_OBLIGATORIAS], is.null, NA)]
-  if (length(faltan))
+  donde <- vapply(faltan, .dl_donde_tabla, "", carpeta = carpeta)
+  if (length(faltan) && is.null(paso))
     .dl_stop("faltan tablas obligatorias del proyecto (o solo traen el encabezado):\n%s",
-             paste(sprintf("  - %s: se busc\u00f3 en %s", faltan,
-                           vapply(faltan, .dl_donde_tabla, "", carpeta = carpeta)), collapse = "\n"))
-  leer <- function(t) paso(t, .dl_tabla_proyecto(fuentes[[t]], t, opciones))
+             paste(sprintf("  - %s: se busc\u00f3 en %s", faltan, donde), collapse = "\n"))
+  paso <- paso %||% function(nombre, expr) expr
+  for (t in faltan)
+    paso(t, .dl_stop("falta la tabla (o solo trae el encabezado): va en %s.csv o en la carpeta %s/ del proyecto",
+                     t, t))
+  leer <- function(t) if (!is.null(fuentes[[t]])) paso(t, .dl_tabla_proyecto(fuentes[[t]], t, opciones))
   tablas <- list(ubicaciones = leer("ubicaciones"))
   if (is.null(opciones$ubicacion_gbd) && !is.null(tablas$ubicaciones))
     opciones$ubicacion_gbd <- .dl_codigo_gbd(tablas$ubicaciones)
@@ -135,10 +140,13 @@
 }
 
 # La tabla `tabla` del contrato desde `x` (data.frame o ruta): su lector y la validación de una tabla sola, como
-# dl_tabla().
+# dl_tabla(). Atributo `lectores`: los lectores por los que pasó (vacío si todo era del contrato).
 .dl_tabla_proyecto <- function(x, tabla, opciones) {
   origen <- if (is.data.frame(x)) sprintf("argumento `%s` (data.frame)", tabla) else x
-  .dl_tabla_contrato(.dl_leer_fuente_tabla(x, tabla, opciones), tabla, origen)
+  d <- .dl_leer_fuente_tabla(x, tabla, opciones)
+  t <- .dl_tabla_contrato(d, tabla, origen)
+  data.table::setattr(t, "lectores", attr(d, "lectores"))
+  t
 }
 
 # location_id de GBD del país según la tabla ubicaciones: el código de la ubicación nacional si es un entero; si no,
@@ -189,7 +197,8 @@
   betas <- .dl_betas_de_causa(tablas$betas, causa, padre)
   if (!is.null(betas) && !nrow(betas)) betas <- NULL
   cov <- tablas$covariables
-  nombres <- stats::na.omit(.dl_col(.dl_filas_de_causa(tablas$ancla, causa), "nombre_causa", NA_character_))
+  nombres <- if (!is.null(tablas$ancla))          # la revisión traduce la configuración aunque el ancla falle
+    stats::na.omit(.dl_col(.dl_filas_de_causa(tablas$ancla, causa), "nombre_causa", NA_character_))
   list(ubicacion = nacional, padre = padre, betas = betas,
        covariables_subnacionales = if (is.null(cov)) character()
                                    else unique(cov$covariable[!.dl_es_nacional(cov, nacional)]),
@@ -205,11 +214,21 @@
                                   base = carpeta %||% .dl_raiz_proyecto(archivo)) {
   if (!is.list(s) || is.null(names(s)))
     .dl_stop_config_simple(archivo, "el archivo no es una lista de claves (clave: valor, una por l\u00ednea)")
-  causas <- .dl_causas_config(carpeta, s, causa)
   tablas <- .dl_tablas_proyecto(carpeta, dadas, .dl_opciones_lectores(s))
+  .dl_config_de_tablas(s, archivo, causa, tablas, .dl_causas_config(carpeta, s, causa), base, cambios)
+}
+
+# La configuración de `causa` con las tablas ya leídas (lo que sigue a su lectura en .dl_preparar_contrato; la
+# revisión lo hace en su propio paso): la severidad de la partición, si la configuración la declara (error si su
+# carpeta no existe), el contexto y la traducción.
+.dl_config_de_tablas <- function(s, archivo, causa, tablas, causas, base, cambios = NULL) {
   particion <- .dl_valor_en(s, "severidad.particion")
   if (!is.null(particion)) {
-    particion <- normalizePath(file.path(base, particion), winslash = "/", mustWork = FALSE)
+    ruta <- normalizePath(file.path(base, particion), winslash = "/", mustWork = FALSE)
+    if (!dir.exists(ruta))
+      .dl_stop_config_simple(archivo, sprintf(paste0("severidad.particion: no existe la carpeta \u00ab%s\u00bb (%s, ",
+                                                     "relativa a la carpeta del proyecto)"), particion, ruta))
+    particion <- ruta
     tablas$severidad <- .dl_severidad_particion(s, causa, particion)
   }
   ctx <- .dl_contexto_tablas(tablas, causa, .dl_padre_de(causas, causa))
@@ -368,8 +387,10 @@
 #'
 #' Cada tabla pasa por su lector (las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten
 #' solas) y se valida sola; un problema de una tabla detiene `dl_proyecto()` con la tabla, la columna y las filas. Las
-#' reglas que cruzan tablas (la población nacional suma las subnacionales, los proxies cierran en el valor nacional, los
-#' datos tienen valores posibles) las comprueba [dl_insumos()].
+#' reglas que cruzan tablas las comprueban [dl_revisar_proyecto()] (que las ubicaciones estén en `ubicaciones`, que
+#' la población y el ancla cubran el año, los sexos y las edades del modelo, que cada beta tenga su valor nacional, que
+#' la severidad sume 1...) y [dl_insumos()] (la población nacional suma las subnacionales, los proxies cierran en el
+#' valor nacional, los datos tienen valores posibles).
 #'
 #' El proyecto se traduce al formato completo de la versión 0.2.2, el que usa el resto del paquete: la configuración y
 #' las tablas a una carpeta temporal de la sesión, que se reutiliza mientras no cambien. Los números leídos pasan tal
@@ -509,6 +530,12 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL)
   pre <- .dl_preparar_contrato(cf$s, cf$archivo, cf$causa, carpeta, dadas)
   donde <- carpeta %||% if (is.list(cf$origen)) sprintf("configuracion_%s", digest::digest(cf$origen))
                         else normalizePath(cf$archivo, winslash = "/")
+  .dl_proyecto_armado(carpeta, donde, pre)
+}
+
+# El objeto dl_proyecto de lo que prepara .dl_preparar_contrato (`pre`), con las rutas de su traducción (`donde`:
+# lo que identifica el proyecto, ver .dl_traducir_proyecto) y la partición de severidad, si la hay.
+.dl_proyecto_armado <- function(carpeta, donde, pre) {
   rutas <- .dl_traducir_proyecto(donde, pre$cfg, pre$tablas, pre$causas)
   if (!is.null(pre$particion)) rutas["severity_split"] <- list(pre$particion)
   structure(list(configuracion = pre$cfg, rutas = rutas, carpeta = carpeta, formato = "simple", tablas = pre$tablas),
