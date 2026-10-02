@@ -88,7 +88,7 @@ Tres decisiones completan el modelo:
 - **Condición inicial**: $p(a_0) = 0$ en $a_0$ = `edad_inicio`. Se elige una edad a la que casi nadie tiene la
   enfermedad.
 - **Remisión**: $r$ no se estima; es un dato de la configuración (`remision`, 0 por defecto: una enfermedad crónica).
-  En el formato completo puede cambiar por tramos de edad.
+  Puede cambiar por tramos de edad con `avanzado` (ver `?dl_configuracion`).
 - **Lo que se estima**: la incidencia $i(a)$ y la mortalidad en exceso $f(a)$. De ellas salen $p(a)$ y las demás
   cantidades.
 
@@ -194,8 +194,8 @@ $x(a)$ depende de lo que se compara:
 | incidencia | $i\,(1 - p)$ | casos nuevos por persona-año de **toda** la población |
 | mortalidad por la causa | $p\,f$ | muertes por la enfermedad por persona-año de toda la población |
 
-La incidencia y la mortalidad se comparan por persona-año de toda la población, como las publica GBD. La banda de 80
-años y más se representa con las edades 80 a 99.
+La incidencia y la mortalidad se comparan por persona-año de toda la población, como las publica GBD. La banda abierta
+(por ejemplo, 95 años y más) se representa con las edades desde su inicio hasta 99.
 
 ## 5. La log-posterior: ancla, priors y datos
 
@@ -273,6 +273,9 @@ rho <- 0.5
 round(rho^abs(outer(1:4, 1:4, "-")), 3)
 ```
 
+  La distancia se cuenta en bandas, no en años: con las bandas del ancla tal como vienen (80-84, 85-89, 90-94 y 95 y
+  más, en vez de una sola de 80 y más), la misma $\rho$ correlaciona menos las edades altas que en la versión 1.0.0.
+
 - $\lambda$ (`ancla.peso`) multiplica la precisión del ancla (un *power prior*): con $\lambda = 1$ pesa entera; con
   $\lambda = 0.5$ cuenta como la mitad de la información. Se baja cuando los datos locales que entran al ajuste ya
   estaban en la estimación de referencia, para no contarlos dos veces.
@@ -289,7 +292,7 @@ ancla
 
 ### Los datos locales {#verosimilitud}
 
-Entran al ajuste las filas **nacionales** de `datos.csv` del año que se estima, de los tipos de `datos_en_ajuste` y
+Entran al ajuste las filas **nacionales** de la tabla `datos` del año que se estima, de los tipos de `datos_en_ajuste` y
 sin `excluir`. Cada dato $d$ se compara con la cantidad del modelo $q_d$ en su intervalo de edad (sección 4): $p$
 para la prevalencia de un estudio, $i(1-p)$ para la incidencia, $p\,f$ para la mortalidad.
 
@@ -332,14 +335,14 @@ los usa con la log-posterior de la sección 5.
 ## 7. De lo nacional a lo subnacional {#subnacional}
 
 La estimación subnacional (`subnacional.modo: covariables`) desplaza las tasas nacionales de cada ubicación según la
-diferencia entre sus covariables y las nacionales, con los coeficientes publicados ($\beta$, en `covariables`). Para
+diferencia entre sus covariables y las nacionales, con los coeficientes publicados ($\beta$, en la tabla `betas`). Para
 cada sexo y cada simulación $k$:
 
 1. **Diferencia de la covariable**. Con $T$ la transformación de la covariable (log, logit o lineal), el valor nacional
    $X_{nac} \sim N(T(val), sd_T)$, con $sd_T = (T(\text{upper}) - T(\text{lower})) / 3.92$, y el de la ubicación $d$,
-   $X_d \sim N(T(valor_d), se_T)$, con $se_T$ del error estándar de `proxies.csv` por el método delta. La diferencia
-   es $dX = (X_d - X_{nac}) \times \text{escala}$ (`escala`, solo con la transformación lineal), por banda de edad del
-   proxy.
+   $X_d \sim N(T(valor_d), se_T)$, con $se_T$ del error estándar de su fila en la tabla `covariables` por el método
+   delta. La diferencia es $dX = (X_d - X_{nac}) \times \text{escala}$ (`escala`, solo con la transformación
+   lineal), por banda de edad del proxy.
 2. **Desplazamiento**. Con $\beta_c \sim N(\beta, sd_\beta)$, $sd_\beta = (\beta_{sup} - \beta_{inf}) / 3.92$, y
    $P_{ba}$ el peso de la banda $b$ del proxy en la edad $a$ (interpolación lineal entre los puntos medios de las
    bandas),
@@ -358,7 +361,7 @@ cada sexo y cada simulación $k$:
    de modo que la suma ponderada por población de las ubicaciones es exactamente la nacional. Si algún $p_d$ queda
    fuera de $[0, 1]$, es un error.
 
-Con `subnacional.modo: plano`, cada ubicación recibe las tasas nacionales. Los datos subnacionales de `datos.csv` del
+Con `subnacional.modo: plano`, cada ubicación recibe las tasas nacionales. Los datos subnacionales de la tabla `datos` del
 año `subnacional.anio_validacion` no entran al ajuste: los de mortalidad sirven para validar la estimación
 subnacional (`dl_validar_ancla()`).
 
@@ -371,7 +374,7 @@ AVD_{k,b} = p_{k,b} \times \Big(\sum_e \pi_{k,e}\, DW_{k,e}\Big) \times COMO_b ,
 $$
 
 donde $p_{k,b}$ es la prevalencia de la banda, $\pi_{k,e}$ la proporción de los casos en el estado de salud $e$ y
-$DW_{k,e}$ su peso de discapacidad (de `severidad.csv`). Cada proporción y cada peso se simula con una distribución
+$DW_{k,e}$ su peso de discapacidad (de la tabla `severidad`). Cada proporción y cada peso se simula con una distribución
 Beta con la media y la varianza de su intervalo del 95 %, $v = ((\text{superior} - \text{inferior})/3.92)^2$; las
 proporciones se renormalizan para que sumen 1 en cada simulación.
 

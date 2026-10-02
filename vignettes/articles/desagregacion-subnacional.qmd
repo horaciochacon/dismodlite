@@ -37,10 +37,10 @@ nacionales: el ajuste da la prevalencia, la incidencia y la mortalidad en exceso
 ubicaciones subnacionales casi nunca hay una estimación de referencia, así que dismodlite parte del ajuste nacional y
 supone que cada ubicación comparte la forma de la enfermedad del país y se aparta de él según sus covariables:
 
-1. **Diferencias de covariables.** Para cada ubicación y cada covariable con valores subnacionales en `proxies.csv`,
-   la diferencia entre el valor de la ubicación y el nacional, en la escala de la transformación de la covariable.
+1. **Diferencias de covariables.** Para cada ubicación y cada covariable con valores subnacionales en la tabla
+   `covariables`, la diferencia entre el valor de la ubicación y el nacional, en la escala de la transformación de la covariable.
 2. **Desplazamiento de las tasas.** La incidencia (log *i*) o la mortalidad en exceso (log *f*) nacional se mueve, en
-   cada edad, en β × diferencia × κ, con la β publicada de la covariable.
+   cada edad, en β × diferencia × κ, con la β publicada de la covariable (tabla `betas`).
 3. **Nueva solución del modelo.** Con las tasas desplazadas se vuelve a resolver la ecuación del modelo en cada
    ubicación: sale su prevalencia por edad.
 4. **Renormalización.** Los casos de todas las ubicaciones se escalan para que sumen los casos nacionales.
@@ -50,42 +50,53 @@ las β llegan a las estimaciones subnacionales.
 
 ## Los tres modos
 
-La clave `subnacional.modo` de la configuración elige el modo. Sin ella, el paquete lo deduce de los archivos del
+La clave `subnacional.modo` de la configuración elige el modo. Sin ella, el paquete lo deduce de las tablas del
 proyecto:
 
 | `subnacional.modo` | Qué hace | Qué necesita | Por defecto si... |
 |---|---|---|---|
-| `covariables` | Desplaza las tasas nacionales según las covariables de cada ubicación (los pasos de arriba). | `covariables` en la configuración, sus descargas en `covariables/` y sus valores subnacionales en `proxies.csv`. | alguna covariable declarada tiene filas en `proxies.csv`. |
-| `plano` | Cada ubicación recibe las tasas nacionales; sus casos difieren solo por su población. | Ubicaciones subnacionales en `poblacion.csv`. | no hay proxies, pero la población trae ubicaciones subnacionales. |
+| `covariables` | Desplaza las tasas nacionales según las covariables de cada ubicación (los pasos de arriba). | La tabla `betas` y, en la tabla `covariables`, el valor nacional de cada covariable y sus valores subnacionales. | alguna covariable de `betas` tiene filas subnacionales en `covariables`. |
+| `plano` | Cada ubicación recibe las tasas nacionales; sus casos difieren solo por su población. | Ubicaciones subnacionales en `ubicaciones` y `poblacion`. | no hay proxies, pero la población trae ubicaciones subnacionales. |
 | `no` | Solo la estimación nacional. | Nada más. | la población trae solo la ubicación nacional. |
 
 ## El ejemplo: modo `covariables`
 
-La configuración de la causa 9100 declara tres covariables y el año de los datos reservados para validar:
+La configuración de la causa 9100 declara el año de los datos reservados para validar:
 
 ```{r}
 #| label: config
 cat(readLines(dl_ejemplo("config", "9100.yaml"), encoding = "UTF-8"), sep = "\n")
 ```
 
-Cada covariable dice sobre qué actúa (`efecto_sobre`), en qué escala se estimó su β (`transformacion`) y su β con el
-intervalo del 95 % publicado:
+Las covariables y su efecto están en la tabla `betas`. Cada fila dice sobre qué actúa la covariable (`efecto_sobre`),
+en qué escala se estimó su β (`transformacion`) y su β con el intervalo del 95 % publicado:
+
+```{r}
+#| label: betas
+fread(dl_ejemplo("betas.csv"), encoding = "UTF-8")[, .(causa, covariable, efecto_sobre, transformacion, beta,
+                                                       inferior, superior)]
+```
+
+Los subtipos 9101, 9102 y 9103 no tienen filas propias: usan las de su causa padre, la 9100.
 
 - el SEV (el valor resumen de la exposición a un riesgo; más alto, más riesgo) y el LDI (el ingreso por persona)
   actúan sobre la **prevalencia**, a través de la incidencia (mueven log *i*), en escala log;
 - el HAQ (acceso y calidad de la atención) actúa sobre la **mortalidad en exceso** (mueve log *f*), en escala
   lineal.
 
-Sus valores subnacionales están en `proxies.csv`, una fila por covariable, ubicación, año, sexo y grupo de edad
-(vacíos: todas las edades), con el valor y su error estándar en la escala de la descarga del GHDx. El promedio de las
+Sus valores subnacionales son las filas subnacionales de la tabla `covariables` (en el ejemplo,
+`covariables/proxies.csv`, junto a las descargas del GHDx con los valores nacionales), una fila por covariable,
+ubicación, año, sexo y banda de edad (sin edades: todas las edades), con el valor y su error estándar en la escala de
+la descarga del GHDx. El promedio de las
 ubicaciones, ponderado por su población, debe ser el valor nacional de la covariable: la guía
 [Preparar tus datos](preparar-datos.html#cierre) explica ese requisito de cierre y cómo recalibrar valores de otra
 fuente.
 
 ```{r}
 #| label: proxies
-proxies <- fread(dl_ejemplo("proxies.csv"), colClasses = list(character = "location_id"))
-proxies[anio == 2023 & location_id == "01" & (is.na(edad_inicio) | edad_inicio == 40)]
+proxies <- fread(dl_ejemplo("covariables", "proxies.csv"), colClasses = list(character = "ubicacion"),
+                 encoding = "UTF-8")
+proxies[anio == 2023 & ubicacion == "01" & (is.na(edad_inicio) | edad_inicio == 40)]
 ```
 
 El SEV viene por sexo y grupo de edad, de 40 a 44 años hasta 80 y más (arriba, solo el primer grupo); el LDI y el
@@ -153,8 +164,8 @@ mortalidad en exceso.
 #| label: a-los-70
 verdad <- fread(dl_ejemplo("verdad.csv"), colClasses = list(character = "location_id"))
 verdad70 <- verdad[cause_id == 9100 & anio == 2023 & sex_id == 2 & edad == 70, .(location_id, verdad = p)]
-nombres <- unique(fread(dl_ejemplo("poblacion.csv"), colClasses = list(character = "location_id"))[
-  , .(location_id, location_name)])
+nombres <- fread(dl_ejemplo("ubicaciones.csv"), colClasses = "character", encoding = "UTF-8")[
+  , .(location_id = ubicacion, location_name = nombre)]
 
 # prevalencia de las mujeres a los 70 años, por ubicación, de una cascada
 a_los_70 <- function(cascada) {
@@ -256,14 +267,13 @@ con editar su configuración):
 plano <- dl_ejemplo(copiar_en = file.path(tempdir(), "plano"))
 ```
 
-Su configuración, `config/9100.yaml`: la del ejemplo sin las covariables, que no hacen falta, y con `modo: plano`:
+Su configuración, `config/9100.yaml`, con `modo: plano` (las tablas `betas` y `covariables` quedan sin usar):
 
 ```{cat}
 #| engine.opts: !expr list(file = file.path(plano, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
-ubicacion_nacional: 123
 
 mortalidad_exceso:
   techo: 0.25
@@ -321,7 +331,7 @@ no hay verdad, y la validación de la sección siguiente es la forma de decidirl
 
 ## Validación con datos subnacionales reservados
 
-Las filas subnacionales de `datos.csv` nunca entran al ajuste. Las del año `subnacional.anio_validacion` (2019 en
+Las filas subnacionales de la tabla `datos` nunca entran al ajuste. Las del año `subnacional.anio_validacion` (2019 en
 el ejemplo; por defecto, el año que se estima) se reservan para validar: con una cascada por covariables, la
 mortalidad por la causa observada en cada ubicación se compara con la predicha.
 
@@ -352,7 +362,7 @@ la corrida dice por qué. El análisis de sensibilidad repite la cascada con cad
 ## Modo `no`
 
 Con `modo: no` la estimación es solo nacional, aunque la población traiga ubicaciones subnacionales. Es el valor por
-defecto cuando `poblacion.csv` trae solo la ubicación nacional. En la configuración:
+defecto cuando la población trae solo la ubicación nacional. En la configuración:
 
 ```yaml
 subnacional:
@@ -365,21 +375,17 @@ lee `no` como texto, pero así el archivo se lee igual en cualquier lector de YA
 ## La escala de una covariable {#escala}
 
 Con una covariable lineal, la diferencia $dX$ entre la ubicación y el país se multiplica por `escala` antes de la β;
-con `log` o `logit`, `escala` no interviene y la configuración la rechaza si no es 1. `escala` (1 por defecto) sirve
+con `log` o `logit`, `escala` no interviene y la revisión la rechaza si no es 1. `escala` (1 por defecto) sirve
 cuando la β publicada se estimó con la covariable en otras unidades que las de la descarga. Por ejemplo, el índice de
-acceso y calidad de la atención viene del GHDx en 0-100; si su β se publicó por unidad del índice en 0-1, se escribe
-tal cual con `escala: 0.01`:
+acceso y calidad de la atención viene del GHDx en 0-100; si su β se publicó por unidad del índice en 0-1 (aquí,
+−1.2), se escribe tal cual en `betas`, con `escala` 0.01:
 
-```yaml
-covariables:
-  - nombre: haqi
-    efecto_sobre: mortalidad_exceso
-    transformacion: lineal
-    beta: [-1.2, -1.8, -0.6]   # por unidad del índice en 0-1
-    escala: 0.01               # la descarga del GHDx viene en 0-100
+```
+covariable,efecto_sobre,transformacion,escala,beta,inferior,superior
+haqi,mortalidad_exceso,lineal,0.01,-1.2,-1.8,-0.6
 ```
 
-Es lo mismo que la β del ejemplo, `[-0.012, -0.018, -0.006]` por punto del índice en 0-100, con `escala: 1`. La
+Es lo mismo que la β del ejemplo, −0.012 (de −0.018 a −0.006) por punto del índice en 0-100, con `escala` 1. La
 escala queda en los insumos (`insumos$betas`) y en el manifiesto de la corrida.
 
 Olvidar la escala es un error frecuente justamente con este índice, y el paquete lo comprueba: una covariable llamada
@@ -390,26 +396,9 @@ Olvidar la escala es un error frecuente justamente con este índice, y el paquet
 ```{r}
 #| label: copiar-escala
 sin_escala <- dl_ejemplo(copiar_en = file.path(tempdir(), "sin_escala"))
-```
-
-```{cat}
-#| engine.opts: !expr list(file = file.path(sin_escala, "config", "9100.yaml"), lang = "yaml")
-causa: 9100
-anio: 2023
-edad_inicio: 30
-ubicacion_nacional: 123
-
-mortalidad_exceso:
-  techo: 0.25
-
-covariables:
-  - nombre: haqi
-    efecto_sobre: mortalidad_exceso
-    transformacion: lineal
-    beta: [-1.2, -1.8, -0.6]
-
-subnacional:
-  anio_validacion: 2019
+betas <- fread(file.path(sin_escala, "betas.csv"), encoding = "UTF-8")
+betas[covariable == "haqi", `:=`(beta = -1.2, inferior = -1.8, superior = -0.6)]
+fwrite(betas, file.path(sin_escala, "betas.csv"))
 ```
 
 ```{r}
@@ -418,15 +407,15 @@ subnacional:
 dl_insumos(dl_proyecto(sin_escala, causa = 9100))
 ```
 
-Si la β de verdad es por punto del índice en 0-100, se confirma en la covariable con `escala_confirmada: true`, y la
-decisión conviene explicarla en `notas`. Las demás claves de una transformación del formato completo (por ejemplo, la
-procedencia de la escala) se declaran en `avanzado`; ver [El formato completo](formato-completo.html).
+Si la β de verdad es por punto del índice en 0-100, se confirma en su fila de `betas`, con `escala_confirmada` en
+`true`, y la decisión conviene explicarla en `notas`.
 
 ## Siguientes pasos
 
-- [Preparar tus datos](preparar-datos.html#cierre): `proxies.csv` y el requisito de cierre en el valor nacional.
+- [Preparar tus datos](preparar-datos.html#cierre): los valores subnacionales de las covariables y el requisito de
+  cierre en el valor nacional.
 - [Datos locales](datos-locales.html): qué datos entran al ajuste nacional y cuáles validan.
 - [Subtipos y suma](subtipos-y-suma.html): la estimación subnacional de una causa que es la suma de otras.
 - [Carga: los años vividos con discapacidad](carga-avd.html): los AVD, también por ubicación.
 - [El modelo](el-modelo.html#subnacional): las ecuaciones completas.
-- Todas las claves, con sus valores por defecto, en `?dl_configuracion`; los archivos, en `?dl_proyecto`.
+- Todas las claves, con sus valores por defecto, en `?dl_configuracion`; las tablas, en `?dl_tablas`.

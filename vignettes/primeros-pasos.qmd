@@ -48,13 +48,16 @@ library(dismodlite)
 list.files(dl_ejemplo(), recursive = TRUE)
 ```
 
-Los archivos, en breve (la guía [Preparar tus datos](preparar-datos.html) los describe columna por columna):
+Los archivos, en breve (son las tablas del contrato de insumos; la guía [Preparar tus datos](preparar-datos.html)
+las describe columna por columna):
 
 - `config/<causa>.yaml`: la configuración de cada causa. Un proyecto de una sola causa tiene `config.yaml`.
+- `ubicaciones.csv`: la ubicación nacional (código `123`) y las 25 subnacionales.
+- `poblacion.csv`: la población por ubicación, año, sexo y banda de edad.
 - `ancla/`: la **estimación de referencia**, el ancla, tal como se descarga de GBD Results.
-- `covariables/`: los valores nacionales de las covariables, tal como se descargan del GHDx.
-- `poblacion.csv`: la población por ubicación, año, sexo y grupo de edad.
-- `proxies.csv`: los valores subnacionales de las covariables, que dan las diferencias entre ubicaciones.
+- `covariables/`: los valores nacionales de las covariables, tal como se descargan del GHDx, y sus valores
+  subnacionales (`proxies.csv`), que dan las diferencias entre ubicaciones.
+- `betas.csv`: el efecto publicado de cada covariable.
 - `datos.csv`: los datos locales (estudios, registros).
 - `severidad.csv`: los estados de salud de cada causa y sus pesos de discapacidad, para los AVD.
 - `verdad.csv`: las curvas verdaderas del ejemplo. No es un insumo: sirve para comparar.
@@ -67,7 +70,7 @@ La configuración de la causa 9100 es corta:
 cat(readLines(dl_ejemplo("config", "9100.yaml"), encoding = "UTF-8"), sep = "\n")
 ```
 
-`dl_proyecto()` lee la carpeta para una causa y muestra qué archivos encontró y qué claves de la configuración tomaron
+`dl_proyecto()` lee la carpeta para una causa y muestra qué tablas encontró y qué claves de la configuración tomaron
 su valor por defecto (la lista completa de claves, con su significado, está en `?dl_configuracion`):
 
 ```{r}
@@ -78,7 +81,7 @@ proyecto
 
 ## 2. Revisar el proyecto
 
-Antes de correr, `dl_revisar_proyecto()` comprueba la configuración y cada archivo, y al final arma los insumos
+Antes de correr, `dl_revisar_proyecto()` comprueba cada tabla y la configuración, y al final arma los insumos
 completos con las reglas que cruzan tablas (por ejemplo, que la población nacional sea la suma de las subnacionales).
 No se detiene en el primer problema: muestra una línea por comprobación, con `✓` si está en orden, `!` si es un aviso
 que conviene mirar y `✗` si es un error, junto con la corrección sugerida.
@@ -143,8 +146,8 @@ Lo principal:
 Las demás carpetas (las simulaciones, los diagnósticos, las etiquetas y los insumos) las describe la guía
 [Corridas, versiones y tablas consolidadas](https://horaciochacon.github.io/dismodlite/articles/corridas-y-consolidado.html#carpeta).
 
-La tabla de prevalencia trae la ubicación nacional y las 25 subnacionales. Sus grupos de edad son los del ancla, con
-80 años y más como una sola banda: por eso empieza en 40-44 años aunque `edad_inicio` sea 30. Las edades de 30 a 39
+La tabla de prevalencia trae la ubicación nacional y las 25 subnacionales. Sus grupos de edad son los del ancla, tal
+como vienen (de 40-44 a 95 años y más): por eso empieza en 40-44 años aunque `edad_inicio` sea 30. Las edades de 30 a 39
 se modelan, pero no se informan en las tablas; `dl_estimaciones()` (sección 6) da cada edad simple desde
 `edad_inicio`. Al leer la tabla conviene tratar `location_id` como texto, para que un código como `01` no se
 convierta en el número 1:
@@ -280,9 +283,9 @@ par(op)
 ```
 
 La línea azul es la media de las simulaciones y la banda, su intervalo del 95 %. La línea naranja discontinua es la
-curva verdadera. El intervalo se ensancha después de los 80 años: el ancla se usa como una sola banda de 80 años y más
-(sus bandas de 80-84, 85-89, 90-94 y 95 y más se agregan), que fija el promedio de esas edades pero no la forma de la
-curva dentro de ella.
+curva verdadera. El intervalo se ensancha con la edad, sobre todo después de los 80 años, donde los nudos están más
+separados (80 y 95); cada banda del ancla de esas edades (80-84, 85-89, 90-94 y 95 y más) entra al ajuste por
+separado, con su propia incertidumbre.
 
 Las tasas, para los hombres, por 1000 personas-año:
 
@@ -302,9 +305,8 @@ par(op)
 
 La incidencia queda bien determinada: es la que explica cómo crece la prevalencia con la edad. La mortalidad en exceso,
 en cambio, la informa sobre todo su prior por edad, que sale de las muertes y la prevalencia del ancla (las muertes
-por persona-año divididas por la prevalencia), y un techo. Por eso su intervalo es más ancho y, después de los 80
-años, la curva queda casi plana: la banda de 80 años y más del ancla da el mismo prior a los nudos de 80 y de 95
-años. Datos locales de mortalidad en el ajuste la precisarían. La guía [El modelo](el-modelo.html) explica cada una
+por persona-año divididas por la prevalencia), y un techo. Por eso su intervalo es más ancho y, después de los 95
+años, el último nudo, la curva queda plana. Datos locales de mortalidad en el ajuste la precisarían. La guía [El modelo](el-modelo.html) explica cada una
 de estas piezas.
 
 ## 7. ¿Recupera la curva verdadera?
@@ -331,7 +333,7 @@ muestra con este mismo ejemplo.
 
 ## Siguientes pasos
 
-- [Preparar tus datos](preparar-datos.html): cómo armar un proyecto propio, archivo por archivo, con
+- [Preparar tus datos](preparar-datos.html): cómo armar un proyecto propio, tabla por tabla, con
   `dl_nuevo_proyecto()` y `dl_revisar_proyecto()`.
 - [El modelo](el-modelo.html): las ecuaciones detrás de cada número de esta guía.
 - En el sitio del paquete (<https://horaciochacon.github.io/dismodlite/>), las guías de cada tema:

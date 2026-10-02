@@ -196,42 +196,28 @@ La corrida tiene que haber guardado sus simulaciones (`dl_correr()` siempre las 
 
 El año que se estima es `anio` en la configuración: para estimar otro año, basta con cambiarlo. El proyecto necesita
 las filas de ese año en las descargas del ancla (`ancla/`), en `poblacion.csv` y, para la estimación subnacional con
-covariables, en `proxies.csv` y en las descargas de `covariables/`; `dl_revisar_proyecto()` dice qué falta. El
-ejemplo trae 2019 y 2023.
+covariables, en la tabla `covariables` (los valores subnacionales y las descargas del GHDx); `dl_revisar_proyecto()`
+dice qué falta. El ejemplo trae 2019 y 2023.
 
 ## Proyectar un año sin estimación de referencia
 
 Cuando el año que se quiere estimar todavía no tiene estimación de referencia publicada, se puede proyectar desde la
 del año anterior: `anio` es el año nuevo y `ancla.anio` el de la estimación de referencia, a lo sumo un año antes.
 En el ejemplo, 2024 con el ancla de 2023; la configuración de la copia, `config/9100.yaml`, es la del ejemplo con
-esas dos claves (sin `sensibilidad`, `subtipos` ni `notas`, que aquí no intervienen):
+esas dos claves (sin `sensibilidad`, `subtipos` ni `notas`, que aquí no intervienen; las betas siguen en
+`betas.csv`):
 
 ```{cat}
 #| engine.opts: !expr list(file = file.path(proyecto, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2024
 edad_inicio: 30
-ubicacion_nacional: 123
 
 ancla:
   anio: 2023   # la estimación de referencia más reciente
 
 mortalidad_exceso:
   techo: 0.25
-
-covariables:
-  - nombre: SEV_scalar_agestd_cvd_pvd
-    efecto_sobre: prevalencia
-    transformacion: log
-    beta: [0.62, 0.55, 0.70]
-  - nombre: LDI_pc
-    efecto_sobre: prevalencia
-    transformacion: log
-    beta: [-0.21, -0.30, -0.12]
-  - nombre: haqi
-    efecto_sobre: mortalidad_exceso
-    transformacion: lineal
-    beta: [-0.012, -0.018, -0.006]
 
 subnacional:
   anio_validacion: 2019
@@ -246,9 +232,10 @@ grep("proyecci", unlist(corrida_2024$manifest$limitaciones), value = TRUE)
 
 Una proyección tiene un alcance preciso, y el manifiesto lo declara: el nivel nacional y su incertidumbre son los del
 año del ancla, con el año nuevo en las tablas; del año nuevo son solo la población (que cambia los conteos y los
-pesos por edad) y, con la estimación subnacional por covariables, los valores subnacionales de `proxies.csv`. Para
-esto el proyecto necesita la población y los proxies del año nuevo, y las covariables nacionales del año del ancla
-(el promedio de los proxies, ponderado por la población, debe cerrar en ese valor nacional; ver `?dl_proyecto`).
+pesos por edad) y, con la estimación subnacional por covariables, sus valores subnacionales en la tabla
+`covariables`. Para esto el proyecto necesita la población y los proxies del año nuevo, y las covariables nacionales
+del año del ancla (el promedio de los proxies, ponderado por la población, debe cerrar en ese valor nacional; ver
+[Preparar tus datos](preparar-datos.html#cierre)).
 
 Las corridas de la causa 9100 quedan así, una carpeta por corrida:
 
@@ -266,8 +253,8 @@ Cuando un proyecto cubre varias causas y años, las **tablas consolidadas** reú
 y año en una tabla por medida, con tasas y conteos (tasa × población de la corrida) y con las columnas que declara
 un **perfil de columnas**. Esta parte usa piezas del formato completo: la carpeta `registro/` (los nombres de las
 causas en español y cuáles son la suma de sus subtipos, en `master_gbd.csv`, y las etiquetas en español de medidas,
-métricas y edades, en `etiquetas_es.csv`) y los catálogos. El ejemplo en ese formato está en `acs_peru_completo`
-(ver [El formato completo](formato-completo.html)).
+métricas y edades, en `etiquetas_es.csv`) y los catálogos. El ejemplo en ese formato, el de los proyectos de la
+versión 0.2.2, está en `acs_peru_completo` (ver la sección «Formato completo» de `?dl_proyecto`).
 
 ### El registro de corridas
 
@@ -361,5 +348,4 @@ insumos de cada corrida.
 - [Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html): cómo leer los diagnósticos de una corrida, las dos
   compuertas, la sensibilidad y cuánto tarda una corrida de producción.
 - [Subtipos y suma](subtipos-y-suma.html): varias causas en un proyecto y la suma de sus subtipos.
-- [El formato completo](formato-completo.html): el formato de los proyectos de la versión 0.2.2.
 - La ayuda de cada función: `?dl_correr`, `?dl_exportar_corrida`, `?dl_reresumir_corrida`, `?dl_consolidar`.

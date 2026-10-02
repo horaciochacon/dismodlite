@@ -38,7 +38,6 @@ Su configuración, `config/9100.yaml`:
 causa: 9100
 anio: 2023
 edad_inicio: 30
-ubicacion_nacional: 123
 
 ancla:
   peso: 0.5
@@ -46,21 +45,7 @@ ancla:
 mortalidad_exceso:
   techo: 0.25
 
-datos_en_ajuste: [prevalencia_estudio, incidencia, mortalidad]
-
-covariables:
-  - nombre: SEV_scalar_agestd_cvd_pvd
-    efecto_sobre: prevalencia
-    transformacion: log
-    beta: [0.62, 0.55, 0.70]
-  - nombre: LDI_pc
-    efecto_sobre: prevalencia
-    transformacion: log
-    beta: [-0.21, -0.30, -0.12]
-  - nombre: haqi
-    efecto_sobre: mortalidad_exceso
-    transformacion: lineal
-    beta: [-0.012, -0.018, -0.006]
+datos_en_ajuste: [prevalencia, incidencia, mortalidad]
 
 subnacional:
   anio_validacion: 2019
@@ -372,7 +357,7 @@ grilla de la configuración y la guarda en `diagnostics/sensibilidad.csv`.
   primeras 10 000 de calentamiento, y se guarda una de cada 10 (`adelgazamiento`). Cada cadena guarda
   (50 000 − 10 000) / 10 = 4000 simulaciones; de las 16 000 de las cuatro cadenas se toman 1000
   (`simulaciones`), equiespaciadas, para las tablas. En la corrida de producción del ejemplo (sin cambios), el R-hat
-  máximo fue 1.002 y el ESS mínimo, unos 5000: holgadamente sobre las compuertas.
+  máximo fue 1.002 y el ESS mínimo, unos 4200: holgadamente sobre las compuertas.
 - Si la compuerta de convergencia falla, alarga las cadenas: más `iteraciones` y más `calentamiento` (múltiplo de
   200), por ejemplo `dl_opciones_mcmc(iteraciones = 100000, calentamiento = 20000)`, y pásalas con
   `dl_correr(opciones = ...)`. Más cadenas ayudan a detectar un problema, no a resolverlo.
