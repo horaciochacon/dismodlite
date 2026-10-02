@@ -324,6 +324,23 @@ test_that("severidad.particion: la severidad sale de la partición y componente.
   expect_equal(prev(bc), prev(b) * 0.85)
 })
 
+test_that("la severidad de una partición con un límite mayor que 1 se acepta con un aviso; la tabla del usuario, no", {
+  # el componente de la secuela 668 (0,05 de la causa): su estado 540 queda en 1, con límites 0,9 y 1,1 (0,045 y
+  # 0,055 divididos por la cuota del componente), como en la versión 0.2.2
+  config <- c("causa: 302", "anio: 2020", "edad_inicio: 40", "severidad:", "  particion: particion/mini",
+              "componente:", "  secuelas: [668]")
+  d <- escribir_particion_mini(escribir_pais_ficticio(file.path(withr::local_tempdir(), "pf"), 302L, 2020L, config))
+  unlink(file.path(d, "severidad.csv"))
+  expect_warning(p <- dl_proyecto(d), paste0("severidad.particion: el l\u00edmite superior de la proporci\u00f3n pasa ",
+                                             "de 1 en el/los estado\\(s\\) 540 \\(hasta 1.1\\) de la partici\u00f3n mini"))
+  b <- suppressMessages(dl_insumos(p))
+  expect_equal(b$severidad$prop_upper, 1.1)
+  expect_equal(b$severidad$prop_lower, 0.9)
+  # la misma severidad escrita por el usuario sigue en [0, 1]
+  sev <- data.frame(causa = 302L, estado = "540", proporcion = 1, inferior = 0.9, superior = 1.1)
+  expect_error(dl_tabla("severidad", sev), "superior: hay valores mayores que 1")
+})
+
 test_that("dos proyectos con la configuración como lista no se borran la traducción; el aviso dice qué hacer", {
   d <- proyecto_ficticio()
   t <- tablas_de(d, c("ubicaciones", "poblacion", "ancla", "severidad"))

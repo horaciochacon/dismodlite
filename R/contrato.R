@@ -116,8 +116,9 @@
 # TRUE donde [inicio, fin) es un grupo de edad de GBD (las bandas de menos de un año no son de años enteros).
 .dl_es_banda_gbd <- function(inicio, fin) !is.na(.dl_grupo_edad(inicio, fin))
 
-# Problemas y avisos de la tabla `d` (ya normalizada y tipada) de `tabla`.
-.dl_problemas_tabla <- function(d, tabla) {
+# Problemas y avisos de la tabla `d` (ya normalizada y tipada) de `tabla`. `sin_maximo`: columnas cuyo máximo de
+# tablas.csv no se exige (los límites de la severidad que sale de una partición; ver .dl_severidad_particion).
+.dl_problemas_tabla <- function(d, tabla, sin_maximo = character()) {
   t <- .dl_tablas_ref()
   t <- t[t$tabla == tabla, ]
   probs <- character()
@@ -148,7 +149,7 @@
     }
     if (nzchar(t$minimo[i]) && any(x < as.numeric(t$minimo[i]), na.rm = TRUE))
       p("%s: hay valores menores que %s (%s)", cn, t$minimo[i], .dl_filas_msg(which(x < as.numeric(t$minimo[i]))))
-    if (nzchar(t$maximo[i]) && any(x > as.numeric(t$maximo[i]), na.rm = TRUE))
+    if (nzchar(t$maximo[i]) && !cn %in% sin_maximo && any(x > as.numeric(t$maximo[i]), na.rm = TRUE))
       p("%s: hay valores mayores que %s (%s)", cn, t$maximo[i], .dl_filas_msg(which(x > as.numeric(t$maximo[i]))))
   }
   if (all(c("anio_inicio", "anio_fin") %in% names(d))) {
@@ -198,14 +199,15 @@
 }
 
 # Tabla del contrato `tabla` validada desde `d` (de `origen`, un texto para los mensajes): nombres, tipos y reglas de
-# una tabla sola. Error con todos los problemas juntos (campos: tabla, problemas).
-.dl_tabla_contrato <- function(d, tabla, origen) {
+# una tabla sola. Error con todos los problemas juntos (campos: tabla, problemas). `sin_maximo`: columnas sin el
+# máximo de tablas.csv (.dl_problemas_tabla).
+.dl_tabla_contrato <- function(d, tabla, origen, sin_maximo = character()) {
   previo <- .dl_contexto_filas$data_frame
   .dl_contexto_filas$data_frame <- .dl_origen_df(origen)
   on.exit(.dl_contexto_filas$data_frame <- previo, add = TRUE)
   d <- .dl_normalizar_nombres(d, tabla)
   ti <- .dl_tipar_tabla(d, tabla)
-  r <- .dl_problemas_tabla(ti$d, tabla)
+  r <- .dl_problemas_tabla(ti$d, tabla, sin_maximo)
   probs <- c(ti$problemas, r$problemas)
   if (length(probs))
     .dl_stop("la tabla %s tiene %d problema(s):\n%s\n  origen: %s", tabla, length(probs),

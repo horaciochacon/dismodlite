@@ -727,9 +727,11 @@ una_causa/
   se reconoce por sus columnas y una tabla con solo el encabezado no existe.
 - **La partición de severidad** es la única ruta que se declara: `severidad.particion: particion/<corrida>`, relativa
   a la carpeta del proyecto. La severidad sale de ella en vez de `severidad.csv`; con `severidad.padre`, si es la
-  partición de la causa padre. Sus límites deben quedar en $[0, 1]$, como los de la tabla `severidad`, y sus secuelas
-  y estados de salud deben estar en los catálogos de GBD 2023 del paquete (ver
-  [Subtipos y suma](https://horaciochacon.github.io/dismodlite/articles/subtipos-y-suma.html)).
+  partición de la causa padre. Sus secuelas y estados de salud deben estar en los catálogos de GBD 2023 del paquete (ver
+  [Subtipos y suma](https://horaciochacon.github.io/dismodlite/articles/subtipos-y-suma.html)). Los límites de la
+  tabla `severidad` van en $[0, 1]$; los de la severidad que sale de la partición de una hija o de un componente
+  pueden pasar de 1 (son los de la partición divididos por su cuota) y se aceptan con un aviso, como en la versión
+  0.2.2.
 - **`poblacion_detalle`** hace falta solo si una banda del ancla cabe dentro de una banda de la población (sección 5).
 - **`avanzado`** lleva, tal cual, las claves del formato completo que la configuración no tiene, cada una con su
   procedencia. Las más usadas: `anchor.gate_err_mediano` (el error máximo del ancla con que se escribe la corrida),
@@ -816,8 +818,8 @@ dl_proyecto(congelada)$configuracion$extraction$cause_id
 
 `dl_correr(congelada, semilla = 1, carpeta_salida = ...)` repite la corrida. Una corrida que usó
 `severidad.particion` congela también esa partición, en `inputs/contrato/particion/<corrida>/`, con la ruta de
-`severidad.particion` de `config.yaml` cambiada a esa carpeta y el sha256 de cada archivo en el manifiesto: también
-se repite sola.
+`severidad.particion` de `config.yaml` cambiada a esa carpeta y el sha256 de cada archivo en el manifiesto (la
+tabla `severidad`, que sale de ella, no se congela aparte): también se repite sola.
 
 ## 8. Lista de verificación
 

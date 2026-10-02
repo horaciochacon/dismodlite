@@ -159,13 +159,33 @@
        metrica_prevalencia = .dl_valor_en(s, "avanzado.anchor.metrica_prevalencia.valor") %||% "Rate")
 
 # La tabla severidad desde la corrida de partición `corrida` (la de severidad.particion de la configuración `s`), con
-# la causa padre (severidad.padre) y las secuelas del componente (componente.secuelas).
+# la causa padre (severidad.padre) y las secuelas del componente (componente.secuelas). Sus límites (inferior y
+# superior) pueden pasar de 1: en una hija o un componente son los de la partición divididos por su cuota. Se aceptan,
+# como en la versión 0.2.2, con un aviso (.dl_avisar_limites_particion); la tabla severidad que escribe el usuario
+# sigue en [0, 1].
 .dl_severidad_particion <- function(s, causa, corrida) {
   secuelas <- unlist(.dl_valor_en(s, "componente.secuelas"))
   padre <- .dl_valor_en(s, "severidad.padre")
   sev <- .dl_severidad_contrato_desde_particion(corrida, causa, padre = if (!is.null(padre)) as.integer(padre),
                                                 secuelas = if (length(secuelas)) as.integer(secuelas))
-  .dl_tabla_contrato(sev, "severidad", corrida)
+  .dl_avisar_limites_particion(sev, corrida)
+  .dl_tabla_contrato(sev, "severidad", corrida, sin_maximo = .DL_LIMITES_PARTICION)
+}
+
+# Los límites de la proporción de la severidad que sale de una partición, que pueden pasar de 1.
+.DL_LIMITES_PARTICION <- c("inferior", "superior")
+
+# Aviso: los estados de la severidad `sev` (de la partición `corrida`) con un límite de su proporción mayor que 1.
+.dl_avisar_limites_particion <- function(sev, corrida) {
+  lim <- pmax(sev$inferior, sev$superior, na.rm = TRUE)
+  k <- which(lim > 1)
+  if (!length(k)) return(invisible())
+  .dl_warn(paste0("severidad.particion: el l\u00edmite superior de la proporci\u00f3n pasa de 1 en el/los estado(s) %s ",
+                  "(hasta %s) de la partici\u00f3n %s. Sale de dividir los l\u00edmites de la partici\u00f3n por la ",
+                  "cuota de la causa hija (severidad.padre) o del componente (componente.secuelas) en ella. Se acepta ",
+                  "como en la versi\u00f3n 0.2.2: los AVD toman de ese intervalo la incertidumbre de la proporci\u00f3n ",
+                  "y, si es demasiado ancho para su media, el estado entra como constante en su media (con otro aviso)"),
+           paste(sev$estado[k], collapse = ", "), format(signif(max(lim[k]), 4L)), basename(corrida))
 }
 
 # ---- La configuración de un proyecto ----

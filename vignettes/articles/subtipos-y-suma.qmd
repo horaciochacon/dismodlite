@@ -239,8 +239,10 @@ severidad:
 
 Las secuelas y los estados de salud de la partición deben estar en los catálogos de GBD 2023 que trae el paquete
 (`system.file("referencia", package = "dismodlite")`): una partición con secuelas o estados propios todavía no se
-puede leer. Sus límites deben quedar en $[0, 1]$, como los de la tabla `severidad`: una partición cuyo límite
-superior pasa de 1 (puede ocurrir en una hija o en un componente) todavía no se puede leer en un proyecto. Sin carpeta
+puede leer. En una hija o en un componente, los límites de la severidad son los de la partición divididos por su
+cuota y pueden pasar de 1: a diferencia de la tabla `severidad`, que va en $[0, 1]$, se aceptan con un aviso que
+nombra los estados, como en la versión 0.2.2. Los AVD toman de ese intervalo la incertidumbre de la proporción; si es
+demasiado ancho para su media, el estado entra como constante en su media, con otro aviso. Sin carpeta
 de proyecto (la puerta de R), la ruta relativa se resuelve contra el directorio de trabajo. La corrida copia la
 partición en `inputs/contrato/particion/<corrida>/` y se repite desde ahí (ver
 [Corridas y consolidado](corridas-y-consolidado.html#carpeta)).

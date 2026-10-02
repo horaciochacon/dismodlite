@@ -302,9 +302,23 @@ test_that("la corrida con severidad.particion congela la partición y se repite 
   for (x in Filter(function(x) !is.null(x$particion), man$inputs$contrato))
     expect_identical(digest::digest(file = file.path(cong, x$particion), algo = "sha256"), x$sha256)
   expect_identical(dismodlite:::.dl_leer_config(file.path(cong, "config.yaml"))$severidad$particion, "particion/mini")
+  expect_false(file.exists(file.path(cong, "severidad.csv")))     # sale de la partición congelada
   # sin la carpeta original del proyecto
   unlink(d, recursive = TRUE)
   expect_identical(suppressMessages(dl_insumos(dl_proyecto(cong)))$hash, man$inputs$bundle_hash)
+})
+
+test_that("la corrida con una severidad de partición con límites mayores que 1 se repite desde inputs/contrato/", {
+  config <- c("causa: 302", "anio: 2020", "edad_inicio: 40", "severidad:", "  particion: particion/mini",
+              "componente:", "  secuelas: [668]")
+  d <- escribir_particion_mini(escribir_pais_ficticio(file.path(withr::local_tempdir(), "pf"), 302L, 2020L, config))
+  unlink(file.path(d, "severidad.csv"))
+  r <- suppressWarnings(suppressMessages(dl_correr(d, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                                   carpeta_salida = withr::local_tempdir())))
+  man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  cong <- file.path(r$dir, "inputs", "contrato")
+  expect_warning(p <- dl_proyecto(cong), "pasa de 1 en el/los estado\\(s\\) 540")
+  expect_identical(suppressMessages(dl_insumos(p))$hash, man$inputs$bundle_hash)
 })
 
 test_that("la configuración de un proyecto se congela con sus tipos: releída es la misma", {

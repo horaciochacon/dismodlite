@@ -81,7 +81,7 @@ dieron en R. En \code{betas.csv} van las betas que usó la causa, bajo la causa 
 si es un subtipo sin betas propias, cuya configuración congelada lleva además \code{avanzado: extraction: cause_id}
 (la causa padre, que \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} exige). La carpeta de \code{severidad.particion} se copia en
 \verb{inputs/contrato/particion/<corrida>/}, con la ruta de la configuración congelada cambiada a ella y el sha256 de
-cada archivo en \code{inputs$contrato} (\code{particion}).
+cada archivo en \code{inputs$contrato} (\code{particion}); la tabla \code{severidad}, que sale de ella, no se congela aparte.
 \item \code{manifest.yaml}: la descripción de la corrida (abajo).
 }
 

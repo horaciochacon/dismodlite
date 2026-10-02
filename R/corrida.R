@@ -473,7 +473,7 @@
 #'   si es un subtipo sin betas propias, cuya configuración congelada lleva además `avanzado: extraction: cause_id`
 #'   (la causa padre, que [dl_sumar_hijas()] exige). La carpeta de `severidad.particion` se copia en
 #'   `inputs/contrato/particion/<corrida>/`, con la ruta de la configuración congelada cambiada a ella y el sha256 de
-#'   cada archivo en `inputs$contrato` (`particion`).
+#'   cada archivo en `inputs$contrato` (`particion`); la tabla `severidad`, que sale de ella, no se congela aparte.
 #' - `manifest.yaml`: la descripción de la corrida (abajo).
 #'
 #' El identificador `<AAAA-MM-DD>_<nombre>_v<n>` lleva la fecha del día y la versión siguiente a la mayor de ese día
@@ -640,7 +640,8 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
 # la declara la configuración del padre, que no se congela). Si la configuración declara severidad.particion, la
 # carpeta de esa partición (`particion`, la de las rutas del proyecto) va también: `particion` = list(origen, ruta),
 # con ruta = particion/<corrida>, relativa a inputs/contrato/, que pasa a ser la de severidad.particion en la
-# configuración congelada. Sin tablas (formato completo), configuración y partición NULL.
+# configuración congelada; la tabla severidad, que sale de ella, no se congela. Sin tablas (formato completo),
+# configuración y partición NULL.
 .dl_contrato_congelado <- function(contrato, cfg, particion = NULL) {
   if (!length(contrato)) return(list(tablas = contrato, configuracion = NULL))
   s <- cfg$origen$configuracion
@@ -657,6 +658,7 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   if (!is.null(s) && !is.null(.dl_valor_en(s, "severidad.particion")) && !is.null(particion)) {
     part <- list(origen = particion, ruta = paste(.DL_PARTICION_CONGELADA, basename(particion), sep = "/"))
     s$severidad$particion <- part$ruta
+    contrato$severidad <- NULL     # sale de la partición congelada (y sus límites pueden pasar de 1)
   }
   list(tablas = contrato, configuracion = s, particion = part)
 }

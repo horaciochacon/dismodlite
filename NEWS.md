@@ -30,7 +30,10 @@ de donde vengan los datos. Es una versión mayor porque los proyectos de la vers
   es la carpeta de un proyecto, y una corrida hecha con tablas o una configuración de R se repite sin ellas. La de un
   subtipo con las betas de su causa padre las congela a su nombre, con la causa padre en `avanzado: extraction`. La
   carpeta de `severidad.particion` se congela en `inputs/contrato/particion/<corrida>/`, con la ruta de la
-  configuración congelada cambiada a ella.
+  configuración congelada cambiada a ella (la tabla `severidad`, que sale de ella, no se congela aparte).
+* La severidad que sale de la partición de una hija o de un componente puede tener límites mayores que 1 (los de la
+  partición divididos por su cuota): se acepta con un aviso que nombra los estados, como en la versión 0.2.2. La tabla
+  `severidad` escrita por el usuario sigue en $[0, 1]$.
 * Los proxies de `covariables` pueden venir en bandas de edad propias, uniones de las de la población (por ejemplo
   45-59 con bandas de 5 años).
 * Las bandas de la población van seguidas: un hueco entre ellas es un problema de la población. En `datos`,
