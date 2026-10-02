@@ -10,7 +10,7 @@
 #'
 #' @details
 #' El contrato es el formato de las tablas internas del paquete, las del formato completo y las que
-#' [dl_insumos()] arma desde un proyecto simple (y [dl_congelar_insumos()] escribe en cada corrida). Cada tabla
+#' [dl_insumos()] arma desde un proyecto (y [dl_congelar_insumos()] escribe en cada corrida). Cada tabla
 #' declara sus columnas con su tipo (`int`, `num`, `str`, `lgl`, o una lista cerrada de valores) y si son
 #' opcionales, su clave (las columnas que identifican una fila) y sus reglas, que [dl_validar_tabla()] comprueba. El
 #' archivo del paquete está en `system.file("schema", "dismod_lite.v1.yaml", package = "dismodlite")`.
@@ -155,8 +155,9 @@ print.dl_schema <- function(x, ...) {
 #   slug, nombre_es           nombre interno de la medida y su nombre en español
 #   measure_id                id GBD de la medida (900006 = csmr, propio del paquete)
 #   measure_id_gbd            su measure_id en las descargas de GBD Results (el csmr es la tasa de muertes, 1)
-#   metric_std, escala_std    métrica y escala con que llegan en las estimaciones GBD (Percent = proporción;
-#                             Rate = por 100 000: se divide por escala_std)
+#   metric_std, escala_std    métrica y escala con que se leen de las estimaciones GBD: Rate, por 100 000, en todas
+#                             las medidas (se divide por escala_std). La prevalencia también es Rate: su Percent no es
+#                             la proporción de la población (ver .dl_metrica_std)
 #   subdir_std                carpeta de sus particiones bajo DATA_ROOT/std/gbd/<ronda>/cause/
 #   path_key                  clave interna de su ruta en dl_rutas()
 #   metric_id_out, escala_out métrica y escala con que se escriben en la corrida
@@ -167,8 +168,8 @@ print.dl_schema <- function(x, ...) {
   nombre_es      = c("prevalencia", "incidencia", "AVD", "mortalidad"),
   measure_id     = c(5L, 6L, 3L, 900006L),
   measure_id_gbd = c(5L, 6L, 3L, 1L),
-  metric_std     = c("Percent", "Rate", "Rate", "Rate"),
-  escala_std     = c(1, 1e5, 1e5, 1e5),
+  metric_std     = c("Rate", "Rate", "Rate", "Rate"),
+  escala_std     = c(1e5, 1e5, 1e5, 1e5),
   subdir_std     = c("prevalence", "incidence", "yld", "death"),
   path_key       = c("std_prior", "std_incidence", "std_yld", "std_csmr"),
   metric_id_out  = c(2L, 3L, 3L, 3L),
@@ -189,12 +190,33 @@ print.dl_schema <- function(x, ...) {
 }
 .dl_medida_id <- function(slug) .dl_medida(slug)$measure_id
 
+# Métrica y escala con que se lee una medida del ancla (fila de .DL_MEDIDAS): las de la tabla. La prevalencia se lee
+# en Rate / 100 000: casos sobre la población. En GBD Results su Percent no es esa proporción: divide los casos de la
+# causa por las personas con alguna causa (la prevalencia de todas las causas), no por la población, así que la
+# supera en la inversa de esa prevalencia (en Perú 2023: nada desde los 75 años, menos de 1 % entre los 20 y los 60,
+# de 1,5 % a 6 % entre los 2 y los 19 y de 22 % a 37 % antes de los 2). Las versiones hasta la 1.0.0 leían Percent;
+# anchor.metrica_prevalencia: {valor: Percent, procedencia} lo repite para reproducir sus corridas.
+.DL_METRICA_PREVALENCIA_ANTERIOR <- list(metric_std = "Percent", escala_std = 1)
+# Métrica del ancla escrita por la traducción de un proyecto (R/contrato_traduccion.R, que marca origen$unidades =
+# "contrato"): ya en las unidades del contrato (proporción o por persona-año), así que la escala es 1. La métrica de
+# la descarga la resolvió su lector, y por eso se mira antes que metrica_prevalencia.
+.DL_METRICA_CONTRATO <- list(metric_std = "Contrato", escala_std = 1)
+.dl_metrica_std <- function(med, cfg) {
+  if (identical(cfg$origen$unidades, "contrato")) return(.DL_METRICA_CONTRATO)
+  if (identical(med$slug, "prevalence") && identical(cfg$anchor$metrica_prevalencia$valor, "Percent"))
+    return(.DL_METRICA_PREVALENCIA_ANTERIOR)
+  list(metric_std = med$metric_std, escala_std = med$escala_std)
+}
+
 # Ubicación del ancla (location_id, como texto): anchor.location_id de la configuración (el location_id de GBD del
-# país; lo trae toda configuración simple) o, en el formato completo de la versión 0.2.2, anchor.location: peru = 123
+# país, o el código de ubicación de ubicaciones.csv si es texto; lo trae toda configuración simple) o, en el formato completo de la versión 0.2.2, anchor.location: peru = 123
 # (Perú); region = 120 (reservado).
 .DL_LOC_ANCLA <- c(peru = "123", region = "120")
 .dl_loc_ancla <- function(cfg) {
-  if (!is.null(cfg$anchor$location_id)) return(as.character(as.integer(cfg$anchor$location_id)))
+  if (!is.null(cfg$anchor$location_id)) {
+    li <- cfg$anchor$location_id    # un número (de una lista sin validar) se normaliza a entero: 1e5 es "100000"
+    return(if (is.numeric(li)) as.character(as.integer(li)) else as.character(li))
+  }
   id <- .DL_LOC_ANCLA[cfg$anchor$location]
   if (is.na(id))
     .dl_stop("anchor.location debe ser %s", paste(names(.DL_LOC_ANCLA), collapse = " o "))

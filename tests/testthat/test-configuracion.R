@@ -303,29 +303,29 @@ test_that("dl_configuracion sobre los configs del ejemplo reproduce la instantan
 
 # `cambios` (dl_configuracion): lo que utils::modifyList() ignoraría en silencio es un error o se aplica.
 test_that("cambios: una clave mal escrita es un error que sugiere la correcta", {
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lamda = 0.5))),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lamda = 0.5)), formato = "completo"),
                "la clave `anchor.lamda` no existe.*quisiste decir `anchor.lambda`")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(medidas_entradas = "csmr")),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(medidas_entradas = "csmr"), formato = "completo"),
                "`medidas_entradas`.*quisiste decir `medidas_entrada`")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(componente = list(sequela_idss = 1L)))),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(componente = list(sequela_idss = 1L))), formato = "completo"),
                "anchor.componente.sequela_idss")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = "anchor.lambda=0.5"),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = "anchor.lambda=0.5", formato = "completo"),
                "`cambios` debe ser una lista con nombres")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(0.5)), "cada elemento lleva nombre")
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(0.5), formato = "completo"), "cada elemento lleva nombre")
   expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lambda = 0.5),
-                                                              anchor = list(rho_edad = 0))),
+                                                              anchor = list(rho_edad = 0)), formato = "completo"),
                "clave repetida")
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(0.5))), "bloque con claves")
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(0.5)), formato = "completo"), "bloque con claves")
 })
 
 test_that("cambios: un valor suelto donde la configuración tiene un bloque es un error que muestra la forma", {
   expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = 0.5), formato = "completo"),
                paste0("`anchor` es un bloque con claves en la configuración, no un valor suelto: va como ",
                       "anchor \\{location, lambda"))
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(cascada = list(heldout_anio = 2019L))),
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(cascada = list(heldout_anio = 2019L)), formato = "completo"),
                paste0("`cascada.heldout_anio` es un bloque con claves en la configuración, no un valor suelto: ",
                       "va como cascada.heldout_anio \\{valor, procedencia\\}"))
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(years = 2024L)), "`years` es un bloque con claves")
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(years = 2024L), formato = "completo"), "`years` es un bloque con claves")
   # las opciones de la cascada aceptan el valor suelto en lugar del bloque {valor, procedencia}
   d <- config_mut(function(y) { y$cascada$modo <- list(valor = "plana", procedencia = "prueba"); y })
   expect_identical(dl_configuracion(9100L, d, cambios = list(cascada = list(modo = "proxy")))$cascada$modo$valor,
@@ -333,11 +333,11 @@ test_that("cambios: un valor suelto donde la configuración tiene un bloque es u
 })
 
 test_that("cambios: una secuencia como lista sin nombres reemplaza a la del YAML", {
-  a <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = list("csmr"), anchor = list(lambda = 0.5)))
-  b <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = "csmr", anchor = list(lambda = 0.5)))
+  a <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = list("csmr"), anchor = list(lambda = 0.5)), formato = "completo")
+  b <- dl_configuracion_ejemplo(9100L, cambios = list(medidas_entrada = "csmr", anchor = list(lambda = 0.5)), formato = "completo")
   expect_identical(a, b)
   tramos <- list(list(edad_inicio = 30, edad_fin = 50, valor = 0.1, fuente = "prueba"))
-  c1 <- dl_configuracion_ejemplo(9100L, cambios = list(remision = list(por_edad = tramos)))
+  c1 <- dl_configuracion_ejemplo(9100L, cambios = list(remision = list(por_edad = tramos)), formato = "completo")
   expect_identical(c1$remision$por_edad, tramos)
   # un segundo cambio de los tramos los reemplaza enteros (utils::modifyList() los ignoraría)
   tramos2 <- list(list(edad_inicio = 40, edad_fin = 60, valor = 0.2, fuente = "prueba"))
@@ -382,4 +382,47 @@ test_that("causa y carpeta_config: mensajes que nombran el argumento", {
   expect_error(dl_configuracion(502L, config_dir_ejemplo()),
                "no hay configuración de la causa 502 en «.*»: se busca 502.yaml")
   expect_identical(dl_configuracion("9100", config_dir_ejemplo()), dl_configuracion(9100L, config_dir_ejemplo()))
+})
+
+test_that("anchor.location_id admite un código de texto", {
+  loc <- function(x) dl_configuracion_ejemplo(9100, formato = "completo",
+                                              cambios = list(anchor = list(location_id = x, location = NULL)))
+  cfg <- loc("PAIS")
+  expect_identical(cfg$anchor$location_id, "PAIS")
+  expect_identical(dismodlite:::.dl_loc_ancla(cfg), "PAIS")
+  # solo un texto de dígitos sin cero a la izquierda pasa a entero; "007" y "0" siguen siendo códigos de texto
+  expect_identical(loc("123")$anchor$location_id, 123L)
+  expect_identical(loc(123)$anchor$location_id, 123L)
+  expect_identical(loc("007")$anchor$location_id, "007")
+  expect_identical(dismodlite:::.dl_loc_ancla(loc("007")), "007")
+  expect_identical(loc("0")$anchor$location_id, "0")
+  expect_error(loc(0), "un entero positivo o un texto")
+  expect_error(loc(1.5), "anchor.location_id")
+  expect_error(loc("  "), "anchor.location_id")
+})
+
+test_that(".dl_loc_ancla normaliza un número de una lista sin validar como antes", {
+  expect_identical(dismodlite:::.dl_loc_ancla(list(anchor = list(location_id = 1e5))), "100000")
+  expect_identical(dismodlite:::.dl_loc_ancla(list(anchor = list(location_id = 123L))), "123")
+  expect_identical(dismodlite:::.dl_loc_ancla(list(anchor = list(location = "peru"))), "123")
+})
+
+test_that("una clave desconocida del formato completo avisa con la más parecida", {
+  d <- withr::local_tempdir()
+  y <- yaml::read_yaml(system.file("extdata", "acs_peru_completo", "config", "9100.yaml", package = "dismodlite"))
+  y$anchr <- list(lambda = 1)
+  yaml::write_yaml(y, file.path(d, "9100.yaml"))
+  expect_warning(dl_configuracion(9100, d), "anchor")
+})
+
+test_that("las configuraciones del paquete no avisan de claves desconocidas", {
+  for (causa in c(9100L, 9101L, 9102L, 9103L))
+    expect_no_warning(dl_configuracion_ejemplo(causa, formato = "completo"))
+})
+
+test_that("anchor.agrupar_bandas_finas es lógica y vale TRUE por defecto en el formato completo", {
+  expect_true(dl_configuracion_ejemplo(9100, formato = "completo")$anchor$agrupar_bandas_finas)
+  expect_error(dl_configuracion_ejemplo(9100, formato = "completo",
+                                        cambios = list(anchor = list(agrupar_bandas_finas = "si"))),
+               "agrupar_bandas_finas")
 })

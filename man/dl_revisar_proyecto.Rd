@@ -7,75 +7,115 @@
 dl_revisar_proyecto(carpeta, causa = NULL)
 }
 \arguments{
-\item{carpeta}{Carpeta del proyecto.}
+\item{carpeta}{Carpeta del proyecto, o un proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}.}
 
-\item{causa}{Causa que se revisa (\code{cause_id}); \code{NULL} (por defecto) revisa todas las causas con configuración.}
+\item{causa}{Causa que se revisa (\code{cause_id}); \code{NULL} (por defecto) revisa todas las causas con configuración. Con
+un proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}, que ya es de una causa, \code{NULL} o esa misma causa.}
 }
 \value{
-Una tabla (data.frame), invisible, con una fila por comprobación: \code{causa}, \code{paso} (la configuración, el
-archivo o \code{insumos}), \code{estado} (\code{"ok"}, \code{"aviso"}, \code{"error"} u \code{"omitido"}: un paso que espera a que se corrija
-otro), \code{detalle} y \code{sugerencia} (la corrección; vacía si está en orden o se omitió).
+Una tabla (data.frame), invisible, con una fila por comprobación: \code{causa}, \code{paso} (la tabla, la
+configuración, \code{proyecto} o \code{insumos}), \code{estado} (\code{"ok"}, \code{"aviso"}, \code{"error"} u \code{"omitido"}: un paso que espera a
+que se corrija otro), \code{detalle} y \code{sugerencia} (la corrección; vacía si está en orden o se omitió).
 }
 \description{
-Revisa la carpeta de un proyecto antes de correrlo, sin detenerse en el primer problema: la configuración de
-cada causa, cada archivo (ancla, población, pesos de 80 años y más, covariables, proxies, datos, severidad) y, al
-final, los insumos completos. Muestra una línea por comprobación, marcada como en orden, aviso (\code{!}) o error, con la
-corrección sugerida. No ajusta nada.
+Revisa la carpeta de un proyecto antes de correrlo, sin detenerse en el primer problema: cada tabla del contrato
+de insumos (\link{dl_tablas}), la configuración de cada causa, las reglas que cruzan tablas y, al final, los insumos
+completos. Muestra una línea por comprobación, marcada como en orden, aviso (\code{!}) o error, con la corrección
+sugerida. No ajusta nada.
 }
 \details{
-La revisión usa los mismos lectores y validadores que \code{\link[=dl_proyecto]{dl_proyecto()}} y \code{\link[=dl_insumos]{dl_insumos()}}, en el mismo orden: lo que
-pasa la revisión es lo que ellos aceptan. En orden:
+La revisión usa los mismos lectores y validadores que \code{\link[=dl_proyecto]{dl_proyecto()}} y \code{\link[=dl_insumos]{dl_insumos()}}: lo que pasa la revisión es
+lo que ellos aceptan. Sus pasos, en orden:
 \enumerate{
-\item la configuración, como la lee \code{\link[=dl_configuracion]{dl_configuracion()}} (claves, valores admitidos y dominios);
-\item en el formato simple, cada archivo, para reportar juntos los problemas de archivos distintos: una columna que
-falta, un CSV guardado desde Excel con «;» o coma decimal, un sexo o un grupo de edad que no se reconoce, una
-medida, un año o una ubicación que el ancla no trae, la población del año que se estima, una covariable que
-falta en las descargas, proxies de otras ubicaciones o de otro año...; sin la configuración, solo la población;
-\item si nada de eso falló, los insumos completos, con las reglas que cruzan tablas: por ejemplo, que la población
-nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la población, sea el
-valor nacional de la covariable (?dl_proyecto da la receta para llevarlos a ese valor) o que los datos locales
-tengan valores posibles (una prevalencia entre 0 y 1, casos que no superan la muestra); y la severidad: una
-causa sin estados de salud es un error, porque sin ellos no hay AVD y \code{\link[=dl_correr]{dl_correr()}} no puede escribir la
-corrida (los insumos sí se arman).
+\item cada tabla (\code{ubicaciones}, \code{poblacion}, \code{ancla}, ...), leída por su lector y validada sola, como en \code{\link[=dl_tabla]{dl_tabla()}}:
+una columna que falta, un CSV guardado desde Excel con «;» o coma decimal, un sexo, una medida o un número que no
+se reconoce, bandas de edad que se solapan... La línea en orden dice cuántas filas trae
+(\verb{leída: N fila(s)}) y, si pasó por un lector, cuál (\verb{descarga de GBD Results}). Una tabla obligatoria que falta
+(o que solo trae el encabezado) es un error;
+\item \code{configuración}: sus claves y valores, como los lee \code{\link[=dl_configuracion]{dl_configuracion()}}. Su traducción toma cosas de las
+tablas (la ubicación nacional, las betas): si \code{ubicaciones}, \code{betas} o \code{covariables} tienen un error, espera
+(\code{-});
+\item \code{proyecto}: las reglas que cruzan tablas, cada problema con su tabla delante: que toda ubicación esté en
+\code{ubicaciones} (sin códigos repetidos, una sola sin \code{padre}, la nacional; las subnacionales con la nacional de
+padre); que la población traiga el año que se estima y los sexos del modelo, con las mismas bandas de edad en
+todas las ubicaciones, años y sexos, seguidas (sin huecos) y desde \code{edad_inicio}; que el ancla traiga la
+prevalencia de la causa (y la mortalidad, si la usa el prior de la mortalidad en exceso) en el año del ancla y en
+cada sexo, y la columna \code{causa} si el proyecto tiene varias; que cada banda del ancla sea una unión de bandas de
+la población o se pueda agrupar con \code{poblacion_detalle}; que cada covariable de \code{betas} (y cada
+\code{valor_nacional_de}) tenga su valor nacional en el año del ancla y que \code{escala} vaya solo con la transformación
+lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
+que se anclan traiga su intervalo (\code{inferior} y \code{superior}); que las proporciones de \code{severidad} sumen 1. Avisa
+(\code{!}) de una covariable con proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera
+de la estimación subnacional) y de valores de mortalidad de \code{datos} que parecen tasas por 100 000 en vez de por
+persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+\item \code{insumos}: si nada falló, los insumos completos (\code{\link[=dl_insumos]{dl_insumos()}}), con las reglas que necesitan todo armado: que
+la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
+población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la
+severidad: una causa sin estados de salud es un error, porque sin ellos no hay AVD y \code{\link[=dl_correr]{dl_correr()}} no puede
+escribir la corrida. Un problema de los insumos que es de una tabla va al paso de esa tabla. Avisa también de lo
+que no detiene los insumos pero conviene mirar (datos locales en el ajuste con \code{ancla.peso} 1, un posible doble
+conteo, las filas de \code{datos} que quedan fuera).
 }
 
-Cada problema va en el paso de su archivo (en el formato simple, también los de las reglas de los insumos), con una
-sugerencia: \code{\link[=dl_configuracion]{dl_configuracion()}} si nombra una clave de la configuración, las columnas de la tabla o \code{\link[=dl_proyecto]{dl_proyecto()}}.
-Una línea en orden (\verb{leído: N fila(s)}) dice cuántas filas de datos trae el archivo (o los CSV de la carpeta): una
-regla de los insumos puede encontrar después un error en ese mismo archivo. Avisa (\code{!}) de lo que no detiene los
-insumos pero conviene mirar: los avisos de la lectura y de los insumos (por ejemplo, datos locales en el ajuste con
-\code{ancla.peso} 1, un posible doble conteo), las filas de \code{datos.csv} de la causa que quedan fuera (de otro año, de
-ambos sexos o por debajo de \code{edad_inicio}), un \code{datos_en_ajuste} sin ninguna fila nacional que entre al ajuste y
-los valores de mortalidad de \code{datos.csv} que parecen tasas por 100 000 en vez de por persona-año: mayores que 1, o
-más de 1000 veces la mortalidad del ancla en la misma causa, sexo, grupo de edad y año. Un paso que espera a que se
-corrija otro (\code{-}) no cuenta como error ni como aviso: los insumos, si algo falló antes, o la configuración, si su
-traducción necesita un archivo con problemas (como \verb{ancla/}).
+Cada problema lleva una sugerencia: \code{\link[=dl_configuracion]{dl_configuracion()}} si nombra una clave de la configuración, las columnas de
+su tabla (\link{dl_tablas}) o \code{\link[=dl_proyecto]{dl_proyecto()}}. Un paso que espera a que se corrija otro (\code{-}) no cuenta como error ni
+como aviso.
 
-En un proyecto en el formato completo se revisan la configuración, los insumos completos y la severidad.
+En un proyecto en el formato completo de la 0.2.2 se revisan la configuración, los insumos completos y la
+severidad.
+
+En vez de una carpeta se puede dar un proyecto ya leído con \code{\link[=dl_proyecto]{dl_proyecto()}}, por ejemplo uno armado con tablas de
+R (\code{dl_proyecto(configuracion = ..., ubicaciones = ..., poblacion = ...)}). Sus tablas ya se leyeron, su
+configuración ya se tradujo y las reglas entre tablas se cumplen (si no, \code{dl_proyecto()} se habría detenido con
+todos sus problemas): la revisión dice de dónde salió cada tabla y sus avisos, los avisos de las reglas entre tablas
+y sigue con los insumos, para su única causa.
 }
 \examples{
 r <- dl_revisar_proyecto(dl_ejemplo(), causa = 9100)
 table(r$estado)
 
-# un proyecto con un problema: la población sin la columna `sexo`
-carpeta <- file.path(tempdir(), "proyecto_con_error")
-dir.create(file.path(carpeta, "ancla"), recursive = TRUE)
-invisible(file.copy(dl_ejemplo("ancla", "sintetico_acs_v1.csv"), file.path(carpeta, "ancla")))
-writeLines(c("causa: 9101", "anio: 2023", "edad_inicio: 30"), file.path(carpeta, "config.yaml"))
-pob <- read.csv(dl_ejemplo("poblacion.csv"), colClasses = c(location_id = "character"))
+# una copia con un problema de una tabla (la población sin la columna `sexo`)
+carpeta <- dl_ejemplo(copiar_en = file.path(tempdir(), "proyecto_con_errores"))
+pob <- read.csv(file.path(carpeta, "poblacion.csv"), colClasses = c(ubicacion = "character"))
 write.csv(pob[names(pob) != "sexo"], file.path(carpeta, "poblacion.csv"), row.names = FALSE)
-r <- dl_revisar_proyecto(carpeta)
-r[r$estado == "error", c("paso", "sugerencia")]
+r <- dl_revisar_proyecto(carpeta, causa = 9100)
+r[r$estado == "error", c("paso", "detalle", "sugerencia")]
+
+# y uno entre tablas (un dato de una ubicación que no está en ubicaciones.csv)
+write.csv(pob, file.path(carpeta, "poblacion.csv"), row.names = FALSE)
+datos <- read.csv(file.path(carpeta, "datos.csv"), colClasses = c(ubicacion = "character"))
+datos$ubicacion[1] <- "99"
+write.csv(datos, file.path(carpeta, "datos.csv"), row.names = FALSE, na = "")
+r <- dl_revisar_proyecto(carpeta, causa = 9100)
+r[r$estado == "error", c("paso", "detalle", "sugerencia")]
 unlink(carpeta, recursive = TRUE)
+
+# un proyecto con las tablas en R (la puerta de los data.frame): con un problema entre tablas,
+# dl_proyecto() se detiene con todos juntos (read.csv() sin colClasses lee el código «01» como 1)
+pob <- read.csv(dl_ejemplo("poblacion.csv"))
+e <- tryCatch(dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
+                          ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = pob,
+                          ancla = dl_ejemplo("ancla")),
+              error = function(e) e)
+e$problemas
+# con los códigos como texto, el proyecto se arma y se revisa
+pob <- read.csv(dl_ejemplo("poblacion.csv"), colClasses = c(ubicacion = "character"))
+p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
+                 ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = pob,
+                 ancla = dl_ejemplo("ancla"))
+r <- dl_revisar_proyecto(p)
 }
 \seealso{
-\code{\link[=dl_proyecto]{dl_proyecto()}} (los archivos y sus columnas, y la receta para que los proxies cierren en el valor
-nacional), \code{\link[=dl_configuracion]{dl_configuracion()}} (las claves), \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}} y \code{\link[=dl_correr]{dl_correr()}}.
+\link{dl_tablas} (las tablas y sus columnas), \code{\link[=dl_proyecto]{dl_proyecto()}} (la carpeta), \code{\link[=dl_configuracion]{dl_configuracion()}} (las claves),
+\code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}} y \code{\link[=dl_correr]{dl_correr()}}.
 
 Funciones del proyecto:
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_nuevo_proyecto}()},
-\code{\link{dl_proyecto}()}
+\code{\link{dl_plantilla}()},
+\code{\link{dl_proyecto}()},
+\code{\link{dl_tabla}()},
+\code{\link{dl_tablas}}
 }
 \concept{proyecto}

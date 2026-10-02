@@ -9,9 +9,11 @@
 #' insumos y sus decisiones.
 #'
 #' @section Tres comandos:
-#' Un proyecto es una carpeta en el **formato simple** (ver [dl_proyecto()]): una configuración corta, las descargas
-#' de GBD Results (el ancla) y del GHDx (las covariables) tal como se descargan, y unas pocas tablas planas. Tres
-#' funciones cubren el trabajo:
+#' Un proyecto es una configuración corta y unas pocas tablas, el **contrato de insumos** (ver [dl_tablas]): las
+#' ubicaciones, la población, el ancla (las descargas de GBD Results, tal como se descargan) y, si hacen falta, las
+#' covariables (las descargas del GHDx y sus valores subnacionales), sus betas, los datos locales y la severidad. Las
+#' tablas van en la carpeta del proyecto o se pasan como `data.frame` a [dl_proyecto()]. Tres funciones cubren el
+#' trabajo:
 #' 1. [dl_nuevo_proyecto()] crea la carpeta con la configuración comentada, las plantillas de las tablas y un
 #'    `LEEME.md` que dice de dónde se descarga cada archivo.
 #' 2. [dl_revisar_proyecto()], con la carpeta llena, revisa cada archivo y cada regla sin detenerse en el primer
@@ -22,7 +24,7 @@
 #' ```r
 #' dl_nuevo_proyecto("mi_proyecto", causa = 1234, nombre = "Mi enfermedad", anio = 2023,
 #'                   edad_inicio = 30)
-#' # copiar las descargas a ancla/ y covariables/ y llenar las tablas; después:
+#' # llenar las tablas y copiar las descargas a ancla/ (y a covariables/); después:
 #' dl_revisar_proyecto("mi_proyecto")
 #' prueba <- dl_correr("mi_proyecto", semilla = 1, rapido = TRUE)
 #' corrida <- dl_correr("mi_proyecto", semilla = 1)
@@ -30,7 +32,7 @@
 #'
 #' [dl_ejemplo()] es un proyecto completo con datos sintéticos (una enfermedad ficticia, con la geografía del Perú
 #' como ejemplo), para leerlo, correrlo y copiarlo como punto de partida. [dl_configuracion()] documenta cada clave de
-#' la configuración y [dl_proyecto()], cada archivo y sus columnas.
+#' la configuración, [dl_tablas] cada tabla y sus columnas y [dl_proyecto()], la carpeta y las dos puertas.
 #'
 #' @section Etapas de una corrida:
 #' [dl_correr()] hace en orden las etapas de una causa. Cada etapa es también una función que se puede llamar por
@@ -54,19 +56,19 @@
 #' @section Guías:
 #' - `vignette("primeros-pasos", package = "dismodlite")`: el proyecto de ejemplo de principio a fin.
 #' - `vignette("el-modelo", package = "dismodlite")`: el modelo, su notación y sus supuestos.
-#' - `vignette("preparar-datos", package = "dismodlite")`: un proyecto propio, archivo por archivo.
+#' - `vignette("preparar-datos", package = "dismodlite")`: las tablas de un proyecto propio, una por una.
 #' - En el sitio del paquete, <https://horaciochacon.github.io/dismodlite/>, las guías de temas avanzados: la
 #'   estimación subnacional, los datos locales, los subtipos y su suma, la carga (AVD), las corridas y el
-#'   consolidado, el diagnóstico y la sensibilidad, y el formato completo.
+#'   consolidado, y el diagnóstico y la sensibilidad.
 #'
 #' @section Formato completo y nombres anteriores:
 #' Los proyectos de la versión 0.2.2 (el **formato completo**, con `schema: dismod_lite/v1` en la configuración) se
-#' leen igual y dan los mismos números. Es el formato de las opciones avanzadas (ver la sección «Formato completo» de
-#' [dl_proyecto()] y de [dl_configuracion()]). Las funciones tienen nombres en español; los nombres de la versión
+#' leen igual y dan los mismos números (ver la sección «Formato completo» de [dl_proyecto()] y de
+#' [dl_configuracion()]). Los proyectos de la versión 1.0.0 se rehacen con las tablas del contrato de insumos. Las funciones tienen nombres en español; los nombres de la versión
 #' 0.2.2 siguen funcionando (ver [dl_nombres_anteriores]).
 #'
 #' @examples
-#' # el proyecto de ejemplo, en el formato simple
+#' # el proyecto de ejemplo
 #' p <- dl_proyecto(dl_ejemplo(), causa = 9100)
 #' p
 #' \donttest{

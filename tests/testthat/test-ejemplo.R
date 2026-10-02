@@ -3,12 +3,21 @@
 
 test_that("dl_ejemplo devuelve rutas que existen y falla con un nombre desconocido", {
   expect_true(dir.exists(dl_ejemplo()))
-  # dl_ejemplo() es el proyecto en el formato simple; el mismo proyecto en el formato completo está al lado
+  # dl_ejemplo() es el proyecto en el contrato de insumos; el mismo proyecto en el formato completo está al lado
   expect_identical(dl_ejemplo(), system.file("extdata", "acs_peru", package = "dismodlite"))
   expect_identical(dirname(dl_ejemplo()), dirname(ruta_acs()))
-  for (f in c("config/9100.yaml", "poblacion.csv", "proxies.csv", "datos.csv", "severidad.csv", "verdad.csv"))
+  for (f in c("config/9100.yaml", "ubicaciones.csv", "poblacion.csv", "covariables/proxies.csv", "betas.csv",
+              "datos.csv", "severidad.csv", "verdad.csv"))
     expect_true(file.exists(dl_ejemplo(f)), info = f)
   expect_length(list.files(dl_ejemplo("ancla")), 1L)
+  # cada tabla del proyecto es una tabla del contrato válida (sus descargas, por su lector)
+  for (tabla in c("ubicaciones", "poblacion", "betas", "datos", "severidad"))
+    expect_s3_class(dl_tabla(tabla, dl_ejemplo(paste0(tabla, ".csv"))), "dl_tabla")
+  expect_s3_class(dl_tabla("ancla", dl_ejemplo("ancla")), "dl_tabla")
+  expect_s3_class(dl_tabla("covariables", dl_ejemplo("covariables"), ubicacion_gbd = 123), "dl_tabla")
+  # la configuración no declara lo que dicen las tablas
+  s <- yaml::read_yaml(dl_ejemplo("config", "9100.yaml"))
+  expect_false(any(c("covariables", "ubicacion_nacional", "ubicacion_gbd") %in% names(s)))
   expect_true(dir.exists(ejemplo_completo("particion", "acs_v1")))
   expect_error(dl_ejemplo("no_existe.csv"), "no_existe[.]csv")
 })

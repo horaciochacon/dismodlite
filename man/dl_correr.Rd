@@ -16,7 +16,8 @@ dl_correr(
 )
 }
 \arguments{
-\item{proyecto}{Carpeta del proyecto (formato simple o completo) o un proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}.}
+\item{proyecto}{Carpeta del proyecto (con las tablas del contrato de insumos o en el formato completo) o un
+proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}.}
 
 \item{causa}{Causa (\code{cause_id}); \code{NULL} si el proyecto tiene una sola (o si \code{proyecto} ya es un \code{dl_proyecto}).}
 
@@ -82,10 +83,10 @@ simulaciones, 2 cadenas de 2000 iteraciones), las mismas en la sensibilidad, eti
 \code{ancla.correlacion_edad} de la configuración y la corrida escrita con \code{forzar = TRUE}, sin exigir la convergencia
 (el manifiesto lo declara). Su nombre termina en \code{-prueba} y sus números no sirven para publicar.
 
-La causa debe tener severidad (sus estados de salud en \code{severidad.csv}): sin ella los AVD serían cero y la corrida
-no se escribe. \code{dl_correr()} lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
+La causa debe tener severidad (sus estados de salud en \code{severidad.csv} o desde \code{severidad.particion}): sin ella los
+AVD serían cero y la corrida no se escribe. \code{dl_correr()} lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
 \code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
-proyecto simple, los mensajes de todos los pasos citan sus claves y sus archivos (como \code{\link[=dl_insumos]{dl_insumos()}}).
+proyecto con las tablas del contrato, los mensajes de todos los pasos citan sus claves y sus tablas (como \code{\link[=dl_insumos]{dl_insumos()}}).
 }
 \examples{
 \donttest{
@@ -117,7 +118,10 @@ causa, \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}.
 Funciones del proyecto:
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_nuevo_proyecto}()},
+\code{\link{dl_plantilla}()},
 \code{\link{dl_proyecto}()},
-\code{\link{dl_revisar_proyecto}()}
+\code{\link{dl_revisar_proyecto}()},
+\code{\link{dl_tabla}()},
+\code{\link{dl_tablas}}
 }
 \concept{proyecto}

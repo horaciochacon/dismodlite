@@ -12,8 +12,8 @@
 #' revisar una tabla del formato completo antes de armar los insumos. Las reglas que cruzan tablas (por ejemplo, que
 #' la población nacional sea la suma de la subnacional) usan la información de `contexto`: sin ella, algunas no se
 #' comprueban, otras lo reportan como un problema y la de las ubicaciones supone las de la versión 0.2.2 (la
-#' ubicación nacional 123 y códigos subnacionales de dos dígitos). En el formato simple, [dl_revisar_proyecto()]
-#' revisa todo el proyecto en palabras de sus archivos.
+#' ubicación nacional 123 y códigos subnacionales de dos dígitos). En un proyecto, [dl_tabla()] revisa cada tabla del
+#' contrato de insumos y [dl_revisar_proyecto()], todo el proyecto en palabras de sus tablas.
 #'
 #' @param datos Tabla (data.frame o data.table) a validar; se convierte a data.table por referencia.
 #' @param tabla Nombre de la tabla en el esquema (por ejemplo `"datos"`).

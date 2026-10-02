@@ -25,7 +25,7 @@ test_that("dl_configuracion sin carpeta_config pide el argumento y no nombra var
 })
 test_that("el paquete carga y expone dl_version()", {
   expect_true(is.function(dl_version))
-  expect_identical(dl_version(), "1.0.0")
+  expect_identical(dl_version(), "2.0.0")
 })
 # El paquete instalado en una librería bajo una ruta con espacios y tildes (una carpeta de usuario de Windows como
 # «C:/Users/Ana María/...»): en otro proceso de R se carga desde ahí y lee de su carpeta el esquema, la versión y
@@ -72,7 +72,8 @@ test_that("el paquete instalado bajo una ruta con espacios y tildes resuelve sus
     "stopifnot(startsWith(dismodlite:::.dl_schema_default_path(), normalizePath(lib, winslash = '/')))",
     "stopifnot(startsWith(normalizePath(dl_ejemplo(), winslash = '/'), normalizePath(lib, winslash = '/')))",
     "esq <- dl_esquema()",
-    "b <- dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE))",
+    "b <- dl_insumos(dl_configuracion_ejemplo(9100L, formato = 'completo'),",
+    "                dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = 'completo'))",
     "cat('version', dl_version(), '\\n')",
     "cat('insumos', class(b)[1], nrow(b$prior_gbd) > 0, '\\n')"), guion)
   res <- suppressWarnings(system2(file.path(R.home("bin"), "Rscript"), c("--vanilla", shQuote(guion)),

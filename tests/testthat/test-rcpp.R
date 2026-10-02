@@ -14,7 +14,7 @@ sin_cache_rcpp <- function(entorno = parent.frame()) {
 
 test_that("motor rcpp sin Rcpp da un mensaje claro en español", {
   local_mocked_bindings(.dl_rcpp_disponible = function() FALSE)
-  b <- dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE))
+  b <- dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo"))
   expect_error(dl_ajustar(b, dl_opciones_mcmc(motor = "rcpp", simulaciones = 10L, cadenas = 1L,
     iteraciones = 400L, calentamiento = 200L), semilla = 1L), "Rcpp.*motor = \"mh\"")
   # el mensaje nombra la función que llamó el usuario
@@ -23,7 +23,7 @@ test_that("motor rcpp sin Rcpp da un mensaje claro en español", {
   expect_error(dl_sensibilidad(b, semilla = 1L, opciones = opciones_rcpp_cortas()),
                "^dl_sensibilidad\\(\\): el motor \"rcpp\" requiere")
   # la cascada y las etiquetas sobre un ajuste hecho con motor = "mh", pidiendo el motor rcpp
-  bc <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L)))
+  bc <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"), dl_rutas_ejemplo(9100L, formato = "completo")))
   opciones_mh <- dl_opciones_mcmc(simulaciones = 10L, cadenas = 1L, iteraciones = 400L, calentamiento = 200L)
   f <- dl_ajustar(bc, opciones_mh, semilla = 1L)
   f0 <- dl_ajustar_solo_prior(bc, opciones_mh, semilla = 1L, ajuste = f)
@@ -36,7 +36,7 @@ test_that("si el C++ no compila, el mensaje dice cómo seguir (compilador o moto
   local_mocked_bindings(.dl_rcpp_disponible = function() TRUE,
                         .dl_rcpp_compilar = function(...) stop("Error 1 occurred building shared library."))
   sin_cache_rcpp()
-  b <- dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE))
+  b <- dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"), dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo"))
   expect_error(dl_ajustar(b, opciones_rcpp_cortas(), semilla = 1L, cache = FALSE),
                "^dl_ajustar\\(\\): no se pudo compilar el motor \"rcpp\".*Rtools.*motor = \"mh\".*Error 1 occurred")
   expect_null(.dl_rcpp_env$fns)

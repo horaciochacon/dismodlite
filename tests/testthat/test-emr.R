@@ -1,5 +1,5 @@
 test_that("los insumos materializan csmr (900006) junto a la prevalencia y en proporción", {
-  b <- dl_insumos(cfg9100(), rutas_nacional())
+  b <- dl_insumos(cfg9100_completo(), rutas_nacional_completo())   # el formato completo agrupa las bandas de 80+
   expect_setequal(unique(b$prior_gbd$measure_id), c(5L, 900006L))
   cs <- b$prior_gbd[measure_id == 900006L]
   expect_true(all(cs$val < 0.01))                       # ya dividido entre 1e5

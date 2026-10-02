@@ -52,15 +52,18 @@ que declara \code{master_gbd.csv} del registro), y escribe una corrida nueva con
 manifiesto. El intervalo sale de los cuantiles de la suma de simulaciones.
 }
 \details{
-En un proyecto simple, la causa padre declara sus hijas en \code{subtipos} (ver \code{\link[=dl_configuracion]{dl_configuracion()}}) y las rutas de
-su proyecto, \verb{dl_proyecto(carpeta, <padre>)$rutas}, traen ese registro. Cada hija se corre por separado (por
-ejemplo con \code{\link[=dl_correr]{dl_correr()}}); antes de sumar se comprueba que las corridas sean de esas hijas, con el mismo año,
-año del ancla, ronda de GBD, número de simulaciones y celdas (ubicaciones, sexos y bandas). La simulación k de la
-suma es la suma de las simulaciones k de las hijas; la correlación entre hijas no se modela (cada una viene de su
-propio ajuste). Una hija que no se corre se declara en \code{omitidas}, con su motivo; la suma queda por debajo de la
-causa padre en su parte y el manifiesto lo declara como limitación. La corrida de la suma no tiene ajuste propio:
-trae \verb{cause/}, \verb{draws/} y el manifiesto (con las corridas de las hijas en \code{causa.hijas}), sin etiquetas,
-diagnósticos ni insumos.
+En un proyecto, la causa padre declara sus hijas en \code{subtipos} (ver \code{\link[=dl_configuracion]{dl_configuracion()}}) y las rutas de su proyecto,
+\verb{dl_proyecto(carpeta, <padre>)$rutas}, traen ese registro (también las de una carpeta propia de la causa padre, con
+\code{subtipos}, \code{ubicaciones}, \code{poblacion} y su ancla: \code{\link[=dl_proyecto]{dl_proyecto()}} la lee aunque la causa no se ajuste). Cada hija se
+corre por separado (por ejemplo con \code{\link[=dl_correr]{dl_correr()}}) y su corrida debe declarar a la causa padre (\code{extraction_cause_id}
+en su manifiesto): lo hace sola si la hija se lee en el mismo proyecto que la configuración del padre; una hija en su
+propia carpeta lo declara con \verb{avanzado: \{extraction: \{cause_id: <padre>, motivo: ...\}\}} (ver \code{\link[=dl_configuracion]{dl_configuracion()}}).
+Antes de sumar se comprueba que las corridas sean de esas hijas, con el mismo año, año del ancla, ronda de GBD,
+número de simulaciones y celdas (ubicaciones, sexos y bandas). La simulación k de la suma es la suma de las
+simulaciones k de las hijas; la correlación entre hijas no se modela (cada una viene de su propio ajuste). Una hija
+que no se corre se declara en \code{omitidas}, con su motivo; la suma queda por debajo de la causa padre en su parte y el
+manifiesto lo declara como limitación. La corrida de la suma no tiene ajuste propio: trae \verb{cause/}, \verb{draws/} y el
+manifiesto (con las corridas de las hijas en \code{causa.hijas}), sin etiquetas, diagnósticos ni insumos.
 }
 \examples{
 \donttest{

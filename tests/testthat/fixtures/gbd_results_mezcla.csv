@@ -1,0 +1,11 @@
+measure_id,measure_name,location_id,location_name,sex_id,sex_name,age_id,age_name,cause_id,cause_name,metric_id,metric_name,year,val,upper,lower
+5,Prevalence,123,Perú,1,Male,30,80-84 years,9100,Causa A,3,Rate,2023,12000,14000,10000
+5,Prevalence,123,Perú,1,Male,30,80-84 years,9100,Causa A,1,Number,2023,5000,6000,4000
+5,Prevalence,123,Perú,1,Male,30,80-84 years,9100,Causa A,2,Percent,2023,0.13,0.15,0.11
+5,Prevalence,123,Perú,1,Male,22,All ages,9100,Causa A,3,Rate,2023,800,900,700
+5,Prevalence,1,Global,1,Male,30,80-84 years,9100,Causa A,3,Rate,2023,11000,13000,9000
+1,Deaths,123,Perú,1,Male,30,80-84 years,9100,Causa A,3,Rate,2023,300,350,250
+3,YLDs (Years Lived with Disability),123,Perú,1,Male,30,80-84 years,9100,Causa A,3,Rate,2023,150,200,110
+6,Incidence,123,Perú,1,Male,30,80-84 years,9100,Causa A,3,Rate,2023,900,1000,800
+5,Prevalence,123,Perú,2,Female,30,80-84 years,9200,Causa B,3,Rate,2023,9000,10500,7600
+4,YLLs (Years of Life Lost),123,Perú,1,Male,30,80-84 years,9100,Causa A,3,Rate,2023,1,2,0.5

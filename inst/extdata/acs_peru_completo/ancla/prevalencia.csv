@@ -191,3 +191,195 @@ sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9103,ACS 
 sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00692732029969661,0.00516276896806176,0.00929496687367837,0.95
 sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9103,ACS renovascular,5,Prevalence,2,Percent,0.00876165569544073,0.00652985601593217,0.0117562485816144,0.95
 sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9103,ACS renovascular,5,Prevalence,2,Percent,0.00794777295340356,0.00592328834150047,0.0106641938188766,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,1151.00555681887,857.8173830177,1544.40072917081,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,1004.68695723134,748.769570484204,1348.07278743715,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,1683.50863729438,1254.67941051723,2258.90479120592,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,1469.56869487997,1095.23500085504,1971.84362012282,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,2462.30079737828,1835.0948991481,3303.87557590853,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,2045.75623399892,1524.65402842295,2744.96278560611,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,3080.23743689244,2295.62854977947,4133.01301229468,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,2665.29017695313,1986.37811175789,3576.24345803741,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,3956.92367495875,2949.00219338214,5309.33649509842,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,3477.4468743404,2591.65940568884,4665.98224184697,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,5112.90971314948,3810.53141208235,6860.41995400648,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,4544.32425550897,3386.77803712636,6097.50113908532,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,6276.7270498691,4677.89711347362,8422.01132322543,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,5282.57874538837,3936.98175313593,7088.07913041538,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,7778.68285038193,5797.26946278273,10437.3114403728,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,6593.89813717919,4914.27726861134,8847.58638288666,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,9900.24203294962,7378.41764675607,13283.985402219,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,7881.90910926952,5874.20156683128,10575.8187729839,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,11679.5284213435,8704.47796357102,15671.4032381796,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,8565.26366558519,6383.48965297401,11492.7329171458,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,12765.1456035849,9513.56292820248,17128.0668988554,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,10895.7874060058,8120.37420945994,14619.7921591558,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,15434.7339545646,11503.1443680185,20710.0775776168,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,12526.4415913331,9335.66243945803,16807.7776974753,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,1202.82968637924,896.440688468554,1613.93751203646,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,970.947301056954,723.624197908057,1302.80145986711,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,1801.80460750363,1342.84261614665,2417.63241990135,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,1420.47541765044,1058.64693544796,1905.97105095798,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,2543.8820844183,1895.89551452071,3413.34003369926,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,2066.74965167506,1540.29992909203,2773.13141552692,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,3206.83546826921,2389.97908642758,4302.88021303197,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,2709.35850783878,2019.22120278411,3635.37363508124,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,4099.92820982056,3055.58011138443,5501.21767812737,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,3413.07417663138,2543.68394739552,4579.60799222538,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,5542.91699979351,4131.00573396747,7437.39680968495,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,4627.17017198151,3448.52115108542,6208.66245629272,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,6804.33381245968,5071.11003035888,9129.94558473531,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,5685.68935663932,4237.4106151526,7628.96645998926,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,8157.5512485914,6079.63117331902,10945.6709586983,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,6779.75072278062,5052.78883153404,9096.96039070155,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,8837.53279852883,6586.40543710256,11858.0592571949,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,7861.03137394858,5858.64188150201,10547.8053637853,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,11608.0812485898,8651.2300653376,15575.5365718161,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,10177.6403558718,7585.15609559576,13656.1940068202,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,13296.7118722374,9909.72677187342,17841.3139618657,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,11285.8917397872,8411.10979863743,15143.2278749746,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,15371.0546395285,11455.6856715309,20624.6336977049,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9100,Arteriopatía crónica sintética,5,Prevalence,3,Rate,12508.8830055598,9322.5764382582,16784.2178697135,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,755.859423376524,563.324259078403,1014.20000772162,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,687.414921350557,512.314180749908,922.362276608675,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,1123.49312551224,837.313014742413,1507.48499169281,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,998.381899217549,744.070558969342,1339.61276208257,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,1630.68205288832,1215.30899903614,2188.02293056415,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,1364.50548993912,1016.93386409693,1830.87150286552,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,1985.14519968844,1479.48204942928,2663.6358753837,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,1777.29049688853,1324.57282579658,2384.73978086531,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,2545.71767337319,1897.26353581674,3415.80299741267,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,2319.69011455784,1728.81050981335,3112.5228572091,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,3383.94694464199,2521.97610613302,4540.52554118366,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,3112.52446826494,2319.69131523988,4176.3352312875,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,4237.2030372835,3157.88781315949,5685.4108319958,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,3522.72622326893,2625.40503999314,4726.7373434078,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,5216.76591167167,3887.93299533161,6999.7725294796,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,4584.50781552588,3416.72589974946,6151.41879310805,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,6799.70693863722,5067.66173007013,9123.73731991603,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,5471.20919404533,4077.56359209036,7341.18043016476,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,8099.98204397527,6036.72619848753,10868.4255265975,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,5993.05797415117,4466.48521999161,8041.38872345903,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,8704.36134089514,6487.15588039693,11679.3719389141,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,7692.85802657704,5733.30623921868,10322.1530732563,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,10880.406440563,8108.91113749978,14599.1542273019,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,9038.45780959537,6736.15012439343,12127.6572028881,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,787.442533900212,586.862408878363,1056.57771705004,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,629.798130596972,469.373741088854,845.052994194567,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,1191.34461940597,887.881138050721,1598.52703403918,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,914.511789966014,681.564138209393,1227.07719949007,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,1707.09741780324,1272.25957409229,2290.55583719984,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,1380.6104771913,1028.93653249098,1852.48091552927,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,2054.32461916516,1531.03984445698,2756.45970690259,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,1838.21630325804,1369.979397006,2466.48904716984,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,2636.66239179959,1965.04249648087,3537.83115672075,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,2279.71580176542,1699.01859422756,3058.88596774409,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,3800.71581108399,2832.58414465771,5099.73929772506,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,3185.25556642309,2373.89609289401,4273.92464809212,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,4704.81009510783,3506.38436058893,6312.83845542556,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,3926.80420054522,2926.55485716711,5268.92266914342,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,5704.53418214919,4251.45522059046,7654.25214352582,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,4610.47076007451,3436.0754719702,6186.25545419521,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,5881.79419116944,4383.56293818627,7892.09677039304,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,5249.04159656301,3911.98730452636,7043.07952394663,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,7980.80611673733,5947.90718157113,10708.5171857251,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,7038.11075215784,5245.33848775748,9443.62371947083,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,9310.4881896328,6938.88797159371,12492.6631881307,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,8076.21255696174,6019.01135860267,10836.5320115243,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,10883.1379607372,8110.94687527149,14602.8193371042,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9101,ACS de miembros inferiores,5,Prevalence,3,Rate,9198.9358602626,6855.75064294836,12342.9840681652,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,268.126262448741,199.8282001416,359.767503104107,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,203.599015374899,151.737559839913,273.185881632483,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,365.590232492116,272.46580577766,490.543089295787,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,309.372239564077,230.567857252268,415.110691288481,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,570.955794666031,425.519931417914,766.099294988265,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,441.12221602001,328.758017453082,591.890689005555,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,793.275194073539,591.209353388121,1064.40388658617,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,608.553513264292,453.540627221099,816.547308618012,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,1024.88546076427,763.823040329635,1375.17481435581,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,799.352655931771,595.738742838704,1072.55852708269,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,1274.49384984142,949.850304775866,1710.09533303977,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,967.721522077014,721.220100667716,1298.47316155504,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,1540.0363864457,1147.75291478525,2066.39603439429,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,1301.9297937486,970.297668790437,1746.90844095632,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,1919.4868381147,1430.54841608169,2575.53654268291,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,1464.57294384534,1091.51178505182,1965.14040179782,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,2418.5801412998,1802.51092198233,3245.21190332466,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,1811.86429964394,1350.33986820999,2431.13035289108,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,2891.56576386818,2155.01598727321,3879.85639835281,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,1939.65243534789,1445.5773616355,2602.59441645824,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,3267.07904919278,2434.87721105027,4383.71408021447,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,2514.47772372954,1873.98113575346,3373.88573582947,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,3696.32138984179,2754.78143666807,4959.66454366965,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,2774.91703902966,2068.08043489422,3723.33901698121,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,278.083339937275,207.248975917284,373.127749405786,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,210.62794427415,156.976055308551,282.617185289519,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,411.520183903999,306.69631881807,552.171158796458,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,335.073855038688,249.72266705761,449.596705230551,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,551.235708409905,410.82301472199,739.639200670871,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,449.976348363808,335.356794141042,603.771021265399,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,822.197593459487,612.764537726602,1103.21149653766,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,550.735696983934,410.45036796076,738.968293387853,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,1015.91641707496,757.13862291726,1363.1402959022,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,767.439440170316,571.954573365334,1029.73788785972,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,1249.38183817374,931.134912827093,1676.40043999538,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,995.362861405078,741.820541060929,1335.56186574123,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,1557.25421123547,1160.58495483486,2089.49863455336,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,1301.56560543153,970.026247799274,1746.41977893459,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,1865.84366270049,1390.56941851911,2503.55899337054,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,1600.87906716324,1193.09753440043,2148.03376403703,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,2238.37114493433,1668.20539344455,3003.41037270549,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,1972.88331319881,1470.34355368782,2647.18307346332,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,2843.46139348599,2119.16493089168,3815.31072847795,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,2442.55799070892,1820.38104946232,3277.38499570637,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,3169.95631093909,2362.4939174452,4253.39635334561,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,2516.94715285584,1875.82154322858,3377.19917608238,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9102,ACS carotídea,5,Prevalence,3,Rate,3611.75110924723,2691.75319466618,4846.18950243926,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9102,ACS carotídea,5,Prevalence,3,Rate,2515.16984995686,1874.49696115979,3374.81441966059,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,127.01987099361,94.6649237976968,170.433218345081,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,113.67302050588,84.7178298943835,152.524629195996,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,194.425279290031,144.900589997156,260.876710217319,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,161.814556098341,120.596584633425,217.12016675177,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,260.662949823934,194.26596869404,349.753350356106,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,240.128528039789,178.962146872935,322.200593735031,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,301.817043130464,224.93714696206,404.973250324817,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,279.446166800308,208.26465874021,374.956368554089,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,386.320540821297,287.91561723577,518.358683329936,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,358.404103850794,267.110153036796,480.900857555181,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,454.468918666059,338.705001173466,609.799079783052,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,464.078265167008,345.866621218756,622.692746242784,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,499.487626139893,372.256385528876,670.204456835334,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,457.922728370844,341.279044352361,614.433346051261,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,642.430100595563,478.78805136942,862.002368210279,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,544.817377807972,406.039583810058,731.027187980784,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,681.954953012608,508.244994703609,915.036178978283,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,30,80-84 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,598.835615580245,446.298106530927,803.507989928075,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,687.980613499997,512.735777810279,923.121313229224,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,31,85-89 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,632.55325608613,471.427071346899,848.749777228501,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,793.705213496996,591.529836755287,1064.98087972683,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,32,90-94 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,688.451655699175,513.086834487804,923.753350070028,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,858.006124159775,639.451793850652,1151.25880664527,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2019,235,95+ years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,713.066742708093,531.431880170382,956.781477605957,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,137.303812541757,102.329303672908,184.232045580637,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,13,40-44 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,130.521226185831,97.2744015106523,175.131280383024,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,198.939804193657,148.265159277863,266.934227065708,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,14,45-49 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,170.889772645742,127.36013018096,229.297146237364,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,285.548958205156,212.812925706425,383.144995828551,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,15,50-54 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,236.162826119951,176.006602460008,316.879478732252,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,330.313255644568,246.174704243993,443.209009591714,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,16,55-59 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,320.406507596811,238.791437817349,429.91629452355,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,447.349400946015,333.398991986303,600.246225504426,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,17,60-64 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,365.918934695638,272.710779802631,490.984136621572,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,492.819350535775,367.286676482662,661.257071964513,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,18,65-69 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,446.551744153344,332.804517130485,599.175942459368,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,542.269506116367,404.140714935091,727.60849475638,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,19,70-74 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,457.319550662567,340.829510186219,613.624011911244,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,587.173403741717,437.606534209441,787.859821801984,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,20,75-79 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,568.400895542871,423.615825163414,762.671172469315,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,717.367462425071,534.637105471732,962.552114096381,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,30,80-84 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,639.106464186762,476.311023287835,857.542766375308,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,783.813738366434,584.157952874784,1051.70865761312,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,31,85-89 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,696.97161300504,519.436558375966,935.185291642969,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,816.267371665524,608.344882834516,1095.25442038934,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,32,90-94 years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,692.732029969661,516.276896806176,929.496687367837,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,1,Male,9103,ACS renovascular,5,Prevalence,3,Rate,876.165569544073,652.985601593217,1175.62485816144,0.95
+sintetico_acs_v1,gbd,2023,cause,123,Perú,0,2023,235,95+ years,2,Female,9103,ACS renovascular,5,Prevalence,3,Rate,794.777295340356,592.328834150047,1066.41938188766,0.95

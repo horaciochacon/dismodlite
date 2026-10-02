@@ -1,0 +1,7 @@
+nid,title,cause_id,location_id,component_id,year_start,year_end
+1001,Encuesta A,9100,123,5,2015,2015
+1001,Encuesta A,9100,123,5,2016,2016
+1001,Encuesta A,9100,123,5,2017,2017
+1002,Registro B,9100,123,4,2015,2019
+1002,Registro B,9100,123,4,2015,2019
+1004,Encuesta D,9100,123,5,2018,2018

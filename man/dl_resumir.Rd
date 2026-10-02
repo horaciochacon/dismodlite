@@ -24,8 +24,8 @@ columnas del contrato de las corridas \code{estimates/v1} salvo \code{run_id} (q
 \code{source}, \code{round}, \code{entity}, \code{method}, \code{location_id}, \code{location_name}, \code{location_level} (0 nacional, 1
 subnacional), \code{year}, \code{age_group_id}, \code{age_group_name}, \code{sex_id}, \code{sex_name}, \code{cause_id}, \code{cause_name},
 \code{measure_id}, \code{measure_name}, \code{metric_id}, \code{metric_name}, \code{val} (la media de las simulaciones), \code{lower},
-\code{upper} y \code{ui_level}. La prevalencia es una proporción (\code{Percent}); la incidencia y los AVD, tasas por 100 000
-(\code{Rate}).
+\code{upper} y \code{ui_level}. La prevalencia es la proporción de la población, entre 0 y 1 (con la métrica 2,
+\code{Percent}, como en las versiones anteriores); la incidencia y los AVD, tasas por 100 000 (\code{Rate}).
 \item \code{draws}: lista con una tabla ancha por medida (\code{prevalence}, \code{incidence}, \code{yld}): \code{location_id}, \code{sex_id},
 \code{age_group_id} y una columna por simulación (\code{draw_1}, \code{draw_2}, ...), en las unidades del modelo
 (proporción o tasa por persona-año).

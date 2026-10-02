@@ -13,7 +13,7 @@ knitr:
 
 ## Qué vas a aprender
 
-- Qué hace el paquete con los datos de `datos.csv` por defecto.
+- Qué hace el paquete con los datos de la tabla `datos` por defecto.
 - Cómo hacer que entren al ajuste nacional (`datos_en_ajuste`) y qué filas entran.
 - Por qué los datos que ya informaron la estimación de referencia pueden contarse dos veces, y cómo evitarlo con
   `ancla.peso`.
@@ -31,7 +31,7 @@ library(data.table)
 
 ## Los datos locales de un proyecto
 
-Los datos locales van en `datos.csv`, una fila por dato: su tipo (`prevalencia_estudio`, `incidencia`,
+Los datos locales van en la tabla `datos` (`datos.csv`), una fila por dato: su medida (`prevalencia`, `incidencia`,
 `mortalidad` o `prevalencia_registro`), su ubicación, sexo, edades y año, y su valor con su error estándar o sus
 casos y su muestra. La prevalencia va como proporción y las tasas, **por persona-año** (no por 100 000). La guía
 [Preparar tus datos](preparar-datos.html#datos) describe cada columna y sus unidades, y muestra cómo la revisión
@@ -43,10 +43,10 @@ subnacionales de 2019 (mortalidad y prevalencia):
 
 ```{r}
 #| label: datos
-datos <- fread(dl_ejemplo("datos.csv"), colClasses = list(character = "location_id"), encoding = "UTF-8")
-datos[, .(filas = .N, excluidas = sum(excluir)), by = .(tipo, nacional = location_id == "123", anio)]
-datos[location_id == "123" & tipo != "mortalidad",
-      .(tipo, sexo, edad_inicio, edad_fin, valor, error_estandar, casos, muestra, excluir)]
+datos <- fread(dl_ejemplo("datos.csv"), colClasses = list(character = "ubicacion"), encoding = "UTF-8")
+datos[, .(filas = .N, excluidas = sum(excluir)), by = .(medida, nacional = ubicacion == "123", anio)]
+datos[ubicacion == "123" & medida != "mortalidad",
+      .(medida, sexo, edad_inicio, edad_fin, valor, error_estandar, casos, muestra, excluir)]
 ```
 
 ## Por defecto, los datos no entran al ajuste
@@ -73,7 +73,7 @@ cuando el modelador lo decide, y entonces conviene bajar el peso del ancla.
 
 ## Hacer que entren: `datos_en_ajuste` {#que-filas-entran}
 
-`datos_en_ajuste` lista los tipos de dato cuyas filas nacionales entran al ajuste. Para probarlo, una copia del
+`datos_en_ajuste` lista las medidas cuyas filas nacionales entran al ajuste. Para probarlo, una copia del
 proyecto de ejemplo en una carpeta temporal (en un proyecto propio basta con editar su configuración):
 
 ```{r}
@@ -81,20 +81,18 @@ proyecto de ejemplo en una carpeta temporal (en un proyecto propio basta con edi
 con_datos <- dl_ejemplo(copiar_en = file.path(tempdir(), "con_datos"))
 ```
 
-Su configuración, `config/9100.yaml`, con los tres tipos en el ajuste (sin `covariables`, que no intervienen en el
-ajuste nacional):
+Su configuración, `config/9100.yaml`, con las tres medidas en el ajuste:
 
 ```{cat}
 #| engine.opts: !expr list(file = file.path(con_datos, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2023
 edad_inicio: 30
-ubicacion_nacional: 123
 
 mortalidad_exceso:
   techo: 0.25
 
-datos_en_ajuste: [prevalencia_estudio, incidencia, mortalidad]
+datos_en_ajuste: [prevalencia, incidencia, mortalidad]
 
 subnacional:
   anio_validacion: 2019
@@ -109,7 +107,7 @@ insumos_peso1$datos[, .N, by = .(tipo_dato, nacional = location_level == 0L, exc
 Qué filas entran:
 
 - Las filas **nacionales** del año que se estima: su año, o su rango de `anio_inicio` a `anio_fin`, debe incluir
-  `anio`. Entran si su tipo está en `datos_en_ajuste` y no están excluidas.
+  `anio`. Entran si su medida está en `datos_en_ajuste` y no están excluidas.
 - Las filas **subnacionales** nunca entran; las del año `subnacional.anio_validacion` validan la estimación
   subnacional.
 - Las filas de otros años y las de ambos sexos se dejan fuera, con un mensaje que las cuenta. Las subnacionales de
@@ -117,7 +115,7 @@ Qué filas entran:
   sin esa clave, el año de validación es el que se estima y quedarían fuera. Una encuesta nacional de otro año
   tampoco entra: revisa que los años de tus datos incluyan `anio`. Si ninguna fila nacional queda en el ajuste, otro
   mensaje lo dice.
-- Toda fila nacional de ese año que no esté excluida debe ser de un tipo de `datos_en_ajuste`. Eso vale también para
+- Toda fila nacional de ese año que no esté excluida debe ser de una medida de `datos_en_ajuste`. Eso vale también para
   `prevalencia_registro`, que no entra nunca al ajuste y no se puede poner en `datos_en_ajuste`: con datos en el
   ajuste, sus filas nacionales se marcan con `excluir: TRUE` y su motivo.
 
@@ -134,12 +132,11 @@ solo_prevalencia <- dl_ejemplo(copiar_en = file.path(tempdir(), "solo_prevalenci
 causa: 9100
 anio: 2023
 edad_inicio: 30
-ubicacion_nacional: 123
 
 ancla:
   peso: 0.5
 
-datos_en_ajuste: [prevalencia_estudio]
+datos_en_ajuste: [prevalencia]
 
 subnacional:
   anio_validacion: 2019
@@ -169,7 +166,6 @@ peso05 <- dl_ejemplo(copiar_en = file.path(tempdir(), "peso05"))
 causa: 9100
 anio: 2023
 edad_inicio: 30
-ubicacion_nacional: 123
 
 ancla:
   peso: 0.5
@@ -177,7 +173,7 @@ ancla:
 mortalidad_exceso:
   techo: 0.25
 
-datos_en_ajuste: [prevalencia_estudio, incidencia, mortalidad]
+datos_en_ajuste: [prevalencia, incidencia, mortalidad]
 
 subnacional:
   anio_validacion: 2019
@@ -201,7 +197,7 @@ verdadera con la que se generaron los datos sintéticos:
 #| fig-height: 5
 prevalencia <- function(ajuste) dl_estimaciones(ajuste)[location_id == "123" & sex_id == 2 & edad >= 40]
 ancla <- insumos_ancla$prior_gbd[measure_id == 5 & sex_id == 2]
-estudio <- datos[location_id == "123" & tipo == "prevalencia_estudio" & sexo == "mujeres" & !excluir]
+estudio <- datos[ubicacion == "123" & medida == "prevalencia" & sexo == "mujeres" & !excluir]
 estudio[, p := casos / muestra]
 verdad <- fread(dl_ejemplo("verdad.csv"), colClasses = list(character = "location_id"))[
   cause_id == 9100 & location_id == "123" & anio == 2023 & sex_id == 2 & edad >= 40]
@@ -213,9 +209,9 @@ plot(verdad$edad, 100 * verdad$p, type = "n", ylim = c(0, 25), xlab = "Edad (añ
 polygon(c(curvas[[3]]$edad, rev(curvas[[3]]$edad)), 100 * c(curvas[[3]]$inferior, rev(curvas[[3]]$superior)),
         col = "#9ecae160", border = NA)
 lines(verdad$edad, 100 * verdad$p, lty = 2, lwd = 2, col = "#cb181d")
-segments(ancla$age_start, 100 * ancla$val, pmin(ancla$age_end, 95), 100 * ancla$val, col = "grey20", lwd = 3)
+segments(ancla$age_start, 100 * ancla$val, pmin(ancla$age_end, 99), 100 * ancla$val, col = "grey20", lwd = 3)
 for (k in 1:3) lines(curvas[[k]]$edad, 100 * curvas[[k]]$media, col = colores[k], lwd = 2)
-segments(estudio$edad_inicio, 100 * estudio$p, pmin(estudio$edad_fin, 95), 100 * estudio$p, col = "#31a354",
+segments(estudio$edad_inicio, 100 * estudio$p, pmin(estudio$edad_fin, 99), 100 * estudio$p, col = "#31a354",
          lwd = 3)
 legend("topleft", c("verdad", "ancla (por grupo de edad)", "estudio de prevalencia", "solo el ancla",
                     "con datos, ancla.peso 1", "con datos, ancla.peso 0.5 (e IC 95 %)"),
@@ -259,7 +255,7 @@ la del ancla, `dl_correr()` no escribe la corrida, también en la prueba con `ra
 ## Cómo entra cada dato
 
 Cada dato se compara con la cantidad del modelo promediada en su intervalo de edad, con los pesos de la población:
-la prevalencia *p* para `prevalencia_estudio`, la incidencia poblacional *i* (1 − *p*) para `incidencia` y la
+la prevalencia *p* para `prevalencia`, la incidencia poblacional *i* (1 − *p*) para `incidencia` y la
 mortalidad por la causa *p f* para `mortalidad`. Un dato con `valor` y `error_estandar` entra con una verosimilitud
 log-normal, centrada en su valor y con su error; uno con `casos` y `muestra`, con una binomial (prevalencia) o una
 Poisson (incidencia y mortalidad), con `muestra_efectiva` en lugar de `muestra` si se da. La guía
@@ -278,7 +274,7 @@ años vale mucho más que sus vecinos y está excluido:
 
 ```{r}
 #| label: atipico
-datos[excluir == TRUE, .(tipo, sexo, edad_inicio, edad_fin, valor, error_estandar, motivo)]
+datos[excluir == TRUE, .(medida, sexo, edad_inicio, edad_fin, valor, error_estandar, motivo)]
 ```
 
 Con datos en el ajuste, un dato excluido sin motivo detiene `dl_insumos()`. Aquí, en la copia `peso05`, con el
@@ -298,13 +294,13 @@ Excluir un dato es una decisión que se documenta: el motivo va en `datos.csv` y
 
 ## Lista de comprobación
 
-- [ ] `tipo` es uno de los cuatro; la prevalencia va como proporción y las tasas por persona-año.
+- [ ] `medida` es una de las cuatro; la prevalencia va como proporción y las tasas por persona-año.
 - [ ] Cada fila trae `valor` y `error_estandar` **o** `casos` y `muestra`, los de la fuente.
-- [ ] Los datos nacionales son del año que se estima, de un sexo (no de ambos) y usan el `location_id` de
-      `ubicacion_nacional`.
+- [ ] Los datos nacionales son del año que se estima, de un sexo (no de ambos) y usan el código nacional de
+      `ubicaciones`.
 - [ ] Los datos que no se usan están marcados con `excluir: TRUE` y su `motivo`; con `datos_en_ajuste` no vacío,
-      también las filas nacionales de los tipos que no están en la lista (y las de `prevalencia_registro`).
-- [ ] `datos_en_ajuste` lista los tipos nacionales que entran; si esos datos ya informaron el ancla, `ancla.peso`
+      también las filas nacionales de las medidas que no están en la lista (y las de `prevalencia_registro`).
+- [ ] `datos_en_ajuste` lista las medidas nacionales que entran; si esos datos ya informaron el ancla, `ancla.peso`
       baja (por ejemplo a 0.5) y la razón queda en `notas`.
 - [ ] Los datos subnacionales del año `subnacional.anio_validacion` (mortalidad) sirven para validar la estimación
       subnacional.
@@ -313,6 +309,6 @@ Excluir un dato es una decisión que se documenta: el motivo va en `datos.csv` y
 ## Siguientes pasos
 
 - [Estimación subnacional](desagregacion-subnacional.html): los datos subnacionales reservados para validar.
-- [Subtipos y suma](subtipos-y-suma.html): varias causas en un proyecto, con `datos.csv` compartido.
+- [Subtipos y suma](subtipos-y-suma.html): varias causas en un proyecto, con la tabla `datos` compartida.
 - [El modelo](el-modelo.html): la log-posterior completa y el papel de λ.
-- [Preparar tus datos](preparar-datos.html): dónde conseguir cada archivo del proyecto.
+- [Preparar tus datos](preparar-datos.html): las tablas del proyecto y de dónde sale cada una.

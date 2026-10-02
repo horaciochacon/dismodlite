@@ -1,5 +1,5 @@
-# Rutas y configuraciones de prueba sobre los datos sintéticos de ejemplo (inst/extdata/acs_peru, el formato
-# simple): la causa padre 9100 (arteriopatía crónica sintética) en 2023, que usan casi todas las pruebas del motor.
+# Rutas y configuraciones de prueba sobre los datos sintéticos de ejemplo (inst/extdata/acs_peru, el proyecto en el
+# contrato de insumos): la causa padre 9100 (arteriopatía crónica sintética) en 2023, que usan casi todas las pruebas del motor.
 # Las pruebas de lo que solo tiene el formato completo (evidencia, extracción, partición de severidad, registro,
 # lectura de sus archivos) usan el mismo ejemplo en ese formato: ejemplo_completo() y formato = "completo".
 
@@ -7,17 +7,24 @@
 ejemplo_completo <- function(...) file.path(ruta_acs(), ...)
 
 # Las dos variantes de 9100 que usan las pruebas: el ajuste nacional puro (sin datos locales ni proxies
-# departamentales; las tablas datos y cov_proxy de los insumos quedan vacías) y el completo (datos.csv y
-# proxies_departamentales.csv).
+# departamentales; las tablas datos y cov_proxy de los insumos quedan vacías) y el completo (datos.csv y los proxies
+# de covariables/proxies.csv).
 rutas_nacional <- function() dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE)
 rutas_completas <- function() dl_rutas_ejemplo(9100L)
 
 cfg9100 <- function() dl_configuracion_ejemplo(9100L)
 
+# Los mismos tres en el formato completo (acs_peru_completo), para las pruebas de lo que solo hace ese formato: las
+# bandas finas del ancla agrupadas en 80+ y <5 (pesos_80mas.csv), las descargas del GHDx en sus propios archivos, los
+# proxies de varios años, la evidencia y la extracción.
+cfg9100_completo <- function() dl_configuracion_ejemplo(9100L, formato = "completo")
+rutas_nacional_completo <- function() dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo")
+rutas_completas_completo <- function() dl_rutas_ejemplo(9100L, formato = "completo")
+
 # 9100 con los datos locales en la verosimilitud: las tres medidas de datos.csv y lambda 0,5 (con csmr en el ajuste
 # el ancla no va a peso completo). El held-out departamental es el del config (2019, el año de los datos de nivel 1).
-cfg9100_datos <- function() {
-  cfg <- cfg9100(); cfg$medidas_entrada <- list("prev_estudio", "incidencia", "csmr"); cfg$anchor$lambda <- 0.5
+cfg9100_datos <- function(cfg = cfg9100()) {
+  cfg$medidas_entrada <- list("prev_estudio", "incidencia", "csmr"); cfg$anchor$lambda <- 0.5
   cfg$decisiones <- list("lambda 0.5 porque csmr entra a la verosimilitud (datos de ejemplo)"); cfg
 }
 
@@ -28,9 +35,9 @@ raiz_fuente <- function() {
   if (dir.exists(file.path(r, "R")) && file.exists(file.path(r, "DESCRIPTION"))) r else NULL
 }
 
-# ---- Proyectos en el formato simple ----
+# ---- Proyectos en el contrato ----
 
-# Copia del proyecto de ejemplo (formato simple) en una carpeta temporal con un espacio en el nombre; `...`: archivos
+# Copia del proyecto de ejemplo en una carpeta temporal con un espacio en el nombre; `...`: archivos
 # que se reemplazan (ruta relativa = sus líneas).
 copia_ejemplo <- function(..., env = parent.frame()) {
   d <- dl_ejemplo(copiar_en = file.path(withr::local_tempdir(.local_envir = env), "mi proyecto"))
@@ -48,16 +55,20 @@ escribir_texto <- function(x, ...) data.table::fwrite(x, file.path(...), eol = "
   age_id = 13:21, edad_inicio = seq(40, 80, 5), edad_fin = c(seq(45, 80, 5), 125),
   age_name = c(sprintf("%d-%d years", seq(40, 75, 5), seq(44, 79, 5)), "80+ years"))
 
-# Proyecto simple de un país ficticio (location_id 999) con tres regiones de códigos libres (A, B y C), para probar que
-# nada del paquete supone el Perú. Escribe en `d` config.yaml (las líneas `config`), ancla/ (una descarga de GBD Results
-# de la causa `causa` llamada `nombre`, del año `anio`), poblacion.csv (solo las regiones: la nacional es su suma) y
-# severidad.csv. El ancla es coherente con el modelo: la prevalencia de dl_edo() con una incidencia y una mortalidad en
+# Proyecto de un país ficticio (location_id 999) con tres regiones de códigos libres (A, B y C), para probar que nada
+# del paquete supone el Perú. Escribe en `d` config.yaml (las líneas `config`), ubicaciones.csv (el país y sus
+# regiones), ancla/ (una descarga de GBD Results de la causa `causa` llamada `nombre`, del año `anio`, tal cual: la
+# convierte su lector), poblacion.csv (solo las regiones: la nacional es su suma; location_id es un alias de ubicacion)
+# y severidad.csv. El ancla es coherente con el modelo: la prevalencia de dl_edo() con una incidencia y una mortalidad en
 # exceso (EMR) que crecen con la edad (10 % más de incidencia en los hombres), promediada en cada banda; la mortalidad
 # es p x EMR, la incidencia i x (1 - p) y los AVD p x 0,037 (el peso de discapacidad medio de severidad.csv), por
-# 100 000 (Rate); la prevalencia va como proporción (Percent). Devuelve `d`.
+# 100 000 (Rate), como la prevalencia (la métrica que lee el paquete). Devuelve `d`.
 escribir_pais_ficticio <- function(d, causa, anio, config, nombre = "Enfermedad inventada") {
   dir.create(file.path(d, "ancla"), recursive = TRUE)
   writeLines(config, file.path(d, "config.yaml"))
+  data.table::fwrite(data.table::data.table(ubicacion = c("999", "A", "B", "C"),
+                                            nombre = c("Pa\u00eds ficticio", paste("Regi\u00f3n", c("A", "B", "C"))),
+                                            padre = c(NA, "999", "999", "999")), file.path(d, "ubicaciones.csv"))
   nudos <- c(40, 50, 60, 70, 80, 95)
   a <- data.table::rbindlist(lapply(1:2, function(sx) {
     e <- dl_edo(log(c(2, 4, 7, 11, 16, 20) * 1e-3 * (1 + 0.1 * (sx == 1L))), log(c(2, 2.5, 3.5, 5, 8, 12) * 1e-2),
@@ -66,12 +77,12 @@ escribir_pais_ficticio <- function(d, causa, anio, config, nombre = "Enfermedad 
     x <- data.table::data.table(b = banda, p = e$p, csmr = e$p * e$f, inc = e$i * (1 - e$p))
     x <- x[, list(p = mean(p), csmr = mean(csmr), inc = mean(inc)), by = b]
     data.table::data.table(sex_id = sx, b = rep(x$b, 4L), measure_id = rep(c(5L, 1L, 6L, 3L), each = nrow(x)),
-                           val = c(x$p, 1e5 * x$csmr, 1e5 * x$inc, 1e5 * 0.037 * x$p))
+                           val = c(1e5 * x$p, 1e5 * x$csmr, 1e5 * x$inc, 1e5 * 0.037 * x$p))
   }))
   medidas <- data.table::data.table(
     measure_id = c(5L, 1L, 6L, 3L),
     measure_name = c("Prevalence", "Deaths", "Incidence", "YLDs (Years Lived with Disability)"),
-    metric_id = c(2L, 3L, 3L, 3L), metric_name = c("Percent", "Rate", "Rate", "Rate"))
+    metric_id = c(3L, 3L, 3L, 3L), metric_name = c("Rate", "Rate", "Rate", "Rate"))
   a <- cbind(a, medidas[match(a$measure_id, medidas$measure_id), -"measure_id"], .BANDAS_FICTICIO[a$b])
   a[, `:=`(location_id = 999L, location_name = "Pa\u00eds ficticio", sex_name = c("Male", "Female")[sex_id],
            cause_id = causa, cause_name = nombre, year = anio, lower = val * 0.8, upper = val * 1.25)]
@@ -90,6 +101,26 @@ escribir_pais_ficticio <- function(d, causa, anio, config, nombre = "Enfermedad 
     causa = causa, estado = c("leve", "grave"), proporcion = c(0.7, 0.3), proporcion_inferior = c(0.6, 0.2),
     proporcion_superior = c(0.8, 0.4), peso_discapacidad = c(0.01, 0.1), peso_inferior = c(0.005, 0.07),
     peso_superior = c(0.02, 0.14)), file.path(d, "severidad.csv"))
+  invisible(d)
+}
+
+# Una corrida de partición de severidad mínima en `d` (particion/mini): la causa 302 de GBD con sus cuatro secuelas y
+# sus estados de salud del catálogo del paquete (665 -> 355, 666 -> 356, 667 -> 357, 668 -> 540), con proporciones
+# 0,6, 0,25, 0,1 y 0,05.
+escribir_particion_mini <- function(d) {
+  base <- data.table::data.table(run_id = "mini", source = "gbd", round = 2023L, method = "severity_split",
+                                 location_id = "999", location_name = "Pa\u00eds ficticio", location_level = 0L,
+                                 year = 2020L, age_group_id = 22L, age_group_name = "All ages", sex_id = 3L,
+                                 sex_name = "Both", cause_id = 302L, cause_name = "diarrheal_diseases",
+                                 measure_id = 900001L, measure_name = "Proportion", metric_id = 2L, metric_name = "Percent",
+                                 val = c(0.6, 0.25, 0.1, 0.05), ui_level = 0.95)[, `:=`(lower = val * 0.9, upper = val * 1.1)]
+  for (e in c("cause_sequela", "cause_health_state")) {
+    x <- data.table::copy(base)[, entity := e]
+    if (e == "cause_sequela") x[, `:=`(sequela_id = 665:668, sequela_name = paste0("s", 665:668))]
+    else x[, `:=`(health_state_id = c(355L, 356L, 357L, 540L), health_state_name = paste0("e", 1:4))]
+    dir.create(file.path(d, "particion", "mini", e, "proportion"), recursive = TRUE)
+    data.table::fwrite(x, file.path(d, "particion", "mini", e, "proportion", "mini.csv"))
+  }
   invisible(d)
 }
 

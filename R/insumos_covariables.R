@@ -87,7 +87,7 @@
                stringsAsFactors = FALSE)))
   filas <- lapply(cov, function(x) {
     tr <- trans[trans$covariate_name_short == x$covariate_name_short, ]
-    if (!nrow(tr))
+    if (is.null(tr) || !nrow(tr))
       .dl_stop("la configuraci\u00f3n no declara en `transformaciones` la transformaci\u00f3n de \u00ab%s\u00bb",
                x$covariate_name_short)
     data.table::data.table(
@@ -117,12 +117,17 @@
              abs(beta) >= .DL_ESCALA_HAQI_BETA_MAX]
   h <- h[!vapply(h$covariate_name_short, function(nm) isTRUE(confirmadas[[nm]]), logical(1))]
   if (nrow(h)) {
+    beta <- paste(signif(h$beta, 3), collapse = ", ")
+    # en un proyecto, las betas son la tabla betas: el mensaje cita sus columnas, no las claves del formato completo
+    if (isTRUE(.dl_estado$simple))
+      .dl_stop(paste0("la beta de haqi (%s por unidad) con escala 1 (0-100) no es cre\u00edble: exp(beta x 20 ",
+                      "puntos) es casi 0. En su fila de la tabla betas, escribe escala 0.01 (beta estimada en 0-1) ",
+                      "o, si la beta es de verdad por punto de 0-100, escala_confirmada true"), beta)
     i <- match(h$covariate_name_short[1L], names(confirmadas))   # su lugar en transformaciones (en el mensaje)
     tr <- if (is.na(i)) "transformaciones[]" else sprintf("transformaciones[%d]", i)
     .dl_stop(paste0("la beta de haqi (%s por unidad) con escala 1 (0-100) no es cre\u00edble: ",
                     "exp(beta x 20 puntos) es casi 0. Declara %s.escala: 0.01 (beta estimada en 0-1) o, si la beta ",
-                    "es de verdad por punto de 0-100, %s.escala_confirmada: true"),
-             paste(signif(h$beta, 3), collapse = ", "), tr, tr)
+                    "es de verdad por punto de 0-100, %s.escala_confirmada: true"), beta, tr, tr)
   }
   invisible(TRUE)
 }
@@ -150,7 +155,8 @@
                       data.table::rbindlist(lapply(sust, function(cv) data.table::data.table(
                         covariate_name_short = cv$sustituye$covariate_name_short,
                         covariate_id = as.integer(cv$sustituye$covariate_id))))))
-  m <- merge(crudo[location_id == as.integer(loc)], ids, by = "covariate_name_short")
+  # la ubicación como texto: un código nacional que no es un número («P») también vale
+  m <- merge(crudo[as.character(location_id) == as.character(loc)], ids, by = "covariate_name_short")
   out <- data.table::data.table(
     covariate_id = as.integer(m$covariate_id), covariate_name_short = m$covariate_name_short,
     location_id = rep(loc, nrow(m)), year = as.integer(m$year_id), sex_id = as.integer(m$sex_id),

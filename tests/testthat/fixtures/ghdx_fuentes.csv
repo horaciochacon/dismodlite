@@ -1,0 +1,4 @@
+nid,title,cause_id,location_id,component_id
+1001,Encuesta A,9100,123,5
+1002,Registro B,9100,123,4
+1003,Otra fuente C,9100,123,6

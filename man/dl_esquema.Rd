@@ -19,7 +19,7 @@ Lee y valida el contrato \code{dismod_lite/v1}: las tablas de insumos, sus colum
 }
 \details{
 El contrato es el formato de las tablas internas del paquete, las del formato completo y las que
-\code{\link[=dl_insumos]{dl_insumos()}} arma desde un proyecto simple (y \code{\link[=dl_congelar_insumos]{dl_congelar_insumos()}} escribe en cada corrida). Cada tabla
+\code{\link[=dl_insumos]{dl_insumos()}} arma desde un proyecto (y \code{\link[=dl_congelar_insumos]{dl_congelar_insumos()}} escribe en cada corrida). Cada tabla
 declara sus columnas con su tipo (\code{int}, \code{num}, \code{str}, \code{lgl}, o una lista cerrada de valores) y si son
 opcionales, su clave (las columnas que identifican una fila) y sus reglas, que \code{\link[=dl_validar_tabla]{dl_validar_tabla()}} comprueba. El
 archivo del paquete está en \code{system.file("schema", "dismod_lite.v1.yaml", package = "dismodlite")}.

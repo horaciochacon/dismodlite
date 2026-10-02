@@ -67,8 +67,8 @@ versión 0.2.2: \code{std_prior}, \code{std_csmr}, \code{std_yld} y \code{std_in
 }
 \description{
 Reúne las rutas de los archivos que lee \code{\link[=dl_insumos]{dl_insumos()}} en el formato completo: el ancla, las covariables, la
-población, los datos locales, la severidad y los archivos de apoyo. Con un proyecto en el formato simple no hace
-falta: \code{\link[=dl_proyecto]{dl_proyecto()}} arma las rutas (las de su traducción al formato completo) y \code{\link[=dl_insumos]{dl_insumos()}} las toma del
+población, los datos locales, la severidad y los archivos de apoyo. Con un proyecto con las tablas del contrato de
+insumos no hace falta: \code{\link[=dl_proyecto]{dl_proyecto()}} arma las rutas (las de su traducción al formato completo) y \code{\link[=dl_insumos]{dl_insumos()}} las toma del
 proyecto.
 }
 \details{

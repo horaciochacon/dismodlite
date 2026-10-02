@@ -34,6 +34,8 @@ almacén de evidencia, las fuentes del país que ya informaron el ancla: la base
 corridas lo registran;
 \item \code{rutas}: las rutas con que se armaron (no entran en el hash); las etapas siguientes las usan cuando no se les
 pasan otras.
+\item \code{contrato}: con un proyecto de las tablas del contrato, esas tablas tal como se leyeron (\verb{$tablas} de
+\code{\link[=dl_proyecto]{dl_proyecto()}}; no entran en el hash).
 }
 }
 \description{
@@ -45,14 +47,14 @@ identifica los insumos. Es el primer paso de una corrida: su resultado lo usan \
 Lo que falta se reporta donde hace falta: sin tabla de severidad, los insumos se arman igual y \code{\link[=dl_avd]{dl_avd()}} la pide;
 con datos locales en el ajuste y el ancla a peso completo, sin almacén de evidencia (\code{evidencia} de \code{\link[=dl_rutas]{dl_rutas()}};
 obligatoria si la configuración declara \code{anchor.evidencia_ghdx}), un aviso de doble conteo; si ninguna fila nacional
-de \code{datos} entra al ajuste, un mensaje lo dice en su lugar. Con un proyecto simple
-(\code{dl_insumos(dl_proyecto(...))}), los mensajes citan sus claves y sus archivos (\code{datos_en_ajuste}, \code{proxies.csv},
-...) en lugar de los del formato completo; si su traducción ya no está (cambió la configuración o una tabla y se
-volvió a traducir, o es de otra sesión), un error pide volver a llamar a \code{\link[=dl_proyecto]{dl_proyecto()}}.
+de \code{datos} entra al ajuste, un mensaje lo dice en su lugar. Con un proyecto (\code{dl_insumos(dl_proyecto(...))}), los
+mensajes citan sus claves y sus tablas (\code{datos_en_ajuste}, la tabla \code{covariables}, ...) en lugar de los del formato
+completo; si su traducción ya no está (cambió la configuración o una tabla y se volvió a traducir, o es de otra
+sesión), un error pide volver a llamar a \code{\link[=dl_proyecto]{dl_proyecto()}}.
 }
 \examples{
 \donttest{
-# un proyecto (formato simple o completo)
+# un proyecto (con las tablas del contrato de insumos o en el formato completo)
 b <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))
 b
 # o la configuración y las rutas por separado

@@ -1,3 +1,103 @@
+# dismodlite 2.0.0
+
+Los insumos pasan a ser un contrato público y corto: unas pocas tablas con un eje común, que se preparan igual vengan
+de donde vengan los datos. Es una versión mayor porque los proyectos de la versión 1.0.0 se rehacen (abajo).
+
+## El contrato de insumos
+
+* Nueve tablas como máximo: `ubicaciones`, `poblacion` y `ancla` (obligatorias), `covariables`, `betas`, `datos`,
+  `severidad`, `fuentes_gbd` y `poblacion_detalle`. `?dl_tablas` documenta cada una, con sus columnas, unidades y
+  valores, desde una sola definición (`inst/referencia/tablas.csv`) que usan también el validador, las plantillas y
+  los mensajes.
+* Todas comparten un **eje**: `causa`, `ubicacion`, `anio`, `sexo`, `edad_inicio` y `edad_fin`. Una columna del eje
+  que no viene significa que la tabla no varía en esa dimensión (sin `ubicacion`, la nacional; sin `sexo`, ambos;
+  sin edades, todas...). Las unidades son fijas: proporciones de 0 a 1 y tasas por persona-año.
+* Las ubicaciones se declaran una vez en `ubicaciones`, con códigos propios: la nacional sin `padre` y las
+  subnacionales con la nacional de padre. Salen `location_id`, `age_group_id`, `sex_id` y los ids inventados.
+* Una sola tabla `covariables` para el valor nacional de cada covariable y sus valores subnacionales (los proxies).
+  Las betas pasan de la configuración a la tabla `betas`; un subtipo sin filas propias usa las de su causa padre (la
+  que lo declara en `subtipos` o, en su propia carpeta, la de `avanzado: extraction`).
+* Las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten solas (el *Rate* entre
+  100 000, las edades de GBD a bandas, `measure_id` a `medida`). La clave `ubicacion_gbd` (antes
+  `ubicacion_nacional`) dice qué `location_id` de GBD es el país; por defecto, el código nacional de `ubicaciones`
+  si está en la descarga, o la única ubicación de la descarga (la misma regla en los tres lectores). La lista de
+  fuentes del GHDx queda con el código nacional del proyecto, con cada fuente una vez (la lista del GHDx la repite en
+  varias filas); sus fuentes de otras ubicaciones de GBD se descartan, con un aviso.
+* La configuración guarda decisiones y las tablas, números con su fuente. Entran `severidad.particion`,
+  `severidad.padre` y `componente.secuelas`, que antes solo existían en el formato completo.
+* La corrida congela las tablas del contrato que usó y la configuración del proyecto tal como se leyó
+  (`inputs/contrato/<tabla>.csv` y `inputs/contrato/config.yaml`) con su sha256 en el manifiesto: `inputs/contrato/`
+  es la carpeta de un proyecto, y una corrida hecha con tablas o una configuración de R se repite sin ellas. La de un
+  subtipo con las betas de su causa padre las congela a su nombre, con la causa padre en `avanzado: extraction`. La
+  carpeta de `severidad.particion` se congela en `inputs/contrato/particion/<corrida>/`, con la ruta de la
+  configuración congelada cambiada a ella (la tabla `severidad`, que sale de ella, no se congela aparte).
+* La severidad que sale de la partición de una hija o de un componente puede tener límites mayores que 1 (los de la
+  partición divididos por su cuota): se acepta con un aviso que nombra los estados, como en la versión 0.2.2. La tabla
+  `severidad` escrita por el usuario sigue en $[0, 1]$.
+* Los proxies de `covariables` pueden venir en bandas de edad propias, uniones de las de la población (por ejemplo
+  45-59 con bandas de 5 años).
+* Las bandas de la población van seguidas: un hueco entre ellas es un problema de la población. En `datos`,
+  `anio_inicio` mayor que `anio_fin` es un problema de la tabla. Las filas de los mensajes se cuentan como las líneas
+  del CSV (el encabezado es la 1) o, en un `data.frame`, por su número de fila.
+
+## Dos puertas, una función
+
+* `dl_proyecto()` recibe las tablas de la carpeta del proyecto (nombres fijos: `poblacion.csv`, `ancla/`...) o como
+  argumentos, un `data.frame` o la ruta de un CSV o de una carpeta: `dl_proyecto(configuracion = list(...),
+  ubicaciones = ..., poblacion = ..., ancla = ...)`. Las dos puertas se mezclan (lo que se pasa reemplaza a la tabla
+  de la carpeta) y pasan por el mismo validador. `dl_proyecto()` se detiene con el problema de una tabla sola o, si
+  todas están bien, con todos los problemas entre tablas juntos (una sola ubicación nacional, ubicaciones conocidas,
+  población y ancla que cubren el modelo...), y avisa de sus sospechas.
+* `dl_tabla()` lee, convierte y valida una tabla suelta; `dl_plantilla()` da la plantilla de una tabla (sus columnas
+  y una fila de ejemplo). `dl_nuevo_proyecto()` crea la carpeta con las plantillas de todas.
+* `dl_revisar_proyecto()` revisa cada tabla, la configuración, las reglas que cruzan tablas y los insumos, y acepta
+  también un proyecto ya leído con `dl_proyecto()`. Cada mensaje dice la tabla, su origen (el archivo o el argumento),
+  la columna, las filas y cómo corregirlo.
+
+## Bandas de edad del ancla
+
+* El ancla usa sus bandas de edad tal como vienen cuando la población tiene ese detalle: cada banda (80-84, 85-89,
+  90-94, 95 y más...) es un término del ajuste y una celda de los resultados, también en los AVD, las etiquetas y el
+  consolidado. La versión 1.0.0 agrupaba siempre el ancla de 80 años y más (y la de menos de 5) en una sola banda.
+* **Los resultados de un proyecto rehecho cambian en las edades de 80 años y más**: hay una celda por banda del ancla
+  y el ajuste usa la información de cada una. Para reproducir la agrupación de la 1.0.0, la configuración declara
+  `avanzado: {anchor: {agrupar_bandas_finas: true}}`.
+* Si la población es más gruesa que el ancla (por ejemplo, solo 80 y más, o los menores de 5 en una banda), las
+  bandas del ancla se agrupan en las de la población con los pesos de la tabla nueva `poblacion_detalle` (la
+  población nacional con más detalle de edad). Reemplaza a `pesos_80mas.csv`.
+* `ancla.correlacion_edad` (ρ) cuenta la distancia en bandas: con más bandas en las edades altas, la misma ρ las
+  correlaciona menos.
+
+## Catálogos de GBD en el paquete
+
+* Los catálogos de GBD 2023 de estados de salud (con sus pesos de discapacidad) y de secuelas vienen en
+  `inst/referencia/`, con su cita a IHME y sus términos de uso. En la tabla `severidad`, un estado de salud de GBD
+  (por nombre o id) toma sus pesos del catálogo; un estado propio trae los tres pesos. En cualquier estado van los tres
+  o ninguno.
+
+## Los proyectos 1.0.0 se rehacen
+
+* El formato simple de la versión 1.0.0 (con `proxies.csv`, `pesos_80mas.csv`, `location_id` en las tablas y
+  `covariables:` en la configuración) no se lee: esos proyectos se rehacen en el contrato. La revisión de la
+  configuración señala las claves que ya no existen (por ejemplo, `ubicacion_nacional` ahora es `ubicacion_gbd`), y
+  la guía «Preparar tus datos» explica cada tabla.
+* Los proyectos de la versión 0.2.2 (el formato completo, con `schema: dismod_lite/v1`) se siguen leyendo igual y
+  dan los mismos números; salen de las guías y quedan documentados en `?dl_proyecto` y `?dl_configuracion`.
+* El proyecto de ejemplo (`dl_ejemplo()`) está en el contrato.
+
+## Corrección: la prevalencia del ancla se lee en *Rate*
+
+* El paquete leía la prevalencia de las estimaciones de GBD en la métrica *Percent*, como si fuera la proporción de la
+  población. No lo es: GBD Results calcula ese *Percent* sobre las personas con alguna causa (la prevalencia de todas
+  las causas), no sobre la población, y supera a *Rate* / 100 000 en la inversa de esa prevalencia. En el país del
+  ejemplo, en 2023, la diferencia es nula desde los 75 años, menor que 1 % entre los 20 y los 60, de 1,5 % a 6 % entre
+  los 2 y los 19 y de 22 % a 37 % antes de los 2. En las causas cardiovasculares, el total de todas las edades baja
+  entre 0,02 % y 2,4 %. Ahora la prevalencia se lee en *Rate* / 100 000, como las demás medidas.
+* Las descargas de `ancla/` deben traer la prevalencia en *Rate*; si solo la traen en *Percent*, el mensaje lo dice.
+* `anchor.metrica_prevalencia: {valor: Percent, procedencia}` (en un proyecto, dentro de `avanzado:`) repite
+  la lectura anterior, para reproducir corridas hechas hasta la versión 1.0.0.
+* Los datos de ejemplo traen la prevalencia en las dos métricas.
+
 # dismodlite 1.0.0
 
 Primera versión como paquete independiente y en español. Los proyectos y los scripts de la versión 0.2.2 siguen

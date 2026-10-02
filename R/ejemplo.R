@@ -1,7 +1,7 @@
 # Datos sintéticos de ejemplo: la arteriopatía crónica sintética (ACS, causa 9100) y sus subtipos 9101-9103, en
-# Perú y sus 25 departamentos, en dos formatos con los mismos números: inst/extdata/acs_peru (el formato simple, el
-# que se copia para empezar un proyecto) e inst/extdata/acs_peru_completo (el formato completo). Todos los números
-# son sintéticos.
+# Perú y sus 25 departamentos, en dos formatos con los mismos números: inst/extdata/acs_peru (el proyecto en el
+# contrato de insumos, el que se copia para empezar uno) e inst/extdata/acs_peru_completo (el formato completo de la
+# versión 0.2.2). Todos los números son sintéticos.
 
 # Causas y años que cubren los datos de ejemplo.
 .DL_CAUSAS_EJEMPLO <- 9100:9103
@@ -13,27 +13,29 @@
 
 #' Datos de ejemplo del paquete
 #'
-#' Ruta a la carpeta del proyecto de ejemplo o a un archivo dentro de ella. El ejemplo es un proyecto en el formato
-#' simple, listo para leer con [dl_proyecto()] y para copiar como punto de partida de uno propio: con `copiar_en`,
-#' `dl_ejemplo()` lo copia en una carpeta nueva, donde se puede editar. Todos los números son sintéticos.
+#' Ruta a la carpeta del proyecto de ejemplo o a un archivo dentro de ella. El ejemplo es un proyecto con las tablas
+#' del contrato de insumos ([dl_tablas]), listo para leer con [dl_proyecto()] y para copiar como punto de partida de
+#' uno propio: con `copiar_en`, `dl_ejemplo()` lo copia en una carpeta nueva, donde se puede editar. Todos los números
+#' son sintéticos.
 #'
 #' La enfermedad es ficticia: una arteriopatía crónica (la causa 9100) que es la suma de tres subtipos (9101, 9102 y
 #' 9103), con estimaciones de referencia de 2019 y 2023 y población de 2019, 2023 y 2024. La geografía es la de un
-#' país real, Perú (`location_id` 123 de GBD), con sus 25 departamentos (códigos 01 a 25), pero ningún número describe
-#' a ese país ni a sus departamentos.
+#' país real, Perú (código 123, su `location_id` de GBD), con sus 25 departamentos (códigos 01 a 25), pero ningún
+#' número describe a ese país ni a sus departamentos.
 #'
 #' @section Las dos carpetas del ejemplo:
-#' El ejemplo viene en dos carpetas con los mismos números, una por formato. La de `dl_ejemplo()` es `acs_peru`, en el
-#' formato simple:
+#' El ejemplo viene en dos carpetas con los mismos números, una por formato. La de `dl_ejemplo()` es `acs_peru`, con
+#' las tablas del contrato ([dl_tablas]):
 #' - `config/9100.yaml` ... `config/9103.yaml`: la configuración de cada causa; la de 9100 declara sus subtipos.
-#' - `ancla/sintetico_acs_v1.csv`: una descarga de GBD Results con la prevalencia, la incidencia, las muertes y los
-#'   AVD de las cuatro causas, por edad y sexo, de 2019 y 2023.
-#' - `covariables/`: tres descargas del GHDx (SEV, LDI y HAQ), con los valores nacionales y, como en una descarga
-#'   real, los globales y los regionales, que no se usan.
+#' - `ubicaciones.csv`: el país (código 123, sin padre) y sus 25 departamentos.
 #' - `poblacion.csv`: la población de los departamentos por año, sexo y grupo de edad, sin las filas nacionales (el
 #'   paquete las calcula como su suma).
-#' - `proxies.csv`: las tres covariables por departamento (el SEV por sexo y grupo de edad); su promedio ponderado
-#'   por la población es el valor nacional.
+#' - `ancla/sintetico_acs_v1.csv`: una descarga de GBD Results tal cual, con la prevalencia, la incidencia, las
+#'   muertes y los AVD de las cuatro causas, por edad y sexo, de 2019 y 2023.
+#' - `covariables/`: tres descargas del GHDx tal cual (SEV, LDI y HAQ), con los valores nacionales y, como en una
+#'   descarga real, los globales y los regionales, que no se usan; y `proxies.csv`, las tres covariables por
+#'   departamento (el SEV por sexo y grupo de edad), cuyo promedio ponderado por la población es el valor nacional.
+#' - `betas.csv`: las betas de las tres covariables, de la causa 9100 (los subtipos usan las de su causa padre).
 #' - `datos.csv` (solo de la causa 9100): filas nacionales de 2023 (mortalidad, un estudio de prevalencia en casos y
 #'   muestra, una cohorte de incidencia y un valor atípico excluido) y filas departamentales de 2019 (mortalidad y
 #'   prevalencia), reservadas para validar.
@@ -46,17 +48,17 @@
 #'
 #' La otra, `acs_peru_completo`, es el mismo proyecto en el formato completo (el de la versión 0.2.2), con el YAML de
 #' extracción, el almacén de evidencia, el registro, los catálogos, una tabla de severidad por causa y una partición
-#' de severidad. Su ruta es `system.file("extdata", "acs_peru_completo", package = "dismodlite")`; la usan las guías
-#' del formato completo.
+#' de severidad. Su ruta es `system.file("extdata", "acs_peru_completo", package = "dismodlite")`.
 #'
-#' Las columnas de cada archivo están en [dl_proyecto()] y las claves de la configuración en [dl_configuracion()].
+#' Las columnas de cada tabla están en [dl_tablas], la carpeta en [dl_proyecto()] y las claves de la configuración en
+#' [dl_configuracion()].
 #' Con [dl_rutas_ejemplo()] y [dl_configuracion_ejemplo()] se toman las rutas y la configuración de una causa del
-#' ejemplo en cualquiera de los dos formatos.
+#' proyecto de ejemplo o de su versión en el formato completo.
 #'
 #' @param ... Partes de la ruta dentro de la carpeta del ejemplo (por ejemplo `"config"`, `"9100.yaml"`); sin
 #'   ninguna, la carpeta.
 #' @param copiar_en `NULL` (por defecto) o la ruta de una carpeta nueva o vacía: copia ahí el proyecto de ejemplo
-#'   entero (en el formato simple; crea la carpeta si no existe) para editarlo, por ejemplo para probar otra
+#'   entero (crea la carpeta si no existe) para editarlo, por ejemplo para probar otra
 #'   configuración. No escribe en una carpeta que ya tiene archivos. Va sin partes de la ruta en `...`.
 #' @return La ruta del archivo o de la carpeta (si el archivo no existe, un error); con `copiar_en`, la ruta de la
 #'   copia (`copiar_en`).
@@ -64,7 +66,7 @@
 #'   un proyecto desde una carpeta vacía.
 #' @family proyecto
 #' @examples
-#' # la carpeta del proyecto de ejemplo (formato simple) y sus archivos
+#' # la carpeta del proyecto de ejemplo y sus archivos
 #' dl_ejemplo()
 #' list.files(dl_ejemplo(), recursive = TRUE)
 #' readLines(dl_ejemplo("config", "9101.yaml"))
@@ -92,7 +94,7 @@ dl_ejemplo <- function(..., copiar_en = NULL) {
   p
 }
 
-# Copia del proyecto de ejemplo (formato simple) en `destino` (dl_ejemplo(copiar_en =)): crea la carpeta si no
+# Copia del proyecto de ejemplo en `destino` (dl_ejemplo(copiar_en =)): crea la carpeta si no
 # existe y no escribe en una que tiene archivos ni dentro de la instalación del paquete (lo comprueba antes de crear
 # nada). Los archivos quedan con los permisos por defecto (no con los de la instalación del paquete, que pueden ser de
 # solo lectura), así que se pueden editar. Devuelve `destino`.
@@ -141,8 +143,8 @@ dl_ejemplo <- function(..., copiar_en = NULL) {
 
 #' Rutas de los datos de ejemplo
 #'
-#' Las rutas completas de [dl_rutas()] para los datos de ejemplo de una causa. En el formato simple (por defecto)
-#' son las del proyecto `dl_ejemplo()` traducido al formato completo, como las de [dl_proyecto()]; en el completo,
+#' Las rutas completas de [dl_rutas()] para los datos de ejemplo de una causa. Por defecto (`formato = "simple"`)
+#' son las del proyecto de ejemplo, `dl_ejemplo()`, traducido al formato completo, como las de [dl_proyecto()]; en el completo,
 #' las de los archivos de `acs_peru_completo`. La causa es obligatoria porque la tabla de severidad es la de cada
 #' causa.
 #'
@@ -158,7 +160,8 @@ dl_ejemplo <- function(..., copiar_en = NULL) {
 #' @param ... Cambios sobre las rutas del ejemplo, con los nombres de los argumentos de [dl_rutas()] (por ejemplo
 #'   `poblacion = "mi_poblacion.csv"`, un CSV del formato completo); `NULL` quita la pieza (en el formato completo,
 #'   `severidad = NULL` deriva la severidad de la partición).
-#' @param formato `"simple"` (por defecto: el ejemplo de [dl_ejemplo()]) o `"completo"` (`acs_peru_completo`).
+#' @param formato `"simple"` (por defecto: el proyecto de ejemplo, el de [dl_ejemplo()]) o `"completo"` (el mismo
+#'   ejemplo en el formato completo de la versión 0.2.2, `acs_peru_completo`).
 #' @return Objeto de clase `dl_paths`, como el de [dl_rutas()]. Con `anio`, lleva el atributo `anio_ejemplo`, que
 #'   [dl_insumos()] compara con el año de la configuración.
 #' @seealso [dl_ejemplo()] (los archivos del ejemplo), [dl_configuracion_ejemplo()].
@@ -204,9 +207,10 @@ dl_rutas_ejemplo <- function(causa, anio = NULL, datos = TRUE, proxies = TRUE, .
 #' Configuración de ejemplo
 #'
 #' La configuración de una causa de los datos de ejemplo: `dl_configuracion(causa, <config del ejemplo>, cambios)`,
-#' con la configuración simple de `dl_ejemplo("config")` (por defecto) o la completa de `acs_peru_completo`. Las dos
-#' dan los mismos valores al modelo y los mismos números; difieren en el texto de las procedencias, en cómo se
-#' declara la ubicación del ancla y en el campo `origen`, que solo trae la simple.
+#' con la configuración del proyecto de `dl_ejemplo("config")` (por defecto) o la completa de `acs_peru_completo`.
+#' Difieren en una decisión: el proyecto usa las bandas del ancla como vienen (80-84 ... 95+, las de su población) y
+#' el formato completo las agrupa en 80+ como la versión 0.2.2 (`anchor.agrupar_bandas_finas`); y en el texto de las
+#' procedencias, en cómo se declara la ubicación del ancla y en el campo `origen`, que solo trae la del proyecto.
 #'
 #' Con [dl_rutas_ejemplo()] de la misma causa y el mismo formato, son los dos argumentos de [dl_insumos()].
 #'
@@ -215,7 +219,8 @@ dl_rutas_ejemplo <- function(causa, anio = NULL, datos = TRUE, proxies = TRUE, .
 #' @param anio Año de la corrida: 2019, 2023 o 2024 (`years.ajuste`); `NULL` deja el de la configuración (2023).
 #'   Con 2024, que no tiene ancla, el ancla es la de 2023 (`years.ancla`). Equivale a
 #'   `cambios = list(years = list(ajuste = anio))`; lo que se pase en `cambios` va después.
-#' @param formato `"simple"` (por defecto) o `"completo"`.
+#' @param formato `"simple"` (por defecto: el proyecto de ejemplo, el de [dl_ejemplo()]) o `"completo"` (el mismo
+#'   ejemplo en el formato completo de la versión 0.2.2, `acs_peru_completo`).
 #' @return Objeto de clase `dl_config`, como el de [dl_configuracion()].
 #' @seealso [dl_ejemplo()] (los archivos del ejemplo), [dl_rutas_ejemplo()].
 #' @family configuración

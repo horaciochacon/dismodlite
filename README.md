@@ -47,17 +47,19 @@ escrito en R.
 
 ## Cómo se usa: tres comandos
 
-Un proyecto es una carpeta con una configuración corta (`config.yaml`),
-las descargas de GBD Results tal como se descargan (`ancla/`), la
-población y la severidad y, si los hay, las covariables, sus valores
-subnacionales y los datos locales.
+Un proyecto es una configuración corta (`config.yaml`) y unas pocas
+tablas, el **contrato de insumos**: las ubicaciones, la población y el
+ancla (las descargas de GBD Results, tal como se descargan) y, si los
+hay, las covariables y sus efectos, los datos locales y la severidad.
+Todas comparten las mismas columnas de causa, ubicación, año, sexo y
+edad, y van en una carpeta o se pasan como `data.frame` de R.
 
 ``` r
 library(dismodlite)
 
 # 1. Crear la carpeta del proyecto: la configuración comentada y las plantillas de las tablas
 dl_nuevo_proyecto("mi_proyecto", causa = 1234, nombre = "Mi enfermedad", anio = 2023, edad_inicio = 30)
-# ... poner las descargas en ancla/ y llenar poblacion.csv y severidad.csv ...
+# ... llenar ubicaciones.csv, poblacion.csv y severidad.csv y poner las descargas en ancla/ ...
 
 # 2. Revisar todo antes de correr: una línea por comprobación, con la corrección sugerida
 dl_revisar_proyecto("mi_proyecto")
@@ -67,32 +69,44 @@ dl_correr("mi_proyecto", semilla = 1, rapido = TRUE)  # una prueba corta, de pri
 dl_correr("mi_proyecto", semilla = 1)                 # la corrida de producción
 ```
 
+Las tablas también se pueden pasar desde R, sin carpeta:
+
+``` r
+p <- dl_proyecto(configuracion = list(causa = 1234, anio = 2023, edad_inicio = 30),
+                 ubicaciones = mis_ubicaciones, poblacion = mi_poblacion, ancla = "descargas/gbd_2023.csv",
+                 severidad = mi_severidad)
+dl_revisar_proyecto(p)
+dl_correr(p, semilla = 1)
+```
+
 La guía [Preparar tus
 datos](https://horaciochacon.github.io/dismodlite/articles/preparar-datos.html)
-describe cada archivo, sus columnas y sus unidades, y dónde se descarga
-cada uno.
+describe cada tabla, sus columnas y sus unidades, y de dónde suele
+salir; `?dl_tablas` es la referencia completa.
 
 ## Ejemplo mínimo
 
 El paquete trae un proyecto de ejemplo completo, `dl_ejemplo()`. Todos
 sus números son **sintéticos**: la enfermedad es inventada (la
-*arteriopatía crónica sintética*, causa 9100) y la geografía es la de
-Perú y sus 25 departamentos, sin ningún dato real. Como las curvas
-verdaderas se conocen, se puede comprobar si el modelo las recupera.
+*arteriopatía crónica sintética*, causa 9100) y la geografía es la de un
+país real (Perú, con sus 25 departamentos como ubicaciones
+subnacionales), sin ningún dato real. Como las curvas verdaderas se
+conocen, se puede comprobar si el modelo las recupera.
 
 ``` r
 library(dismodlite)
 dl_revisar_proyecto(dl_ejemplo(), causa = 9100)
 #> Revisión del proyecto «acs_peru», causa 9100
-#>   ✓ configuración: config/9100.yaml: formato simple
-#>   ✓ ancla/: leído: 768 fila(s)
-#>   ✓ poblacion.csv: leído: 2100 fila(s)
-#>   ✓ pesos de 80+: calculados desde poblacion.csv
-#>   ✓ covariables/: leído: 24 fila(s)
-#>   ✓ proxies.csv: leído: 1500 fila(s)
-#>   ✓ datos.csv: leído: 185 fila(s)
-#>   ✓ severidad.csv: leído: 12 fila(s)
-#>   ✓ insumos: dl_insumos() los arma y los valida (hash 2ce1f3da590d)
+#>   ✓ ubicaciones: leída: 26 fila(s)
+#>   ✓ poblacion: leída: 2100 fila(s)
+#>   ✓ ancla: leída: 768 fila(s) (descarga de GBD Results)
+#>   ✓ covariables: leída: 1508 fila(s) (descarga de covariables del GHDx)
+#>   ✓ betas: leída: 3 fila(s)
+#>   ✓ datos: leída: 185 fila(s)
+#>   ✓ severidad: leída: 12 fila(s)
+#>   ✓ configuración: config/9100.yaml: proyecto
+#>   ✓ proyecto: las reglas entre tablas se cumplen
+#>   ✓ insumos: dl_insumos() los arma y los valida (hash 1e144edebc72)
 #> Todo en orden.
 ```
 
@@ -105,14 +119,14 @@ opciones <- dl_opciones_mcmc(simulaciones = 100, cadenas = 2, iteraciones = 2000
 ajuste <- dl_ajustar(insumos, opciones, semilla = 1)
 estimaciones <- dl_estimaciones(ajuste)
 head(estimaciones)
-#>    location_id sex_id  edad      medida       media     inferior    superior
-#>         <char>  <int> <int>      <char>       <num>        <num>       <num>
-#> 1:         123      1    30 prevalencia 0.000000000 0.0000000000 0.000000000
-#> 2:         123      1    31 prevalencia 0.000924700 0.0005040242 0.001528304
-#> 3:         123      1    32 prevalencia 0.001863748 0.0010522552 0.003005871
-#> 4:         123      1    33 prevalencia 0.002819598 0.0016589998 0.004434214
-#> 5:         123      1    34 prevalencia 0.003794685 0.0023158874 0.005814792
-#> 6:         123      1    35 prevalencia 0.004791448 0.0030091442 0.007149006
+#>    location_id sex_id  edad      medida        media     inferior    superior
+#>         <char>  <int> <int>      <char>        <num>        <num>       <num>
+#> 1:         123      1    30 prevalencia 0.0000000000 0.0000000000 0.000000000
+#> 2:         123      1    31 prevalencia 0.0009713892 0.0004834718 0.001674911
+#> 3:         123      1    32 prevalencia 0.0019514261 0.0010106230 0.003300012
+#> 4:         123      1    33 prevalencia 0.0029423464 0.0015789707 0.004877413
+#> 5:         123      1    34 prevalencia 0.0039464232 0.0021877604 0.006410696
+#> 6:         123      1    35 prevalencia 0.0049659840 0.0028435334 0.007903400
 ```
 
 <img src="man/figures/README-prevalencia-1.png" alt="Prevalencia por edad y sexo: la estimación sigue a la curva verdadera." width="100%" />
@@ -131,8 +145,8 @@ En el [sitio del paquete](https://horaciochacon.github.io/dismodlite/):
 - las [guías](https://horaciochacon.github.io/dismodlite/articles/):
   para empezar, el proyecto de ejemplo, el modelo y cómo preparar los
   datos de un proyecto propio; después, una guía por tema (la estimación
-  subnacional, los datos locales, los subtipos, los AVD, las corridas,
-  el diagnóstico y el formato completo);
+  subnacional, los datos locales, los subtipos, los AVD, las corridas y
+  el diagnóstico);
 - la
   [referencia](https://horaciochacon.github.io/dismodlite/reference/):
   la ayuda de cada función, ordenada por etapa. Cada etapa de una
@@ -147,7 +161,14 @@ citation("dismodlite")
 
 ## Licencia
 
-MIT. Ver [LICENSE.md](LICENSE.md).
+El código es MIT. Ver [LICENSE.md](LICENSE.md).
+
+Los catálogos de GBD 2023 que trae el paquete (estados de salud con sus
+pesos de discapacidad, y secuelas, en
+`inst/referencia/catalogo_*_gbd2023.csv`) son datos del Institute for
+Health Metrics and Evaluation (IHME) y se rigen por sus propios términos
+de uso (uso no comercial con atribución), no por la licencia MIT: ver
+`inst/referencia/LEEME_catalogos.md`, con su cita.
 
 ## Problemas y sugerencias
 

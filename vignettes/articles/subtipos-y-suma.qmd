@@ -2,8 +2,8 @@
 title: "Subtipos y suma"
 description: >
   Varias causas en un proyecto, una causa que es la suma de sus subtipos, dl_sumar_hijas() (con subtipos
-  omitidos), la comparación con el ajuste directo de la causa padre y, en el formato completo, componentes y
-  severidad desde una partición.
+  omitidos), la comparación con el ajuste directo de la causa padre, los componentes y la severidad desde una
+  partición.
 knitr:
   opts_chunk:
     collapse: true
@@ -19,8 +19,7 @@ knitr:
 - Cómo se suman las corridas de los subtipos con `dl_sumar_hijas()`, también dejando un subtipo fuera
   (`omitidas`).
 - En qué se parece y en qué no la suma al ajuste directo de la causa padre.
-- Dos temas avanzados del formato completo: modelar un componente de una causa y derivar la severidad de una
-  partición.
+- Dos temas avanzados: modelar un componente de una causa y derivar la severidad de una partición.
 
 El ejemplo es el proyecto sintético del paquete: una enfermedad ficticia, la arteriopatía crónica sintética (causa
 9100), que es la suma de tres subtipos (9101, 9102 y 9103), en el Perú y sus departamentos.
@@ -42,9 +41,13 @@ list.files(dl_ejemplo(), recursive = TRUE)
 ```
 
 - `ancla/` trae las filas de todas las causas (una descarga de GBD Results puede tener varias); cada causa usa las
-  suyas, por `cause_id`.
-- `severidad.csv` y `datos.csv` llevan la columna `causa`.
-- `poblacion.csv`, `covariables/` y `proxies.csv` son de todas.
+  suyas, por su columna `causa`.
+- `severidad.csv` y `datos.csv` llevan la columna `causa`; `betas.csv` trae las de la causa padre, que los subtipos
+  heredan.
+- `ubicaciones.csv`, `poblacion.csv` y `covariables/` son de todas.
+
+Una fila sin `causa` vale para todas las causas del proyecto (la regla de omisión del contrato de insumos; ver
+[Preparar tus datos](preparar-datos.html)).
 
 `dl_revisar_proyecto()` sin `causa` revisa todas:
 
@@ -72,9 +75,12 @@ cat(readLines(dl_ejemplo("config", "9101.yaml"), encoding = "UTF-8"), sep = "\n"
 Tres reglas:
 
 - Cada subtipo se ajusta por separado, con su propia ancla (sus filas en `ancla/`) y su propia severidad.
-- Un subtipo usa las β de las covariables de su causa padre. Si no declara `covariables`, toma las del padre; si las
-  declara, deben ser las mismas (como en el ejemplo), o la configuración se rechaza.
-- `subtipos` va solo en la causa padre; con ella el paquete arma el registro de padres e hijos que usa la suma.
+- Un subtipo sin filas propias en `betas` usa las de su causa padre (como en el ejemplo); con filas propias, usa las
+  suyas.
+- `subtipos` va solo en la causa padre; con ella el paquete arma el registro de padres e hijos que usa la suma, y
+  cada subtipo encuentra a su padre. Por eso las configuraciones van en el mismo proyecto: un subtipo leído solo, en
+  su propia carpeta, no conoce a su padre: lo declara en `avanzado: extraction` y, sin filas propias en `betas`, usa
+  las de esa causa (ver la sección 7 de [Preparar tus datos](preparar-datos.html)).
 
 ## Correr cada subtipo
 
@@ -94,15 +100,16 @@ corridas <- vapply(c(9101, 9102, 9103), function(causa) {
 basename(corridas)
 ```
 
-Cada corrida tiene la estimación nacional y la de los 25 departamentos (las tres usan los proxies de la causa padre),
-con sus simulaciones guardadas en `draws/`.
+Cada corrida tiene la estimación nacional y la de las ubicaciones subnacionales (las tres usan las betas de la causa
+padre), con sus simulaciones guardadas en `draws/`.
 
 ## Sumar: `dl_sumar_hijas()`
 
 `dl_sumar_hijas()` escribe una corrida nueva para la causa padre: en cada celda (ubicación, sexo y grupo de edad) y
 cada medida (prevalencia, incidencia y AVD), suma las simulaciones de los subtipos una a una, y el intervalo sale de
 los cuantiles de esa suma, nunca de sumar los límites. Necesita las rutas del proyecto de la causa padre (el registro
-de subtipos y los nombres de las ubicaciones):
+de subtipos y los nombres de las ubicaciones), y que la corrida de cada subtipo declare a esa causa padre, lo que
+hace sola cuando el subtipo está en el mismo proyecto que la configuración del padre:
 
 ```{r}
 #| label: suma
@@ -202,81 +209,66 @@ independientes de tres ajustes, que se compensan en parte. Si los subtipos compa
 encuesta, la misma definición de caso), el intervalo de la suma puede quedar corto; es una limitación que el
 manifiesto declara.
 
-## Temas avanzados del formato completo
+## Temas avanzados: severidad desde una partición y componentes
 
-Dos casos de uso necesitan el **formato completo** (el de la versión 0.2.2, con `schema: dismod_lite/v1`; ver
-[El formato completo](formato-completo.html)): modelar un componente de una causa y derivar la severidad de una
-partición. El ejemplo
-en ese formato está en `acs_peru_completo`:
-
-```{r}
-#| label: completo
-completo <- system.file("extdata", "acs_peru_completo", package = "dismodlite")
-list.files(file.path(completo, "particion", "acs_v1"), recursive = TRUE)
-```
+Estos dos casos se declaran en la configuración, sin tablas nuevas. El ejemplo del paquete no los usa, así que aquí
+van solo las claves.
 
 ### Severidad desde una partición
 
 Una **partición de severidad** es una corrida que reparte la prevalencia de una causa entre sus secuelas y sus
-estados de salud (una fila por secuela o por estado, con su proporción e intervalo). Con ella,
-`dl_severidad_desde_particion()` arma la tabla de severidad (proporciones por estado y pesos de discapacidad del
-catálogo de estados de salud), sin escribirla a mano:
+estados de salud: una carpeta con su `manifest.yaml` y las proporciones por secuela
+(`cause_sequela/proportion/<corrida>.csv`) y por estado (`cause_health_state/proportion/<corrida>.csv`), con sus
+intervalos. Con ella, la severidad de la causa sale de la partición (las proporciones por estado y los pesos de
+discapacidad del catálogo de GBD 2023 del paquete), en vez de la tabla `severidad`:
 
-```{r}
-#| label: severidad-particion
-rutas_9101 <- dl_rutas_ejemplo(9101, formato = "completo")
-particion <- file.path(completo, "particion", "acs_v1")
-severidad_9101 <- dl_severidad_desde_particion(particion, causa = 9101, rutas = rutas_9101)
-severidad_9101[, .(health_state_id, proportion, prop_lower, prop_upper, dw_mean)]
+```yaml
+severidad:
+  particion: particion/mi_corrida   # la carpeta de la partición, relativa al proyecto
 ```
 
 Si la partición es la de la causa padre (reparte la prevalencia del padre entre las secuelas de todos sus subtipos),
-`padre` toma las secuelas del subtipo y las divide por su cuota:
+`severidad.padre` la declara: el subtipo toma sus secuelas de la partición del padre y las divide por su cuota (la
+parte de la prevalencia del padre que es suya):
 
-```{r}
-#| label: severidad-desde-padre
-desde_padre <- dl_severidad_desde_particion(particion, causa = 9101, rutas = rutas_9101, padre = 9100)
-desde_padre[, .(health_state_id, proportion, dw_mean)]
-attr(desde_padre, "cuota_hija")      # la parte de la prevalencia del padre que es del subtipo
+```yaml
+severidad:
+  particion: particion/corrida_del_padre
+  padre: 1010
 ```
 
-En el ejemplo las dos formas dan lo mismo porque la partición es coherente: las filas del padre para las secuelas
-del subtipo, divididas por su cuota, son las del subtipo. Con una partición real pueden diferir un poco.
-
-En una corrida, la configuración completa lo declara con `severidad: {fuente: mod, run_id: acs_v1}` (y `padre:
-9100` para derivarla desde el padre); el proyecto trae la partición en `particion/<corrida>/` y no trae la tabla de
-severidad de la causa.
+Las secuelas y los estados de salud de la partición deben estar en los catálogos de GBD 2023 que trae el paquete
+(`system.file("referencia", package = "dismodlite")`): una partición con secuelas o estados propios todavía no se
+puede leer. En una hija o en un componente, los límites de la severidad son los de la partición divididos por su
+cuota y pueden pasar de 1: a diferencia de la tabla `severidad`, que va en $[0, 1]$, se aceptan con un aviso que
+nombra los estados, como en la versión 0.2.2. Los AVD toman de ese intervalo la incertidumbre de la proporción; si es
+demasiado ancho para su media, el estado entra como constante en su media, con otro aviso. Sin carpeta
+de proyecto (la puerta de R), la ruta relativa se resuelve contra el directorio de trabajo. La corrida copia la
+partición en `inputs/contrato/particion/<corrida>/` y se repite desde ahí (ver
+[Corridas y consolidado](corridas-y-consolidado.html#carpeta)).
+`?dl_severidad_desde_particion` describe el cálculo.
 
 ### Un componente de una causa
 
 A veces solo interesa una parte de una causa: por ejemplo, solo sus estados sintomáticos. El componente se declara
-con las secuelas que lo forman (`anchor.componente.sequela_ids`) y la severidad de la partición. El paquete escala la
-prevalencia del ancla por la fracción de la prevalencia que es del componente, y el AVD de referencia por su fracción
-de AVD:
+con las secuelas que lo forman, junto con la partición:
 
-```{r}
-#| label: componente
-configuracion <- dl_configuracion(9101, file.path(completo, "config"), cambios = list(
-  anchor = list(componente = list(sequela_ids = c(91012, 91013),
-                                  motivo = "ejemplo: solo los estados sintomáticos")),
-  severidad = list(fuente = "mod", run_id = "acs_v1")))
-rutas_componente <- dl_rutas_ejemplo(9101, datos = FALSE, proxies = FALSE, severidad = NULL, formato = "completo")
-insumos_componente <- dl_insumos(configuracion, rutas_componente)
-insumos_componente$componente[c("fraccion_prevalencia", "fraccion_yld")]
-insumos_componente$severidad[, .(health_state_id, proportion, dw_mean)]
+```yaml
+severidad:
+  particion: particion/mi_corrida
+componente:
+  secuelas: [5001, 5002]            # las secuelas del componente
+notas:
+  - Solo los estados sintomáticos de la causa.
 ```
 
-El componente es la mitad de la prevalencia de la causa (sus dos estados sintomáticos) y todos sus AVD, porque el
-estado asintomático tiene peso de discapacidad 0. La severidad del componente solo tiene sus dos estados, con
-proporciones que suman 1.
-
-Estos insumos se ajustan como los de cualquier causa (`dl_ajustar()`, `dl_avd()`...), y la corrida declara el
-componente en su manifiesto. El formato simple no tiene claves para estos dos casos: si hacen falta, el proyecto se
-lleva al formato completo.
+El paquete escala la prevalencia del ancla por la fracción de la prevalencia que es del componente, y el AVD de
+referencia por su fracción de AVD; la severidad es la del componente (solo sus estados, con proporciones que suman 1).
+Los insumos se ajustan como los de cualquier causa, y la corrida declara el componente en su manifiesto.
 
 ## Siguientes pasos
 
 - [Carga: los años vividos con discapacidad](carga-avd.html): la severidad, los pesos de discapacidad y el factor de
   comorbilidad.
 - [Estimación subnacional](desagregacion-subnacional.html): la cascada que usa cada subtipo.
-- [Datos locales](datos-locales.html): `datos.csv` con la columna `causa` en un proyecto de varias causas.
+- [Datos locales](datos-locales.html): la tabla `datos` con la columna `causa` en un proyecto de varias causas.

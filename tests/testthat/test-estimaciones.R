@@ -4,7 +4,7 @@
   x <- NULL
   function() {
     if (is.null(x)) {
-      b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE)))
+      b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"), dl_rutas_ejemplo(9100L, datos = FALSE, formato = "completo")))
       f <- dl_ajustar(b, dl_opciones_mcmc(simulaciones = 10L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L),
                       semilla = 7L)
       x <<- list(insumos = b, ajuste = f)

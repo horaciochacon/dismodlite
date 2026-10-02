@@ -111,7 +111,7 @@ test_that("insumos, corrida y re-resumen bajo una carpeta con espacios y tildes 
   # formato simple: el proyecto se lee de la copia y da los mismos insumos que corrida_mini()
   raiz <- file.path(base, "datos de ejemplo", "acs_peru")
   p <- dl_proyecto(raiz, 9100L)
-  expect_true(startsWith(p$rutas$ghdx_cov, raiz))
+  expect_identical(normalizePath(p$carpeta), normalizePath(raiz))
   r <- p$rutas; r["datos"] <- list(NULL)
   b <- suppressMessages(dl_insumos(p$configuracion, r))
   x <- corrida_mini()
@@ -184,7 +184,7 @@ test_that("las limitaciones de una corrida describen su cascada y su AVD sin tex
 
 test_that("la limitación de una proyección nombra la población del año, y los proxies solo si hay cascada", {
   cfg <- dl_configuracion_ejemplo(9100L, cambios = list(years = list(ajuste = 2024L, ancla = list(
-    valor = 2023L, procedencia = "proyecci\u00f3n de prueba"))))
+    valor = 2023L, procedencia = "proyecci\u00f3n de prueba"))), formato = "completo")
   b <- list(poblacion = data.table::data.table(year = c(2023L, 2024L), acquisition_id = c("pob_2023", "pob_2024")))
   sin_casc <- dismodlite:::.dl_limitacion_ancla(cfg, b)
   expect_match(sin_casc, "^proyecci\u00f3n declarada \u2014 ancla .* de 2023 reetiquetada a 2024")
@@ -193,17 +193,17 @@ test_that("la limitación de una proyección nombra la población del año, y lo
                "poblaci\u00f3n \\(pob_2024\\) y los proxies subnacionales de la cascada")
   expect_false(grepl("proxies", dismodlite:::.dl_limitacion_ancla(cfg, b, list(modo = "plana"))))
   expect_false(grepl("INEI|ENDES|GBD", sin_casc))
-  expect_null(dismodlite:::.dl_limitacion_ancla(dl_configuracion_ejemplo(9100L), b))
+  expect_null(dismodlite:::.dl_limitacion_ancla(dl_configuracion_ejemplo(9100L, formato = "completo"), b))
 })
 
 test_that("la limitación de la mortalidad de validación de otro año dice qué hizo la corrida con ella", {
   x <- corrida_mini(); b <- x$insumos; cfg <- b$cfg   # el ejemplo declara el held-out de 2019 y ajusta 2023
-  expect_null(dismodlite:::.dl_limitacion_heldout(dl_configuracion_ejemplo(9100L, anio = 2019L)))
+  expect_null(dismodlite:::.dl_limitacion_heldout(dl_configuracion_ejemplo(9100L, anio = 2019L, formato = "completo")))
   sin_casc <- dismodlite:::.dl_limitacion_heldout(cfg)
   expect_match(sin_casc, paste0("^mortalidad subnacional de validación declarada de 2019 para una ",
                                 "corrida de 2023 \u2014 sin validación de amplitud \\(la corrida no trae la ",
                                 "validación del ancla\\)"))
-  expect_match(sin_casc, "\u2014 declarado en la configuración simple$")   # la procedencia del formato simple
+  expect_match(sin_casc, "\u2014 declarado en la configuración del proyecto$")   # la procedencia de un proyecto
   # el motivo es el que dl_validar_ancla() dejó en el atributo sin_amplitud (con las palabras del manifiesto): sin
   # cascada, o con la cascada y sin mortalidad subnacional de validación (la corrida mínima no trae datos)
   con_validacion <- vapply(list(NULL, x$cascada), function(casc) {
@@ -222,7 +222,7 @@ test_that("la limitación de la mortalidad de validación de otro año dice qué
   res <- dl_resumir(list(fit = x$ajuste, yld = x$avd, bundle = b))
   nac <- unlist(dismodlite:::.dl_limitaciones_corrida(cfg, b, res, NULL, NULL, 0.05))
   expect_true(sin_casc %in% nac)
-  nac_2019 <- unlist(dismodlite:::.dl_limitaciones_corrida(dl_configuracion_ejemplo(9100L, anio = 2019L), b, res,
+  nac_2019 <- unlist(dismodlite:::.dl_limitaciones_corrida(dl_configuracion_ejemplo(9100L, anio = 2019L, formato = "completo"), b, res,
                                                            NULL, NULL, 0.05))
   expect_length(nac_2019, length(nac) - 1L)
 })
@@ -241,4 +241,97 @@ test_that("las limitaciones de una suma salen de lo que hizo la suma, sin texto 
   expect_match(lim2[5], "^fase aguda descontada del csmr en la\\(s\\) hija\\(s\\) 9101 \u2014")
   expect_false(any(grepl("draw|subtipos|GBD|: |\\bfit\\b|inflow|\\brun\\b", c(lim, lim2))),
                label = paste(c(lim, lim2), collapse = "\n"))
+})
+
+test_that("la corrida congela las tablas del contrato y sirven para repetirla", {
+  d <- withr::local_tempdir()
+  r <- suppressMessages(dl_correr(dl_ejemplo(), 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                  carpeta_salida = d))
+  cong <- file.path(r$dir, "inputs", "contrato")
+  expect_true(all(file.exists(file.path(cong, c("ubicaciones.csv", "poblacion.csv", "ancla.csv")))))
+  expect_false(dir.exists(file.path(r$dir, "inputs", "ghdx_cov")))
+  man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  p0 <- dl_proyecto(dl_ejemplo(), 9100)
+  tablas <- Filter(Negate(is.null), lapply(man$inputs$contrato, `[[`, "tabla"))
+  expect_setequal(unlist(tablas), names(p0$tablas))
+  archivo <- function(x) file.path(cong, x$configuracion %||% paste0(x$tabla, ".csv"))
+  for (x in man$inputs$contrato)
+    expect_identical(digest::digest(file = archivo(x), algo = "sha256"), x$sha256)
+  # la configuración del proyecto, tal como se leyó (no la traducida: esa es config_usado.yaml)
+  expect_true("config.yaml" %in% unlist(lapply(man$inputs$contrato, `[[`, "configuracion")))
+  expect_identical(dismodlite:::.dl_leer_config(file.path(cong, "config.yaml")),
+                   dismodlite:::.dl_leer_config(file.path(dl_ejemplo(), "config", "9100.yaml")))
+  # solo con la carpeta de la corrida (sin dl_ejemplo()): la configuración y las tablas congeladas arman los mismos
+  # insumos
+  csv <- list.files(cong, "[.]csv$")
+  rutas <- stats::setNames(as.list(file.path(cong, csv)), tools::file_path_sans_ext(csv))
+  p <- do.call(dl_proyecto, c(list(configuracion = file.path(cong, "config.yaml")), rutas))
+  expect_identical(p$configuracion$cause_id, 9100L)
+  expect_identical(dl_insumos(p)$hash, man$inputs$bundle_hash)
+  # inputs/contrato/ es también la carpeta de un proyecto
+  expect_identical(dl_insumos(dl_proyecto(cong))$hash, man$inputs$bundle_hash)
+})
+
+test_that("la corrida de un subtipo con las betas de su causa padre se repite desde inputs/contrato/", {
+  d <- withr::local_tempdir()
+  r <- suppressMessages(dl_correr(dl_ejemplo(), 9101, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                  carpeta_salida = d))
+  man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  cong <- file.path(r$dir, "inputs", "contrato")
+  # betas.csv congela las betas que usó la causa (las de su padre), bajo la causa del subtipo
+  b <- data.table::fread(file.path(cong, "betas.csv"))
+  expect_identical(unique(b$causa), 9101L)
+  expect_setequal(b$covariable, c("SEV_scalar_agestd_cvd_pvd", "LDI_pc", "haqi"))
+  p <- dl_proyecto(cong)
+  expect_identical(p$configuracion$extraction$cause_id, 9100L)    # dl_sumar_hijas() la exige
+  expect_identical(dl_insumos(p)$hash, man$inputs$bundle_hash)
+  expect_identical(man$causa$extraction_cause_id, 9100L)
+})
+
+test_that("la corrida con severidad.particion congela la partición y se repite desde inputs/contrato/", {
+  config <- c("causa: 302", "anio: 2020", "edad_inicio: 40", "severidad:", "  particion: particion/mini")
+  d <- escribir_particion_mini(escribir_pais_ficticio(file.path(withr::local_tempdir(), "pf"), 302L, 2020L, config))
+  unlink(file.path(d, "severidad.csv"))
+  r <- suppressMessages(dl_correr(d, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                  carpeta_salida = withr::local_tempdir()))
+  man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  cong <- file.path(r$dir, "inputs", "contrato")
+  # cada archivo de la partición, copiado con la ruta de severidad.particion en la configuración congelada
+  part <- unlist(lapply(man$inputs$contrato, `[[`, "particion"))
+  expect_setequal(part, paste0("particion/mini/", c("cause_sequela", "cause_health_state"), "/proportion/mini.csv"))
+  for (x in Filter(function(x) !is.null(x$particion), man$inputs$contrato))
+    expect_identical(digest::digest(file = file.path(cong, x$particion), algo = "sha256"), x$sha256)
+  expect_identical(dismodlite:::.dl_leer_config(file.path(cong, "config.yaml"))$severidad$particion, "particion/mini")
+  expect_false(file.exists(file.path(cong, "severidad.csv")))     # sale de la partición congelada
+  # sin la carpeta original del proyecto
+  unlink(d, recursive = TRUE)
+  expect_identical(suppressMessages(dl_insumos(dl_proyecto(cong)))$hash, man$inputs$bundle_hash)
+})
+
+test_that("la corrida con una severidad de partición con límites mayores que 1 se repite desde inputs/contrato/", {
+  config <- c("causa: 302", "anio: 2020", "edad_inicio: 40", "severidad:", "  particion: particion/mini",
+              "componente:", "  secuelas: [668]")
+  d <- escribir_particion_mini(escribir_pais_ficticio(file.path(withr::local_tempdir(), "pf"), 302L, 2020L, config))
+  unlink(file.path(d, "severidad.csv"))
+  r <- suppressWarnings(suppressMessages(dl_correr(d, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                                   carpeta_salida = withr::local_tempdir())))
+  man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  cong <- file.path(r$dir, "inputs", "contrato")
+  expect_warning(p <- dl_proyecto(cong), "pasa de 1 en el/los estado\\(s\\) 540")
+  expect_identical(suppressMessages(dl_insumos(p))$hash, man$inputs$bundle_hash)
+})
+
+test_that("la configuración de un proyecto se congela con sus tipos: releída es la misma", {
+  d <- withr::local_tempdir()
+  s <- list(causa = 9101L, anio = 2023, edad_inicio = 30L, nombre = "\u00c1rbol: x",
+            subnacional = list(modo = "no", kappa = 0.1 + 0.2), sensibilidad = list(peso = c(0.1, 0.5, 1)),
+            notas = c("a", "b"), datos_en_ajuste = "prevalencia", avanzado = list(anchor = list(
+              agrupar_bandas_finas = TRUE)))
+  h <- dismodlite:::.dl_congelar_contrato(list(), d, configuracion = s)
+  f <- file.path(d, "config.yaml")
+  expect_identical(h[["config.yaml"]], digest::digest(file = f, algo = "sha256"))
+  y <- dismodlite:::.dl_leer_config(f)
+  expect_identical(y[setdiff(names(s), "sensibilidad")], s[setdiff(names(s), "sensibilidad")])
+  expect_identical(unlist(y$sensibilidad$peso), s$sensibilidad$peso)
+  expect_identical(y$subnacional$kappa, 0.1 + 0.2)           # el double exacto
 })

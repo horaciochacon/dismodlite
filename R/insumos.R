@@ -77,6 +77,7 @@
 .dl_materializar_medida <- function(cfg, slug, paths, archivo = NULL, cat_bandas = NULL, pesos = NULL,
                                     opcional = FALSE) {
   med <- .dl_medida(slug)
+  met <- .dl_metrica_std(med, cfg)
   archivo <- archivo %||% .dl_path(paths, med$path_key)
   pieza <- .dl_nombre_ruta(med$path_key)
   loc <- .dl_loc_ancla(cfg)
@@ -85,32 +86,38 @@
                        ubigeo = .dl_codigos_ubigeo_rutas(paths))
   # Año del ancla (years.ancla): sus filas entran reetiquetadas al año de ajuste, así todo lo que después filtra por
   # years.ajuste (cascada, reglas, resumen, corrida) no cambia.
-  std <- std0[cause_id == cfg$cause_id & metric_name == med$metric_std & location_id == loc &
+  std <- std0[cause_id == cfg$cause_id & metric_name == met$metric_std & location_id == loc &
               year %in% .dl_anio_ancla(cfg) & sex_id %in% unlist(cfg$sexos)]
   if (!nrow(std) && opcional) return(NULL)
   if (!nrow(std))
     .dl_stop(paste0("\u00ab%s\u00bb (`%s`) no tiene filas del ancla para la causa %d, la ubicaci\u00f3n %s, ",
                     "el a\u00f1o %d, los sexos %s y la m\u00e9trica \u00ab%s\u00bb"), basename(archivo), pieza,
              as.integer(cfg$cause_id), loc, .dl_anio_ancla(cfg), paste(unlist(cfg$sexos), collapse = " y "),
-             med$metric_std)
+             met$metric_std)
   std[, year := .dl_anio_ajuste(cfg)]
-  for (col in c("val", "lower", "upper")) std[[col]] <- std[[col]] / med$escala_std
+  for (col in c("val", "lower", "upper")) std[[col]] <- std[[col]] / met$escala_std
   meta <- list(cause_name = unique(std$cause_name), location_name = unique(std$location_name),
                round = as.character(unique(std$round)))
   if (any(lengths(meta) != 1L))
     .dl_stop(paste0("\u00ab%s\u00bb (`%s`) trae m\u00e1s de un valor de cause_name, location_name o round para la ",
                     "causa: el ancla debe venir de una sola estimaci\u00f3n"), basename(archivo), pieza)
-  w <- pesos %||% .dl_leer_pesos_finas(paths)
   cat_bandas <- cat_bandas %||% .dl_bandas_catalogo(paths)
-  # 80+: pesos de población del archivo. <5: ancho de la banda en el catálogo, salvo que el archivo traiga los ids.
-  resto <- .dl_agregar_finas(std, .DL_FINAS_80, w)
-  w5 <- w[age_group_id %in% .DL_FINAS_5$ids]
-  if (!nrow(w5)) {
-    cb <- cat_bandas[match(.DL_FINAS_5$ids, cat_bandas$age_group_id)]
-    w5 <- data.table::CJ(age_group_id = .DL_FINAS_5$ids, sex_id = unique(std$sex_id))
-    w5[, peso := (cb$age_end - cb$age_start)[match(age_group_id, .DL_FINAS_5$ids)]]
+  # 80+ y <5 (cabecera de .DL_FINAS_80 y .DL_FINAS_5) se agrupan salvo con anchor.agrupar_bandas_finas = false (sin la
+  # clave, como en una lista sin validar o en un bundle anterior, se agrupan); sin agrupar, las bandas
+  # llegan ya en las de la población (la traducción de un proyecto las agrupó con poblacion_detalle).
+  resto <- std
+  if (!isFALSE(cfg$anchor$agrupar_bandas_finas)) {
+    # 80+: pesos de población del archivo. <5: ancho de la banda en el catálogo, salvo que el archivo traiga los ids.
+    w <- pesos %||% .dl_leer_pesos_finas(paths)
+    resto <- .dl_agregar_finas(std, .DL_FINAS_80, w)
+    w5 <- w[age_group_id %in% .DL_FINAS_5$ids]
+    if (!nrow(w5)) {
+      cb <- cat_bandas[match(.DL_FINAS_5$ids, cat_bandas$age_group_id)]
+      w5 <- data.table::CJ(age_group_id = .DL_FINAS_5$ids, sex_id = unique(std$sex_id))
+      w5[, peso := (cb$age_end - cb$age_start)[match(age_group_id, .DL_FINAS_5$ids)]]
+    }
+    resto <- .dl_agregar_finas(resto, .DL_FINAS_5, w5)
   }
-  resto <- .dl_agregar_finas(resto, .DL_FINAS_5, w5)
   edades <- cat_bandas[match(resto$age_group_id, cat_bandas$age_group_id), list(age_start, age_end)]
   # Las estimaciones GBD traen bandas fuera del soporte del modelo (por debajo de edad_inicio, todas las edades,
   # estandarizada por edad) y ceros estructurales (val = lower = upper = 0: GBD no modela la causa en esa banda).
@@ -161,7 +168,7 @@
 # Tabla prior_gbd: la prevalencia del ancla y, cuando el prior de EMR la necesita, el csmr (.dl_prior_usa_csmr). Los
 # pesos de las bandas finas se leen una sola vez para las dos medidas.
 .dl_materializar_prior <- function(cfg, paths, cat_bandas) {
-  pesos <- .dl_leer_pesos_finas(paths)
+  pesos <- if (!isFALSE(cfg$anchor$agrupar_bandas_finas)) .dl_leer_pesos_finas(paths)
   out <- .dl_materializar_medida(cfg, "prevalence", paths, cat_bandas = cat_bandas, pesos = pesos)
   meta <- attr(out, "meta")
   if (.dl_prior_usa_csmr(cfg)) {
@@ -331,7 +338,8 @@
 # Valores imposibles en las filas de `datos` que entran: la prevalencia es una proporción (entre 0 y 1, no un
 # porcentaje), una tasa no es negativa, el error estándar y la muestra son positivos y, en una prevalencia con
 # conteos, los casos no superan la muestra (el binomial de la verosimilitud no los admite). Un error lista los
-# dato_id de cada problema (en el formato simple, fila_<n> es la fila n de datos.csv).
+# dato_id de cada problema (en un proyecto, fila_<n> es la fila n de la tabla datos; .dl_filas_de_datos la cita como
+# los mensajes de las tablas).
 .dl_chequear_rango_datos <- function(d) {
   if (!nrow(d)) return(invisible(d))
   num <- function(cn) if (cn %in% names(d)) suppressWarnings(as.numeric(d[[cn]])) else rep(NA_real_, nrow(d))
@@ -426,10 +434,10 @@
 #' Lo que falta se reporta donde hace falta: sin tabla de severidad, los insumos se arman igual y [dl_avd()] la pide;
 #' con datos locales en el ajuste y el ancla a peso completo, sin almacén de evidencia (`evidencia` de [dl_rutas()];
 #' obligatoria si la configuración declara `anchor.evidencia_ghdx`), un aviso de doble conteo; si ninguna fila nacional
-#' de `datos` entra al ajuste, un mensaje lo dice en su lugar. Con un proyecto simple
-#' (`dl_insumos(dl_proyecto(...))`), los mensajes citan sus claves y sus archivos (`datos_en_ajuste`, `proxies.csv`,
-#' ...) en lugar de los del formato completo; si su traducción ya no está (cambió la configuración o una tabla y se
-#' volvió a traducir, o es de otra sesión), un error pide volver a llamar a [dl_proyecto()].
+#' de `datos` entra al ajuste, un mensaje lo dice en su lugar. Con un proyecto (`dl_insumos(dl_proyecto(...))`), los
+#' mensajes citan sus claves y sus tablas (`datos_en_ajuste`, la tabla `covariables`, ...) en lugar de los del formato
+#' completo; si su traducción ya no está (cambió la configuración o una tabla y se volvió a traducir, o es de otra
+#' sesión), un error pide volver a llamar a [dl_proyecto()].
 #'
 #' @param configuracion Configuración de [dl_configuracion()], o un proyecto de [dl_proyecto()]: entonces `rutas`,
 #'   si no se da, son las del proyecto.
@@ -454,12 +462,14 @@
 #'     corridas lo registran;
 #'   - `rutas`: las rutas con que se armaron (no entran en el hash); las etapas siguientes las usan cuando no se les
 #'     pasan otras.
+#'   - `contrato`: con un proyecto de las tablas del contrato, esas tablas tal como se leyeron (`$tablas` de
+#'     [dl_proyecto()]; no entran en el hash).
 #' @seealso [dl_proyecto()] (el argumento habitual), [dl_ajustar()] (el paso siguiente), [dl_revisar_proyecto()]
 #'   (todos los problemas de un proyecto juntos) y [dl_congelar_insumos()] (las tablas en disco).
 #' @family insumos
 #' @examples
 #' \donttest{
-#' # un proyecto (formato simple o completo)
+#' # un proyecto (con las tablas del contrato de insumos o en el formato completo)
 #' b <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))
 #' b
 #' # o la configuración y las rutas por separado
@@ -474,15 +484,22 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
   if (inherits(configuracion, "dl_proyecto")) {
     if (simple && !file.exists(file.path(dirname(configuracion$rutas$poblacion), "listo")))
       .dl_stop(paste0("la traducci\u00f3n de este proyecto ya no est\u00e1 (cambi\u00f3 la configuraci\u00f3n o una ",
-                      "tabla, o es de otra sesi\u00f3n): vuelve a llamar a dl_proyecto(\"%s\")"), configuracion$carpeta)
+                      "tabla, o es de otra sesi\u00f3n): vuelve a llamar a %s"),
+               if (is.null(configuracion$carpeta)) "dl_proyecto() con la misma configuraci\u00f3n y las mismas tablas"
+               else sprintf("dl_proyecto(\"%s\")", configuracion$carpeta))
     if (missing(rutas)) rutas <- configuracion$rutas
+    contrato <- configuracion$tablas
+    datos <- contrato$datos
     configuracion <- configuracion$configuracion
   }
   # una lista con cause_id también vale (la versión 0.2.2 no exigía la clase); otro objeto del paquete, no
   if (!is.list(configuracion) || is.null(configuracion$cause_id) ||
       (!inherits(configuracion, "dl_config") && any(names(.DL_DESCRIPCION_CLASES) %in% class(configuracion))))
     .dl_exigir_clase(configuracion, "dl_config", "configuracion", "dl_configuracion()")
-  .dl_en_simple(.dl_armar_insumos(configuracion, rutas), simple)
+  b <- .dl_en_simple(.dl_armar_insumos(configuracion, rutas), simple, if (simple) datos)
+  # las tablas del contrato del proyecto, tal como se leyeron (fuera del hash, que es el de las tablas de los insumos)
+  if (simple) b$contrato <- contrato
+  b
 }
 
 # Los insumos de la configuración `cfg` con las rutas `rutas` (dl_insumos()).

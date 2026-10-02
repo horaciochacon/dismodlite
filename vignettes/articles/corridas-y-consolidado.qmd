@@ -17,8 +17,7 @@ knitr:
 - Cómo se nombran las corridas y cómo conviven sus versiones.
 - Cómo volver a resumir una corrida desde sus simulaciones, sin volver a ajustar.
 - Cómo estimar otro año y cómo proyectar un año que todavía no tiene estimación de referencia (`ancla.anio`).
-- Qué es el registro de corridas y cómo se arman las tablas consolidadas con un perfil de columnas (formato
-  completo).
+- Qué es el registro de corridas y cómo se arman las tablas consolidadas con un perfil de columnas.
 
 Todo el recorrido usa el proyecto de ejemplo, con datos sintéticos, y corridas de prueba (`rapido = TRUE`) que
 tardan segundos. Sus cadenas son cortas y no convergen: los números sirven para ver la forma de los resultados, no
@@ -79,7 +78,7 @@ list.files(corrida$dir, recursive = TRUE)
 | `draws/<medida>_<año>.csv.gz` | Las simulaciones de cada celda (una columna por simulación), comprimidas. |
 | `etiquetas/<run_id>.csv` | Cuánto informan los datos locales cada celda (ver [Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html)). |
 | `diagnostics/` | R-hat y tamaño efectivo por parámetro (`mcmc.csv`), tasas de aceptación (`aceptacion.csv`), validación contra el ancla (`validacion.csv`, `amplitud.csv`), factores de renormalización y diferencias de las covariables de la estimación subnacional (`renorm.csv`, `dx_bandas.csv`), el desplazamiento de las proporciones de severidad (`desplazamiento_splits.csv`) y, si se corrió, la sensibilidad (`sensibilidad.csv`). |
-| `inputs/` | Los insumos congelados, tal como entraron al modelo (las tablas en CSV, `hash.json`, la configuración usada y las descargas de covariables): con ellos la corrida se puede reproducir y auditar. |
+| `inputs/` | Los insumos congelados, tal como entraron al modelo (las tablas en CSV, `hash.json`, la configuración usada y las descargas de covariables): con ellos la corrida se puede reproducir y auditar. En `inputs/contrato/`, las tablas del contrato y la configuración del proyecto tal como se leyeron (las betas, solo las que usó la causa: las de su causa padre, si es un subtipo sin betas propias): es la carpeta de un proyecto, y `dl_proyecto(file.path(run$dir, "inputs", "contrato"))` repite la corrida. La carpeta de una partición de severidad (`severidad.particion`) se congela también, en `inputs/contrato/particion/<corrida>/`, con la ruta de la configuración congelada cambiada a ella y el sha256 de cada archivo en el manifiesto (la tabla `severidad`, que sale de ella, no se congela aparte). |
 
 Las estimaciones de cada medida son una tabla plana:
 
@@ -92,7 +91,7 @@ head(celdas[, c("location_id", "location_name", "sex_id", "age_group_name", "met
 ```
 
 `val` es la media de las simulaciones y `lower` y `upper`, sus cuantiles 2.5 % y 97.5 %. La prevalencia va como
-proporción (métrica `Percent`, entre 0 y 1); la incidencia y los AVD, como tasa por 100 000 (métrica `Rate`). Las
+proporción de la población, entre 0 y 1 (con la métrica `Percent`, como en las versiones anteriores); la incidencia y los AVD, como tasa por 100 000 (métrica `Rate`). Las
 filas de nivel 0 son las nacionales y las de nivel 1, las subnacionales:
 
 ```{r}
@@ -196,42 +195,28 @@ La corrida tiene que haber guardado sus simulaciones (`dl_correr()` siempre las 
 
 El año que se estima es `anio` en la configuración: para estimar otro año, basta con cambiarlo. El proyecto necesita
 las filas de ese año en las descargas del ancla (`ancla/`), en `poblacion.csv` y, para la estimación subnacional con
-covariables, en `proxies.csv` y en las descargas de `covariables/`; `dl_revisar_proyecto()` dice qué falta. El
-ejemplo trae 2019 y 2023.
+covariables, en la tabla `covariables` (los valores subnacionales y las descargas del GHDx); `dl_revisar_proyecto()`
+dice qué falta. El ejemplo trae 2019 y 2023.
 
 ## Proyectar un año sin estimación de referencia
 
 Cuando el año que se quiere estimar todavía no tiene estimación de referencia publicada, se puede proyectar desde la
 del año anterior: `anio` es el año nuevo y `ancla.anio` el de la estimación de referencia, a lo sumo un año antes.
 En el ejemplo, 2024 con el ancla de 2023; la configuración de la copia, `config/9100.yaml`, es la del ejemplo con
-esas dos claves (sin `sensibilidad`, `subtipos` ni `notas`, que aquí no intervienen):
+esas dos claves (sin `sensibilidad`, `subtipos` ni `notas`, que aquí no intervienen; las betas siguen en
+`betas.csv`):
 
 ```{cat}
 #| engine.opts: !expr list(file = file.path(proyecto, "config", "9100.yaml"), lang = "yaml")
 causa: 9100
 anio: 2024
 edad_inicio: 30
-ubicacion_nacional: 123
 
 ancla:
   anio: 2023   # la estimación de referencia más reciente
 
 mortalidad_exceso:
   techo: 0.25
-
-covariables:
-  - nombre: SEV_scalar_agestd_cvd_pvd
-    efecto_sobre: prevalencia
-    transformacion: log
-    beta: [0.62, 0.55, 0.70]
-  - nombre: LDI_pc
-    efecto_sobre: prevalencia
-    transformacion: log
-    beta: [-0.21, -0.30, -0.12]
-  - nombre: haqi
-    efecto_sobre: mortalidad_exceso
-    transformacion: lineal
-    beta: [-0.012, -0.018, -0.006]
 
 subnacional:
   anio_validacion: 2019
@@ -246,9 +231,10 @@ grep("proyecci", unlist(corrida_2024$manifest$limitaciones), value = TRUE)
 
 Una proyección tiene un alcance preciso, y el manifiesto lo declara: el nivel nacional y su incertidumbre son los del
 año del ancla, con el año nuevo en las tablas; del año nuevo son solo la población (que cambia los conteos y los
-pesos por edad) y, con la estimación subnacional por covariables, los valores subnacionales de `proxies.csv`. Para
-esto el proyecto necesita la población y los proxies del año nuevo, y las covariables nacionales del año del ancla
-(el promedio de los proxies, ponderado por la población, debe cerrar en ese valor nacional; ver `?dl_proyecto`).
+pesos por edad) y, con la estimación subnacional por covariables, sus valores subnacionales en la tabla
+`covariables`. Para esto el proyecto necesita la población y los proxies del año nuevo, y las covariables nacionales
+del año del ancla (el promedio de los proxies, ponderado por la población, debe cerrar en ese valor nacional; ver
+[Preparar tus datos](preparar-datos.html#cierre)).
 
 Las corridas de la causa 9100 quedan así, una carpeta por corrida:
 
@@ -260,30 +246,29 @@ list.files(file.path(proyecto, "resultados", "mod", "dismod_lite"))
 El nombre no dice el año: lo dice el manifiesto (`params$year`). Por eso las corridas de años distintos no compiten
 entre sí cuando se consolidan (abajo): se elige la más reciente de cada causa y año.
 
-## El registro de corridas y las tablas consolidadas (formato completo)
+## El registro de corridas y las tablas consolidadas
 
 Cuando un proyecto cubre varias causas y años, las **tablas consolidadas** reúnen la corrida vigente de cada causa
 y año en una tabla por medida, con tasas y conteos (tasa × población de la corrida) y con las columnas que declara
-un **perfil de columnas**. Esta parte usa piezas del formato completo: la carpeta `registro/` (los nombres de las
-causas en español y cuáles son la suma de sus subtipos, en `master_gbd.csv`, y las etiquetas en español de medidas,
-métricas y edades, en `etiquetas_es.csv`) y los catálogos. El ejemplo en ese formato está en `acs_peru_completo`
-(ver [El formato completo](formato-completo.html)).
+un **perfil de columnas**. Además del registro de corridas, usa el registro de causas del proyecto: los nombres de
+las causas en español y cuáles son la suma de sus subtipos (`master_gbd.csv`) y las etiquetas en español de medidas,
+métricas y edades (`etiquetas_es.csv`). `dl_proyecto()` los arma con la configuración y las tablas, en la carpeta
+`registry` de sus rutas.
 
 ### El registro de corridas
 
 El registro es un archivo YAML con la lista `datasets`; uno vacío tiene una sola línea, `datasets: []`. Cada corrida
 que se escribe con un registro agrega una entrada al final, sin reescribir las anteriores. `dl_correr()` la anota
 con su argumento `registro` (y `dl_exportar_corrida()`, si la corrida se arma paso a paso). Aquí, una corrida de
-prueba del subtipo 9101 en el formato completo:
+prueba del subtipo 9101 del proyecto de ejemplo:
 
 ```{r}
 #| label: registro
-completo <- system.file("extdata", "acs_peru_completo", package = "dismodlite")
 raiz <- file.path(tempdir(), "corridas")
 dir.create(raiz)
 registro <- file.path(raiz, "registro_corridas.yaml")
 writeLines("datasets: []", registro)
-corrida_9101 <- dl_correr(completo, causa = 9101, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+corrida_9101 <- dl_correr(dl_ejemplo(), causa = 9101, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
                           carpeta_salida = raiz, registro = registro)
 cat(head(readLines(registro), 9), sep = "\n")
 ```
@@ -299,7 +284,7 @@ fecha y la versión de su `run_id`); las demás siguen en el registro, pero no s
 
 ```{r}
 #| label: seleccionar
-proyecto_9101 <- dl_proyecto(completo, causa = 9101)
+proyecto_9101 <- dl_proyecto(dl_ejemplo(), causa = 9101)
 seleccion <- dl_consolidado_seleccionar(registro, carpeta_corridas = raiz, rutas = proyecto_9101$rutas)
 as.data.frame(seleccion)[, c("cause_id", "year", "run_id")]
 ```
@@ -319,7 +304,7 @@ corridas elegidas, `dl_consolidado_conteos()` agrega los conteos (tasa × poblac
 #| label: consolidar
 consolidado <- dl_consolidar(registro, carpeta = raiz,
                              perfil = system.file("perfiles", "perfil_v2.yaml", package = "dismodlite"),
-                             maestro = file.path(completo, "registro", "master_gbd.csv"),
+                             maestro = file.path(proyecto_9101$rutas$registry, "master_gbd.csv"),
                              rutas = proyecto_9101$rutas, causas = 9101, anios = 2023)
 consolidado
 list.files(consolidado$dir, recursive = TRUE)
@@ -361,5 +346,4 @@ insumos de cada corrida.
 - [Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html): cómo leer los diagnósticos de una corrida, las dos
   compuertas, la sensibilidad y cuánto tarda una corrida de producción.
 - [Subtipos y suma](subtipos-y-suma.html): varias causas en un proyecto y la suma de sus subtipos.
-- [El formato completo](formato-completo.html): el formato de los proyectos de la versión 0.2.2.
 - La ayuda de cada función: `?dl_correr`, `?dl_exportar_corrida`, `?dl_reresumir_corrida`, `?dl_consolidar`.

@@ -290,7 +290,7 @@
 # texto vuelva al mismo número. `archivos` y `tablas_hash` (particiones e insumos congelados) solo se conocen
 # después de escribirlos; sin ellos, el manifiesto se prueba antes de escribir nada.
 .dl_manifiesto_corrida <- function(celdas, f, b, res, validacion, convergencia, gate_ancla, archivos = list(),
-                                   tablas_hash = list()) {
+                                   tablas_hash = list(), contrato_hash = list()) {
   cfg <- b$cfg
   casc <- if (inherits(f, "dl_cascade")) f else NULL
   amplitud <- attr(validacion, "amplitud")
@@ -334,9 +334,18 @@
                   # val = media de las simulaciones; lower y upper = sus cuantiles
                   estadistico_puntual = .DL_ESTADISTICO_PUNTUAL,
                   version_paquete = dl_version()),
-    inputs = list(bundle_hash = b$hash,
+    inputs = c(list(bundle_hash = b$hash,
                   tablas = lapply(names(tablas_hash), function(nm)
-                    list(tabla = sub("[.]csv$", "", nm), sha256 = tablas_hash[[nm]])),
+                    list(tabla = sub("[.]csv$", "", nm), sha256 = tablas_hash[[nm]]))),
+                  # las tablas del contrato congeladas en inputs/contrato/ (sin la clave en el formato completo),
+                  # la configuración del proyecto congelada en inputs/contrato/config.yaml y cada archivo de la
+                  # partición de severidad congelada en inputs/contrato/particion/<corrida>/
+                  if (length(contrato_hash)) list(contrato = lapply(names(contrato_hash), function(nm)
+                    if (nm == .DL_CONFIG_CONGELADA) list(configuracion = nm, sha256 = contrato_hash[[nm]])
+                    else if (startsWith(nm, paste0(.DL_PARTICION_CONGELADA, "/")))
+                      list(particion = nm, sha256 = contrato_hash[[nm]])
+                    else list(tabla = nm, sha256 = contrato_hash[[nm]]))),
+                  list(
                   # qué modelos de la extracción entraron a las betas y cuántas filas quedaron fuera
                   betas = if (!is.null(b$seleccion_betas)) list(
                     modelo_variante = as.list(b$seleccion_betas$modelo_variante %||% "(todas)"),
@@ -346,7 +355,7 @@
                   # escala de la covariable con que se estimó cada beta lineal (por ejemplo, 0-100 o 0-1)
                   escalas = lapply(seq_len(nrow(b$betas)), function(i) list(
                     covariate_name_short = b$betas$covariate_name_short[i],
-                    parametro_objetivo = b$betas$parametro_objetivo[i], escala = as.numeric(b$betas$escala[i])))),
+                    parametro_objetivo = b$betas$parametro_objetivo[i], escala = as.numeric(b$betas$escala[i]))))),
     files = archivos,
     cascada = if (is.null(casc)) NULL else list(
       # con la cascada plana, su procedencia va en las limitaciones (el emisor no pliega escalares largos)
@@ -425,7 +434,7 @@
 # qué no salta la compuerta, con los argumentos de cada una.
 .dl_compuerta_ancla <- function(cfg, validacion, remedio = paste0(
   "declara un m\u00e1ximo mayor en la configuraci\u00f3n, con su procedencia: anchor: {gate_err_mediano: {valor: ..., ",
-  "procedencia: ...}} (en un proyecto simple, dentro de avanzado; ver ?dl_configuracion); forzar no la salta")) {
+  "procedencia: ...}} (en un proyecto, dentro de avanzado; ver ?dl_configuracion); forzar no la salta")) {
   gate_ancla <- as.numeric(cfg$anchor$gate_err_mediano$valor %||% .DL_GATE_ERR_MEDIANO_DEFECTO)
   rv <- attr(validacion, "resumen")
   err_ancla <- if (!is.null(rv)) rv[check == "anchor_identity"]$err_rel_mediano
@@ -453,8 +462,18 @@
 #'   ([dl_validar_ancla()]), `sensibilidad.csv` ([dl_sensibilidad()], si se da) y, con una cascada, `renorm.csv`
 #'   (los factores de renormalización), `dx_bandas.csv` (la mediana y el intervalo de dX por ubicación, sexo,
 #'   covariable y banda) y `amplitud.csv` (la validación de la amplitud, si se calculó).
-#' - `inputs/`: los insumos congelados ([dl_congelar_insumos()]), la configuración usada (`config_usado.yaml`) y las
-#'   descargas de covariables (`ghdx_cov/`).
+#' - `inputs/`: los insumos congelados ([dl_congelar_insumos()]), la configuración usada (`config_usado.yaml`, en el
+#'   formato completo) y las descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con un
+#'   proyecto de las tablas del contrato ([dl_proyecto()]), `inputs/contrato/` guarda las tablas que se usaron
+#'   (`<tabla>.csv`, con las covariables nacionales; los números escritos exactos) y la configuración del proyecto tal
+#'   como se leyó (`config.yaml`, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada
+#'   archivo en `inputs$contrato`. `inputs/contrato/` es la carpeta de un proyecto: `dl_proyecto(file.path(run$dir,
+#'   "inputs", "contrato"))` repite la corrida sin la carpeta original, también si las tablas o la configuración se
+#'   dieron en R. En `betas.csv` van las betas que usó la causa, bajo la causa de la corrida: las de su causa padre
+#'   si es un subtipo sin betas propias, cuya configuración congelada lleva además `avanzado: extraction: cause_id`
+#'   (la causa padre, que [dl_sumar_hijas()] exige). La carpeta de `severidad.particion` se copia en
+#'   `inputs/contrato/particion/<corrida>/`, con la ruta de la configuración congelada cambiada a ella y el sha256 de
+#'   cada archivo en `inputs$contrato` (`particion`); la tabla `severidad`, que sale de ella, no se congela aparte.
 #' - `manifest.yaml`: la descripción de la corrida (abajo).
 #'
 #' El identificador `<AAAA-MM-DD>_<nombre>_v<n>` lleva la fecha del día y la versión siguiente a la mayor de ese día
@@ -463,14 +482,14 @@
 #'
 #' `manifest.yaml` describe la corrida: identificación, causa, parámetros, insumos (con el sha256 de cada tabla
 #' congelada), cascada, datos, `decisiones` (las de la configuración; una lista vacía si no hay), validación y
-#' limitaciones; en el formato simple, además, `configuracion` (el formato y las claves que tomaron su valor por
-#' defecto). En la cascada, `haqi_nacional` se conserva por compatibilidad con la versión 0.2.2: es `false` solo si la
+#' limitaciones; en un proyecto con las tablas del contrato de insumos, además, `configuracion` (el formato y las
+#' claves que tomaron su valor por defecto). En la cascada, `haqi_nacional` se conserva por compatibilidad con la versión 0.2.2: es `false` solo si la
 #' cascada aplicó un proxy subnacional de una covariable llamada `haqi`; si no (también en un proyecto sin esa
 #' covariable), es `true`.
 #'
 #' `forzar = TRUE` salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 #' (error relativo mediano mayor que `anchor.gate_err_mediano`, 0.05 por defecto), la corrida no se escribe. Ese
-#' máximo se declara, con su procedencia, en la configuración (en el formato simple, en `avanzado`; ver
+#' máximo se declara, con su procedencia, en la configuración (en un proyecto, en `avanzado`; ver
 #' [dl_configuracion()]).
 #'
 #' @param piezas Lista con `resumen` ([dl_resumir()]), `fit` (ajuste o cascada), `yld` ([dl_avd()]) y `bundle`
@@ -552,8 +571,9 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   run_id <- .dl_run_id(carpeta, nombre)
   celdas <- .dl_con_run_id(res$celdas, run_id)
   dl_validar_estimaciones(celdas, rutas)
-  manifiesto <- function(archivos = list(), tablas_hash = list())
-    .dl_manifiesto_corrida(celdas, f, b, res, validacion, convergencia, gate_ancla, archivos, tablas_hash)
+  manifiesto <- function(archivos = list(), tablas_hash = list(), contrato_hash = list())
+    .dl_manifiesto_corrida(celdas, f, b, res, validacion, convergencia, gate_ancla, archivos, tablas_hash,
+                           contrato_hash)
   # El emisor falla aquí, antes de escribir, si un valor no se puede escribir en el manifiesto (p. ej. lambda = 1/3).
   .dl_yaml_block(manifiesto())
 
@@ -587,18 +607,116 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   escribir(attr(validacion, "amplitud"), "amplitud.csv")
   inputs_dir <- file.path(dir_run, "inputs")
   tablas_hash <- dl_congelar_insumos(b, inputs_dir)
-  yaml::write_yaml(cfg, file.path(inputs_dir, "config_usado.yaml"))
-  if (!is.null(carpeta_cov)) {
+  # la configuración traducida al formato completo (sin la del proyecto, que va en contrato/config.yaml)
+  usada <- cfg
+  usada$origen$configuracion <- NULL
+  yaml::write_yaml(usada, file.path(inputs_dir, "config_usado.yaml"))
+  # las tablas del contrato del proyecto (si los insumos vienen de uno) y su configuración tal como se leyó: con ellas
+  # la corrida se repite sin la carpeta original, también cuando las tablas o la configuración se dieron en R. Cada
+  # número se escribe con el texto exacto (.dl_num_exacto), no con los 15 dígitos de fwrite: al releerlos vuelven los
+  # mismos números
+  congelado <- .dl_contrato_congelado(b$contrato, cfg, .dl_path(rutas, "severity_split", opcional = TRUE))
+  contrato_hash <- .dl_congelar_contrato(congelado$tablas, file.path(inputs_dir, "contrato"), congelado$configuracion,
+                                         congelado$particion)
+  # con un proyecto del contrato, las covariables nacionales ya van en contrato/covariables.csv: la copia de las
+  # descargas crudas (ghdx_cov/) es solo del formato completo
+  if (!is.null(carpeta_cov) && !length(b$contrato)) {
     dir.create(file.path(inputs_dir, "ghdx_cov"), showWarnings = FALSE)
     file.copy(list.files(carpeta_cov, pattern = "[.]csv$", ignore.case = TRUE, full.names = TRUE),
               file.path(inputs_dir, "ghdx_cov"))
   }
 
   # 4. manifest.yaml y, al final, la entrada en el registro de corridas (sin reescribir las anteriores).
-  man <- manifiesto(archivos, tablas_hash)
+  man <- manifiesto(archivos, tablas_hash, contrato_hash)
   .dl_escribir_manifest(man, dir_run)
   escrita <- TRUE
   .dl_corrida_escrita(man, dir_run, if (registrar) registro)
+}
+
+# Las tablas del contrato `contrato` y la configuración del proyecto que congela la corrida de `cfg`, para que
+# inputs/contrato/ sea un proyecto por sí solo: la tabla betas, solo con las betas que usó la causa
+# (.dl_betas_de_causa) y las de su causa padre (extraction.cause_id: un subtipo sin betas propias) puestas a su nombre;
+# y la configuración tal como se leyó, más `avanzado: extraction` si la causa usa las betas de su padre (la relación
+# la declara la configuración del padre, que no se congela). Si la configuración declara severidad.particion, la
+# carpeta de esa partición (`particion`, la de las rutas del proyecto) va también: `particion` = list(origen, ruta),
+# con ruta = particion/<corrida>, relativa a inputs/contrato/, que pasa a ser la de severidad.particion en la
+# configuración congelada; la tabla severidad, que sale de ella, no se congela. Sin tablas (formato completo),
+# configuración y partición NULL.
+.dl_contrato_congelado <- function(contrato, cfg, particion = NULL) {
+  if (!length(contrato)) return(list(tablas = contrato, configuracion = NULL))
+  s <- cfg$origen$configuracion
+  padre <- cfg$extraction$cause_id
+  if (!is.null(contrato$betas)) {
+    b <- .dl_betas_de_causa(contrato$betas, cfg$cause_id, padre)
+    if ("causa" %in% names(b) && !is.null(padre))
+      b[!is.na(causa) & causa == padre, causa := as.integer(cfg$cause_id)]
+    contrato$betas <- if (nrow(b)) b
+  }
+  if (!is.null(padre) && !is.null(s) && is.null(s$avanzado$extraction))
+    s$avanzado$extraction <- cfg$extraction
+  part <- NULL
+  if (!is.null(s) && !is.null(.dl_valor_en(s, "severidad.particion")) && !is.null(particion)) {
+    part <- list(origen = particion, ruta = paste(.DL_PARTICION_CONGELADA, basename(particion), sep = "/"))
+    s$severidad$particion <- part$ruta
+    contrato$severidad <- NULL     # sale de la partición congelada (y sus límites pueden pasar de 1)
+  }
+  list(tablas = contrato, configuracion = s, particion = part)
+}
+
+# Carpeta de inputs/contrato/ donde se congela la partición de severidad (particion/<corrida>/), la misma que propone
+# la estructura de un proyecto (ver ?dl_proyecto).
+.DL_PARTICION_CONGELADA <- "particion"
+
+# Nombre de la configuración del proyecto congelada en inputs/contrato/.
+.DL_CONFIG_CONGELADA <- "config.yaml"
+
+# Escribe las tablas del contrato (lista nombrada de dl_tabla) en `dir` como <tabla>.csv, la configuración del
+# proyecto `configuracion` (la lista leída, si se da) como config.yaml y copia la carpeta de la partición de severidad
+# (`particion`, de .dl_contrato_congelado: su origen y su ruta en `dir`); devuelve el sha256 de cada archivo (lista
+# nombrada: la tabla, config.yaml, o la ruta de cada archivo de la partición, relativa a `dir`). Las columnas
+# numéricas van con su texto exacto (.dl_num_exacto): releerlas da los mismos doubles. Sin tablas ni configuración
+# (formato completo), no escribe nada y devuelve list().
+.dl_congelar_contrato <- function(contrato, dir, configuracion = NULL, particion = NULL) {
+  hash <- list()
+  if (!length(contrato) && is.null(configuracion)) return(hash)
+  dir.create(dir, showWarnings = FALSE)
+  if (!is.null(configuracion)) {
+    f <- file.path(dir, .DL_CONFIG_CONGELADA)
+    .dl_escribir_config_proyecto(configuracion, f)
+    hash[[.DL_CONFIG_CONGELADA]] <- digest::digest(file = f, algo = "sha256")
+  }
+  for (nm in names(contrato)) {
+    d <- data.table::as.data.table(unclass(contrato[[nm]]))
+    for (j in names(d)) if (is.double(d[[j]])) data.table::set(d, j = j, value = .dl_num_exacto(d[[j]]))
+    f <- file.path(dir, paste0(nm, ".csv"))
+    data.table::fwrite(d, f, eol = "\n", na = "")
+    hash[[nm]] <- digest::digest(file = f, algo = "sha256")
+  }
+  if (!is.null(particion)) {
+    destino <- file.path(dir, particion$ruta)
+    archivos <- list.files(particion$origen, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+    for (a in sort(archivos)) {
+      dir.create(dirname(file.path(destino, a)), recursive = TRUE, showWarnings = FALSE)
+      file.copy(file.path(particion$origen, a), file.path(destino, a))
+      hash[[paste(particion$ruta, a, sep = "/")]] <- digest::digest(file = file.path(destino, a), algo = "sha256")
+    }
+  }
+  hash
+}
+
+# Escribe la configuración de un proyecto `s` (la lista leída) en el YAML `f`, para que .dl_leer_config() la relea
+# igual: los lógicos como true y false (el YAML que escribe el paquete yaml usa yes y no, que la lectura de una
+# configuración deja como texto) y cada double con su texto exacto (.dl_num_exacto), con «.0» si es entero (así se
+# relee como double y no como entero).
+.dl_escribir_config_proyecto <- function(s, f) {
+  literal <- function(x) structure(x, class = "verbatim")
+  doble <- function(x) {
+    t <- .dl_num_exacto(x)
+    literal(ifelse(grepl("^-?[0-9]+$", t), paste0(t, ".0"), t))
+  }
+  texto <- yaml::as.yaml(s, handlers = list(logical = function(x) literal(ifelse(x, "true", "false")),
+                                            numeric = doble))
+  writeLines(enc2utf8(texto), f, sep = "", useBytes = TRUE)
 }
 
 # Qué es una corrida, según su manifiesto: un consolidado, una suma de hijas, un re-resumen, o el ajuste nacional o

@@ -5,8 +5,8 @@
 # ?dl_configuracion.
 #
 # Campos de cada clave (los que no se dan están vacíos):
-#   clave        nombre en el YAML: ancla.peso es la clave `peso` del bloque `ancla`; covariables[].beta, la clave
-#                `beta` de cada registro de la lista `covariables`
+#   clave        nombre en el YAML: ancla.peso es la clave `peso` del bloque `ancla`; a[].b, la clave `b` de
+#                cada registro de la lista `a`
 #   tipo         entero, número, texto, lógico (true o false), lista de números, lista de enteros, lista de textos,
 #                lista de registros o bloque: la revisión comprueba que el valor lo sea
 #   destino      dónde queda el valor en el formato completo: la clave de la configuración (la que citan los errores
@@ -26,8 +26,8 @@
 # `alias`: otros nombres admitidos de una clave (el nombre anterior -> el actual). `sugerencias`: la clave simple que
 # se sugiere cuando la configuración trae una clave del formato completo (anchor -> ancla). `movidas`: claves que
 # cambiaron de lugar (la ruta anterior -> la actual); el mensaje de la clave desconocida dice dónde está ahora.
-# `tablas` y `rutas`: con un proyecto simple, los mensajes de dl_insumos() y dl_correr() nombran el archivo de donde
-# sale cada tabla del contrato y cada argumento de dl_rutas() (y las claves simples en lugar de su destino; ver
+# `tablas` y `rutas`: con un proyecto simple, los mensajes de dl_insumos() y dl_correr() nombran la tabla del proyecto de
+# donde sale cada tabla del formato completo y cada argumento de dl_rutas() (y las claves simples en lugar de su destino; ver
 # .dl_texto_simple()).
 
 claves:
@@ -69,14 +69,14 @@ claves:
     ejemplo: "30"
     descripcion: Primera edad del modelo, en años; ahí la prevalencia es 0.
 
-  - clave: ubicacion_nacional
+  - clave: ubicacion_gbd
     tipo: entero
-    destino: anchor.location_id
-    defecto: la única ubicación de la causa en el ancla
+    destino: ""
+    defecto: el código nacional de ubicaciones.csv, si es un location_id de las descargas; o la única ubicación
     ejemplo: "130"
     descripcion: >-
-      location_id de GBD del país (por ejemplo 130, México): el de las filas nacionales del ancla y de las
-      covariables. Hace falta si el ancla trae otras ubicaciones (global, regiones).
+      location_id de GBD del país: el de las filas nacionales de las descargas de GBD Results y del GHDx. Hace falta
+      solo si las descargas traen varias ubicaciones y el código nacional de ubicaciones.csv no es su location_id.
 
   - clave: ancla.peso
     tipo: número
@@ -153,87 +153,48 @@ claves:
     tipo: lista de textos
     destino: medidas_entrada
     defecto: "ninguno: las nacionales no se usan; las subnacionales de mortalidad validan"
-    vocabulario: {prevalencia_estudio: prev_estudio, incidencia: incidencia, mortalidad: csmr}
-    ejemplo: "[prevalencia_estudio, mortalidad]"
+    vocabulario: {prevalencia: prev_estudio, prevalencia_estudio: prev_estudio, incidencia: incidencia, mortalidad: csmr}
+    ejemplo: "[prevalencia, mortalidad]"
     descripcion: >-
-      Tipos de datos.csv cuyas filas nacionales entran al ajuste: prevalencia_estudio, incidencia, mortalidad.
+      Tipos de la tabla datos cuyas filas nacionales entran al ajuste: prevalencia (de estudios; también se
+      admite prevalencia_estudio), incidencia, mortalidad.
 
-  - clave: covariables
-    tipo: lista de registros
-    destino: transformaciones
-    descripcion: >-
-      Covariables con efecto, un registro por covariable con las claves covariables[].* de abajo. Actúan solo en la
-      estimación subnacional y solo las que tienen filas en proxies.csv: mueven las tasas nacionales de cada
-      ubicación según su diferencia con el valor nacional (por subnacional.kappa). El ajuste nacional no cambia. Un
-      subtipo usa las betas de su causa padre: sin covariables, toma las del padre; si las declara, deben ser las
-      mismas.
-
-  - clave: covariables[].nombre
+  - clave: severidad.particion
     tipo: texto
-    destino: transformaciones[].covariate_name_short
-    defecto: obligatoria
-    unico: true
-    ejemplo: haqi
-    descripcion: covariate_name_short de la covariable en la descarga del GHDx (covariables/).
-
-  - clave: covariables[].efecto_sobre
-    tipo: texto
-    destino: "extraccion.yaml: covariables_gbd[].parametro"
-    defecto: obligatoria
-    vocabulario: {prevalencia: Prevalence, incidencia: Incidence, mortalidad_exceso: Excess mortality rate}
-    ejemplo: mortalidad_exceso
+    destino: severidad.run_id
+    ejemplo: particion/mi_corrida
     descripcion: >-
-      Parámetro sobre el que actúa: prevalencia o incidencia (las dos mueven log i, la incidencia) o
-      mortalidad_exceso (mueve log f, la EMR).
+      Carpeta de una corrida de partición de severidad, relativa a la carpeta del proyecto (sin carpeta, al directorio
+      de trabajo). La tabla severidad de la causa sale de ella (con los pesos de discapacidad de GBD) en vez de la
+      tabla severidad. En una hija o un componente, sus límites pueden pasar de 1 (los de la partición divididos por
+      su cuota): se aceptan con un aviso. La corrida copia esta carpeta en inputs/contrato/particion/<corrida>/.
 
-  - clave: covariables[].transformacion
-    tipo: texto
-    destino: transformaciones[].transformacion
-    defecto: obligatoria
-    ejemplo: lineal
-    descripcion: "Transformación de la covariable en la regresión publicada: log, lineal o logit."
-
-  - clave: covariables[].beta
-    tipo: lista de números
-    destino: "extraccion.yaml: covariables_gbd[].beta_valor"
-    defecto: obligatoria
-    largo: [1, 3]
-    ejemplo: "[-0.012, -0.018, -0.006]"
+  - clave: severidad.padre
+    tipo: entero
+    destino: severidad.padre
+    ejemplo: "1010"
     descripcion: >-
-      Coeficiente publicado: `[media, inferior, superior]`, con su intervalo del 95 %, o un número (beta fija). Es
-      el cambio de log i (o de log f) por unidad de la covariable transformada: la diferencia de log i de una
-      ubicación es beta por la diferencia entre su valor y el nacional (por escala).
-    error: debe ser [media, inferior, superior] o un solo número (beta fija)
+      Causa padre cuya partición reparte las secuelas de esta causa (la causa es una hija dentro de la partición del
+      padre). Solo con severidad.particion.
 
-  - clave: covariables[].escala
-    tipo: número
-    destino: transformaciones[].escala
-    valor: 1
-    ejemplo: "0.01"
+  - clave: componente.secuelas
+    tipo: lista de enteros
+    destino: anchor.componente.sequela_ids
+    ejemplo: "[5001, 5002]"
     descripcion: >-
-      Multiplica la diferencia de la covariable antes de la beta: 0.01 si la beta se estimó con la covariable en 0-1
-      y la descarga viene en 0-100. Solo con transformacion: lineal; con log o logit no interviene (en log, una
-      escala se cancelaría de todos modos) y debe ser 1.
-
-  - clave: covariables[].escala_confirmada
-    tipo: lógico
-    destino: transformaciones[].escala_confirmada
-    valor: false
-    descripcion: >-
-      true confirma una beta lineal de haqi de 0.1 o más en valor absoluto con escala 1 (por punto del índice en
-      0-100). Sin la confirmación, dl_insumos() la rechaza: con la descarga en 0-100, 20 puntos de diferencia
-      multiplicarían la tasa por exp(20 × beta), casi 0, y lo probable es que falte escala: 0.01.
+      Secuelas que forman el componente que se modela: el ancla se escala a su fracción de prevalencia y la severidad
+      es la del componente. Necesita severidad.particion.
 
   - clave: subnacional.modo
     tipo: texto
     destino: cascada.modo
     defecto: >-
-      covariables si alguna covariable declarada tiene filas en proxies.csv; si no, plano si la población trae otras
-      ubicaciones; si no, no
+      covariables si alguna covariable de la tabla betas tiene filas subnacionales en la tabla covariables; si no, plano
+      si la población trae otras ubicaciones; si no, no
     vocabulario: [covariables, plano, "no"]
     ejemplo: plano
     descripcion: >-
-      Estimación subnacional: covariables (gradiente por proxies.csv), plano (las tasas nacionales en cada
+      Estimación subnacional: covariables (gradiente por las covariables de la tabla betas), plano (las tasas nacionales en cada
       ubicación) o no (sin estimación subnacional).
 
   - clave: subnacional.kappa
@@ -280,8 +241,9 @@ claves:
     ejemplo: "[1011, 1012, 1013]"
     descripcion: >-
       Causas hijas cuya suma es esta causa (solo en la configuración de la causa padre): cada una tiene su
-      configuración y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su argumento
-      `omitidas` (ver ?dl_proyecto).
+      configuración en el mismo proyecto (config/<causa>.yaml), que la reconoce como subtipo (sin betas propias,
+      usa las de esta causa), y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su
+      argumento `omitidas` (ver ?dl_proyecto).
 
   - clave: notas
     tipo: lista de textos
@@ -305,30 +267,30 @@ sugerencias:
   sigma_suavidad: incidencia
   emr_prior: mortalidad_exceso
   medidas_entrada: datos_en_ajuste
-  transformaciones: covariables
   cascada: subnacional
   decisiones: notas
 
 movidas:
   incidencia.nudos: nudos
+  ubicacion_nacional: ubicacion_gbd
 
 tablas:
-  prior_gbd: ancla/
-  datos: datos.csv
-  cov_proxy: proxies.csv
-  poblacion: poblacion.csv
-  severidad: severidad.csv
-  cov_valores: covariables/
-  betas: covariables de la configuración
+  prior_gbd: ancla
+  datos: datos
+  cov_proxy: covariables
+  poblacion: poblacion
+  severidad: severidad
+  cov_valores: covariables
+  betas: betas
 
 rutas:
-  ancla_prevalencia: la prevalencia de ancla/
-  ancla_mortalidad: la mortalidad de ancla/
-  ancla_incidencia: la incidencia de ancla/
-  ancla_avd: los AVD de ancla/
-  poblacion: poblacion.csv
-  datos: datos.csv
-  proxies: proxies.csv
-  severidad: severidad.csv
-  pesos_80mas: pesos_80mas.csv
-  covariables: covariables/
+  ancla_prevalencia: la prevalencia de la tabla ancla
+  ancla_mortalidad: la mortalidad de la tabla ancla
+  ancla_incidencia: la incidencia de la tabla ancla
+  ancla_avd: los AVD de la tabla ancla
+  poblacion: la tabla poblacion
+  datos: la tabla datos
+  proxies: la tabla covariables
+  severidad: la tabla severidad
+  pesos_80mas: los pesos de 80 años y más (de la tabla poblacion)
+  covariables: la tabla covariables

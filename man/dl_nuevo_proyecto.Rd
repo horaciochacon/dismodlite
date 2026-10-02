@@ -28,33 +28,36 @@ La ruta de \code{carpeta}, invisible. Un mensaje lista lo que se creó, lo que y
 siguientes.
 }
 \description{
-Crea la carpeta de un proyecto en el formato simple (ver \code{\link[=dl_proyecto]{dl_proyecto()}}) con lo que hay que llenar: la
-configuración comentada, las carpetas de las descargas, las plantillas de las tablas y un \code{LEEME.md} con los
-pasos. No sobrescribe nada: un archivo que ya existe queda como está.
+Crea la carpeta de un proyecto (ver \code{\link[=dl_proyecto]{dl_proyecto()}}) con lo que hay que llenar: la configuración comentada, las
+plantillas de las tablas del contrato de insumos (\link{dl_tablas}), las carpetas de las descargas y un \code{LEEME.md} con
+los pasos. No sobrescribe nada: un archivo que ya existe queda como está.
 }
 \details{
 Lo que se crea en \code{carpeta}:
 \itemize{
 \item \code{config.yaml} (o \verb{config/<causa>.yaml}, si el proyecto ya tiene la carpeta \verb{config/} de un proyecto con varias
-causas): cada clave de la configuración simple con qué es, su símbolo en el modelo y su valor por defecto (la
+causas): cada clave de la configuración con qué es, su símbolo en el modelo y su valor por defecto (la
 tabla de \code{\link[=dl_configuracion]{dl_configuracion()}}). Las claves obligatorias (\code{causa}, \code{anio}, \code{edad_inicio}) van sin comentar, con el
 valor dado o vacías; \code{nombre}, si se da, también. Las demás van comentadas con su valor por defecto o, si no
 tienen un valor fijo, con un ejemplo. Para usar otro valor se quita el \verb{#} de la línea (y el de su
 bloque, como \verb{ancla:} para \code{ancla.peso}).
-\item \verb{ancla/} y \verb{covariables/}, vacías: ahí van las descargas de GBD Results y del GHDx, sin editar.
-\item \code{poblacion.csv}, \code{severidad.csv}, \code{proxies.csv} y \code{datos.csv}, con el encabezado (las columnas de
-\code{\link[=dl_proyecto]{dl_proyecto()}}). Las dos últimas son opcionales: con solo el encabezado no se usan.
-\item \code{LEEME.md}: los pasos, de dónde se descarga cada archivo y cómo revisar y correr el proyecto.
+\item \code{ubicaciones.csv}, \code{poblacion.csv}, \code{betas.csv}, \code{datos.csv}, \code{severidad.csv} y \code{poblacion_detalle.csv}, con
+solo el encabezado (las columnas de \code{\link[=dl_plantilla]{dl_plantilla()}}). Una tabla con solo el encabezado es como si no estuviera:
+las opcionales que no se llenan no se usan.
+\item \verb{ancla/}, \verb{covariables/} y \verb{fuentes_gbd/}, vacías: ahí van las descargas de GBD Results y del GHDx, sin editar
+(o las tablas del contrato).
+\item \code{LEEME.md}: la carpeta del proyecto, los pasos, de dónde se descarga cada archivo y cómo revisar y correr el
+proyecto.
 }
 
-Después: llenar los archivos, revisar el proyecto con \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} y correrlo con \code{\link[=dl_correr]{dl_correr()}}. Los
+Después: llenar las tablas, revisar el proyecto con \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} y correrlo con \code{\link[=dl_correr]{dl_correr()}}. Los
 valores de \code{nombre}, \code{anio} y \code{edad_inicio} van a la configuración tal como se dan: la revisión dice si alguno no
 vale.
 
 Un proyecto de una sola causa tiene \code{config.yaml}. Para agregar otra causa, crea la carpeta \verb{config/}, mueve ahí
 la configuración como \verb{config/<causa>.yaml} y vuelve a llamar a \code{dl_nuevo_proyecto()} con la causa nueva: escribe
-\verb{config/<causa nueva>.yaml} y deja lo demás como está. Agrega a \verb{ancla/} la descarga de la causa nueva antes de
-revisar el proyecto.
+\verb{config/<causa nueva>.yaml} y deja lo demás como está. Las tablas son las mismas para todas las causas: sus filas
+dicen de qué causa son en la columna \code{causa}.
 }
 \examples{
 carpeta <- file.path(tempdir(), "proyecto_nuevo")
@@ -62,19 +65,22 @@ dl_nuevo_proyecto(carpeta, causa = 1234, nombre = "Enfermedad de ejemplo",
                   anio = 2023, edad_inicio = 30)
 list.files(carpeta, recursive = TRUE, include.dirs = TRUE)
 cat(readLines(file.path(carpeta, "config.yaml"), n = 20, encoding = "UTF-8"), sep = "\n")
-# la revisión dice qué falta: las descargas del ancla, la población y la severidad
+# la revisión dice qué falta: las tablas obligatorias
 dl_revisar_proyecto(carpeta)
 unlink(carpeta, recursive = TRUE)
 }
 \seealso{
-\code{\link[=dl_proyecto]{dl_proyecto()}} (los archivos y sus columnas), \code{\link[=dl_configuracion]{dl_configuracion()}} (las claves de la configuración),
-\code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} y \code{\link[=dl_correr]{dl_correr()}} (los pasos siguientes) y \code{\link[=dl_ejemplo]{dl_ejemplo()}} (un proyecto lleno, para
-comparar).
+\link{dl_tablas} (las tablas y sus columnas), \code{\link[=dl_proyecto]{dl_proyecto()}} (la carpeta), \code{\link[=dl_configuracion]{dl_configuracion()}} (las claves
+de la configuración), \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} y \code{\link[=dl_correr]{dl_correr()}} (los pasos siguientes) y \code{\link[=dl_ejemplo]{dl_ejemplo()}} (un
+proyecto lleno, para comparar).
 
 Funciones del proyecto:
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
+\code{\link{dl_plantilla}()},
 \code{\link{dl_proyecto}()},
-\code{\link{dl_revisar_proyecto}()}
+\code{\link{dl_revisar_proyecto}()},
+\code{\link{dl_tabla}()},
+\code{\link{dl_tablas}}
 }
 \concept{proyecto}

@@ -66,7 +66,7 @@ test_that("semilla inválida y objetos equivocados: mensajes en español con los
     expect_error(dl_ajustar(b, o, semilla = s), "^dl_ajustar\\(\\): `semilla` debe ser un número entero",
                  info = deparse(s))
   expect_error(dl_avd(x$ajuste, b, semilla = 1.5), "^dl_avd\\(\\): `semilla` debe ser")
-  expect_error(dl_ajustar(dl_configuracion_ejemplo(9100L), o, semilla = 1),
+  expect_error(dl_ajustar(dl_configuracion_ejemplo(9100L, formato = "completo"), o, semilla = 1),
                paste0("`insumos` debe venir de dl_insumos\\(\\), pero es una configuraci\u00f3n.*",
                       "dl_insumos\\(configuracion, rutas\\)"))
   expect_error(dl_cascada(b, x$ajuste, semilla = 1), "^dl_cascada\\(\\): `ajuste` debe venir de dl_ajustar.*orden")

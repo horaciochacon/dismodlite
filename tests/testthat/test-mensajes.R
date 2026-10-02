@@ -6,7 +6,7 @@
 .mensaje_de <- function(expr) tryCatch({ expr; NA_character_ }, error = conditionMessage)
 
 test_that("dl_ajustar() sin semilla: el mensaje nombra la función y el argumento `semilla`", {
-  b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE)))
+  b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"), dl_rutas_ejemplo(9100L, datos = FALSE, formato = "completo")))
   expect_error(dl_ajustar(b), "^dl_ajustar\\(\\): .*semilla")
   expect_error(dl_ajustar(b, semilla = "uno"), "^dl_ajustar\\(\\): `semilla` debe ser un número entero")
   expect_error(dl_ajustar_solo_prior(b), "^dl_ajustar_solo_prior\\(\\): .*semilla")
@@ -39,12 +39,12 @@ test_that("las funciones que escriben corridas piden `carpeta` sin nombrar varia
 
 test_that("anidadas o con |>, el mensaje nombra la función que recibió el argumento malo", {
   # el argumento que es otra llamada se evalúa en el entorno del usuario: el error de la configuración es de
-  # dl_configuracion_ejemplo(), el de las rutas es de dl_insumos(), aunque el usuario escribió dl_ajustar() afuera
-  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lambda = 5))) |>
-                 dl_insumos(dl_rutas_ejemplo(9100L)) |> dl_ajustar(semilla = 1),
+  # dl_configuracion_ejemplo(formato = "completo"), el de las rutas es de dl_insumos(), aunque el usuario escribió dl_ajustar() afuera
+  expect_error(dl_configuracion_ejemplo(9100L, cambios = list(anchor = list(lambda = 5)), formato = "completo") |>
+                 dl_insumos(dl_rutas_ejemplo(9100L, formato = "completo")) |> dl_ajustar(semilla = 1),
                "^dl_configuracion_ejemplo\\(\\): ")
-  cfg <- dl_configuracion_ejemplo(9100L)
-  rutas_malas <- dl_rutas_ejemplo(9100L, poblacion = file.path(tempdir(), "no_existe", "poblacion.csv"))
+  cfg <- dl_configuracion_ejemplo(9100L, formato = "completo")
+  rutas_malas <- dl_rutas_ejemplo(9100L, poblacion = file.path(tempdir(), "no_existe", "poblacion.csv"), formato = "completo")
   expect_error(dl_ajustar(dl_insumos(cfg, rutas_malas), semilla = 1), "^dl_insumos\\(\\): la ruta")
   # por una variable, con do.call() o dentro de una función del usuario (aunque se llame dl_...): la función exportada
   f <- dl_insumos
@@ -57,7 +57,7 @@ test_that("anidadas o con |>, el mensaje nombra la función que recibió el argu
 })
 
 test_that("el error es de clase dl_error, con el detalle sin la función y la función que llamó el usuario", {
-  b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE)))
+  b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"), dl_rutas_ejemplo(9100L, datos = FALSE, formato = "completo")))
   e <- tryCatch(dl_ajustar(b), error = identity)
   expect_s3_class(e, "dl_error")
   expect_identical(e$funcion, "dl_ajustar")
@@ -97,8 +97,8 @@ test_that("los avisos de data.table::fread() llegan con la función del usuario 
   writeLines(c(readLines(ejemplo_completo("pesos_80mas.csv")), "30"), f)
   avisos <- character()
   withCallingHandlers(
-    suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L), dl_rutas_ejemplo(9100L, datos = FALSE,
-                                                                                  pesos_80mas = f))),
+    suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"), dl_rutas_ejemplo(9100L, datos = FALSE,
+                                                                                  pesos_80mas = f, formato = "completo"))),
     warning = function(w) { avisos <<- c(avisos, conditionMessage(w)); invokeRestart("muffleWarning") })
   expect_gte(length(avisos), 1L)                              # uno por cada lectura del archivo
   expect_match(avisos, "^dl_insumos\\(\\): se descartó la última línea de «pesos_80mas.csv»", all = TRUE)

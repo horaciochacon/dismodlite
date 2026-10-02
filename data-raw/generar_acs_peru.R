@@ -1,11 +1,12 @@
 # Genera los datos de ejemplo del paquete, en sus dos formatos y con los mismos números:
-#   inst/extdata/acs_peru/           el formato simple (config/<causa>.yaml simple, una descarga de GBD Results en
-#                                    ancla/, covariables/, poblacion.csv sin filas nacionales, proxies.csv, datos.csv,
+#   inst/extdata/acs_peru/           el proyecto en el contrato de insumos (config/<causa>.yaml, ubicaciones.csv,
+#                                    poblacion.csv sin filas nacionales, una descarga de GBD Results en ancla/, las
+#                                    descargas del GHDx y proxies.csv en covariables/, betas.csv, datos.csv,
 #                                    severidad.csv, LEEME.md y verdad.csv);
 #   inst/extdata/acs_peru_completo/  el formato completo (el de la versión 0.2.2), que usan el arnés de
 #                                    compatibilidad y las guías avanzadas;
 # y las tablas de referencia del paquete (inst/referencia/: grupos de edad de GBD y etiquetas en español), las mismas
-# del catálogo del formato completo. Lo que el formato simple calcula al leer el proyecto (las filas nacionales de la
+# del catálogo del formato completo. Lo que el paquete calcula al leer el proyecto (las filas nacionales de la
 # población, que son la suma de las departamentales, y los pesos de 80+, que son las cuotas de la población
 # nacional) se escribe en el formato completo con las mismas cuentas y el mismo escritor (data.table::fwrite), así
 # que los dos formatos dan exactamente los mismos números.
@@ -383,7 +384,7 @@ verdad_csv <- data.table::copy(verdad)
 verdad_csv[, nivel := data.table::fifelse(location_id == LOC_NACIONAL, 0L, 1L)]
 data.table::setorder(verdad_csv, cause_id, nivel, location_id, anio, sex_id, edad)
 verdad_csv[, `:=`(p = signif(p, 6), i = signif(i, 6), f = signif(f, 6))]
-# verdad.csv va solo en el formato simple (no es un insumo del modelo; ver la última sección).
+# verdad.csv va solo en acs_peru (no es un insumo del modelo; ver la última sección).
 
 # ---- Severidad ----------------------------------------------------------------------------------------------------
 PROPORCIONES <- merge(PROPORCIONES, ESTADOS, by = "health_state_id")
@@ -463,6 +464,12 @@ ancla_csv <- ancla[, list(acquisition_id = "sintetico_acs_v1", source = "gbd", r
                           sex_name = data.table::fifelse(sex_id == 1L, "Male", "Female"),
                           cause_id, cause_name = nombre_causa(cause_id), measure_id, measure_name, metric_id,
                           metric_name, val, lower, upper, ui_level = 0.95, medida)]
+# GBD Results publica la prevalencia en Rate (por 100 000: la proporción de la población, la que lee el paquete) y en
+# Percent (los casos sobre las personas con alguna causa; lo leían las versiones hasta la 1.0.0). En estos datos
+# sintéticos las dos son la misma proporción: Percent queda para reproducir las corridas anteriores con
+# anchor.metrica_prevalencia.
+ancla_csv <- rbind(ancla_csv, ancla_csv[medida == "prevalencia"][, `:=`(
+  metric_id = 3L, metric_name = "Rate", val = val * 1e5, lower = lower * 1e5, upper = upper * 1e5)])
 for (m in MEDIDAS_ANCLA$medida) escribir_csv(ancla_csv[medida == m][, medida := NULL], "ancla", paste0(m, ".csv"))
 
 pesos_80 <- poblacion[location_id == LOC_NACIONAL & year == 2023L & age_group_id %in% FINAS_80]
@@ -856,11 +863,13 @@ escribir_texto(c(
   "LEEME.md")
 
 # ---- Tablas de referencia del paquete (inst/referencia) ------------------------------------------------------------
-# Los grupos de edad, sexos, medidas y métricas de GBD y sus etiquetas en español: las que usa el formato simple
-# cuando el proyecto no trae catálogos. Son las mismas del catálogo del formato completo (sin las causas). Desde aquí,
+# Los grupos de edad, sexos, medidas y métricas de GBD y sus etiquetas en español: las que usa un proyecto (que no
+# trae catálogos). Son las mismas del catálogo del formato completo (sin las causas). Desde aquí,
 # ruta() escribe en inst/referencia.
 salida <- referencia
-unlink(salida, recursive = TRUE)
+# Solo se rehacen las dos tablas que escribe este script: inst/referencia guarda también config_simple.yaml,
+# tablas.csv y los catálogos de estados de salud y secuelas, que no salen de aquí.
+unlink(file.path(salida, c("catalogo_demograficos_gbd2023.csv", "etiquetas_es.csv")))
 escribir_texto(LINEAS_DEMOGRAFICOS, "catalogo_demograficos_gbd2023.csv")
 # La banda 80+ dice «80 años y más»; el formato completo conserva la etiqueta de la versión 0.2.2 («80 años a más»),
 # que llevan las salidas de sus referencias.
@@ -869,145 +878,152 @@ escribir_texto(c(sub("80 a\u00f1os a m\u00e1s", "80 a\u00f1os y m\u00e1s", LINEA
                  "sex,2,Female,Mujeres,female,mujeres", "sex,3,Both,Ambos sexos,both,ambos"),
                "etiquetas_es.csv")
 
-# ---- Formato simple (inst/extdata/acs_peru) ------------------------------------------------------------------------
-# Los mismos valores, como los tendría quien empieza un proyecto: las descargas tal cual y tablas planas. Desde aquí,
-# ruta() escribe en la carpeta del formato simple (antes, en la de las tablas de referencia).
+# ---- El proyecto en el contrato de insumos (inst/extdata/acs_peru) ------------------------------------------------
+# Los mismos valores, como los tendría quien empieza un proyecto: las descargas tal cual y las tablas del contrato
+# (?dl_tablas), con los números escritos con el mismo texto que el formato completo. Desde aquí, ruta() escribe en la
+# carpeta del proyecto (antes, en la de las tablas de referencia).
 salida <- salida_simple
 dir.create(salida, recursive = TRUE, showWarnings = FALSE)
 
-# Configuración simple de cada causa: la misma configuración que la completa, con las claves del formato simple (lo
-# que coincide con el valor por defecto no se escribe).
-BETAS_TEXTO <- lapply(c(sev = "sev", ldi = "ldi", haq = "haq"), function(k)
-  sprintf("[%s]", paste(sprintf("%.*f", DECIMALES_BETA[[k]], c(BETA[[k]], BETA_IC[[k]])), collapse = ", ")))
+# Configuración de cada causa: la misma configuración que la completa, con las claves del proyecto (lo que coincide
+# con el valor por defecto no se escribe). La ubicación nacional sale de ubicaciones.csv y las covariables, de
+# betas.csv y covariables/.
 config_simple <- function(id) {
   sub <- id != 9100L
-  c(sprintf("# %s (causa %d): configuración de ejemplo (formato simple) con datos sintéticos.",
-            nombre_causa(id), id),
-    "# Las claves que no aparecen toman su valor por defecto: ver ?dl_configuracion y print(dl_proyecto(...)).",
+  c(sprintf("# %s (causa %d): configuraci\u00f3n de ejemplo con datos sint\u00e9ticos.", nombre_causa(id), id),
+    paste("# Las claves que no aparecen toman su valor por defecto: ver ?dl_configuracion y",
+          "print(dl_proyecto(...))."),
     sprintf("causa: %d", id),
     sprintf("nombre: %s", nombre_causa(id)),
     "anio: 2023",
     "edad_inicio: 30",
-    "ubicacion_nacional: 123",
     "",
     "mortalidad_exceso:",
-    sprintf("  techo: %s                  # por persona-año", format(techo(id), nsmall = 2)),
-    "",
-    "covariables:",
-    "  - nombre: SEV_scalar_agestd_cvd_pvd",
-    "    efecto_sobre: prevalencia",
-    "    transformacion: log",
-    sprintf("    beta: %s", BETAS_TEXTO$sev),
-    "  - nombre: LDI_pc",
-    "    efecto_sobre: prevalencia",
-    "    transformacion: log",
-    sprintf("    beta: %s", BETAS_TEXTO$ldi),
-    "  - nombre: haqi",
-    "    efecto_sobre: mortalidad_exceso",
-    "    transformacion: lineal",
-    sprintf("    beta: %s", BETAS_TEXTO$haq),
+    sprintf("  techo: %s                  # por persona-a\u00f1o", format(techo(id), nsmall = 2)),
     "",
     "subnacional:",
-    "  anio_validacion: 2019          # año de los datos subnacionales reservados para validar",
+    "  anio_validacion: 2019          # a\u00f1o de los datos subnacionales reservados para validar",
     "",
     "sensibilidad:",
     "  peso: [0.1, 0.5, 1.0]",
     if (!sub) c("", sprintf("subtipos: [%s]", paste(SUBTIPOS$cause_id, collapse = ", "))),
     "",
     "notas:",
-    "  - Datos sintéticos de ejemplo (dismodlite).")
+    "  - Datos sint\u00e9ticos de ejemplo (dismodlite).")
 }
 for (id in CAUSAS$cause_id) escribir_texto(config_simple(id), "config", sprintf("%d.yaml", id))
 
-# ancla/: una descarga de GBD Results con «ID y nombre» (sus columnas, en su orden) con las cuatro medidas. El nombre
-# del archivo es el identificador de la adquisición del formato completo.
+# ubicaciones.csv: el país (el código 123, sin padre) y sus 25 departamentos.
+escribir_csv(data.table::data.table(ubicacion = c(LOC_NACIONAL, DEPARTAMENTOS$location_id),
+                                    nombre = c(NOMBRE_NACIONAL, DEPARTAMENTOS$location_name),
+                                    padre = c(NA_character_, rep(LOC_NACIONAL, nrow(DEPARTAMENTOS)))),
+             "ubicaciones.csv")
+
+# ancla/: una descarga de GBD Results con «ID y nombre» (sus columnas, en su orden) con las cuatro medidas; la lee
+# el lector de GBD Results.
 escribir_csv(ancla_csv[, list(measure_id, measure_name, location_id, location_name, sex_id, sex_name,
                               age_id = age_group_id, age_name = age_group_name, cause_id, cause_name, metric_id,
                               metric_name, year, val, upper, lower)],
              "ancla", "sintetico_acs_v1.csv")
 
-# covariables/: las mismas descargas del GHDx, con la columna covariate_id que traen las descargas reales.
+# covariables/: las mismas descargas del GHDx (los valores nacionales; las lee el lector del GHDx), con la columna
+# covariate_id que traen las descargas reales, y proxies.csv, la tabla del contrato con el valor de cada covariable
+# por departamento (ya cierra en el valor nacional) y su error estándar; edades vacías = todas las edades.
 ID_COVARIABLE <- c(SEV_scalar_agestd_cvd_pvd = 785L, LDI_pc = 57L, haqi = 1099L)
 for (a in unique(COV_NAC$archivo))
   escribir_csv(COV_NAC[archivo == a, list(covariate_id = ID_COVARIABLE[covariate_name_short], covariate_name_short,
                                           location_id, location_name, year_id, age_group_id, age_group_name, sex_id,
                                           sex, mean_value, lower_value, upper_value)],
                "covariables", a)
-
-# poblacion.csv: solo los departamentos (las filas nacionales son su suma y las calcula el paquete), por grupo de
-# edad quinquenal (sin la banda agregada 80+, que también se calcula), con el nombre de cada departamento.
-pob_s <- poblacion[location_level == 1L & age_group_id %in% BANDAS_POB$age_group_id]
-pob_s <- merge(pob_s, BANDAS_POB, by = "age_group_id")
-pob_s[, orden_banda := match(age_group_id, BANDAS_POB$age_group_id)]
-data.table::setorder(pob_s, location_id, year, sex_id, orden_banda)
-escribir_csv(pob_s[, list(location_id,
-                          location_name = DEPARTAMENTOS$location_name[match(location_id, DEPARTAMENTOS$location_id)],
-                          anio = year, sexo = c("hombres", "mujeres")[sex_id], edad_inicio = age_start,
-                          edad_fin = age_end, poblacion = val)],
-             "poblacion.csv")
-
-# proxies.csv: el valor de cada covariable por departamento (ya cierra en el valor nacional) y su error estándar;
-# edades vacías = todas las edades.
+FUENTE_PROXY <- c(sev = "Escalar de riesgo vascular departamental sint\u00e9tico",
+                  ldi = "Ingreso per c\u00e1pita departamental sint\u00e9tico",
+                  haq = "\u00cdndice de acceso a la atenci\u00f3n departamental sint\u00e9tico")
 bandas_px <- rbind(BANDAS_ANCLA[, list(age_group_id, inicio, fin)],
                    data.table::data.table(age_group_id = 21L, inicio = 80, fin = 125))
 px_s <- merge(proxies, PROXIES[, list(clave, covariable = covariate_name_short)], by = "clave")
 px_s <- merge(px_s, bandas_px, by = "age_group_id", all.x = TRUE)
 data.table::setorder(px_s, covariate_id_proxy, year, sex_id, age_group_id, location_id)
-escribir_csv(px_s[, list(covariable, location_id, anio = year,
-                         sexo = c("hombres", "mujeres", "ambos")[sex_id], edad_inicio = inicio, edad_fin = fin,
-                         valor = valor_calibrado, error_estandar = valor_calibrado_se)],
-             "proxies.csv")
+escribir_csv(px_s[, list(ubicacion = location_id, anio = year, sexo = c("hombres", "mujeres", "ambos")[sex_id],
+                         edad_inicio = inicio, edad_fin = fin, covariable, valor = valor_calibrado,
+                         error_estandar = valor_calibrado_se, fuente = FUENTE_PROXY[clave])],
+             "covariables", "proxies.csv")
 
-# datos.csv: los mismos datos locales, con el vocabulario del formato simple.
-FUENTES <- c(sintetico_rv_v1 = "Registro vital sintético", sintetico_estudio_v1 = "Estudio de prevalencia sintético",
-             sintetico_cohorte_v1 = "Cohorte de incidencia sintética",
-             sintetico_encuesta_v1 = "Encuesta departamental sintética",
-             sintetico_rv_dep_v1 = "Registro vital departamental sintético")
-TIPO_SIMPLE <- c(prev_estudio = "prevalencia_estudio", incidencia = "incidencia", csmr = "mortalidad")
+# betas.csv: las betas de la causa 9100 (sus subtipos no traen filas propias y usan las de su causa padre), en el
+# orden de la extracción; la escala solo con la transformación lineal.
+escribir_csv(data.table::data.table(
+  causa = 9100L, covariable = PROXIES$covariate_name_short,
+  efecto_sobre = c("prevalencia", "prevalencia", "mortalidad_exceso"), transformacion = c("log", "log", "lineal"),
+  escala = c(NA, NA, 1L),
+  beta = vapply(PROXIES$clave, function(k) sprintf("%.*f", DECIMALES_BETA[[k]], BETA[[k]]), ""),
+  inferior = vapply(PROXIES$clave, function(k) sprintf("%.*f", DECIMALES_BETA[[k]], BETA_IC[[k]][1]), ""),
+  superior = vapply(PROXIES$clave, function(k) sprintf("%.*f", DECIMALES_BETA[[k]], BETA_IC[[k]][2]), ""),
+  fuente = "Tabla sint\u00e9tica de covariables (datos sint\u00e9ticos de ejemplo)"),
+  "betas.csv")
+
+# poblacion.csv: solo los departamentos (las filas nacionales son su suma y las calcula el paquete), por grupo de
+# edad quinquenal (sin la banda agregada 80+, que también se calcula).
+pob_s <- poblacion[location_level == 1L & age_group_id %in% BANDAS_POB$age_group_id]
+pob_s <- merge(pob_s, BANDAS_POB, by = "age_group_id")
+pob_s[, orden_banda := match(age_group_id, BANDAS_POB$age_group_id)]
+data.table::setorder(pob_s, location_id, year, sex_id, orden_banda)
+escribir_csv(pob_s[, list(ubicacion = location_id, anio = year, sexo = c("hombres", "mujeres")[sex_id],
+                          edad_inicio = age_start, edad_fin = age_end, poblacion = val)],
+             "poblacion.csv")
+
+# datos.csv: los mismos datos locales, con el vocabulario del contrato.
+FUENTES <- c(sintetico_rv_v1 = "Registro vital sint\u00e9tico",
+             sintetico_estudio_v1 = "Estudio de prevalencia sint\u00e9tico",
+             sintetico_cohorte_v1 = "Cohorte de incidencia sint\u00e9tica",
+             sintetico_encuesta_v1 = "Encuesta departamental sint\u00e9tica",
+             sintetico_rv_dep_v1 = "Registro vital departamental sint\u00e9tico")
+MEDIDA_CONTRATO <- c(prev_estudio = "prevalencia", incidencia = "incidencia", csmr = "mortalidad")
 d_s <- data.table::rbindlist(datos)
-escribir_csv(d_s[, list(causa = cause_id, tipo = TIPO_SIMPLE[tipo_dato], location_id,
+escribir_csv(d_s[, list(causa = cause_id, ubicacion = location_id, anio = year_start,
                         sexo = c("hombres", "mujeres")[sex_id], edad_inicio = age_start, edad_fin = age_end,
-                        anio = year_start, valor = val, error_estandar = se, casos = x, muestra = n,
-                        excluir = outlier, motivo = outlier_motivo, fuente = FUENTES[acquisition_id], definicion)],
+                        medida = MEDIDA_CONTRATO[tipo_dato], valor = val, error_estandar = se, casos = x,
+                        muestra = n, excluir = outlier, motivo = outlier_motivo, fuente = FUENTES[acquisition_id],
+                        definicion)],
              "datos.csv")
 
-# severidad.csv: las proporciones de las cuatro causas (se usan las de la causa de cada configuración).
-NOMBRE_ESTADO <- c(`799` = "Asintomático", `9801` = "Arteriopatía sintomática leve",
-                   `9802` = "Arteriopatía sintomática moderada")
+# severidad.csv: las proporciones y los pesos de discapacidad de las cuatro causas (cada configuración usa las de su
+# causa); id_estado conserva el id de cada estado.
+NOMBRE_ESTADO <- c(`799` = "Asintom\u00e1tico", `9801` = "Arteriopat\u00eda sintom\u00e1tica leve",
+                   `9802` = "Arteriopat\u00eda sintom\u00e1tica moderada")
 escribir_csv(severidad[, list(causa = cause_id, estado = NOMBRE_ESTADO[as.character(health_state_id)],
-                              id_estado = health_state_id, proporcion = proportion, proporcion_inferior = prop_lower,
-                              proporcion_superior = prop_upper, peso_discapacidad = dw, peso_inferior = dw_lower,
+                              id_estado = health_state_id, proporcion = proportion, inferior = prop_lower,
+                              superior = prop_upper, peso_discapacidad = dw, peso_inferior = dw_lower,
                               peso_superior = dw_upper)],
              "severidad.csv")
 
 escribir_csv(verdad_csv[, list(cause_id, location_id, sex_id, anio, edad, p, i, f)], "verdad.csv")
 
 escribir_texto(c(
-  "# acs_peru: datos de ejemplo de dismodlite (formato simple)",
+  "# acs_peru: datos de ejemplo de dismodlite",
   "",
   INTRO_LEEME,
   "",
-  "Es un proyecto en el formato simple: cópialo para empezar el tuyo. Se lee con",
-  "`dl_proyecto(dl_ejemplo(), causa = 9100)`; ver `?dl_proyecto` (los archivos y sus columnas) y",
-  "`?dl_configuracion` (las claves de la configuración).",
+  "Es un proyecto con las tablas del contrato de insumos: cópialo para empezar el tuyo. Se lee con",
+  "`dl_proyecto(dl_ejemplo(), causa = 9100)`; ver `?dl_tablas` (las tablas y sus columnas), `?dl_proyecto` (la",
+  "carpeta) y `?dl_configuracion` (las claves de la configuración).",
   "",
   "- `config/`: la configuración de cada causa (`9100.yaml` ... `9103.yaml`); 9100 es la suma de sus subtipos.",
+  "- `ubicaciones.csv`: el país (código 123) y sus 25 departamentos (01-25).",
+  "- `poblacion.csv`: población de los 25 departamentos (2019, 2023 y 2024) por sexo y grupo de edad; la",
+  "  nacional es su suma y la calcula el paquete.",
   "- `ancla/`: la estimación de referencia, una descarga de GBD Results con «ID y nombre»: prevalencia,",
   "  incidencia, mortalidad y AVD por edad y sexo de las cuatro causas, 2019 y 2023.",
   "- `covariables/`: descargas del GHDx de SEV, LDI y HAQ (valores inventados) para Perú (123), Global (1) y la",
-  "  región (120).",
-  "- `poblacion.csv`: población de los 25 departamentos (2019, 2023 y 2024) por sexo y grupo de edad; la",
-  "  nacional es su suma y la calcula el paquete.",
-  "- `proxies.csv`: las tres covariables por departamento (2019, 2023 y 2024; el SEV por grupo de edad); su",
-  "  promedio ponderado por la población es el valor nacional. Siguen un índice sintético y no",
+  "  región (120), y `proxies.csv`: las tres covariables por departamento (2019, 2023 y 2024; el SEV por grupo",
+  "  de edad); su promedio ponderado por la población es el valor nacional. Siguen un índice sintético y no",
   "  describen a los departamentos reales.",
+  "- `betas.csv`: las betas de las tres covariables (las de la causa 9100; los subtipos usan las de su padre).",
   "- `datos.csv` (solo la causa 9100): mortalidad nacional, un estudio de prevalencia, una cohorte de incidencia y",
   "  un valor atípico (2023); mortalidad y prevalencia departamentales de 2019 que sirven para validar.",
   "- `severidad.csv`: proporciones y pesos de discapacidad por estado de salud de cada causa.",
   "- `verdad.csv`: curvas verdaderas p, i y f por edad, nacionales y departamentales, de 2019 y 2023 (no es un",
   "  insumo del modelo).",
   "",
-  "El mismo proyecto en el formato completo está en `acs_peru_completo`."),
+  "El mismo proyecto en el formato completo de la versión 0.2.2 está en `acs_peru_completo`."),
   "LEEME.md")
 
 invisible(TRUE)

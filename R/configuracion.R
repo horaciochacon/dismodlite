@@ -42,6 +42,8 @@
   "anchor.evidencia_ghdx",
   "anchor.modelo_variante", "anchor.componente", "anchor.componente.sequela_ids", "anchor.componente.motivo",
   "anchor.gate_err_mediano", "anchor.gate_err_mediano.valor", "anchor.gate_err_mediano.procedencia",
+  "anchor.metrica_prevalencia", "anchor.metrica_prevalencia.valor", "anchor.metrica_prevalencia.procedencia",
+  "anchor.agrupar_bandas_finas",
   "cascada", "cascada.kappa", "cascada.escala", "cascada.cota_warning",
   "cascada.heldout_anio", "cascada.heldout_anio.valor", "cascada.heldout_anio.procedencia",
   "cascada.dx_fuera_de_banda", "cascada.dx_fuera_de_banda.valor", "cascada.dx_fuera_de_banda.procedencia",
@@ -140,54 +142,55 @@
 
 #' Configuración de una causa
 #'
-#' Lee la configuración de una causa, le aplica los `cambios` y valida todos los campos. Lee los dos formatos: el
-#' **simple** (una configuración corta, con las claves de la tabla de abajo) y el **completo** (`schema:
-#' dismod_lite/v1`). La configuración simple se traduce a la completa y pasa por la misma validación; sus errores
-#' citan la clave simple y, entre paréntesis, la del formato completo (`ancla.peso (anchor.lambda): ...`). Los errores
+#' Lee la configuración de una causa, le aplica los `cambios` y valida todos los campos. Lee los dos formatos: la
+#' configuración de un **proyecto** (corta, con las claves de la tabla de abajo) y el formato **completo** (`schema:
+#' dismod_lite/v1`). La configuración de un proyecto se traduce a la completa y pasa por la misma validación; sus
+#' errores citan su clave y, entre paréntesis, la del formato completo (`ancla.peso (anchor.lambda): ...`). Los errores
 #' de una configuración completa citan la ruta del campo (`config.anchor.lambda`, ...).
 #'
-#' @section Formato simple:
-#' Lo mínimo son tres claves: `causa`, `anio` y `edad_inicio` (y `ubicacion_nacional`, el `location_id` de GBD del
-#' país, si el ancla trae más de una ubicación). Todo lo demás tiene un valor por defecto, que [dl_proyecto()]
-#' muestra y cada corrida registra. Un ejemplo con una covariable, datos locales en el ajuste y subtipos:
+#' @section Configuración de un proyecto:
+#' Lo mínimo son tres claves: `causa`, `anio` y `edad_inicio` (y `ubicacion_gbd`, el `location_id` de GBD del
+#' país, si las descargas traen más de una ubicación y el código nacional de `ubicaciones` no es su `location_id`).
+#' Todo lo demás tiene un valor por defecto, que [dl_proyecto()] muestra y cada corrida registra. Las covariables
+#' con efecto y sus betas no se declaran aquí: son la tabla `betas` del proyecto (ver [dl_tablas]). La configuración
+#' guarda decisiones; los números con su fuente van en las tablas. Por eso, con la carpeta de un proyecto,
+#' `dl_configuracion()` lee también sus tablas (de ellas salen la ubicación nacional, las betas y lo que la
+#' traducción necesita): una tabla con un error lo detiene, como a [dl_proyecto()]. Un ejemplo con
+#' datos locales en el ajuste, una partición de severidad y subtipos:
 #' ```yaml
 #' causa: 1234
 #' nombre: Enfermedad de ejemplo
 #' anio: 2023
 #' edad_inicio: 30
-#' ubicacion_nacional: 130
+#' ubicacion_gbd: 130
 #' ancla:
 #'   peso: 0.5                  # los datos locales ya informaron la estimación de referencia
 #' nudos: [30, 40, 50, 60, 70, 80, 95]
 #' mortalidad_exceso:
 #'   techo: 0.25                # por persona-año
-#' datos_en_ajuste: [prevalencia_estudio, mortalidad]
-#' covariables:
-#'   - nombre: haqi             # covariate_name_short de la descarga del GHDx
-#'     efecto_sobre: mortalidad_exceso
-#'     transformacion: lineal
-#'     beta: [-0.012, -0.018, -0.006]   # media e intervalo del 95 % publicados
+#' datos_en_ajuste: [prevalencia, mortalidad]
+#' severidad:
+#'   particion: particion/mi_corrida   # carpeta de la corrida de partición, relativa al proyecto
+#'   padre: 1230                       # la causa cuya partición reparte las secuelas
+#' componente:
+#'   secuelas: [5001, 5002]            # las secuelas que forman el componente que se modela
 #' subtipos: [1235, 1236, 1237]
 #' notas:
 #'   - ancla.peso 0.5 porque el estudio de prevalencia entró a la estimación de referencia.
 #' ```
-#' Las claves con punto van dentro de su bloque (`ancla.peso` es `peso:` bajo `ancla:`) y las de `covariables[]` son
-#' las de cada registro de la lista `covariables`. Una covariable actúa solo en la estimación subnacional: con sus
-#' valores por ubicación en `proxies.csv`, la diferencia de log i (o de log f, con `efecto_sobre:
-#' mortalidad_exceso`) de cada ubicación es `beta` por su diferencia con el valor nacional; el ajuste nacional no
-#' cambia. `escala` multiplica esa diferencia antes de la beta, solo con `transformacion: lineal` (con `log` o
-#' `logit` no interviene y debe ser 1): con una beta estimada con la covariable en 0-1 y una descarga del GHDx en
-#' 0-100, `escala: 0.01`; `escala_confirmada: true` confirma, en cambio, una beta lineal de haqi grande por punto de
-#' 0-100 (sin ella, [dl_insumos()] la rechaza por increíble). `avanzado:` pasa claves del formato completo tal cual
-#' y se aplica al final (para expertos). El bloque `subnacional` también se puede llamar `departamentos`, su nombre
-#' anterior. La carpeta del proyecto y sus archivos: ver [dl_proyecto()]. Todas las claves, con su valor por
-#' defecto, están en la tabla de la sección siguiente.
+#' Las claves con punto van dentro de su bloque (`ancla.peso` es `peso:` bajo `ancla:`). Las covariables actúan solo
+#' en la estimación subnacional: con sus valores por ubicación en la tabla `covariables`, la diferencia de log i (o de
+#' log f, con `efecto_sobre: mortalidad_exceso` en la tabla `betas`) de cada ubicación es `beta` por su diferencia con
+#' el valor nacional; el ajuste nacional no cambia. `avanzado:` pasa claves del formato completo tal cual y se aplica
+#' al final (para expertos). El bloque `subnacional` también se puede llamar `departamentos`, su nombre anterior. La
+#' carpeta del proyecto y sus archivos: ver [dl_proyecto()]. Todas las claves, con su valor por defecto, están en la
+#' tabla de la sección siguiente.
 #'
 #' @param causa Identificador de la causa (`cause_id`).
-#' @param carpeta_config La carpeta que tiene la configuración (`<causa>.yaml`, o `config.yaml` en un proyecto simple
+#' @param carpeta_config La carpeta que tiene la configuración (`<causa>.yaml`, o `config.yaml` en un proyecto
 #'   de una sola causa), la carpeta de un proyecto (con `config/<causa>.yaml`) o la ruta del archivo de configuración.
 #' @param cambios Lista con nombres que se funde sobre la configuración antes de validar, con las claves del formato
-#'   completo (también para una configuración simple: se aplica sobre su traducción), por ejemplo
+#'   completo (también para la configuración de un proyecto: se aplica sobre su traducción), por ejemplo
 #'   `list(anchor = list(lambda = 0.5))`: cada clave reemplaza a la de la configuración y una lista con nombres se
 #'   funde clave a clave; `NULL` quita la clave. Una secuencia (`c("csmr", "incidencia")`, o `list(list(...))` para
 #'   registros como `remision.por_edad`) reemplaza entera a la de la configuración. Una clave que la configuración no
@@ -195,10 +198,13 @@
 #' @return Objeto de clase `dl_config`: la configuración validada, en el formato completo, una lista con sus claves
 #'   (`cause_id`, `years`, `sexos`, `edad_inicio`, `remision`, `emr_prior`, `nudos_incidencia`, `sigma_suavidad`,
 #'   `anchor`, `medidas_entrada`, `cascada`, `transformaciones`, `covariables`, `severidad`, `sensibilidad`,
-#'   `decisiones` y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave simple
-#'   sale cada una). La de una configuración simple trae además `origen`: `formato` (`"simple"`), `archivo`, `nombre`
-#'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano` o `no`), `covariables` (las
-#'   declaradas) y `por_defecto` (las claves tomadas por defecto, con su valor, como texto).
+#'   `decisiones` y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave del
+#'   proyecto sale cada una). La de un proyecto trae además `origen`: `formato` (`"simple"`), `archivo`, `nombre`
+#'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano` o `no`), `unidades`
+#'   (`"contrato"`: las tablas del proyecto ya vienen en las unidades del modelo), `betas` (la tabla `betas` de la
+#'   causa), `por_defecto` (las claves tomadas por defecto, con su valor, como texto) y `configuracion` (la
+#'   configuración del proyecto tal como se leyó, con los nombres de clave de ahora: la que la corrida congela en
+#'   `inputs/contrato/config.yaml`).
 #' @seealso [dl_proyecto()] (la carpeta del proyecto y sus archivos), [dl_nuevo_proyecto()] (una configuración
 #'   comentada con todas las claves), [dl_configuracion_ejemplo()] y [dl_insumos()] (el paso siguiente).
 #' @family configuración
@@ -221,7 +227,10 @@ dl_configuracion <- function(causa, carpeta_config = NULL, cambios = NULL) {
     .dl_stop("`carpeta_config` debe ser la ruta de una carpeta (un texto); es %s", .dl_describir_objeto(carpeta_config))
   path <- .dl_archivo_config(carpeta_config, causa)
   cfg <- .dl_leer_config(path)
-  if (!.dl_es_config_completa(cfg)) return(.dl_config_simple(cfg, path, causa, .dl_raiz_proyecto(path), cambios))
+  # la de un proyecto toma de sus tablas lo que no declara (la ubicación nacional, las betas, ...)
+  if (!.dl_es_config_completa(cfg))
+    return(.dl_preparar_contrato(cfg, path, causa, .dl_raiz_proyecto(path), cambios = cambios)$cfg)
+  .dl_avisar_claves_desconocidas(cfg)
   cfg <- .dl_fundir_cambios(cfg, cambios)
   v <- .dl_validar_config(cfg, causa)
   if (length(v$problemas))
@@ -229,6 +238,35 @@ dl_configuracion <- function(causa, carpeta_config = NULL, cambios = NULL) {
              causa, length(v$problemas), paste0("  - ", v$problemas, collapse = "\n"),
              campos = list(problemas = v$problemas))
   v$cfg
+}
+
+# Avisa de cada clave del YAML de una configuración completa que el paquete no lee (no está en .DL_CLAVES_CONFIG),
+# con la más parecida: un nombre mal escrito (`anchr`) no se ignora en silencio. Es un aviso y no un error, para no
+# romper las configuraciones de la 0.2.2 que traen claves de documentación. No entra en las claves de dentro de una
+# clave desconocida (ya se avisó de ella), ni de las claves que la lista trae como hojas (phi_sinadef: la validación
+# la rechaza con su propio mensaje), ni de las secuencias de registros (transformaciones, covariables, ...).
+.dl_avisar_claves_desconocidas <- function(cfg) {
+  desconocidas <- character()
+  recorrer <- function(x, ruta) {
+    if (!is.list(x) || is.data.frame(x) || is.null(names(x))) return()
+    for (k in names(x)) {
+      campo <- c(ruta, k)
+      txt <- paste(campo, collapse = ".")
+      if (!txt %in% .DL_CLAVES_CONFIG) desconocidas <<- c(desconocidas, txt)
+      else if (any(startsWith(.DL_CLAVES_CONFIG, paste0(txt, ".")))) recorrer(x[[k]], campo)
+    }
+  }
+  recorrer(cfg, character())
+  for (ruta in desconocidas) {
+    k <- strsplit(ruta, ".", fixed = TRUE)[[1L]]
+    prefijo <- if (length(k) > 1L) paste0(paste(k[-length(k)], collapse = "."), ".") else ""
+    hermanas <- sub(".*[.]", "", grep(paste0("^", gsub(".", "[.]", prefijo, fixed = TRUE), "[^.]+$"),
+                                     .DL_CLAVES_CONFIG, value = TRUE))
+    cerca <- .dl_sugerir_clave(k[length(k)], hermanas, prefijo)
+    .dl_warn("la clave `%s` de la configuraci\u00f3n no existe y se ignora%s", ruta,
+             if (!is.null(cerca)) paste0("; ", cerca) else "")
+  }
+  invisible(desconocidas)
 }
 
 # La tabla de las claves simples va en ?dl_configuracion justo después de «Formato simple» y antes de «Formato
@@ -244,15 +282,15 @@ NULL
 #' @name dl_configuracion
 #' @rdname dl_configuracion
 #' @section Formato completo:
-#' Una configuración es del formato completo si trae `schema: dismod_lite/v1`; si no, es simple. Es el formato de la
-#' versión 0.2.2: cada decisión va con su procedencia (`edad_inicio_fuente`, `remision.fuente`,
+#' Una configuración es del formato completo si trae `schema: dismod_lite/v1`; si no, es la de un proyecto. Es el
+#' formato de la versión 0.2.2: cada decisión va con su procedencia (`edad_inicio_fuente`, `remision.fuente`,
 #' `emr_prior.fuente_cota`, los bloques `{valor, procedencia}`) y la ubicación del ancla se declara con
 #' `anchor.location_id` (las configuraciones escritas para esa versión usan `anchor.location`). La configuración
 #' completa del ejemplo: `system.file("extdata", "acs_peru_completo", "config", "9100.yaml", package = "dismodlite")`.
 #'
-#' Una configuración simple se traduce a la completa: cada clave va a la de la columna «Formato completo» de la tabla
-#' de claves, cada procedencia que el formato completo exige dice «declarado en la configuración simple», y las
-#' claves tomadas por defecto quedan en `origen$por_defecto` (y en el manifiesto de cada corrida, en
+#' La configuración de un proyecto se traduce a la completa: cada clave va a la de la columna «Formato completo» de la
+#' tabla de claves, cada procedencia que el formato completo exige dice «declarado en la configuración del proyecto»,
+#' y las claves tomadas por defecto quedan en `origen$por_defecto` (y en el manifiesto de cada corrida, en
 #' `configuracion.por_defecto`). Sobre esa traducción se aplican, en este orden, el bloque `avanzado:` de la
 #' configuración y el argumento `cambios`, los dos con claves del formato completo. Por ejemplo, para aceptar un error
 #' mayor entre la prevalencia ajustada y la del ancla antes de escribir la corrida:
@@ -261,8 +299,8 @@ NULL
 #'   anchor:
 #'     gate_err_mediano: {valor: 0.08, procedencia: el ancla tiene pocas bandas de edad}
 #' ```
-#' Algunas claves del formato completo sin equivalente simple, útiles en `avanzado` (entre paréntesis, el valor cuando
-#' la clave no está):
+#' Algunas claves del formato completo sin equivalente en la configuración de un proyecto, útiles en `avanzado` (entre
+#' paréntesis, el valor cuando la clave no está):
 #' - `offset_lognormal`: desplazamiento de la verosimilitud log-normal (0). Hace falta si un dato local con `valor` y
 #'   `error_estandar` vale 0, o si el ancla trae un valor o un límite inferior 0 en una banda donde GBD modela la
 #'   causa.
@@ -278,6 +316,20 @@ NULL
 #'   aguda; se descuenta de la mortalidad del ancla en el prior y el techo de la EMR (0).
 #' - `anchor.gate_err_mediano`: `{valor, procedencia}`: el error relativo mediano máximo entre la prevalencia
 #'   ajustada y la del ancla con que se escribe la corrida (0.05).
+#' - `anchor.metrica_prevalencia`: `{valor, procedencia}`: la métrica en que se lee la prevalencia del ancla. `Rate`
+#'   (por defecto) es la proporción de la población, por 100 000. `Percent` repite lo que hacían las versiones hasta la
+#'   1.0.0 y sirve solo para reproducir sus corridas: en GBD Results divide los casos por las personas con alguna causa,
+#'   no por la población, y sobrestima la prevalencia (menos de 1 % en adultos, hasta 37 % antes de los 2 años).
+#' - `anchor.agrupar_bandas_finas`: `true` agrupa las bandas de 80-84 a 95+ en 80+ y las de menos de 5 años en <5,
+#'   como hasta la 1.0.0, con los pesos de su población (en un proyecto, la población nacional de la tabla
+#'   `poblacion` en el año del ancla, que entonces debe traer esas bandas; en el formato completo, `pesos_80mas`);
+#'   `false` usa las bandas tal cual llegan (así las deja la traducción de un proyecto, que agrupa con
+#'   `poblacion_detalle` solo las que la población no tiene). Por defecto `true` en el formato completo.
+#' - `extraction`: `{cause_id, motivo}`: la causa padre de un subtipo que se lee sin la configuración de su padre
+#'   (en su propia carpeta). La corrida la declara en su manifiesto y [dl_sumar_hijas()] la exige para sumar el
+#'   subtipo. Un subtipo sin filas propias en `betas` usa las de esta causa (las filas del padre sirven tal cual);
+#'   con filas propias, las suyas. En un proyecto con la configuración del padre (`subtipos`) sale sola, y la corrida
+#'   congelada de un subtipo la escribe.
 #' - `cascada.dx_fuera_de_banda`: en las edades sin grupo de edad del proxy, `cero` (sin diferencia con el valor
 #'   nacional) o `vecina` (la del grupo más próximo, con procedencia) (`cero`).
 #' - `cascada.dx_interpolacion`: entre los grupos de edad del proxy, `lineal` (interpolada entre sus puntos medios)
@@ -317,7 +369,7 @@ NULL
     "`avanzado`, con la forma del formato completo",
     "(`emr_prior.cota` es `[0, techo]`; `years.ancla` y `cascada.heldout_anio` son `{valor, procedencia}`;",
     "`cascada.modo` solo admite `plana`), o el archivo de la traducci\u00f3n donde queda.")
-  c("@section Claves de la configuraci\u00f3n simple:", rd(guia), "", "\\ifelse{html}{", tabla, "}{", lista, "}")
+  c("@section Claves de la configuraci\u00f3n de un proyecto:", rd(guia), "", "\\ifelse{html}{", tabla, "}{", lista, "}")
 }
 
 
@@ -346,14 +398,18 @@ NULL
     p("cause_id", if (is.null(cfg$cause_id)) "falta"
                   else sprintf("es %s y se pidi\u00f3 la causa %d (el nombre del archivo o el argumento `causa`)",
                                format(cfg$cause_id), causa))
-  # Ubicación del ancla: anchor.location_id (el location_id de GBD del país; lo declara la configuración simple) o,
-  # en el formato completo de la versión 0.2.2, anchor.location: peru (ubicación 123).
+  # Ubicación del ancla: anchor.location_id (el location_id de GBD del país, que lo declara la configuración simple; o
+  # el código de texto de la ubicación nacional en ubicaciones.csv) o, en el formato completo de la versión 0.2.2,
+  # anchor.location: peru (ubicación 123). Un número entero positivo, o un texto de dígitos sin cero a la izquierda
+  # ("123"), se guarda como entero; cualquier otro texto no vacío ("007", "PAIS"), como texto.
   li <- cfg$anchor$location_id
   if (!is.null(li)) {
-    if (.dl_es_texto1(li) && grepl("^[0-9]+$", li)) li <- as.numeric(li)
-    if (!.dl_es_entero1(li) || li < 1)
-      p("anchor.location_id", "debe ser un entero: el location_id de GBD del pa\u00eds (el de las filas del ancla)")
-    else cfg$anchor$location_id <- as.integer(li)
+    if (.dl_es_texto1(li) && grepl("^[1-9][0-9]*$", li) && as.numeric(li) <= .Machine$integer.max)
+      li <- as.numeric(li)
+    if (.dl_es_entero1(li) && li >= 1) cfg$anchor$location_id <- as.integer(li)
+    else if (!.dl_es_texto1(li) || !nzchar(trimws(li)))
+      p("anchor.location_id", paste0("debe ser el c\u00f3digo de la ubicaci\u00f3n nacional: un entero positivo ",
+                                     "o un texto"))
   } else if (identical(cfg$anchor$location, "region"))
     p("anchor.location", paste0("\u00abregion\u00bb est\u00e1 reservado para un ancla regional (ubicaci\u00f3n 120) ",
                                 "que esta versi\u00f3n ",
@@ -361,6 +417,11 @@ NULL
   else if (!identical(cfg$anchor$location, "peru"))
     p("anchor.location", paste0("valor admitido: peru (ubicaci\u00f3n 123; \u00abregion\u00bb est\u00e1 reservado), o ",
                                 "anchor.location_id con el location_id de GBD del pa\u00eds"))
+  # Agrupar las bandas finas del ancla (80-84 ... 95+ en 80+, las de menos de 5 años en <5): sí si no se declara.
+  af <- cfg$anchor$agrupar_bandas_finas
+  if (is.null(af)) cfg$anchor$agrupar_bandas_finas <- TRUE
+  else if (!isTRUE(af) && !isFALSE(af))
+    p("anchor.agrupar_bandas_finas", "debe ser true o false")
   if (!en_dominio(cfg$anchor$lambda, "lambda"))
     p("anchor.lambda", sprintf("debe estar en %s (peso del ancla)", dominio$lambda$texto))
   if (!en_dominio(cfg$anchor$rho_edad, "rho"))
@@ -465,6 +526,20 @@ NULL
   else bloque(cfg$anchor$gate_err_mediano, "anchor.gate_err_mediano", function(v) v > 0 && v < 1,
     "valor debe estar en (0, 1) (error relativo mediano m\u00e1ximo de anchor_identity; 0.05 por defecto)",
     "relajar el umbral de anchor_identity exige procedencia (decisi\u00f3n documentada)")
+  # Métrica de la prevalencia del ancla: Rate si no se declara (.dl_metrica_std). Percent reproduce las corridas de las
+  # versiones hasta la 1.0.0 y, como toda decisión que se aparta del valor por defecto, exige procedencia.
+  mp <- cfg$anchor$metrica_prevalencia
+  if (!is.null(mp)) {
+    if (!is.list(mp)) p("anchor.metrica_prevalencia", "debe ser un bloque {valor, procedencia}")
+    else {
+      if (!.dl_es_texto1(mp$valor) || !mp$valor %in% c("Rate", "Percent"))
+        p("anchor.metrica_prevalencia.valor",
+          "debe ser Rate (por defecto) o Percent (como las versiones hasta la 1.0.0)")
+      if (identical(mp$valor, "Percent") && (is.null(mp$procedencia) || !nzchar(mp$procedencia)))
+        p("anchor.metrica_prevalencia.procedencia",
+          "leer la prevalencia en otra m\u00e9trica exige procedencia (decisi\u00f3n documentada)")
+    }
+  }
   # Unidad de modelado distinta de la unidad de extracción: la configuración de una causa hija puede usar el YAML de
   # extracción de la causa padre. extraction.cause_id declara la causa de ese YAML y dl_insumos() lo cruza con su
   # meta.causa_gbd.

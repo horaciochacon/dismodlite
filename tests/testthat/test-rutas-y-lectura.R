@@ -227,9 +227,9 @@ test_that("una celda que no se puede convertir en los proxies o en sequela_rei.c
   s <- data.table::fread(file.path(reg, "sequela_rei.csv"), colClasses = list(character = "rol"))
   s[, sequela_id := as.character(sequela_id)][which(cause_id == 9101L)[1L], sequela_id := "s/n"]
   data.table::fwrite(s, file.path(reg, "sequela_rei.csv"))
-  expect_match(.mensaje(suppressMessages(dl_insumos(dl_configuracion_ejemplo(9101L),
+  expect_match(.mensaje(suppressMessages(dl_insumos(dl_configuracion_ejemplo(9101L, formato = "completo"),
                                                     dl_rutas_ejemplo(9101L, datos = FALSE, proxies = FALSE,
-                                                                     registro = reg)))),
+                                                                     registro = reg, formato = "completo")))),
                "la columna sequela_id de la tabla sequela_map tiene valores que no son enteros: «s/n»")
 })
 
@@ -242,8 +242,8 @@ test_that("dl_rutas() pide la ruta de un archivo, no la tabla ya leída", {
 })
 
 test_that("las rutas se resuelven igual en todas las funciones: NULL, objeto de dl_rutas() o lista con nombres", {
-  b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L),
-                                   dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE)))
+  b <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"),
+                                   dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo")))
   # NULL: las de los insumos; una lista con nombres (en español o con las claves anteriores) pasa por dl_rutas()
   expect_identical(.dl_resolver_rutas(NULL, b), b$rutas)
   expect_identical(.dl_resolver_rutas(NULL), dl_rutas())
@@ -252,10 +252,10 @@ test_that("las rutas se resuelven igual en todas las funciones: NULL, objeto de 
   # una tabla u otro objeto del paquete no son rutas: el error nombra la función del usuario
   expect_error(dl_factor_comorbilidad(b, rutas = data.frame(x = 1)),
                "^dl_factor_comorbilidad\\(\\): `rutas` debe venir de dl_rutas\\(\\).*es una tabla")
-  expect_error(dl_insumos(dl_configuracion_ejemplo(9100L), dl_configuracion_ejemplo(9100L)),
+  expect_error(dl_insumos(dl_configuracion_ejemplo(9100L, formato = "completo"), dl_configuracion_ejemplo(9100L, formato = "completo")),
                "^dl_insumos\\(\\): `rutas` debe venir de dl_rutas\\(\\).*configuración")
   # las claves de una lista se citan en `rutas`, el argumento que escribió el usuario (no en `cambios`)
-  cfg <- dl_configuracion_ejemplo(9100L)
+  cfg <- dl_configuracion_ejemplo(9100L, formato = "completo")
   expect_error(dl_insumos(cfg, rutas = list(datoss = "x.csv")),
                "^dl_insumos\\(\\): clave\\(s\\) desconocida\\(s\\) en `rutas`: datoss \\(¿quisiste decir `datos`")
   expect_error(dl_insumos(cfg, rutas = list("x.csv")), "^dl_insumos\\(\\): cada elemento de `rutas` lleva nombre")
@@ -277,9 +277,9 @@ test_that("una pieza opcional sin dar es NULL; dada y ausente, un error que la n
   expect_error(.dl_path(dl_rutas(), "std_yld", motivo = "hace falta para algo"),
                "falta la ruta de «ancla_avd» en `rutas`: hace falta para algo\\. Pásala con rutas = dl_rutas")
   # los archivos de la carpeta `registro` se leen con el lector de CSV del paquete
-  e <- .dl_etiquetas_es(dl_rutas_ejemplo(9100L))
+  e <- .dl_etiquetas_es(dl_rutas_ejemplo(9100L, formato = "completo"))
   expect_true(all(c("tabla", "id", "name_es", "slug_es") %in% names(e)) && is.character(e$id))
-  expect_error(.dl_archivo_registro(dl_rutas_ejemplo(9100L), "no_existe.csv"),
+  expect_error(.dl_archivo_registro(dl_rutas_ejemplo(9100L, formato = "completo"), "no_existe.csv"),
                "no existe el archivo «no_existe.csv» de la carpeta de `registro`")
 })
 

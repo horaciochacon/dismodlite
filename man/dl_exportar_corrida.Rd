@@ -71,8 +71,17 @@ La carpeta de la corrida:
 (\code{\link[=dl_validar_ancla]{dl_validar_ancla()}}), \code{sensibilidad.csv} (\code{\link[=dl_sensibilidad]{dl_sensibilidad()}}, si se da) y, con una cascada, \code{renorm.csv}
 (los factores de renormalización), \code{dx_bandas.csv} (la mediana y el intervalo de dX por ubicación, sexo,
 covariable y banda) y \code{amplitud.csv} (la validación de la amplitud, si se calculó).
-\item \verb{inputs/}: los insumos congelados (\code{\link[=dl_congelar_insumos]{dl_congelar_insumos()}}), la configuración usada (\code{config_usado.yaml}) y las
-descargas de covariables (\verb{ghdx_cov/}).
+\item \verb{inputs/}: los insumos congelados (\code{\link[=dl_congelar_insumos]{dl_congelar_insumos()}}), la configuración usada (\code{config_usado.yaml}, en el
+formato completo) y las descargas de covariables (\verb{ghdx_cov/}, solo con los insumos del formato completo). Con un
+proyecto de las tablas del contrato (\code{\link[=dl_proyecto]{dl_proyecto()}}), \verb{inputs/contrato/} guarda las tablas que se usaron
+(\verb{<tabla>.csv}, con las covariables nacionales; los números escritos exactos) y la configuración del proyecto tal
+como se leyó (\code{config.yaml}, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada
+archivo en \code{inputs$contrato}. \verb{inputs/contrato/} es la carpeta de un proyecto: \code{dl_proyecto(file.path(run$dir, "inputs", "contrato"))} repite la corrida sin la carpeta original, también si las tablas o la configuración se
+dieron en R. En \code{betas.csv} van las betas que usó la causa, bajo la causa de la corrida: las de su causa padre
+si es un subtipo sin betas propias, cuya configuración congelada lleva además \code{avanzado: extraction: cause_id}
+(la causa padre, que \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} exige). La carpeta de \code{severidad.particion} se copia en
+\verb{inputs/contrato/particion/<corrida>/}, con la ruta de la configuración congelada cambiada a ella y el sha256 de
+cada archivo en \code{inputs$contrato} (\code{particion}); la tabla \code{severidad}, que sale de ella, no se congela aparte.
 \item \code{manifest.yaml}: la descripción de la corrida (abajo).
 }
 
@@ -82,14 +91,14 @@ a medio escribir se borra.
 
 \code{manifest.yaml} describe la corrida: identificación, causa, parámetros, insumos (con el sha256 de cada tabla
 congelada), cascada, datos, \code{decisiones} (las de la configuración; una lista vacía si no hay), validación y
-limitaciones; en el formato simple, además, \code{configuracion} (el formato y las claves que tomaron su valor por
-defecto). En la cascada, \code{haqi_nacional} se conserva por compatibilidad con la versión 0.2.2: es \code{false} solo si la
+limitaciones; en un proyecto con las tablas del contrato de insumos, además, \code{configuracion} (el formato y las
+claves que tomaron su valor por defecto). En la cascada, \code{haqi_nacional} se conserva por compatibilidad con la versión 0.2.2: es \code{false} solo si la
 cascada aplicó un proxy subnacional de una covariable llamada \code{haqi}; si no (también en un proyecto sin esa
 covariable), es \code{true}.
 
 \code{forzar = TRUE} salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 (error relativo mediano mayor que \code{anchor.gate_err_mediano}, 0.05 por defecto), la corrida no se escribe. Ese
-máximo se declara, con su procedencia, en la configuración (en el formato simple, en \code{avanzado}; ver
+máximo se declara, con su procedencia, en la configuración (en un proyecto, en \code{avanzado}; ver
 \code{\link[=dl_configuracion]{dl_configuracion()}}).
 }
 \examples{
