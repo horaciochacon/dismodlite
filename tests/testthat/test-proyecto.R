@@ -772,3 +772,47 @@ test_that("valor_nacional_de se traduce a la sustitución del valor nacional del
   expect_identical(sus$covariate_name_short, "sev")
   expect_null(cfg$covariables[[2]]$sustituye)
 })
+
+test_that("las claves proxies.* se revisan", {
+  probs <- dismodlite:::.dl_problemas_config_simple(list(causa = 1L, anio = 2023L, edad_inicio = 30,
+    proxies = list(metodo = "kernel", transformacion = list(haqi = "razon"), excluir = list(list(anio = 2021)))))
+  expect_true(any(grepl("proxies.metodo", probs)))
+  expect_true(any(grepl("proxies.transformacion.*razon", probs)))
+  expect_true(any(grepl("proxies.excluir.*motivo", probs)))
+  # la forma de cada una
+  probs <- dismodlite:::.dl_problemas_config_simple(list(causa = 1L, anio = 2023L, edad_inicio = 30,
+    proxies = list(transformacion = "cociente", excluir = list(list(anio = "x", motivo = "m", otro = 1)))))
+  expect_true(any(grepl("proxies.transformacion: .*bloque", probs)))
+  expect_true(any(grepl("proxies.excluir\\[1\\].anio: debe ser un entero", probs)))
+  expect_true(any(grepl("proxies.excluir\\[1\\].otro: clave desconocida", probs)))
+  probs <- dismodlite:::.dl_problemas_config_simple(list(causa = 1L, anio = 2023L, edad_inicio = 30,
+    proxies = list(excluir = list(2021))))
+  expect_true(any(grepl("proxies.excluir: es una lista de registros", probs)))
+})
+
+test_that("una configuración con proxies.* válidas pasa y la traducción las ignora", {
+  s <- list(causa = 9100L, anio = 2023L, edad_inicio = 30,
+            proxies = list(metodo = "edicion", transformacion = list(haqi = "diferencia", sev = "cociente"),
+                           excluir = list(list(anio = 2021L, motivo = "cambio de modo de la encuesta"))))
+  expect_identical(dismodlite:::.dl_problemas_config_simple(s), character())
+  expect_identical(dismodlite:::.dl_problemas_config_simple(list(causa = 1L, anio = 2023L, edad_inicio = 30,
+                                                                 proxies = list(excluir = list()))), character())
+  ctx <- list(ubicacion = "PAIS", betas = NULL, covariables_subnacionales = character(), subnacional = FALSE,
+              nombre = "x")
+  cfg <- dismodlite:::.dl_traducir_config_simple(s, "config.yaml", ctx)
+  base <- dismodlite:::.dl_traducir_config_simple(s["proxies" != names(s)], "config.yaml", ctx)
+  cfg$origen$configuracion <- base$origen$configuracion <- NULL
+  expect_identical(cfg, base)                                     # sin huella en la configuración completa
+  expect_false(any(grepl("proxies", names(cfg$origen$por_defecto))))
+  expect_length(dismodlite:::.dl_validar_config(cfg, 9100L)$problemas, 0L)
+})
+
+test_that("la configuración comentada de un proyecto nuevo trae las claves proxies.* como ejemplo", {
+  l <- dismodlite:::.dl_plantilla_config(list(causa = 1L, anio = 2023L, edad_inicio = 30))
+  i <- which(l == "# proxies:")
+  expect_length(i, 1L)
+  expect_identical(l[i + 1:3], c("#   metodo: paseo_aleatorio", "#   transformacion: {haqi: diferencia}",
+                                 "#   excluir: [{anio: 2021, motivo: cambio de modo de la encuesta}]"))
+  y <- yaml::yaml.load(paste(sub("^# ", "", l[i + 0:3]), collapse = "\n"))      # quitar el «# » deja YAML válido
+  expect_identical(y$proxies$excluir[[1]]$anio, 2021L)
+})
