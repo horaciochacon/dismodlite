@@ -485,21 +485,22 @@
 #'
 #' @details
 #' **Gradiente de cada edición.** Por covariable, sexo, banda de edad y edición t, el gradiente de la ubicación d
-#' compara su valor con p̄_t, el promedio de esa edición ponderado por la población del año de `poblacion` más
-#' cercano a t (con dos igual de cerca, el anterior). p̄_t se toma sobre las ubicaciones **comunes**, las que están
+#' compara su valor con \eqn{\bar p_t}{pbar_t}, el promedio de esa edición ponderado por la población del año de `poblacion` más
+#' cercano a t (con dos igual de cerca, el anterior). \eqn{\bar p_t}{pbar_t} se toma sobre las ubicaciones **comunes**, las que están
 #' en todas las ediciones: así la referencia no se mueve cuando una edición no trae todas las ubicaciones. Si las
 #' ediciones no traen las mismas ubicaciones, la función avisa cuáles faltan; si menos de dos están en todas, es un
 #' error (excluye las ediciones con menos ubicaciones).
-#' - `cociente`: g = log(p / p̄_t), con error se / p (aproximación delta de la escala log). Para indicadores
+#' - `cociente`: \eqn{g = \log(p / \bar p_t)}{g = log(p / pbar_t)}, con error se / p (aproximación delta de la escala log). Para indicadores
 #'   positivos que se comparan en proporción (prevalencias, tasas); exige valores mayores que 0.
-#' - `diferencia`: g = p − p̄_t, con error se. Para índices en los que importa la distancia en puntos (como un
+#' - `diferencia`: \eqn{g = p - \bar p_t}{g = p - pbar_t}, con error se. Para índices en los que importa la distancia en puntos (como un
 #'   índice de 0 a 100) o indicadores que pueden valer 0.
 #'
 #' **Gradiente del año que se estima.**
 #' - `edicion`: el de la edición del año o, si no hay, el de la más cercana (con dos igual de cerca, la anterior),
 #'   con su varianza se_g².
 #' - `paseo_aleatorio`: cada serie (covariable, ubicación, sexo y banda) sigue un paseo aleatorio,
-#'   g_t = g_{t−1} + η_t con η_t ~ N(0, q·Δt), observado con su error. Un filtro de Kalman y un suavizador RTS dan
+#'   \eqn{g_t = g_{t-1} + \eta_t}{g_t = g_(t-1) + eta_t} con \eqn{\eta_t \sim N(0, q \Delta t)}{eta_t ~ N(0, q dt)},
+#'   observado con su error. Un filtro de Kalman y un suavizador RTS dan
 #'   el gradiente en el año que se estima, haya o no edición ese año, usando todas las ediciones de la serie. q, la
 #'   varianza por año del gradiente, se estima por máxima verosimilitud, una por covariable con todas sus series.
 #'
@@ -507,17 +508,19 @@
 #' indicador con `diferencia`). Con q muy chico el gradiente es casi constante y el resultado es la media de las
 #' ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de `edicion`. Si q queda
 #' en un borde de su intervalo de búsqueda, `calibracion` dice cuál (`q_en_borde`: `"inferior"` o `"superior"`): en el
-#' inferior (gradiente estable) la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si todas las
-#' series de una covariable tienen una sola edición, q no se puede estimar: se usa la edición de cada serie, con un
+#' inferior (gradiente estable) la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si
+#' todas las series de una covariable tienen una sola edición, q no se puede estimar: se usa la edición de cada serie, con un
 #' aviso, y `q` es `NA`. Una serie con una sola edición entre otras que sí estiman q coincide con `edicion` solo en
-#' el año de esa edición; en otro año su varianza suma q·|Δt|.
+#' el año de esa edición; en otro año su varianza suma \eqn{q |\Delta t|}{q |dt|}.
 #'
 #' **Cierre.** Por sexo y banda, con w_d la población de cada ubicación en el año de `poblacion` más cercano a `anio`
 #' y X el valor nacional:
-#' - `cociente`: X_d = X · exp(ĝ_d) / Σ w_d exp(ĝ_d), con error X_d · √S_d;
-#' - `diferencia`: X_d = X + ĝ_d − Σ w_d ĝ_d, con error √S_d.
+#' - `cociente`: \eqn{X_d = X e^{\hat g_d} / \sum_d w_d e^{\hat g_d}}{X_d = X exp(ghat_d) / sum_d w_d exp(ghat_d)}
+#'   (con los w_d normalizados para sumar 1), con error \eqn{X_d \sqrt{S_d}}{X_d sqrt(S_d)};
+#' - `diferencia`: \eqn{X_d = X + \hat g_d - \sum_d w_d \hat g_d}{X_d = X + ghat_d - sum_d w_d ghat_d}, con error
+#'   \eqn{\sqrt{S_d}}{sqrt(S_d)}.
 #'
-#' Σ w_d X_d / Σ w_d = X por construcción. El valor nacional es la fila de `covariables` de la covariable sin
+#' \eqn{\sum_d w_d X_d / \sum_d w_d = X}{sum_d w_d X_d / sum_d w_d = X} por construcción. El valor nacional es la fila de `covariables` de la covariable sin
 #' `ubicacion` (o con una que no está en los crudos), del año `anio_nacional`, del mismo sexo o de ambos y de la misma
 #' banda o de todas las edades; gana la que coincide en más.
 #'
@@ -553,14 +556,17 @@
 #' @seealso [dl_tablas] (la tabla `proxies_crudos`), [dl_tabla()], [dl_proyecto()].
 #' @family proyecto
 #' @examples
-#' pob <- data.frame(ubicacion = rep(c("R01", "R02", "R03"), each = 2), anio = rep(c(2019, 2023), 3),
+#' pob <- data.frame(ubicacion = rep(c("R01", "R02", "R03"), each = 2),
+#'                   anio = rep(c(2019, 2023), 3),
 #'                   sexo = "ambos", edad_inicio = 0, edad_fin = NA,
 #'                   poblacion = c(100, 110, 300, 290, 200, 210))
-#' crudos <- data.frame(ubicacion = rep(c("R01", "R02", "R03"), 3), anio = rep(c(2019, 2021, 2023), each = 3),
+#' crudos <- data.frame(ubicacion = rep(c("R01", "R02", "R03"), 3),
+#'                      anio = rep(c(2019, 2021, 2023), each = 3),
 #'                      covariable = "haqi", indicador = "índice de acceso (encuesta)",
 #'                      valor = c(40, 60, 52, 45, 58, 50, 41, 63, 55), error_estandar = 1.5)
 #' nacional <- data.frame(anio = 2023, covariable = "haqi", valor = 56.4)
-#' cal <- dl_calibrar_proxies(crudos, nacional, pob, anio = 2023, transformacion = c(haqi = "diferencia"))
+#' cal <- dl_calibrar_proxies(crudos, nacional, pob, anio = 2023,
+#'                            transformacion = c(haqi = "diferencia"))
 #' cal
 #' attr(cal, "calibracion")
 #' # las series: gradiente observado (puntos) y suavizado (líneas), por ubicación
@@ -568,13 +574,13 @@
 #' plot(g ~ anio, s, col = factor(ubicacion), pch = 19, ylab = "gradiente")
 #' for (u in unique(s$ubicacion)) lines(g_suavizado ~ anio, s[s$ubicacion == u, ])
 #'
-#' # el proyecto de ejemplo trae una encuesta con tres ediciones (proxies_crudos.csv): dl_proyecto() la calibra
+#' # el proyecto de ejemplo trae una encuesta de tres ediciones: dl_proyecto() la calibra
 #' p <- dl_proyecto(dl_ejemplo(), causa = 9100)
 #' attr(p$calibracion, "calibracion")[, c("covariable", "transformacion", "q", "ediciones")]
 #' # la misma calibración a mano, para otro año, con el método de la edición más cercana
 #' t <- p$tablas
-#' cal19 <- dl_calibrar_proxies(t$proxies_crudos, t$covariables, t$poblacion, anio = 2019, metodo = "edicion",
-#'                              transformacion = c(haqi = "diferencia"))
+#' cal19 <- dl_calibrar_proxies(t$proxies_crudos, t$covariables, t$poblacion, anio = 2019,
+#'                              metodo = "edicion", transformacion = c(haqi = "diferencia"))
 #' head(cal19)
 #' @export
 dl_calibrar_proxies <- function(crudos, covariables, poblacion, anio, metodo = c("paseo_aleatorio", "edicion"),
