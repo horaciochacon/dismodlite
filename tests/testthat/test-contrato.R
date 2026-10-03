@@ -167,3 +167,10 @@ test_that("un dato con anio_inicio mayor que anio_fin es un problema de la tabla
   e <- expect_error(dl_tabla("datos", d), class = "dl_error")
   expect_identical(e$problemas, "anio_inicio debe ser menor o igual que anio_fin (fila(s) 2 del data.frame)")
 })
+
+test_that("proxies_crudos: tabla del contrato con su plantilla y sus reglas", {
+  d <- dl_plantilla("proxies_crudos")
+  expect_s3_class(dl_tabla("proxies_crudos", d), "dl_tabla")
+  d <- dl_plantilla("proxies_crudos"); d$anio[2] <- d$anio[1]
+  expect_error(dl_tabla("proxies_crudos", d), "repetidas")
+})

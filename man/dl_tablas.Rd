@@ -285,6 +285,38 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 }
 }
 
+\section{Tabla \code{proxies_crudos}}{
+
+\ifelse{html}{
+\tabular{llll}{
+\strong{columna} \tab \strong{tipo} \tab \strong{exige} \tab \strong{qué es}\cr
+\code{ubicacion} \tab texto \tab sí \tab Ubicación subnacional\cr
+\code{anio} \tab entero \tab sí \tab Año de la edición de la encuesta\cr
+\code{sexo} \tab texto \tab no \tab Sexo; sin la columna, ambos\cr
+\code{edad_inicio} \tab número \tab no \tab Primera edad; sin las columnas de edad, todas las edades (años)\cr
+\code{edad_fin} \tab número \tab no \tab Fin de la banda (excluido) (años)\cr
+\code{covariable} \tab texto \tab sí \tab Covariable de GBD que representa (como en betas)\cr
+\code{indicador} \tab texto \tab no \tab Nombre del indicador crudo; pasa a la fuente de las filas calibradas\cr
+\code{valor} \tab número \tab sí \tab Estimación de la encuesta\cr
+\code{error_estandar} \tab número \tab sí \tab Error estándar de la estimación (mayor que 0)\cr
+\code{fuente} \tab texto \tab no \tab Procedencia\cr
+}
+}{
+\describe{
+\item{\code{ubicacion}}{Ubicación subnacional. Texto, obligatoria.}
+\item{\code{anio}}{Año de la edición de la encuesta. Entero, obligatoria.}
+\item{\code{sexo}}{Sexo; sin la columna, ambos. Texto, opcional.}
+\item{\code{edad_inicio}}{Primera edad; sin las columnas de edad, todas las edades (años). Número, opcional.}
+\item{\code{edad_fin}}{Fin de la banda (excluido) (años). Número, opcional.}
+\item{\code{covariable}}{Covariable de GBD que representa (como en betas). Texto, obligatoria.}
+\item{\code{indicador}}{Nombre del indicador crudo; pasa a la fuente de las filas calibradas. Texto, opcional.}
+\item{\code{valor}}{Estimación de la encuesta. Número, obligatoria.}
+\item{\code{error_estandar}}{Error estándar de la estimación (mayor que 0). Número, obligatoria.}
+\item{\code{fuente}}{Procedencia. Texto, opcional.}
+}
+}
+}
+
 \seealso{
 \code{\link[=dl_tabla]{dl_tabla()}}, \code{\link[=dl_plantilla]{dl_plantilla()}}, \code{\link[=dl_proyecto]{dl_proyecto()}}.
 
