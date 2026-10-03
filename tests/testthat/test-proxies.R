@@ -58,6 +58,33 @@ test_that("q se recupera en series simuladas", {
   expect_true(is.na(dismodlite:::.dl_estimar_q(list(list(t = 2020, y = 0.1, se = 0.1)))))
 })
 
+# Las series de una sola edición no entran en la verosimilitud de q, pero sí en σ̄² (la mediana de se_g²): añadirlas
+# con otro error mueve el intervalo de búsqueda y deja la verosimilitud igual. El óptimo no se puede mover.
+test_that("q no depende del intervalo de búsqueda", {
+  set.seed(7)
+  series <- lapply(1:30, function(i) {
+    se <- runif(4, 0.05, 0.1)
+    list(t = c(2018, 2019, 2021, 2023), y = cumsum(rnorm(4, 0, 0.1)) + rnorm(4, 0, se), se = se)
+  })
+  sueltas <- function(se) rep(list(list(t = 2020, y = 0, se = se)), 500)
+  q <- dismodlite:::.dl_estimar_q(series)
+  for (se in c(0.01, 0.9)) {
+    otras <- c(series, sueltas(se))
+    expect_equal(dismodlite:::.dl_limites_q(otras), se^2 * dismodlite:::.DL_Q_LIMITES_REL)   # el intervalo sí cambió
+    expect_equal(dismodlite:::.dl_estimar_q(otras), q, tolerance = 1e-7)
+  }
+  expect_false(isTRUE(all.equal(dismodlite:::.dl_limites_q(series), 0.01^2 * dismodlite:::.DL_Q_LIMITES_REL)))
+})
+
+test_that("la escala de q sale de los errores positivos; sin ninguno es un error", {
+  s <- list(list(t = c(2018, 2020, 2022), y = c(0.1, 0.2, 0.1), se = c(0, 0, 0.1)))
+  expect_equal(dismodlite:::.dl_limites_q(s), 0.1^2 * dismodlite:::.DL_Q_LIMITES_REL)
+  expect_true(is.finite(dismodlite:::.dl_estimar_q(s)))
+  s0 <- list(list(t = c(2018, 2020), y = c(0.1, 0.2), se = c(0, 0)))
+  expect_error(dismodlite:::.dl_limites_q(s0), "mayor que 0")
+  expect_error(dismodlite:::.dl_estimar_q(s0), "mayor que 0")
+})
+
 test_that("el gradiente de una edición, en cociente y en diferencia", {
   p <- c(0.2, 0.4); se <- c(0.02, 0.04); N <- c(1, 3)
   pbar <- sum(N * p) / sum(N)

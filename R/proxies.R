@@ -11,7 +11,7 @@
 #   p̄_t        Σ_{d∈C} N_{d,t} p_{d,t} / Σ_{d∈C} N_{d,t}  (g se calcula para toda d presente en t)
 #   g_{d,t}    gradiente: log(p_{d,t} / p̄_t) (cociente) o p_{d,t} − p̄_t (diferencia); se_g su error
 #   q          varianza por año del paseo aleatorio del gradiente (en las unidades de g al cuadrado)
-#   σ̄²         mediana de se_g² sobre todas las observaciones (serie, edición) de la covariable: la escala de q
+#   σ̄²         mediana de se_g² sobre las observaciones (serie, edición) de la covariable con se_g > 0: escala de q
 #   ĝ_d, S_d   gradiente suavizado en el año a y su varianza
 #   w_d        población de d en el año a, normalizada en el sexo y la banda
 #   X          valor nacional de la covariable; X_d el valor calibrado de d
@@ -24,6 +24,7 @@
 #   q ∈ σ̄² [r_min, r_max]                           (r_min, r_max: .DL_Q_LIMITES_REL)
 # relativo porque, con diferencia, g está en las unidades del indicador: el mismo indicador ×100 da q ×10⁴, y un
 # intervalo fijo cortaría a uno y no al otro. Con σ̄² como escala, el resultado no depende de las unidades.
+# La búsqueda es en log q con tolerancia .DL_Q_TOL_LOG: q no depende del intervalo más allá de ~1e-7 relativo.
 #
 # Cierre, por sexo y banda (exacto por construcción: Σ_d w_d X_d = X):
 #   cociente:    X_d = X exp(ĝ_d) / Σ_d w_d exp(ĝ_d)     se(X_d) = X_d sqrt(S_d)
@@ -45,10 +46,16 @@
 # ese error (raíz de 1e3) hace que cada edición mande sola. El intervalo absoluto de una covariable: .dl_limites_q().
 .DL_Q_LIMITES_REL <- c(1e-6, 1e3)
 
-# Distancia en log q a un límite del intervalo por debajo de la cual q quedó en el borde. optimize() se detiene a
-# lo sumo a unas dos veces su tolerancia (por defecto .Machine$double.eps^0.25, en log q) del óptimo; con el óptimo en
-# el borde, ahí queda.
-.DL_Q_BORDE_LOG <- 3 * .Machine$double.eps^0.25
+# Tolerancia de optimize() en log q. Más fina no gana nada: el piso práctico del método de Brent es
+# sqrt(.Machine$double.eps) |log q| (unos 1e-7 con |log q| de 5 a 20). Con la tolerancia por defecto
+# (.Machine$double.eps^0.25, 1.2e-4) q dependía del intervalo de búsqueda en la quinta cifra.
+.DL_Q_TOL_LOG <- 1e-8
+
+# Distancia en log q a un límite del intervalo por debajo de la cual q quedó en el borde. Está entre dos escalas que
+# no se tocan: con el óptimo en el borde, optimize() se detiene a unas pocas veces sqrt(eps) |log q| + .DL_Q_TOL_LOG
+# de él (menos de 1e-6 aun con |log q| = 50), y un q a menos de 1e-4 en log (0,01 %) del límite no se distingue de
+# él en nada que importe. No depende de la tolerancia de optimize().
+.DL_Q_BORDE_LOG <- 1e-4
 
 # ---- Gradiente de una edición ----
 
@@ -121,10 +128,14 @@
 # ---- Estimación de q ----
 
 # El intervalo de búsqueda de q de una covariable (cabecera): σ̄² [r_min, r_max], con σ̄² la mediana de se_g² de
-# todas las observaciones de sus `series` (lista de list(t, y, se)).
+# todas las observaciones de sus `series` (lista de list(t, y, se)) con se_g > 0. Las de se_g = 0 (que
+# dl_calibrar_proxies() no deja pasar, pero el filtro sí acepta) no dicen nada de la escala del error y, si fueran
+# la mayoría, darían σ̄² = 0 y un intervalo vacío; sin ninguna positiva no hay escala y es un error.
 .dl_limites_q <- function(series) {
-  sigma2 <- stats::median(unlist(lapply(series, `[[`, "se"))^2)
-  sigma2 * .DL_Q_LIMITES_REL
+  se2 <- unlist(lapply(series, `[[`, "se"))^2
+  if (!any(se2 > 0))
+    .dl_stop("el intervalo de b\u00fasqueda de q necesita alg\u00fan error est\u00e1ndar del gradiente mayor que 0 y no hay ninguno")
+  stats::median(se2[se2 > 0]) * .DL_Q_LIMITES_REL
 }
 
 # q de una covariable: maximiza la suma de las log-verosimilitudes de predicción de sus `series` (lista de
@@ -135,7 +146,7 @@
   if (!length(utiles)) return(NA_real_)
   menos_loglik <- function(log_q) -sum(vapply(utiles, function(s)
     .dl_kalman_nivel_local(s$t, s$y, s$se, exp(log_q), max(s$t))$loglik, 0))
-  exp(stats::optimize(menos_loglik, log(.dl_limites_q(series)))$minimum)
+  exp(stats::optimize(menos_loglik, log(.dl_limites_q(series)), tol = .DL_Q_TOL_LOG)$minimum)
 }
 
 # ---- Cierre en el valor nacional ----
