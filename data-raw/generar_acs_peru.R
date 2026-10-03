@@ -1,7 +1,8 @@
 # Genera los datos de ejemplo del paquete, en sus dos formatos y con los mismos números:
 #   inst/extdata/acs_peru/           el proyecto en el contrato de insumos (config/<causa>.yaml, ubicaciones.csv,
 #                                    poblacion.csv sin filas nacionales, una descarga de GBD Results en ancla/, las
-#                                    descargas del GHDx y proxies.csv en covariables/, betas.csv, datos.csv,
+#                                    descargas del GHDx en covariables/, proxies_crudos.csv (una encuesta sintética
+#                                    con tres ediciones, que el paquete calibra al leer), betas.csv, datos.csv,
 #                                    severidad.csv, LEEME.md y verdad.csv);
 #   inst/extdata/acs_peru_completo/  el formato completo (el de la versión 0.2.2), que usan el arnés de
 #                                    compatibilidad y las guías avanzadas;
@@ -9,7 +10,8 @@
 # del catálogo del formato completo. Lo que el paquete calcula al leer el proyecto (las filas nacionales de la
 # población, que son la suma de las departamentales, y los pesos de 80+, que son las cuotas de la población
 # nacional) se escribe en el formato completo con las mismas cuentas y el mismo escritor (data.table::fwrite), así
-# que los dos formatos dan exactamente los mismos números.
+# que los dos formatos dan exactamente los mismos números, salvo los proxies subnacionales: el formato completo trae
+# los ya calibrados (proxies_departamentales.csv) y el simple, la encuesta de la que se calibran (proxies_crudos.csv).
 #
 # Todo es sintético: una enfermedad ficticia, la «arteriopatía crónica sintética» (ACS, causa 9100) con tres
 # subtipos (9101 miembros inferiores, 9102 carotídea, 9103 renovascular), sobre la geografía real del Perú
@@ -904,6 +906,10 @@ config_simple <- function(id) {
     "subnacional:",
     "  anio_validacion: 2019          # a\u00f1o de los datos subnacionales reservados para validar",
     "",
+    "proxies:                         # la calibraci\u00f3n de proxies_crudos.csv (?dl_calibrar_proxies)",
+    "  transformacion:",
+    "    haqi: diferencia             # un \u00edndice de 0 a 100: en puntos; el SEV y el LDI, en cociente",
+    "",
     "sensibilidad:",
     "  peso: [0.1, 0.5, 1.0]",
     if (!sub) c("", sprintf("subtipos: [%s]", paste(SUBTIPOS$cause_id, collapse = ", "))),
@@ -927,26 +933,81 @@ escribir_csv(ancla_csv[, list(measure_id, measure_name, location_id, location_na
              "ancla", "sintetico_acs_v1.csv")
 
 # covariables/: las mismas descargas del GHDx (los valores nacionales; las lee el lector del GHDx), con la columna
-# covariate_id que traen las descargas reales, y proxies.csv, la tabla del contrato con el valor de cada covariable
-# por departamento (ya cierra en el valor nacional) y su error estándar; edades vacías = todas las edades.
+# covariate_id que traen las descargas reales. Las filas subnacionales no van aquí: salen de proxies_crudos.csv.
 ID_COVARIABLE <- c(SEV_scalar_agestd_cvd_pvd = 785L, LDI_pc = 57L, haqi = 1099L)
 for (a in unique(COV_NAC$archivo))
   escribir_csv(COV_NAC[archivo == a, list(covariate_id = ID_COVARIABLE[covariate_name_short], covariate_name_short,
                                           location_id, location_name, year_id, age_group_id, age_group_name, sex_id,
                                           sex, mean_value, lower_value, upper_value)],
                "covariables", a)
-FUENTE_PROXY <- c(sev = "Escalar de riesgo vascular departamental sint\u00e9tico",
-                  ldi = "Ingreso per c\u00e1pita departamental sint\u00e9tico",
-                  haq = "\u00cdndice de acceso a la atenci\u00f3n departamental sint\u00e9tico")
+
+# proxies_crudos.csv: una encuesta de hogares sintética con tres ediciones (2019, 2021 y 2023) que mide un indicador
+# de cada covariable por departamento, como la publicaría quien la levanta; el paquete la calibra al leer el proyecto
+# (?dl_calibrar_proxies). Por serie s = (covariable, departamento d, sexo, banda) y edición t:
+#   gradiente verdadero  g_s(t): el de los proxies de arriba, log(valor_calibrado / X_t) (SEV, LDI; cociente) o
+#                        valor_calibrado - X_t (HAQ; diferencia), con X_t el valor nacional; 2021, el promedio de
+#                        2019 y 2023 (la recta entre las dos);
+#   error de muestreo    se_d = CV_ENCUESTA x sqrt(N_REFERENCIA / n_d) (SEV, LDI; relativo) o SE_ENCUESTA_HAQ x
+#                        sqrt(N_REFERENCIA / n_d) (HAQ; puntos), con n_d la muestra efectiva del departamento (la de
+#                        proxies_departamentales.csv): los departamentos chicos tienen errores mayores;
+#   valor                cociente:   L_t exp(g_s(t) + e),  L_t = ESCALA_ENCUESTA x X_t x (1 + DERIVA x (t - 2019))
+#                        diferencia: X_t + DESPLAZAMIENTO_HAQ + DERIVA_HAQ x (t - 2019) + g_s(t) + e
+#                        con e ~ N(0, se_d) en la escala del gradiente (log o puntos).
+# El nivel de la encuesta (L_t, el desplazamiento) no es el de la covariable y deriva entre ediciones: la calibración
+# lo descarta, porque solo usa la posición de cada departamento frente al promedio de su edición. El SEV va por sexo
+# y banda (40-44 ... 80+); LDI y HAQ, de ambos sexos y sin edades (todas las edades: las de la población, desde 30).
+ANIOS_ENCUESTA <- c(2019L, 2021L, 2023L)
+N_REFERENCIA <- 1000                                            # muestra en que el error es CV_ENCUESTA (o SE_...)
+CV_ENCUESTA <- c(sev = 0.02, ldi = 0.04)                        # error relativo con n = N_REFERENCIA (ajustable)
+SE_ENCUESTA_HAQ <- 1.5                                          # puntos, con n = N_REFERENCIA (ajustable)
+ESCALA_ENCUESTA <- c(sev = 0.2, ldi = 0.25)                     # nivel de la encuesta frente al de la covariable
+DERIVA <- c(sev = 0.01, ldi = 0.02)                             # por año, relativa
+DESPLAZAMIENTO_HAQ <- -6                                        # puntos
+DERIVA_HAQ <- 0.5                                               # puntos por año
+INDICADOR_ENCUESTA <- c(sev = "indicador sint\u00e9tico de riesgo vascular (proporci\u00f3n)",
+                        ldi = "indicador sint\u00e9tico de ingreso per c\u00e1pita (mensual)",
+                        haq = "indicador sint\u00e9tico de acceso a la atenci\u00f3n (0 a 100)")
+CIFRAS_ENCUESTA <- 4L                                           # cifras significativas del valor; el error, 2
+
+# Valor nacional de la covariable `k` (clave), sexo `s` y año `t`: el del GHDx; entre 2019 y 2023, la recta entre los
+# dos (2021 no tiene descarga).
+nacional_encuesta <- function(k, t, s) {
+  nombre <- PROXIES$covariate_name_short[PROXIES$clave == k]
+  stats::approx(ANIOS_VERDAD, c(ancla_cov(nombre, 2019L, s), ancla_cov(nombre, 2023L, s)), xout = t)$y
+}
+grad_verdad <- proxies[year %in% ANIOS_VERDAD,
+                       list(clave, location_id, year, sex_id, age_group_id, n_efectivo,
+                            g = ifelse(clave == "haq", valor_calibrado - ancla_ghdx,
+                                       log(valor_calibrado / ancla_ghdx)))]
+grad_verdad <- data.table::dcast(grad_verdad, clave + location_id + sex_id + age_group_id + n_efectivo ~ year,
+                                 value.var = "g")
+data.table::setnames(grad_verdad, c("2019", "2023"), c("g_2019", "g_2023"))
+data.table::setorder(grad_verdad, clave, sex_id, age_group_id, location_id)
+set.seed(SEMILLA + 4L)
+crudos <- data.table::rbindlist(lapply(ANIOS_ENCUESTA, function(t) {
+  x <- data.table::copy(grad_verdad)
+  x[, anio := t]
+  x[, g := g_2019 + (g_2023 - g_2019) * (t - 2019L) / (2023L - 2019L)]
+  x[, X := mapply(nacional_encuesta, clave, t, sex_id)]
+  x[, se_g := ifelse(clave == "haq", SE_ENCUESTA_HAQ, CV_ENCUESTA[clave]) * sqrt(N_REFERENCIA / n_efectivo)]
+  x[, e := stats::rnorm(.N, 0, se_g)]
+  x[, valor := ifelse(clave == "haq", X + DESPLAZAMIENTO_HAQ + DERIVA_HAQ * (t - 2019L) + g + e,
+                      ESCALA_ENCUESTA[clave] * X * (1 + DERIVA[clave] * (t - 2019L)) * exp(g + e))]
+  x[, error_estandar := ifelse(clave == "haq", se_g, se_g * valor)]
+  x
+}))
+crudos <- merge(crudos, PROXIES[, list(clave, covariable = covariate_name_short)], by = "clave")
+# bandas: las del SEV (40-44 ... 75-79 y 80+, 21); LDI y HAQ (todas las edades, 22), sin edades
 bandas_px <- rbind(BANDAS_ANCLA[, list(age_group_id, inicio, fin)],
                    data.table::data.table(age_group_id = 21L, inicio = 80, fin = 125))
-px_s <- merge(proxies, PROXIES[, list(clave, covariable = covariate_name_short)], by = "clave")
-px_s <- merge(px_s, bandas_px, by = "age_group_id", all.x = TRUE)
-data.table::setorder(px_s, covariate_id_proxy, year, sex_id, age_group_id, location_id)
-escribir_csv(px_s[, list(ubicacion = location_id, anio = year, sexo = c("hombres", "mujeres", "ambos")[sex_id],
-                         edad_inicio = inicio, edad_fin = fin, covariable, valor = valor_calibrado,
-                         error_estandar = valor_calibrado_se, fuente = FUENTE_PROXY[clave])],
-             "covariables", "proxies.csv")
+crudos <- merge(crudos, bandas_px, by = "age_group_id", all.x = TRUE)
+crudos[, orden_cov := match(clave, PROXIES$clave)]
+data.table::setorder(crudos, orden_cov, anio, sex_id, age_group_id, location_id)
+escribir_csv(crudos[, list(ubicacion = location_id, anio, sexo = c("hombres", "mujeres", "ambos")[sex_id],
+                           edad_inicio = inicio, edad_fin = fin, covariable, indicador = INDICADOR_ENCUESTA[clave],
+                           valor = signif(valor, CIFRAS_ENCUESTA), error_estandar = signif(error_estandar, 2L),
+                           fuente = sprintf("Encuesta de hogares sint\u00e9tica (edici\u00f3n %d)", anio))],
+             "proxies_crudos.csv")
 
 # betas.csv: las betas de la causa 9100 (sus subtipos no traen filas propias y usan las de su causa padre), en el
 # orden de la extracción; la escala solo con la transformación lineal.
@@ -1013,9 +1074,12 @@ escribir_texto(c(
   "- `ancla/`: la estimación de referencia, una descarga de GBD Results con «ID y nombre»: prevalencia,",
   "  incidencia, mortalidad y AVD por edad y sexo de las cuatro causas, 2019 y 2023.",
   "- `covariables/`: descargas del GHDx de SEV, LDI y HAQ (valores inventados) para Perú (123), Global (1) y la",
-  "  región (120), y `proxies.csv`: las tres covariables por departamento (2019, 2023 y 2024; el SEV por grupo",
-  "  de edad); su promedio ponderado por la población es el valor nacional. Siguen un índice sintético y no",
-  "  describen a los departamentos reales.",
+  "  región (120): los valores nacionales.",
+  "- `proxies_crudos.csv`: una encuesta de hogares sintética con tres ediciones (2019, 2021 y 2023) que mide un",
+  "  indicador de cada covariable por departamento (el del SEV por sexo y grupo de edad), con su error estándar.",
+  "  El paquete la calibra al leer el proyecto (`?dl_calibrar_proxies`): las filas departamentales del año que",
+  "  se estima, cuyo promedio ponderado por la población es el valor nacional. `config/` declara el HAQ en",
+  "  `diferencia` (`proxies.transformacion`). Siguen un índice sintético y no describen a los departamentos reales.",
   "- `betas.csv`: las betas de las tres covariables (las de la causa 9100; los subtipos usan las de su padre).",
   "- `datos.csv` (solo la causa 9100): mortalidad nacional, un estudio de prevalencia, una cohorte de incidencia y",
   "  un valor atípico (2023); mortalidad y prevalencia departamentales de 2019 que sirven para validar.",
@@ -1023,7 +1087,8 @@ escribir_texto(c(
   "- `verdad.csv`: curvas verdaderas p, i y f por edad, nacionales y departamentales, de 2019 y 2023 (no es un",
   "  insumo del modelo).",
   "",
-  "El mismo proyecto en el formato completo de la versión 0.2.2 está en `acs_peru_completo`."),
+  "El mismo proyecto en el formato completo de la versión 0.2.2 está en `acs_peru_completo`, con los proxies",
+  "departamentales ya calibrados en lugar de la encuesta."),
   "LEEME.md")
 
 invisible(TRUE)

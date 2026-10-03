@@ -594,11 +594,13 @@ test_that(".dl_leer_std con subruta: la población se lee desde la carpeta raíz
 # del año del ancla y los reetiquetan al año de ajuste; población y cov_proxy son las del año de ajuste. Después
 # (cascada, reglas, resumen, corrida) todo sigue filtrando por years.ajuste.
 test_that("years.ancla: el ancla se reetiqueta al año de ajuste; población y cov_proxy del año de ajuste", {
-  # el ejemplo trae población y proxies de 2019, 2023 y 2024: los insumos de 2024 se quedan con los de 2024
-  p <- rutas_completas()
+  # el ejemplo trae población de 2019, 2023 y 2024: los insumos de 2024 se quedan con la de 2024. Los proxies del
+  # proyecto son los del año con que se tradujo: los de 2024 vienen de las rutas de 2024 (con otro año, un error)
+  p <- dl_rutas_ejemplo(9100L, anio = 2024L)
   pob <- data.table::fread(p$poblacion, colClasses = list(character = "location_id"))[year == 2024L]
   px <- data.table::fread(p$cov_proxy, colClasses = list(character = "location_id"))[year == 2024L]
-  cfg <- cfg9100_datos(); cfg$years$ajuste <- list(2024L)
+  expect_gt(nrow(px), 0L)
+  cfg <- cfg9100_datos(dl_configuracion_ejemplo(9100L, anio = 2024L))
   cfg$years$ancla <- list(valor = 2023L, procedencia = "datos de ejemplo: sin ancla 2024")
   # los datos locales del ejemplo son de 2023 (las subnacionales, de 2019): con el año de ajuste 2024 quedan fuera, y
   # dos mensajes lo dicen

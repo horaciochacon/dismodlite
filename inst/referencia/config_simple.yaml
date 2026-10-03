@@ -212,6 +212,31 @@ claves:
     ejemplo: "2019"
     descripcion: Año de los datos subnacionales de datos.csv reservados para validar.
 
+  - clave: proxies.metodo
+    tipo: texto
+    destino: ""
+    valor: paseo_aleatorio
+    vocabulario: [paseo_aleatorio, edicion]
+    ejemplo: edicion
+    descripcion: >-
+      Cómo se obtiene el gradiente subnacional del año que se estima desde proxies_crudos: paseo_aleatorio suaviza
+      todas las ediciones (q por máxima verosimilitud; ver ?dl_calibrar_proxies); edicion usa la del año o la más
+      cercana.
+
+  - clave: proxies.transformacion
+    tipo: bloque
+    destino: ""
+    ejemplo: "{haqi: diferencia}"
+    descripcion: >-
+      Por covariable: cociente (tasas y proporciones; por defecto) o diferencia (índices). Cada clave es una
+      covariable de proxies_crudos.
+
+  - clave: proxies.excluir
+    tipo: lista de registros
+    destino: ""
+    ejemplo: "[{anio: 2021, motivo: cambio de modo de la encuesta}]"
+    descripcion: Ediciones de proxies_crudos que no entran, cada una con anio y motivo.
+
   - clave: sensibilidad.peso
     tipo: lista de números
     destino: sensibilidad.lambda

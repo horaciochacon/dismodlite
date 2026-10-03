@@ -13,8 +13,8 @@ las tablas).}
 \item{causa}{Causa (\code{cause_id}, un entero); \code{NULL} si el proyecto tiene una sola o la configuración la declara.}
 
 \item{...}{Tablas del contrato por su nombre (ver \link{dl_tablas}: \code{ubicaciones}, \code{poblacion}, \code{ancla}, \code{covariables},
-\code{betas}, \code{datos}, \code{severidad}, \code{fuentes_gbd}, \code{poblacion_detalle}): un \code{data.frame} o la ruta de un CSV o de una
-carpeta. Reemplazan a las de la carpeta.}
+\code{betas}, \code{datos}, \code{severidad}, \code{fuentes_gbd}, \code{poblacion_detalle}, \code{proxies_crudos}): un \code{data.frame} o la ruta
+de un CSV o de una carpeta. Reemplazan a las de la carpeta.}
 
 \item{configuracion}{Ruta del YAML de la configuración o una lista con sus claves (opcional; por defecto, la de la
 carpeta).}
@@ -29,7 +29,10 @@ la carpeta temporal de la sesión: en otra sesión, o después de cambiar la con
 traducción anterior se borra), vuelve a llamar a \code{dl_proyecto()}.
 \item \code{carpeta}: la carpeta del proyecto (\code{NULL} sin carpeta).
 \item \code{formato}: \code{"simple"} (un proyecto con las tablas del contrato) o \code{"completo"} (el formato de la 0.2.2).
-\item \code{tablas}: las tablas del contrato, una lista nombrada de \code{\link[=dl_tabla]{dl_tabla()}} (\code{NULL} en el formato completo).
+\item \code{tablas}: las tablas del contrato, una lista nombrada de \code{\link[=dl_tabla]{dl_tabla()}} (\code{NULL} en el formato completo), tal
+como vinieron (\code{covariables} sin las filas calibradas).
+\item \code{calibracion}: solo si el proyecto trae \code{proxies_crudos}, el resultado de \code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}} (las filas
+calibradas, con los atributos \code{calibracion}, \code{series} y \code{excluidas}).
 }
 }
 \description{
@@ -64,8 +67,9 @@ las tablas a una carpeta temporal de la sesión, que se reutiliza mientras no ca
 cual; solo se calcula lo que sale de la población (el total nacional, si no viene) y la agrupación del ancla en las
 bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina).
 
-\code{print()} muestra la causa, el año, las tablas que encontró, el modo subnacional y las claves de la configuración
-que tomaron su valor por defecto.
+\code{print()} muestra la causa, el año, las tablas que encontró, el modo subnacional, la calibración de
+\code{proxies_crudos} (por covariable: el método, q y las ediciones) y las claves de la configuración que tomaron su
+valor por defecto.
 
 Sin carpeta, las rutas relativas de la configuración (\code{severidad.particion}) se resuelven contra el directorio de
 trabajo; con carpeta, contra la carpeta del proyecto. Las secuelas y los estados de salud de una partición de
@@ -80,12 +84,13 @@ puede leer en un proyecto (sí en el formato completo, con sus catálogos).
   ubicaciones.csv
   poblacion.csv
   ancla/               # cualquier CSV: descargas de GBD tal cual o tablas del contrato
-  covariables/         # descargas del GHDx y/o la tabla del contrato con los proxies
+  covariables/         # descargas del GHDx y/o la tabla del contrato con los proxies ya calibrados
   betas.csv
   datos.csv
   severidad.csv
   fuentes_gbd/
   poblacion_detalle.csv
+  proxies_crudos.csv   # un indicador de encuesta por ubicación y edición: se calibra al leer
   particion/<corrida>/ # opcional: la partición de severidad que nombra severidad.particion
 }\if{html}{\out{</div>}}
 
@@ -97,7 +102,10 @@ Cada tabla es \verb{<tabla>.csv} o una carpeta \verb{<tabla>/} cuyos CSV se junt
 el país y, si hay ubicaciones subnacionales, en cada una con las tasas nacionales. \code{\link[=dl_correr]{dl_correr()}}, que calcula los
 años vividos con discapacidad (AVD), necesita también \code{severidad} (o \code{severidad.particion} en la configuración).
 \code{covariables} y \code{betas} agregan las diferencias entre ubicaciones subnacionales y \code{datos}, los datos locales. Las
-columnas de cada tabla, sus unidades y sus valores están en \link{dl_tablas}.
+columnas de cada tabla, sus unidades y sus valores están en \link{dl_tablas}. Con \code{proxies_crudos}, \code{dl_proyecto()}
+calibra los valores subnacionales de sus covariables para el año que se estima (\code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}, con las
+claves \verb{proxies.*} de la configuración) y los agrega a \code{covariables}; los de cada covariable vienen de una sola de
+las dos tablas.
 
 Con varias causas, cada una tiene su configuración en \verb{config/<causa>.yaml} y comparten las tablas, que traen las
 filas de todas en la columna \code{causa} (sin ella, una fila vale para todas). Una causa que es la suma de otras las
@@ -148,6 +156,7 @@ siguiente), \code{\link[=dl_ejemplo]{dl_ejemplo()}} (el proyecto de ejemplo), \c
 \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} (revisarla antes de correr) y \code{\link[=dl_correr]{dl_correr()}} (la corrida completa en una llamada).
 
 Funciones del proyecto:
+\code{\link{dl_calibrar_proxies}()},
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_nuevo_proyecto}()},

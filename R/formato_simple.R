@@ -151,7 +151,7 @@
   }
   for (k in t$clave[t$defecto == "obligatoria" & !grepl("[.[]", t$clave)])
     if (is.null(s[[k]])) p(k, sprintf("falta (obligatoria): %s", t$descripcion[t$clave == k]))
-  c(probs, .dl_problemas_particion(s))
+  c(probs, .dl_problemas_particion(s), .dl_problemas_proxies(s))
 }
 
 # severidad.padre y componente.secuelas se leen de la corrida de partición: sin severidad.particion no tienen de
@@ -164,6 +164,50 @@
     if (!is.null(.dl_valor_en(s, "componente.secuelas")))
       paste0("componente.secuelas: exige severidad.particion (la carpeta de la corrida de partici\u00f3n con las ",
              "fracciones de esas secuelas)"))
+}
+
+# proxies.transformacion y proxies.excluir: la tabla de claves solo sabe que son un bloque y una lista de registros; sus
+# claves y sus campos son de proxies_crudos (las covariables) y se revisan aqui, solo si su forma ya es la que toca (la
+# forma la revisa .dl_problemas_config_simple).
+.DL_PROXIES_TRANSFORMACIONES <- c("cociente", "diferencia")
+.DL_PROXIES_REGISTRO <- c("anio", "motivo")
+
+.dl_problemas_proxies <- function(s) {
+  probs <- character()
+  p <- function(clave, msg) probs <<- c(probs, sprintf("%s: %s", clave, msg))
+  tr <- .dl_valor_en(s, "proxies.transformacion")
+  if (is.list(tr) && !is.null(names(tr)))
+    for (j in names(tr)) {
+      v <- tr[[j]]
+      if (is.null(v))
+        p(paste0("proxies.transformacion.", j),
+          sprintf("falta el valor; los admitidos son: %s", paste(.DL_PROXIES_TRANSFORMACIONES, collapse = ", ")))
+      else if (!(.dl_es_texto1(v) && v %in% .DL_PROXIES_TRANSFORMACIONES))
+        p(paste0("proxies.transformacion.", j),
+          sprintf("valor no admitido: %s; los admitidos son: %s", paste(unlist(v), collapse = ", "),
+                  paste(.DL_PROXIES_TRANSFORMACIONES, collapse = ", ")))
+    }
+  ex <- .dl_valor_en(s, "proxies.excluir")
+  registros <- is.list(ex) && is.null(names(ex)) && all(vapply(ex, function(e) is.list(e) && !is.null(names(e)), NA))
+  if (!is.null(ex) && !registros)
+    p("proxies.excluir", sprintf("es una lista de registros, cada uno con las claves %s",
+                                 paste(.DL_PROXIES_REGISTRO, collapse = ", ")))
+  if (registros)
+    for (i in seq_along(ex)) {
+      e <- ex[[i]]
+      como <- function(j) sprintf("proxies.excluir[%d].%s", i, j)
+      for (j in setdiff(names(e), .DL_PROXIES_REGISTRO))
+        p(como(j), sprintf("clave desconocida; las claves posibles son: %s", paste(.DL_PROXIES_REGISTRO, collapse = ", ")))
+      if (is.null(e$anio)) p(como("anio"), "falta (obligatoria): el a\u00f1o de la edici\u00f3n que no entra")
+      else if (!.dl_es_entero1(e$anio)) p(como("anio"), "debe ser un entero (por ejemplo 2021)")
+      if (is.null(e$motivo)) p(como("motivo"), "falta (obligatoria): por qu\u00e9 no entra")
+      else if (!(.dl_es_texto1(e$motivo) && nzchar(trimws(e$motivo))))
+        p(como("motivo"), "debe ser un texto (por ejemplo cambio de modo de la encuesta)")
+    }
+  anios <- if (registros) unlist(lapply(ex, function(e) if (.dl_es_entero1(e$anio)) as.integer(e$anio)))
+  for (a in unique(anios[duplicated(anios)]))
+    p("proxies.excluir", sprintf("la edici\u00f3n %d se repite: un registro por edici\u00f3n, con su motivo", a))
+  probs
 }
 
 # Error con la lista de problemas de la configuración del proyecto `archivo`.
@@ -301,6 +345,8 @@
   pd <- pd[vapply(pd$clave, function(k) is.null(dado(k)), NA), ]
   # ubicacion_gbd: la que tomaron los lectores de las descargas (.dl_ubicacion_gbd); sin descargas, no se usó
   if (!length(contexto$ubicacion_gbd)) pd <- pd[pd$clave != "ubicacion_gbd", ]
+  # proxies.*: sin destino en el formato completo; su valor por defecto lo informa la calibracion de los proxies
+  pd <- pd[!startsWith(pd$clave, "proxies."), ]
   reglas <- c(nombre = contexto$nombre, ubicacion_gbd = paste(contexto$ubicacion_gbd, collapse = ", "),
               subnacional.modo = modo, nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
   por_defecto <- stats::setNames(ifelse(pd$clave %in% names(reglas), reglas[pd$clave],

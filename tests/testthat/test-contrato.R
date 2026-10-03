@@ -1,6 +1,7 @@
-test_that("la definición del contrato tiene las nueve tablas y el eje en cada una", {
+test_that("la definición del contrato tiene las diez tablas y el eje en cada una", {
   ref <- dismodlite:::.dl_tablas_ref()
   expect_setequal(unique(ref$tabla), dismodlite:::.DL_TABLAS)
+  expect_length(dismodlite:::.DL_TABLAS, 10L)
   expect_true(all(ref$columna[ref$rol == "eje"] %in% dismodlite:::.DL_EJE))
   expect_identical(dismodlite:::.dl_columnas_contrato("poblacion", "exigidas"),
                    c("ubicacion", "anio", "sexo", "edad_inicio", "edad_fin", "poblacion"))
@@ -166,4 +167,11 @@ test_that("un dato con anio_inicio mayor que anio_fin es un problema de la tabla
                   edad_inicio = 40, edad_fin = 45, medida = "prevalencia", valor = 0.1, error_estandar = 0.01)
   e <- expect_error(dl_tabla("datos", d), class = "dl_error")
   expect_identical(e$problemas, "anio_inicio debe ser menor o igual que anio_fin (fila(s) 2 del data.frame)")
+})
+
+test_that("proxies_crudos: tabla del contrato con su plantilla y sus reglas", {
+  d <- dl_plantilla("proxies_crudos")
+  expect_s3_class(dl_tabla("proxies_crudos", d), "dl_tabla")
+  d <- dl_plantilla("proxies_crudos"); d$anio[2] <- d$anio[1]
+  expect_error(dl_tabla("proxies_crudos", d), "repetidas")
 })

@@ -1,7 +1,7 @@
 ---
 title: "Preparar tus datos"
 description: >
-  Las tablas que necesita un proyecto, para cualquier país y causa: el eje común y la regla de omisión, las nueve
+  Las tablas que necesita un proyecto, para cualquier país y causa: el eje común y la regla de omisión, las diez
   tablas con sus columnas y sus fuentes, la carpeta y la puerta de R, cómo revisarlas, las bandas de edad del ancla,
   qué bajar de GBD y cómo se organiza la carpeta de un proyecto de modelación.
 vignette: >
@@ -23,7 +23,7 @@ Los insumos de dismodlite son unas pocas tablas, el **contrato de insumos**, y u
 explica:
 
 1. el **eje**: las seis columnas que comparten todas las tablas, y la regla para omitir las que no varían;
-2. las **nueve tablas**: para qué sirve cada una, qué columnas exige y de dónde suele salir;
+2. las **diez tablas**: para qué sirve cada una, qué columnas exige y de dónde suele salir;
 3. las dos formas de pasarlas al paquete: **la carpeta** del proyecto y **la puerta de R** (`data.frame`);
 4. cómo revisar una tabla con `dl_tabla()` y el proyecto entero con `dl_revisar_proyecto()`;
 5. las **bandas de edad** del ancla y de la población, y cuándo hace falta `poblacion_detalle`;
@@ -93,19 +93,20 @@ Las tablas son CSV en UTF-8, separados por comas y con punto decimal (en Excel, 
 Los nombres de columna no distinguen mayúsculas y algunos sinónimos fijos se aceptan (`year` por `anio`, `tipo` por
 `medida`...); las columnas de más se ignoran.
 
-## 2. Las nueve tablas
+## 2. Las diez tablas
 
 | Tabla | ¿Hace falta? | Qué aporta | De dónde suele salir |
 |---|---|---|---|
 | `ubicaciones` | siempre | la nacional y las subnacionales | se escribe |
 | `poblacion` | siempre | los pesos para promediar por edad y sumar ubicaciones | instituto de estadística, GBD o la ONU |
 | `ancla` | siempre | la estimación de referencia: prevalencia, mortalidad, AVD, incidencia | GBD Results |
-| `covariables` | si hay `betas` | el valor nacional de cada covariable y sus proxies subnacionales | GHDx y fuentes nacionales |
+| `covariables` | si hay `betas` | el valor nacional de cada covariable y, si ya están calibrados, sus proxies subnacionales | GHDx y fuentes nacionales |
 | `betas` | para las diferencias entre ubicaciones | el efecto publicado de cada covariable | el apéndice metodológico de GBD |
 | `datos` | opcional | estudios, registros y estadísticas vitales locales | encuestas y registros propios |
 | `severidad` | para los AVD | los estados de salud de la causa y sus proporciones | GBD, estudios de la causa o una partición |
 | `fuentes_gbd` | opcional | las fuentes que GBD ya usó (doble conteo) | GHDx |
 | `poblacion_detalle` | si el ancla tiene bandas más finas que la población (80 y más, menores de 5) | la población nacional con más detalle de edad | GBD o la ONU |
+| `proxies_crudos` | opcional, en lugar de los proxies de `covariables` | un indicador de encuesta por ubicación subnacional y edición, que el paquete calibra | encuestas de hogares y similares |
 
 Con las tres obligatorias (y la configuración) ya se estima la causa en el país y, si hay ubicaciones subnacionales,
 en cada una con las tasas nacionales. Cada tabla, con sus columnas (la definición es la misma que usa el validador;
@@ -206,7 +207,8 @@ El valor de cada covariable, en una sola tabla para dos usos:
 - las **filas nacionales** (sin `ubicacion`, o con la nacional): el valor de referencia, normalmente el de GBD. Se
   ponen en `covariables/` las descargas del GHDx tal cual (sección 6);
 - las **filas subnacionales**: el valor de la covariable en cada ubicación, el *proxy*, con su procedencia en
-  `fuente`.
+  `fuente`. Vienen ya calibrados en esta tabla o salen de [`proxies_crudos`](#proxies_crudos), que el paquete
+  calibra al leer el proyecto.
 
 La incertidumbre va como `error_estandar` o como `inferior` y `superior` (el intervalo del 95 %). Las covariables
 **no cambian el ajuste nacional**: mueven las tasas de cada ubicación subnacional según su diferencia con el valor
@@ -222,10 +224,15 @@ comprueba en cada una, con la población de las bandas que la forman.
 columnas("covariables")
 ```
 
+En el ejemplo, `covariables` trae solo los valores nacionales (las descargas del GHDx) y las filas subnacionales
+salen de `proxies_crudos`: `proyecto$calibracion` las tiene, con la `fuente` que dice cómo se calibraron.
+
 ```{r}
 #| label: ej-covariables
 cov <- proyecto$tablas$covariables
-head(cov[cov$ubicacion %in% "01" & cov$anio == 2023 & cov$covariable == "LDI_pc"], 3)
+head(cov[cov$covariable == "LDI_pc"], 3)
+cal <- proyecto$calibracion
+head(cal[cal$ubicacion == "01" & cal$covariable == "LDI_pc"], 3)
 ```
 
 ### `betas`
@@ -360,6 +367,37 @@ columnas("poblacion_detalle")
 dl_plantilla("poblacion_detalle")
 ```
 
+### `proxies_crudos` {#proxies_crudos}
+
+El indicador de una encuesta (u otra fuente con ediciones) que representa a una covariable, ya agregado por
+ubicación subnacional y edición, con su error estándar: por ejemplo, la proporción de hogares con un servicio en
+cada región y en cada ronda de la encuesta. Sus valores no están en la escala de la covariable ni cierran en su valor
+nacional: `dl_proyecto()` los **calibra** al leer el proyecto. Toma la posición de cada ubicación frente al promedio
+de su edición, la suaviza en el tiempo con todas las ediciones y la lleva al valor nacional del año que se estima, de
+modo que el promedio ponderado por la población cierra exactamente. El resultado son las filas subnacionales de
+`covariables` (`proyecto$calibracion`). La guía
+[Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html#de-la-encuesta-a-la-covariable)
+explica el método y `?dl_calibrar_proxies`, el detalle. La configuración elige el método, la transformación de cada
+covariable y las ediciones que no entran (claves `proxies.*`).
+
+**Una sola fuente por covariable.** Las filas subnacionales de cada covariable vienen de una de las dos tablas: de
+`covariables` (ya calibradas) o de `proxies_crudos` (se calibran). Si una covariable trae filas subnacionales en las
+dos, es un error. Cada tabla puede traer covariables distintas.
+
+Una fila sin edades (o sin las columnas de edad, o con la banda de 0 y más) es de todas las edades, las de la
+población; con edades, cada banda debe ser una unión de bandas de la población.
+
+```{r}
+#| label: col-crudos
+#| echo: false
+columnas("proxies_crudos")
+```
+
+```{r}
+#| label: ej-crudos
+head(proyecto$tablas$proxies_crudos, 3)
+```
+
 `dl_plantilla()` da la plantilla de cualquier tabla: sus columnas y una fila de ejemplo. Con `archivo`, la escribe
 como CSV.
 
@@ -376,12 +414,13 @@ mi_proyecto/
   ubicaciones.csv
   poblacion.csv
   ancla/                 cualquier CSV: descargas de GBD Results tal cual o tablas del contrato
-  covariables/           descargas del GHDx y la tabla con los proxies subnacionales
+  covariables/           descargas del GHDx y, si ya están calibrados, los proxies subnacionales
   betas.csv
   datos.csv
   severidad.csv
   fuentes_gbd/
   poblacion_detalle.csv
+  proxies_crudos.csv     un indicador de encuesta por ubicación y edición, que se calibra al leer
   particion/<corrida>/   opcional: la partición de severidad (severidad.particion)
 ```
 
@@ -521,8 +560,9 @@ dl_revisar_proyecto(carpeta)
 
 ### El cierre de las covariables {#cierre}
 
-Un error frecuente es el de los proxies que no cierran en el valor nacional. Se agrega al proyecto una covariable, con
-su beta, su descarga del GHDx y unos valores subnacionales de otra fuente (aquí, los del ejemplo en otra base de
+Los proxies de `proxies_crudos` cierran por construcción. Los que llegan ya calibrados a `covariables` se leen tal
+cual, y un error frecuente es que no cierren en el valor nacional. Se agrega al proyecto una covariable, con su beta,
+su descarga del GHDx y unos valores subnacionales de otra fuente (aquí, los calibrados del ejemplo en otra base de
 precios):
 
 ```{r}
@@ -531,9 +571,8 @@ betas <- read.csv(dl_ejemplo("betas.csv"), encoding = "UTF-8")
 betas <- betas[betas$covariable == "LDI_pc", names(betas) != "causa"]   # sin causa: vale para todas
 write.csv(betas, file.path(carpeta, "betas.csv"), row.names = FALSE, na = "", fileEncoding = "UTF-8")
 invisible(file.copy(dl_ejemplo("covariables", "LDI_PC.csv"), file.path(carpeta, "covariables")))
-proxies <- read.csv(dl_ejemplo("covariables", "proxies.csv"), colClasses = c(ubicacion = "character"),
-                    encoding = "UTF-8")
-proxies <- proxies[proxies$covariable == "LDI_pc" & proxies$anio == 2023, ]
+proxies <- as.data.frame(proyecto$calibracion)
+proxies <- proxies[proxies$covariable == "LDI_pc", ]
 proxies$valor <- proxies$valor * 0.9                     # valores de otra fuente
 proxies$error_estandar <- proxies$error_estandar * 0.9
 write.csv(proxies, file.path(carpeta, "covariables", "proxies.csv"), row.names = FALSE, na = "",
@@ -564,8 +603,10 @@ dl_revisar_proyecto(carpeta)
 ```
 
 Con una covariable por sexo o por banda de edad, el cierre se cumple en cada sexo y banda: `w`, `X` y `promedio` se
-calculan por separado en cada uno. El paquete no recalibra los valores al leerlos: la elección entre escala y
-desplazamiento es del modelador, y conviene dejarla en `notas`. La comprobación es prácticamente exacta (el promedio y
+calculan por separado en cada uno. El paquete no recalibra los valores de `covariables` al leerlos: la elección
+entre escala y desplazamiento es del modelador, y conviene dejarla en `notas`. Si los valores vienen de una encuesta,
+`proxies_crudos` hace este trabajo (con la `transformacion` `cociente`, la escala; con `diferencia`, el
+desplazamiento) y lo registra en la corrida. La comprobación es prácticamente exacta (el promedio y
 el valor nacional pueden diferir en menos de 1e-8): escribe los valores recalibrados sin redondear (`write.csv()`
 guarda 15 cifras significativas, como aquí) y no los redondees en Excel.
 
@@ -670,7 +711,8 @@ head(convertido[convertido$medida == "prevalencia" & convertido$anio == 2023], 3
 
 Los valores nacionales de las covariables de GBD se bajan del GHDx
 (<https://ghdx.healthdata.org/record/ihme-data/gbd-2023-covariates-1980-2023>), uno por covariable, y se ponen en
-`covariables/` sin editar, junto a la tabla de los proxies subnacionales. El lector toma las filas del país; del valor
+`covariables/` sin editar, junto a la tabla de los proxies subnacionales ya calibrados (si no vienen de
+`proxies_crudos`). El lector toma las filas del país; del valor
 por edad, prefiere el estandarizado por edad al de todas las edades.
 
 ### `ubicacion_gbd`: qué ubicación es el país
@@ -713,6 +755,7 @@ una_causa/
   poblacion.csv            bandas de 5 años: 0-4, 5-9, ..., 80 y más
   ancla.csv                la tabla del contrato (o ancla/ con las descargas de GBD Results)
   covariables.csv          valores nacionales y proxies subnacionales (o covariables/ con las descargas del GHDx)
+  proxies_crudos.csv       (en vez de los proxies de covariables) la encuesta que se calibra al leer
   betas.csv
   fuentes_gbd.csv
   poblacion_detalle/

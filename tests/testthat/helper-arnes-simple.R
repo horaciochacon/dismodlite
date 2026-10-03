@@ -2,7 +2,8 @@
 # insumos.
 #
 # Cada escenario S corre el proyecto de ejemplo en el contrato (una copia de dl_ejemplo() que declara en `avanzado`
-# la lectura de la versión 0.2.2, .proyecto_0_2_2, o una variante de esa copia) por la API nueva: dl_proyecto() lee la
+# la lectura de la versión 0.2.2 y trae sus proxies ya calibrados en lugar de la encuesta, .proyecto_0_2_2, o una
+# variante de esa copia) por la API nueva: dl_proyecto() lee la
 # configuración y las tablas y las traduce al formato completo, dl_insumos() arma los insumos, y desde ahí repite los
 # pasos de un escenario E sobre el formato completo:
 #   S1 = E1  nacional;
@@ -94,14 +95,57 @@
 }
 
 # El proyecto del ejemplo (ctx$raiz) con .AVANZADO_0_2_2 en la configuración de sus cuatro causas, en
-# variantes/contrato_0_2_2/ (se copia la primera vez que se pide en el contexto). Es la base de todos los escenarios S.
+# variantes/contrato_0_2_2/ (se copia la primera vez que se pide en el contexto), y con los proxies departamentales ya
+# calibrados de la versión 0.2.2 en lugar de la encuesta (escribir_proxies_calibrados(); sin proxies_crudos, la
+# clave `proxies` de la configuración no tiene uso y se quita). Es la base de todos los escenarios S.
 .proyecto_0_2_2 <- function(ctx) {
   d <- file.path(ctx$carpeta, "variantes", "contrato_0_2_2")
   if (dir.exists(d)) return(d)
-  .copiar_proyecto(ctx, ctx$raiz, "contrato_0_2_2", 9100:9103, function(s) {
+  d <- .copiar_proyecto(ctx, ctx$raiz, "contrato_0_2_2", 9100:9103, function(s) {
     s$avanzado <- utils::modifyList(if (is.null(s$avanzado)) list() else s$avanzado, .AVANZADO_0_2_2)
+    s$proxies <- NULL
     s
   })
+  escribir_proxies_calibrados(d)
+}
+
+# Bandas de edad de los proxies del formato completo del ejemplo (age_group_id) en el contrato: edad_inicio y
+# edad_fin como texto; 22 (todas las edades) sin edades.
+.BANDAS_PROXIES_0_2_2 <- data.table::data.table(
+  age_group_id = as.character(c(13:20, 21L, 22L)),
+  edad_inicio = c(as.character(seq(40, 75, by = 5)), "80", ""),
+  edad_fin = c(as.character(seq(45, 80, by = 5)), "125", ""))
+.COVARIABLES_PROXIES_0_2_2 <- c(`900101` = "SEV_scalar_agestd_cvd_pvd", `900102` = "LDI_pc", `900103` = "haqi")
+.FUENTES_PROXIES_0_2_2 <- c(`900101` = "Escalar de riesgo vascular departamental sint\u00e9tico",
+                            `900102` = "Ingreso per c\u00e1pita departamental sint\u00e9tico",
+                            `900103` = "\u00cdndice de acceso a la atenci\u00f3n departamental sint\u00e9tico")
+
+# Los proxies departamentales ya calibrados con que corrió la versión 0.2.2 (proxies_departamentales.csv de
+# acs_peru_completo) en la carpeta del proyecto `d`, como covariables/proxies.csv del contrato (filas subnacionales de
+# covariables, con el texto exacto de sus números: la misma conversión que hacía data-raw/generar_acs_peru.R antes
+# de la versión 2.1.0), sin proxies_crudos.csv y sin el bloque `proxies:` de las configuraciones (sin crudos no se
+# usa). Así el proyecto da los insumos de la 0.2.2 bit a bit. Devuelve `d`.
+escribir_proxies_calibrados <- function(d) {
+  px <- .csv_leer_texto(file.path(ruta_acs(), "proxies_departamentales.csv"))
+  b <- .BANDAS_PROXIES_0_2_2[match(px$age_group_id, .BANDAS_PROXIES_0_2_2$age_group_id)]
+  out <- data.table::data.table(ubicacion = px$location_id, anio = px$year,
+                                sexo = c("hombres", "mujeres", "ambos")[as.integer(px$sex_id)],
+                                edad_inicio = b$edad_inicio, edad_fin = b$edad_fin,
+                                covariable = unname(.COVARIABLES_PROXIES_0_2_2[px$covariate_id_proxy]),
+                                valor = px$valor_calibrado, error_estandar = px$valor_calibrado_se,
+                                fuente = unname(.FUENTES_PROXIES_0_2_2[px$covariate_id_proxy]))
+  .csv_escribir_texto(out, file.path(d, "covariables", "proxies.csv"))
+  unlink(file.path(d, "proxies_crudos.csv"))
+  # el bloque `proxies:`: su línea y las indentadas que la siguen
+  for (f in list.files(file.path(d, "config"), pattern = "[.]yaml$", full.names = TRUE)) {
+    l <- readLines(f, encoding = "UTF-8")
+    i <- which(l == "proxies:" | startsWith(l, "proxies: "))
+    if (!length(i)) next
+    fin <- i
+    while (fin < length(l) && grepl("^ ", l[fin + 1L])) fin <- fin + 1L
+    writeLines(enc2utf8(l[-(i:fin)]), f, useBytes = TRUE)
+  }
+  d
 }
 
 # Copia de .proyecto_0_2_2 en variantes/<nombre>/, con la configuración de `causa` reescrita por `cambiar`.

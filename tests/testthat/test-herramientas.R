@@ -14,11 +14,11 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada y las plantil
                                    edad_inicio = 40),
                  "^dl_nuevo_proyecto\\(\\): proyecto de la causa 501")
   for (f in c("config.yaml", "LEEME.md", "ubicaciones.csv", "poblacion.csv", "betas.csv", "datos.csv",
-              "severidad.csv", "poblacion_detalle.csv"))
+              "severidad.csv", "poblacion_detalle.csv", "proxies_crudos.csv"))
     expect_true(file.exists(file.path(d, f)), info = f)
   for (f in c("ancla", "covariables", "fuentes_gbd")) expect_true(dir.exists(file.path(d, f)), info = f)
   # las plantillas: solo el encabezado, las columnas de dl_plantilla()
-  for (t in c("ubicaciones", "betas", "severidad"))
+  for (t in c("ubicaciones", "betas", "severidad", "proxies_crudos"))
     expect_identical(readLines(file.path(d, paste0(t, ".csv"))), paste(names(dl_plantilla(t)), collapse = ","))
   # sin comentar, solo lo dado; cada clave de la tabla aparece con su descripción, su símbolo y su valor por defecto
   y <- yaml::read_yaml(file.path(d, "config.yaml"))
@@ -47,7 +47,8 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada y las plantil
   # del contrato estimates/v1)
   leeme <- paste(readLines(file.path(d, "LEEME.md"), encoding = "UTF-8"), collapse = "\n")
   expect_match(leeme, "?dl_tablas", fixed = TRUE)
-  for (f in c("ubicaciones.csv", "poblacion_detalle.csv", "fuentes_gbd/")) expect_match(leeme, f, fixed = TRUE)
+  for (f in c("ubicaciones.csv", "poblacion_detalle.csv", "proxies_crudos.csv", "fuentes_gbd/"))
+    expect_match(leeme, f, fixed = TRUE)
   expect_match(leeme, .dl_schema_estimates()$sources$gbd$url, fixed = TRUE)
   expect_match(leeme, .dl_schema_estimates()$sources$ghdx$url, fixed = TRUE)
   # otra llamada no toca lo que ya existe
@@ -71,7 +72,7 @@ test_that("la revisión de un proyecto nuevo: faltan las tablas obligatorias y l
   expect_match(r$detalle[r$paso == "poblacion"], "falta la tabla \\(o solo trae el encabezado\\): va en poblacion.csv")
   expect_match(r$sugerencia[r$paso == "ubicaciones"], "^columnas ubicacion, nombre, padre \\(ver \\?dl_tablas\\)")
   # las opcionales con solo el encabezado no aparecen: no existen
-  expect_false(any(c("betas", "datos", "severidad", "poblacion_detalle") %in% r$paso))
+  expect_false(any(c("betas", "datos", "severidad", "poblacion_detalle", "proxies_crudos", "proxies") %in% r$paso))
   expect_identical(r$estado[r$paso == "configuración"], "omitido")
   expect_match(r$detalle[r$paso == "configuración"], "espera a la tabla ubicaciones")
   expect_identical(r$estado[r$paso %in% c("proyecto", "insumos")], c("omitido", "omitido"))
@@ -149,7 +150,7 @@ test_that("de la plantilla al proyecto: llenada con las tablas del ejemplo, la r
 # ---- dl_revisar_proyecto() ----
 
 test_that("dl_revisar_proyecto() lista cada problema de una copia rota, cada uno en su tabla y con su corrección", {
-  d <- copia_ejemplo()
+  d <- escribir_proxies_calibrados(copia_ejemplo())     # sin proxies_crudos: su calibración esperaría a la población
   # 9101: una clave mal escrita
   cfg <- readLines(file.path(d, "config", "9101.yaml"), encoding = "UTF-8")
   writeLines(enc2utf8(c(cfg, "ancla:", "  pesos: 0.5")), file.path(d, "config", "9101.yaml"), useBytes = TRUE)
@@ -182,7 +183,7 @@ test_that("dl_revisar_proyecto() lista cada problema de una copia rota, cada uno
 })
 
 test_that("dl_revisar_proyecto() pone el cierre de los proxies en su tabla y avisa de la mortalidad por 100 000", {
-  d <- copia_ejemplo()
+  d <- escribir_proxies_calibrados(copia_ejemplo())
   # proxies que no cierran en el valor nacional
   px <- leer_texto(file.path(d, "covariables", "proxies.csv"))
   k <- which(px$covariable == "LDI_pc" & px$anio == "2023")[1]
@@ -379,7 +380,7 @@ test_that("dl_revisar_proyecto() ubica en su tabla lo que antes llegaba con pala
   expect_identical(r$estado[r$paso %in% c("proyecto", "insumos")], c("omitido", "omitido"))
 
   # proxies de otro año y datos imposibles: los errores de los insumos
-  d <- copia_ejemplo()
+  d <- escribir_proxies_calibrados(copia_ejemplo())
   px <- leer_texto(file.path(d, "covariables", "proxies.csv"))
   escribir_texto(px[anio != "2023"], file.path(d, "covariables", "proxies.csv"))
   r <- revisar_callado(d, causa = 9101)
@@ -405,8 +406,7 @@ test_that("dl_revisar_proyecto(): el valor nacional de una covariable con proxie
   # esas columnas, en una descarga o en todas, la revisión lo dice entre las reglas del proyecto
   for (todas in c(FALSE, TRUE)) {
     d <- copia_ejemplo()
-    archivos <- setdiff(sort(list.files(file.path(d, "covariables"), full.names = TRUE)),
-                        file.path(d, "covariables", "proxies.csv"))
+    archivos <- sort(list.files(file.path(d, "covariables"), full.names = TRUE))
     for (f in if (todas) archivos else archivos[1]) {
       cv <- leer_texto(f)
       escribir_texto(cv[, c("covariate_name_short", "location_id", "year_id", "sex_id", "mean_value")], f)
@@ -426,7 +426,7 @@ test_that("dl_revisar_proyecto(): el valor nacional de una covariable con proxie
 
 # Las tablas, la configuración y el número de causas del ejemplo para la causa 9100, para probar las reglas una a una.
 contrato_ejemplo <- function() {
-  p <- dl_proyecto(dl_ejemplo(), 9100)
+  p <- dl_proyecto(ejemplo_calibrado(), 9100)
   list(tablas = lapply(p$tablas, data.table::copy), cfg = p$configuracion)
 }
 problemas <- function(x, n_causas = 4L) .dl_problemas_proyecto(x$tablas, x$cfg, n_causas)
@@ -436,7 +436,7 @@ test_that("el proyecto de ejemplo cumple las reglas entre tablas", {
 })
 
 test_that("la revisión encuentra una ubicación que no está en ubicaciones.csv", {
-  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
+  d <- escribir_proxies_calibrados(dl_ejemplo(copiar_en = withr::local_tempdir()))
   pob <- data.table::fread(file.path(d, "poblacion.csv"), colClasses = list(character = "ubicacion"))
   pob[ubicacion == "01", ubicacion := "99"]
   data.table::fwrite(pob, file.path(d, "poblacion.csv"))
@@ -568,7 +568,7 @@ test_that("regla de la severidad: las proporciones de la causa suman 1, con la t
 
 # El proyecto de ejemplo de la causa 9100 por la puerta de los data.frame (sin carpeta), con `cambiar(tablas)` antes.
 proyecto_de_tablas <- function(cambiar = identity) {
-  d <- dl_ejemplo()
+  d <- ejemplo_calibrado()
   leer <- function(f) as.data.frame(data.table::fread(f, colClasses = "character", encoding = "UTF-8"))
   t <- cambiar(list(ubicaciones = leer(file.path(d, "ubicaciones.csv")), poblacion = leer(file.path(d, "poblacion.csv")),
                     ancla = file.path(d, "ancla"), covariables = file.path(d, "covariables"),
@@ -609,7 +609,7 @@ test_that("dl_revisar_proyecto() de un proyecto armado con data.frame: el ejempl
 test_that("un error entre tablas: dl_proyecto() con data.frame se detiene con lo que la revisión de la carpeta dice", {
   e <- expect_error(proyecto_de_tablas(function(t) { t$poblacion$ubicacion[t$poblacion$ubicacion == "01"] <- "99"; t }),
                     class = "dl_error")
-  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
+  d <- escribir_proxies_calibrados(dl_ejemplo(copiar_en = withr::local_tempdir()))
   pob <- data.table::fread(file.path(d, "poblacion.csv"), colClasses = list(character = "ubicacion"))
   pob[ubicacion == "01", ubicacion := "99"]
   data.table::fwrite(pob, file.path(d, "poblacion.csv"))
@@ -653,4 +653,65 @@ test_that("severidad.padre y componente.secuelas exigen severidad.particion; una
 test_that(".dl_num_exacto(): si ni el texto hexadecimal vuelve al número, un error claro", {
   local_mocked_bindings(.dl_leer_numeros = function(s) if (any(grepl("^0x", s))) rep(0.5, length(s)) else NULL)
   expect_error(.dl_num_exacto(0.1), "no hay un texto que vuelva exactamente a los números 0.1", class = "dl_error")
+})
+
+test_that("la revisión de un proyecto con proxies_crudos tiene el paso «proxies» (carpeta y proyecto leído)", {
+  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
+  r <- revisar_callado(d, causa = 9100)
+  x <- r[r$paso == "proxies", ]
+  expect_identical(x$estado, "ok")
+  for (cv in c("SEV_scalar_agestd_cvd_pvd", "LDI_pc", "haqi"))
+    expect_match(x$detalle, paste0(cv, ": paseo_aleatorio, q = [0-9.e-]+, ediciones 2019, 2021, 2023"))
+  pasos <- unique(r$paso)
+  expect_lt(match("proxies_crudos", pasos), match("proxies", pasos))
+  expect_lt(match("proxies", pasos), match("configuración", pasos))
+  expect_false(any(r$estado == "error"))
+  r2 <- revisar_callado(suppressMessages(dl_proyecto(d, 9100)))
+  expect_identical(r2[r2$paso == "proxies", "detalle"], x$detalle)
+  # sin proxies_crudos ni claves proxies.* no hay paso «proxies»
+  sin <- escribir_proxies_calibrados(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  expect_false("proxies" %in% revisar_callado(sin, causa = 9100)$paso)
+})
+
+test_that("claves proxies.* sin proxies_crudos: un aviso en la revisión (carpeta y proyecto leído), nada más", {
+  d <- escribir_proxies_calibrados(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  cat("proxies:\n  transformacion: {haqi: diferencia}\n", file = file.path(d, "config", "9100.yaml"), append = TRUE)
+  aviso <- "las claves proxies.* no se usan: el proyecto no trae proxies_crudos"
+  for (x in list(d, suppressMessages(dl_proyecto(d, 9100)))) {
+    r <- revisar_callado(x, causa = 9100)
+    expect_identical(r$estado[r$paso == "proxies"], "aviso")
+    expect_identical(r$detalle[r$paso == "proxies"], aviso)
+    expect_false(any(r$estado == "error"))
+  }
+  # dl_proyecto() no avisa
+  expect_no_warning(suppressMessages(dl_proyecto(d, 9100)))
+})
+
+test_that("el paso «proxies» muestra el borde inferior de q, los avisos y los errores de la calibración", {
+  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
+  f <- file.path(d, "proxies_crudos.csv")
+  cr <- data.table::fread(f, colClasses = list(character = "ubicacion"))
+  # gradiente constante: q en el borde inferior, dicho en la línea en orden (no es un aviso)
+  base <- cr[anio == 2019L]
+  cr2 <- data.table::rbindlist(lapply(c(2019L, 2021L, 2023L), function(a) data.table::copy(base)[, anio := a][]))
+  data.table::fwrite(cr2, f)
+  x <- revisar_callado(d, causa = 9100)
+  x <- x[x$paso == "proxies", ]
+  expect_identical(x$estado, "ok")
+  expect_match(x$detalle, "q = [0-9.e+-]+ \\(en el borde inferior: el gradiente es prácticamente constante\\)")
+  # una ubicación que falta en una edición: el aviso de dl_calibrar_proxies() en el paso
+  data.table::fwrite(cr2[!(ubicacion == "05" & anio == 2021L)], f)
+  x <- revisar_callado(d, causa = 9100)
+  expect_match(x$detalle[x$paso == "proxies" & x$estado == "aviso"], "no traen las mismas ubicaciones", all = FALSE)
+  # también en la revisión de un proyecto ya leído
+  p <- suppressWarnings(suppressMessages(dl_proyecto(d, 9100)))
+  expect_match(attr(p$calibracion, "avisos"), "no traen las mismas ubicaciones", all = FALSE)
+  x2 <- revisar_callado(p)
+  expect_identical(x2$detalle[x2$paso == "proxies" & x2$estado == "aviso"],
+                   x$detalle[x$paso == "proxies" & x$estado == "aviso"])
+  # un error de la calibración va en el paso, y las reglas entre tablas esperan
+  data.table::fwrite(cr2[ubicacion == "05", error_estandar := 0], f)
+  x <- revisar_callado(d, causa = 9100)
+  expect_match(x$detalle[x$paso == "proxies" & x$estado == "error"], "error_estandar debe ser mayor que 0")
+  expect_identical(x$estado[x$paso %in% c("configuración", "proyecto")], c("omitido", "omitido"))
 })

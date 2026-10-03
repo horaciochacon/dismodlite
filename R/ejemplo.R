@@ -1,11 +1,15 @@
 # Datos sintéticos de ejemplo: la arteriopatía crónica sintética (ACS, causa 9100) y sus subtipos 9101-9103, en
-# Perú y sus 25 departamentos, en dos formatos con los mismos números: inst/extdata/acs_peru (el proyecto en el
+# Perú y sus 25 departamentos, en dos formatos con los mismos números (salvo los proxies departamentales: una encuesta
+# que se calibra al leer en el primero, ya calibrados en el segundo): inst/extdata/acs_peru (el proyecto en el
 # contrato de insumos, el que se copia para empezar uno) e inst/extdata/acs_peru_completo (el formato completo de la
 # versión 0.2.2). Todos los números son sintéticos.
 
 # Causas y años que cubren los datos de ejemplo.
 .DL_CAUSAS_EJEMPLO <- 9100:9103
 .DL_ANIOS_EJEMPLO <- c(2019L, 2023L, 2024L)
+# Año de la configuración de las causas del ejemplo (`anio` en config/<causa>.yaml) y el último con ancla y valor
+# nacional de las covariables.
+.DL_ANIO_CONFIG_EJEMPLO <- 2023L
 # Carpeta de cada formato del ejemplo (en inst/extdata) y corrida de partición de severidad del formato completo
 # (particion/<corrida>/).
 .DL_CARPETAS_EJEMPLO <- c(simple = "acs_peru", completo = "acs_peru_completo")
@@ -24,8 +28,8 @@
 #' número describe a ese país ni a sus departamentos.
 #'
 #' @section Las dos carpetas del ejemplo:
-#' El ejemplo viene en dos carpetas con los mismos números, una por formato. La de `dl_ejemplo()` es `acs_peru`, con
-#' las tablas del contrato ([dl_tablas]):
+#' El ejemplo viene en dos carpetas, una por formato, con los mismos números salvo los proxies departamentales. La de
+#' `dl_ejemplo()` es `acs_peru`, con las tablas del contrato ([dl_tablas]):
 #' - `config/9100.yaml` ... `config/9103.yaml`: la configuración de cada causa; la de 9100 declara sus subtipos.
 #' - `ubicaciones.csv`: el país (código 123, sin padre) y sus 25 departamentos.
 #' - `poblacion.csv`: la población de los departamentos por año, sexo y grupo de edad, sin las filas nacionales (el
@@ -33,8 +37,12 @@
 #' - `ancla/sintetico_acs_v1.csv`: una descarga de GBD Results tal cual, con la prevalencia, la incidencia, las
 #'   muertes y los AVD de las cuatro causas, por edad y sexo, de 2019 y 2023.
 #' - `covariables/`: tres descargas del GHDx tal cual (SEV, LDI y HAQ), con los valores nacionales y, como en una
-#'   descarga real, los globales y los regionales, que no se usan; y `proxies.csv`, las tres covariables por
-#'   departamento (el SEV por sexo y grupo de edad), cuyo promedio ponderado por la población es el valor nacional.
+#'   descarga real, los globales y los regionales, que no se usan.
+#' - `proxies_crudos.csv`: una encuesta de hogares sintética con tres ediciones (2019, 2021 y 2023) que mide un
+#'   indicador de cada covariable por departamento (el del SEV por sexo y grupo de edad), con su error estándar.
+#'   [dl_proyecto()] la calibra al leer ([dl_calibrar_proxies()]): da las filas departamentales de las tres
+#'   covariables en el año que se estima, cuyo promedio ponderado por la población es el valor nacional. La
+#'   configuración declara el HAQ en `diferencia` (`proxies.transformacion`).
 #' - `betas.csv`: las betas de las tres covariables, de la causa 9100 (los subtipos usan las de su causa padre).
 #' - `datos.csv` (solo de la causa 9100): filas nacionales de 2023 (mortalidad, un estudio de prevalencia en casos y
 #'   muestra, una cohorte de incidencia y un valor atípico excluido) y filas departamentales de 2019 (mortalidad y
@@ -46,9 +54,10 @@
 #'   años, de cada causa (`cause_id`), ubicación nacional y departamental (`location_id`), sexo (`sex_id`) y año
 #'   (`anio`, 2019 y 2023).
 #'
-#' La otra, `acs_peru_completo`, es el mismo proyecto en el formato completo (el de la versión 0.2.2), con el YAML de
-#' extracción, el almacén de evidencia, el registro, los catálogos, una tabla de severidad por causa y una partición
-#' de severidad. Su ruta es `system.file("extdata", "acs_peru_completo", package = "dismodlite")`.
+#' La otra, `acs_peru_completo`, es el mismo proyecto en el formato completo (el de la versión 0.2.2), con los
+#' proxies departamentales ya calibrados en lugar de la encuesta, el YAML de extracción, el almacén de evidencia, el
+#' registro, los catálogos, una tabla de severidad por causa y una partición de severidad. Su ruta es
+#' `system.file("extdata", "acs_peru_completo", package = "dismodlite")`.
 #'
 #' Las columnas de cada tabla están en [dl_tablas], la carpeta en [dl_proyecto()] y las claves de la configuración en
 #' [dl_configuracion()].
@@ -150,9 +159,10 @@ dl_ejemplo <- function(..., copiar_en = NULL) {
 #'
 #' @param causa Causa del ejemplo: 9100 (la causa padre) o 9101, 9102, 9103 (subtipos); también se acepta una
 #'   configuración de [dl_configuracion()] (se usa su `cause_id`).
-#' @param anio Año de la corrida: 2019, 2023 o 2024, o `NULL` (el de la configuración). Los archivos traen todos los
-#'   años y el año de la corrida lo fija la configuración (`years.ajuste`, o el argumento `anio` de
-#'   [dl_configuracion_ejemplo()]); si se da aquí, [dl_insumos()] comprueba que coincida con el de la configuración.
+#' @param anio Año de la corrida: 2019, 2023 o 2024, o `NULL` (el de la configuración). El año de la corrida lo fija
+#'   la configuración (`years.ajuste`, o el argumento `anio` de [dl_configuracion_ejemplo()]); si se da aquí,
+#'   [dl_insumos()] comprueba que coincida con el de la configuración. En el formato simple, los proxies
+#'   departamentales son los de la calibración de `proxies_crudos` para ese año (ver [dl_calibrar_proxies()]).
 #' @param datos `TRUE` usa los datos locales del ejemplo (`datos.csv`), `FALSE` o `NULL` los dejan fuera; también
 #'   acepta la ruta de un CSV propio con la tabla `datos` del formato completo.
 #' @param proxies `TRUE` usa los proxies departamentales del ejemplo, `FALSE` o `NULL` los dejan fuera (sin ellos no
@@ -177,7 +187,7 @@ dl_rutas_ejemplo <- function(causa, anio = NULL, datos = TRUE, proxies = TRUE, .
   causa <- .dl_causa_ejemplo(causa)
   anio <- .dl_anio_ejemplo(anio)
   formato <- .dl_formato_ejemplo(formato)
-  base <- if (formato == "simple") dl_proyecto(dl_ejemplo(), causa)$rutas
+  base <- if (formato == "simple") .dl_proyecto_ejemplo_anio(causa, anio)$rutas
           else .dl_rutas_completo(.dl_carpeta_ejemplo("completo"), causa)
   pieza <- function(valor, clave, argumento) {
     if (isTRUE(valor)) return(base[[clave]])
@@ -202,6 +212,36 @@ dl_rutas_ejemplo <- function(causa, anio = NULL, datos = TRUE, proxies = TRUE, .
   attr(r, "codigos_libres") <- attr(base, "codigos_libres")   # la regla de los códigos subnacionales del proyecto
   if (!is.null(anio)) attr(r, "anio_ejemplo") <- anio
   r
+}
+
+# El proyecto de ejemplo de `causa` leído para el año `anio` (dl_rutas_ejemplo(anio =)): con NULL o el año de su
+# configuración, dl_proyecto(dl_ejemplo()); con otro, una copia del ejemplo en la carpeta temporal de la sesión (se
+# hace una vez por año) con `anio: <anio>` en la configuración de cada causa y, después del último año con ancla,
+# `ancla.anio` en ese año. Así proxies_crudos se calibra para el año que se estima, con el valor nacional del ancla.
+# La copia se arma en una carpeta temporal y se renombra al final: una carpeta del año, si existe, está completa.
+.dl_proyecto_ejemplo_anio <- function(causa, anio) {
+  if (is.null(anio) || anio == .DL_ANIO_CONFIG_EJEMPLO) return(dl_proyecto(dl_ejemplo(), causa))
+  raiz <- file.path(tempdir(), "dismodlite_ejemplo")
+  d <- file.path(raiz, anio)
+  if (!dir.exists(d)) {
+    dir.create(raiz, recursive = TRUE, showWarnings = FALSE)
+    tmp <- tempfile(sprintf("%d_", anio), tmpdir = raiz)
+    on.exit(unlink(tmp, recursive = TRUE), add = TRUE)
+    .dl_copiar_ejemplo(tmp)
+    for (f in list.files(file.path(tmp, "config"), pattern = "[.]yaml$", full.names = TRUE)) {
+      l <- readLines(f, encoding = "UTF-8")
+      k <- grep("^anio: [0-9]+$", l)
+      if (length(k) != 1L)
+        .dl_stop("la configuraci\u00f3n del ejemplo %s no trae una sola l\u00ednea \u00abanio: <a\u00f1o>\u00bb",
+                 basename(f))
+      l[k] <- sprintf("anio: %d", anio)
+      if (anio > .DL_ANIO_CONFIG_EJEMPLO) l <- c(l, "", "ancla:", sprintf("  anio: %d", .DL_ANIO_CONFIG_EJEMPLO))
+      writeLines(enc2utf8(l), f, useBytes = TRUE)
+    }
+    if (!file.rename(tmp, d) && !dir.exists(d))
+      .dl_stop("no se pudo preparar la copia del ejemplo para %d en %s", anio, d)
+  }
+  dl_proyecto(d, causa)
 }
 
 #' Configuración de ejemplo

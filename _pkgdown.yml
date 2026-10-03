@@ -115,8 +115,9 @@ reference:
   desc: >
     El camino recomendado: crear la carpeta de un proyecto, llenar las tablas del contrato de insumos, revisarla
     y correrla de principio a fin (`dl_nuevo_proyecto()`, `dl_revisar_proyecto()` y `dl_correr()`). `?dl_tablas`
-    describe las tablas; `dl_tabla()` revisa una sola y `dl_plantilla()` da su plantilla. `dl_ejemplo()` es un
-    proyecto completo listo para correr.
+    describe las tablas; `dl_tabla()` revisa una sola y `dl_plantilla()` da su plantilla.
+    `dl_calibrar_proxies()` convierte un indicador de encuesta (`proxies_crudos`) en los proxies de una covariable,
+    como lo hace `dl_proyecto()` al leer. `dl_ejemplo()` es un proyecto completo listo para correr.
   contents:
   - dismodlite-package
   - dl_nuevo_proyecto
@@ -126,6 +127,7 @@ reference:
   - dl_tablas
   - dl_tabla
   - dl_plantilla
+  - dl_calibrar_proxies
   - dl_ejemplo
 - title: Configuración
   desc: >

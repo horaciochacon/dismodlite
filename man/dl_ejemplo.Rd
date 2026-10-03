@@ -32,8 +32,8 @@ número describe a ese país ni a sus departamentos.
 }
 \section{Las dos carpetas del ejemplo}{
 
-El ejemplo viene en dos carpetas con los mismos números, una por formato. La de \code{dl_ejemplo()} es \code{acs_peru}, con
-las tablas del contrato (\link{dl_tablas}):
+El ejemplo viene en dos carpetas, una por formato, con los mismos números salvo los proxies departamentales. La de
+\code{dl_ejemplo()} es \code{acs_peru}, con las tablas del contrato (\link{dl_tablas}):
 \itemize{
 \item \verb{config/9100.yaml} ... \verb{config/9103.yaml}: la configuración de cada causa; la de 9100 declara sus subtipos.
 \item \code{ubicaciones.csv}: el país (código 123, sin padre) y sus 25 departamentos.
@@ -42,8 +42,12 @@ paquete las calcula como su suma).
 \item \code{ancla/sintetico_acs_v1.csv}: una descarga de GBD Results tal cual, con la prevalencia, la incidencia, las
 muertes y los AVD de las cuatro causas, por edad y sexo, de 2019 y 2023.
 \item \verb{covariables/}: tres descargas del GHDx tal cual (SEV, LDI y HAQ), con los valores nacionales y, como en una
-descarga real, los globales y los regionales, que no se usan; y \code{proxies.csv}, las tres covariables por
-departamento (el SEV por sexo y grupo de edad), cuyo promedio ponderado por la población es el valor nacional.
+descarga real, los globales y los regionales, que no se usan.
+\item \code{proxies_crudos.csv}: una encuesta de hogares sintética con tres ediciones (2019, 2021 y 2023) que mide un
+indicador de cada covariable por departamento (el del SEV por sexo y grupo de edad), con su error estándar.
+\code{\link[=dl_proyecto]{dl_proyecto()}} la calibra al leer (\code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}): da las filas departamentales de las tres
+covariables en el año que se estima, cuyo promedio ponderado por la población es el valor nacional. La
+configuración declara el HAQ en \code{diferencia} (\code{proxies.transformacion}).
 \item \code{betas.csv}: las betas de las tres covariables, de la causa 9100 (los subtipos usan las de su causa padre).
 \item \code{datos.csv} (solo de la causa 9100): filas nacionales de 2023 (mortalidad, un estudio de prevalencia en casos y
 muestra, una cohorte de incidencia y un valor atípico excluido) y filas departamentales de 2019 (mortalidad y
@@ -56,9 +60,10 @@ años, de cada causa (\code{cause_id}), ubicación nacional y departamental (\co
 (\code{anio}, 2019 y 2023).
 }
 
-La otra, \code{acs_peru_completo}, es el mismo proyecto en el formato completo (el de la versión 0.2.2), con el YAML de
-extracción, el almacén de evidencia, el registro, los catálogos, una tabla de severidad por causa y una partición
-de severidad. Su ruta es \code{system.file("extdata", "acs_peru_completo", package = "dismodlite")}.
+La otra, \code{acs_peru_completo}, es el mismo proyecto en el formato completo (el de la versión 0.2.2), con los
+proxies departamentales ya calibrados en lugar de la encuesta, el YAML de extracción, el almacén de evidencia, el
+registro, los catálogos, una tabla de severidad por causa y una partición de severidad. Su ruta es
+\code{system.file("extdata", "acs_peru_completo", package = "dismodlite")}.
 
 Las columnas de cada tabla están en \link{dl_tablas}, la carpeta en \code{\link[=dl_proyecto]{dl_proyecto()}} y las claves de la configuración en
 \code{\link[=dl_configuracion]{dl_configuracion()}}.
@@ -92,6 +97,7 @@ unlink(copia, recursive = TRUE)
 un proyecto desde una carpeta vacía.
 
 Funciones del proyecto:
+\code{\link{dl_calibrar_proxies}()},
 \code{\link{dl_correr}()},
 \code{\link{dl_nuevo_proyecto}()},
 \code{\link{dl_plantilla}()},

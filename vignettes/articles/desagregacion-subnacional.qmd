@@ -1,8 +1,8 @@
 ---
 title: "Estimación subnacional"
 description: >
-  Cómo se lleva la estimación nacional a regiones, departamentos o provincias: covariables y proxies, la fuerza
-  kappa, la renormalización, el modo plano, la validación con datos reservados y la escala de una covariable.
+  Cómo se lleva la estimación nacional a regiones, departamentos o provincias: covariables y proxies, de la
+  encuesta a la covariable, la fuerza kappa, la renormalización, el modo plano, la validación con datos reservados y la escala de una covariable.
 knitr:
   opts_chunk:
     collapse: true
@@ -18,6 +18,8 @@ knitr:
 - Los tres modos de la estimación subnacional (`covariables`, `plano` y `no`) y cuándo conviene cada uno.
 - Qué hacen las covariables y sus valores subnacionales (los *proxies*), la fuerza del efecto κ y la
   renormalización.
+- Cómo un indicador de encuesta con varias ediciones se convierte en los proxies de una covariable: el gradiente, el
+  paseo aleatorio, el cierre en el valor nacional y cómo leer q.
 - Cómo validar el gradiente entre ubicaciones con datos subnacionales reservados (`subnacional.anio_validacion`).
 - Para qué sirve la `escala` de una covariable.
 
@@ -84,29 +86,169 @@ Los subtipos 9101, 9102 y 9103 no tienen filas propias: usan las de su causa pad
 - el HAQ (acceso y calidad de la atención) actúa sobre la **mortalidad en exceso** (mueve log *f*), en escala
   lineal.
 
-Sus valores subnacionales son las filas subnacionales de la tabla `covariables` (en el ejemplo,
-`covariables/proxies.csv`, junto a las descargas del GHDx con los valores nacionales), una fila por covariable,
-ubicación, año, sexo y banda de edad (sin edades: todas las edades), con el valor y su error estándar en la escala de
-la descarga del GHDx. El promedio de las
-ubicaciones, ponderado por su población, debe ser el valor nacional de la covariable: la guía
-[Preparar tus datos](preparar-datos.html#cierre) explica ese requisito de cierre y cómo recalibrar valores de otra
-fuente.
+Sus valores subnacionales, los *proxies*, son las filas subnacionales de la tabla `covariables`: el valor de cada
+covariable en cada ubicación, en la escala de la descarga del GHDx, con su error estándar. El promedio de las
+ubicaciones, ponderado por su población, debe ser el valor nacional de la covariable. Esos valores pueden llegar ya
+calibrados a `covariables` (la guía [Preparar tus datos](preparar-datos.html#cierre) explica el requisito de
+cierre) o salir de una encuesta, como en el ejemplo.
+
+### De la encuesta a la covariable {#de-la-encuesta-a-la-covariable}
+
+Casi nunca hay una covariable de GBD por ubicación subnacional. Lo que suele haber es un **indicador** de una encuesta
+de hogares, o de otra fuente con ediciones, que se mueve con ella: la proporción de hogares con un servicio, el gasto
+por persona, un índice de acceso. Ese indicador no está en la escala de la covariable, su nivel cambia de una edición
+a otra por razones propias de la encuesta y cada edición trae ruido de muestreo. Lo que sí informa es la **posición
+relativa** de cada ubicación. La tabla `proxies_crudos` trae esos valores tal como se publican, ya agregados por
+ubicación y edición, con su error estándar. `dl_proyecto()` los calibra al leer el proyecto: de ellos salen las filas
+subnacionales de `covariables` del año que se estima.
+
+El ejemplo trae una encuesta sintética con tres ediciones (2019, 2021 y 2023) y un indicador por covariable. Para el
+HAQ es un índice de 0 a 100 cuyo nivel no es el del GHDx. Huancavelica (09) y Lima (15) en cada edición:
+
+```{r}
+#| label: crudos
+proyecto <- dl_proyecto(dl_ejemplo(), causa = 9100)
+crudos <- proyecto$tablas$proxies_crudos
+crudos[covariable == "haqi" & ubicacion %in% c("09", "15"), .(ubicacion, anio, indicador, valor, error_estandar)]
+```
+
+La calibración tiene tres pasos, por covariable, sexo y banda de edad.
+
+**1. El gradiente de cada edición.** En la edición $t$, cada ubicación $d$ se compara con el promedio de la edición,
+ponderado por su población $N_{d,t}$ (la del año de `poblacion` más cercano a $t$):
+
+$$\bar p_t = \frac{\sum_d N_{d,t}\, p_{d,t}}{\sum_d N_{d,t}}, \qquad
+g_{d,t} = \log \frac{p_{d,t}}{\bar p_t} \;\; \text{(cociente)}, \qquad g_{d,t} = p_{d,t} - \bar p_t \;\; \text{(diferencia)},$$
+
+con su error $se_{g} = se / p$ (cociente, la aproximación delta de la escala log) o $se_{g} = se$ (diferencia). El
+promedio se toma sobre las ubicaciones que están en todas las ediciones, así que no se mueve si una edición no trae
+alguna. El gradiente $g$ ya no depende del nivel de la encuesta: solo de dónde está cada ubicación respecto de las
+demás.
+
+**2. El gradiente del año que se estima.** El gradiente verdadero de cada ubicación, $\gamma_{d,t}$, cambia poco a
+poco: se modela como un **paseo aleatorio**, del que cada edición da una observación con error,
+
+$$\gamma_{d,t} = \gamma_{d,t-\Delta t} + \eta_{d,t}, \qquad \eta_{d,t} \sim N(0,\; q\,\Delta t), \qquad
+g_{d,t} \sim N(\gamma_{d,t},\; se_{g,d,t}^2),$$
+
+con $\Delta t$ los años entre ediciones. Un filtro de Kalman y un suavizador (RTS) dan, con todas las ediciones de
+la ubicación, el gradiente en el año que se estima, $a$: su media $\hat g_d = E[\gamma_{d,a} \mid g_{d,\cdot}]$ y
+su varianza $S_d$, haya o no una edición ese año. $q$, la varianza por año del gradiente, se estima por máxima
+verosimilitud, una por covariable con todas sus ubicaciones, sexos y bandas.
+
+**3. El cierre.** Con $X$, el valor nacional de la covariable en el año que se estima, y $w_d$, la población de cada
+ubicación en ese año:
+
+$$X_d = X\, \frac{e^{\hat g_d}}{\sum_d w_d\, e^{\hat g_d} / \sum_d w_d} \;\; \text{(cociente)}, \qquad
+X_d = X + \hat g_d - \frac{\sum_d w_d\, \hat g_d}{\sum_d w_d} \;\; \text{(diferencia)},$$
+
+con error $X_d \sqrt{S_d}$ o $\sqrt{S_d}$. Por construcción, $\sum_d w_d X_d / \sum_d w_d = X$: los proxies
+calibrados cierran exactamente en el valor nacional. El error no incluye la incertidumbre de la normalización ni la
+del valor nacional (que la estimación subnacional ya sortea por su cuenta).
+
+El resultado está en `proyecto$calibracion`; su atributo `calibracion` resume cada covariable:
+
+```{r}
+#| label: calibracion
+calibracion <- proyecto$calibracion
+attr(calibracion, "calibracion")[, .(covariable, metodo, transformacion, q, ediciones)]
+# el cierre del LDI, con la población de 2023
+ldi <- calibracion[covariable == "LDI_pc"]
+pob <- proyecto$tablas$poblacion[anio == 2023, .(w = sum(poblacion)), by = ubicacion]
+ldi <- merge(ldi, pob, by = "ubicacion")
+c(promedio = ldi[, sum(w * valor) / sum(w)],
+  nacional = proyecto$tablas$covariables[covariable == "LDI_pc" & anio == 2023, valor])
+```
+
+**Cómo leer q.** $\sqrt q$ es cuánto se mueve el gradiente en un año: en log (una proporción) con `cociente`, en las
+unidades del indicador con `diferencia`. Con **q chico** el gradiente casi no cambia y el resultado es la media de las
+ediciones, ponderada por $1/se_g^2$: las ediciones se promedian y el ruido de muestreo se cancela. Con **q grande**
+cada edición manda y el resultado se acerca al de la edición del año (el método `edicion`). En el ejemplo, la posición
+de cada ubicación en el SEV se mueve alrededor de `r round(100 * sqrt(attr(calibracion, "calibracion")$q[1]), 1)` %
+por año y en el LDI, alrededor de `r round(100 * sqrt(attr(calibracion, "calibracion")$q[2]), 1)` %; la del HAQ,
+alrededor de `r round(sqrt(attr(calibracion, "calibracion")$q[3]), 2)` puntos por año. q se busca entre
+$10^{-6}\,\bar\sigma^2$ y $10^{3}\,\bar\sigma^2$, con $\bar\sigma^2$ la mediana de $se_g^2$ de la covariable: un
+intervalo relativo al error de las ediciones, para que el resultado no dependa de las unidades del indicador (con
+`diferencia`, el mismo índice en una escala 100 veces mayor da los mismos valores por 100 y q por $10^4$). Si q queda en
+el borde inferior de ese intervalo, el gradiente es prácticamente constante y la revisión lo dice; en el superior, cada
+edición manda y el paquete avisa. Con pocas ediciones (tres en el ejemplo) la verosimilitud de q es plana: q puede
+moverse órdenes de magnitud con una edición más o menos. Léelo como el grado de suavizado que eligen estos datos, no
+como una propiedad estable del indicador. Con una sola edición por serie, q no se estima y se usa esa edición.
+
+El gráfico muestra el gradiente observado de cada edición (puntos, con su intervalo del 95 %) y el suavizado (líneas)
+del HAQ en seis departamentos. Las líneas casi planas dicen que la posición de cada departamento cambia poco entre
+ediciones; el suavizado promedia el ruido de muestreo, que es mayor en los departamentos chicos (intervalos anchos):
+
+```{r}
+#| label: figura-series
+#| fig-height: 5
+series <- attr(calibracion, "series")[covariable == "haqi"]
+elegidas <- c("15", "04", "13", "21", "03", "09")
+nombres_px <- proyecto$tablas$ubicaciones[match(elegidas, ubicacion), nombre]
+colores <- c("#08519c", "#3182bd", "#6baed6", "#fd8d3c", "#e6550d", "#a63603")
+plot(NA, xlim = c(2018.5, 2025.5), ylim = range(series[ubicacion %in% elegidas, g + c(-2, 2) * se_g]),
+     xlab = "Edición", ylab = "Gradiente del HAQ (puntos frente al promedio)", xaxt = "n",
+     main = "De la encuesta a la covariable: observado y suavizado", sub = "Datos sintéticos")
+axis(1, at = c(2019, 2021, 2023))     # a la derecha queda lugar para la leyenda
+abline(h = 0, lty = 2, col = "grey60")
+for (k in seq_along(elegidas)) {
+  s <- series[ubicacion == elegidas[k]][order(anio)]
+  x <- s$anio + (k - 3.5) * 0.06
+  segments(x, s$g - 1.96 * s$se_g, x, s$g + 1.96 * s$se_g, col = colores[k])
+  points(x, s$g, pch = 19, col = colores[k])
+  lines(s$anio, s$g_suavizado, col = colores[k], lwd = 2)
+}
+legend("right", nombres_px, col = colores, lwd = 2, pch = 19, bty = "n", cex = 0.8)
+```
+
+**¿Cociente o diferencia?** Cada covariable elige su transformación en `proxies.transformacion` (por defecto,
+`cociente`):
+
+- `cociente` compara en proporción: una ubicación con el doble del promedio tiene el doble del valor nacional. Sirve
+  para indicadores positivos que se comparan así (prevalencias, tasas, ingresos) y conviene a las covariables con
+  transformación `log` en `betas`, que comparan razones. Exige valores mayores que 0.
+- `diferencia` compara en puntos: una ubicación 10 puntos sobre el promedio queda 10 puntos sobre el valor nacional.
+  Sirve para índices en los que importa la distancia (como uno de 0 a 100) o indicadores que pueden valer 0, y conviene
+  a las covariables `lineal`, que comparan diferencias.
+
+El ejemplo declara el HAQ (lineal, de 0 a 100) en `diferencia`; el SEV y el LDI (log) quedan en `cociente`. Es el
+bloque `proxies` de la configuración de arriba. Otras dos claves completan la calibración: `proxies.metodo`
+(`paseo_aleatorio`, por defecto, o `edicion`, que toma la edición del año que se estima o la más cercana) y
+`proxies.excluir`, las ediciones que no entran, cada una con su motivo:
+
+```yaml
+proxies:
+  metodo: paseo_aleatorio
+  transformacion: {haqi: diferencia}
+  excluir: [{anio: 2021, motivo: cambio de modo de la encuesta}]
+```
+
+**Una sola fuente por covariable.** Las filas subnacionales de cada covariable vienen de `covariables` o de
+`proxies_crudos`, no de las dos; un proyecto puede calibrar unas covariables y traer otras ya calibradas. Para
+calibrar fuera de un proyecto (otro año, otra configuración), `dl_calibrar_proxies()` hace lo mismo con las tablas
+como argumentos; si `covariables` es la carpeta de descargas del GHDx, con varias ubicaciones, `ubicacion_gbd` dice
+cuál es el país (como en `dl_tabla()`).
+
+**Cómo queda registrada.** `print(proyecto)` y `dl_revisar_proyecto()` (en su paso «proxies») dan, por covariable,
+el método, q y las ediciones. Cada corrida de `dl_correr()` guarda la tabla `proxies_crudos` tal como vino en
+`inputs/contrato/` (y `covariables` sin las filas calibradas, así que repetir la corrida desde ahí vuelve a calibrar
+igual), las series observadas y suavizadas de cada ubicación en `diagnostics/proxies_series.csv` y, en el manifiesto,
+`params.proxies`: por covariable, el método, la transformación, q, si quedó en un borde, las ediciones usadas y las
+excluidas con su motivo.
+
+Los proxies calibrados del ejemplo, el SEV por sexo y grupo de edad (de 40 a 44 años hasta 80 y más; aquí, el primer
+grupo) y el LDI y el HAQ para ambos sexos y todas las edades:
 
 ```{r}
 #| label: proxies
-proxies <- fread(dl_ejemplo("covariables", "proxies.csv"), colClasses = list(character = "ubicacion"),
-                 encoding = "UTF-8")
-proxies[anio == 2023 & ubicacion == "01" & (is.na(edad_inicio) | edad_inicio == 40)]
+calibracion[ubicacion == "01" & (is.na(edad_inicio) | edad_inicio == 40), .(sexo, edad_inicio, covariable, valor,
+                                                                            error_estandar)]
 ```
-
-El SEV viene por sexo y grupo de edad, de 40 a 44 años hasta 80 y más (arriba, solo el primer grupo); el LDI y el
-HAQ, para ambos sexos y todas las edades.
 
 ### El ajuste nacional
 
 ```{r}
 #| label: ajuste
-proyecto <- dl_proyecto(dl_ejemplo(), causa = 9100)
 proyecto$configuracion$origen$subnacional
 insumos <- dl_insumos(proyecto)
 opciones <- dl_opciones_mcmc(simulaciones = 200, cadenas = 2, iteraciones = 6000, calentamiento = 2000,
@@ -412,8 +554,9 @@ Si la β de verdad es por punto del índice en 0-100, se confirma en su fila de 
 
 ## Siguientes pasos
 
-- [Preparar tus datos](preparar-datos.html#cierre): los valores subnacionales de las covariables y el requisito de
-  cierre en el valor nacional.
+- [Preparar tus datos](preparar-datos.html#cierre): los valores subnacionales de las covariables, las tablas
+  `covariables` y `proxies_crudos` y el requisito de cierre en el valor nacional.
+- `?dl_calibrar_proxies`: la calibración de `proxies_crudos` en detalle, con sus aproximaciones.
 - [Datos locales](datos-locales.html): qué datos entran al ajuste nacional y cuáles validan.
 - [Subtipos y suma](subtipos-y-suma.html): la estimación subnacional de una causa que es la suma de otras.
 - [Carga: los años vividos con discapacidad](carga-avd.html): los AVD, también por ubicación.

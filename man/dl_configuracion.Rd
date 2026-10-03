@@ -72,10 +72,11 @@ notas:
 Las claves con punto van dentro de su bloque (\code{ancla.peso} es \verb{peso:} bajo \verb{ancla:}). Las covariables actúan solo
 en la estimación subnacional: con sus valores por ubicación en la tabla \code{covariables}, la diferencia de log i (o de
 log f, con \code{efecto_sobre: mortalidad_exceso} en la tabla \code{betas}) de cada ubicación es \code{beta} por su diferencia con
-el valor nacional; el ajuste nacional no cambia. \verb{avanzado:} pasa claves del formato completo tal cual y se aplica
-al final (para expertos). El bloque \code{subnacional} también se puede llamar \code{departamentos}, su nombre anterior. La
-carpeta del proyecto y sus archivos: ver \code{\link[=dl_proyecto]{dl_proyecto()}}. Todas las claves, con su valor por defecto, están en la
-tabla de la sección siguiente.
+el valor nacional; el ajuste nacional no cambia. Si el proyecto trae \code{proxies_crudos}, leerlo la calibra para el
+año que se estima (\code{anio}, o el de \code{cambios}) con las claves \verb{proxies.*} (\code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}). \verb{avanzado:}
+pasa claves del formato completo tal cual y se aplica al final (para expertos). El bloque \code{subnacional} también se
+puede llamar \code{departamentos}, su nombre anterior. La carpeta del proyecto y sus archivos: ver \code{\link[=dl_proyecto]{dl_proyecto()}}.
+Todas las claves, con su valor por defecto, están en la tabla de la sección siguiente.
 }
 
 \section{Claves de la configuración de un proyecto}{
@@ -106,6 +107,9 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \code{subnacional.modo} \tab texto \tab Estimación subnacional: covariables (gradiente por las covariables de la tabla betas), plano (las tasas nacionales en cada ubicación) o no (sin estimación subnacional). Ejemplo: \code{plano}. \tab covariables si alguna covariable de la tabla betas tiene filas subnacionales en la tabla covariables; si no, plano si la población trae otras ubicaciones; si no, no \tab \code{cascada.modo} \cr
 \code{subnacional.kappa} (κ) \tab número \tab Fuerza del efecto subnacional de las covariables, en (0, 1]. Ejemplo: \code{0.5}. \tab \code{1} \tab \code{cascada.kappa} \cr
 \code{subnacional.anio_validacion} \tab entero \tab Año de los datos subnacionales de datos.csv reservados para validar. Ejemplo: \code{2019}. \tab el valor de \code{anio} \tab \code{cascada.heldout_anio} \cr
+\code{proxies.metodo} \tab texto \tab Cómo se obtiene el gradiente subnacional del año que se estima desde proxies_crudos: paseo_aleatorio suaviza todas las ediciones (q por máxima verosimilitud; ver ?dl_calibrar_proxies); edicion usa la del año o la más cercana. Ejemplo: \code{edicion}. \tab \code{paseo_aleatorio} \tab  \cr
+\code{proxies.transformacion} \tab bloque \tab Por covariable: cociente (tasas y proporciones; por defecto) o diferencia (índices). Cada clave es una covariable de proxies_crudos. Ejemplo: \code{\{haqi: diferencia\}}. \tab sin valor \tab  \cr
+\code{proxies.excluir} \tab lista de registros \tab Ediciones de proxies_crudos que no entran, cada una con anio y motivo. Ejemplo: \code{[\{anio: 2021, motivo: cambio de modo de la encuesta\}]}. \tab sin valor \tab  \cr
 \code{sensibilidad.peso} (λ) \tab lista de números \tab Valores de ancla.peso del análisis de sensibilidad. Ejemplo: \code{[0.5, 1]}. \tab \code{[0.25, 0.5, 1]} \tab \code{sensibilidad.lambda} \cr
 \code{sensibilidad.correlacion_edad} (ρ) \tab lista de números \tab Valores de ancla.correlacion_edad del análisis de sensibilidad. Ejemplo: \code{[0, 0.9]}. \tab \code{[0, 0.5, 0.9]} \tab \code{sensibilidad.rho} \cr
 \code{sensibilidad.kappa} (κ) \tab lista de números \tab Valores de subnacional.kappa del análisis de sensibilidad. Ejemplo: \code{[1]}. \tab \code{[0.5, 1]} \tab \code{sensibilidad.kappa} \cr
@@ -136,6 +140,9 @@ Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es e
 \item{\code{subnacional.modo}}{Estimación subnacional: covariables (gradiente por las covariables de la tabla betas), plano (las tasas nacionales en cada ubicación) o no (sin estimación subnacional). Ejemplo: \code{plano}. Texto; por defecto, covariables si alguna covariable de la tabla betas tiene filas subnacionales en la tabla covariables; si no, plano si la población trae otras ubicaciones; si no, no. Formato completo: \code{cascada.modo}.}
 \item{\code{subnacional.kappa} (\eqn{\kappa}{κ})}{Fuerza del efecto subnacional de las covariables, en (0, 1]. Ejemplo: \code{0.5}. Número; por defecto, \code{1}. Formato completo: \code{cascada.kappa}.}
 \item{\code{subnacional.anio_validacion}}{Año de los datos subnacionales de datos.csv reservados para validar. Ejemplo: \code{2019}. Entero; por defecto, el valor de \code{anio}. Formato completo: \code{cascada.heldout_anio}.}
+\item{\code{proxies.metodo}}{Cómo se obtiene el gradiente subnacional del año que se estima desde proxies_crudos: paseo_aleatorio suaviza todas las ediciones (q por máxima verosimilitud; ver ?dl_calibrar_proxies); edicion usa la del año o la más cercana. Ejemplo: \code{edicion}. Texto; por defecto, \code{paseo_aleatorio}.}
+\item{\code{proxies.transformacion}}{Por covariable: cociente (tasas y proporciones; por defecto) o diferencia (índices). Cada clave es una covariable de proxies_crudos. Ejemplo: \code{\{haqi: diferencia\}}. Bloque; por defecto, sin valor.}
+\item{\code{proxies.excluir}}{Ediciones de proxies_crudos que no entran, cada una con anio y motivo. Ejemplo: \code{[\{anio: 2021, motivo: cambio de modo de la encuesta\}]}. Lista de registros; por defecto, sin valor.}
 \item{\code{sensibilidad.peso} (\eqn{\lambda}{λ})}{Valores de ancla.peso del análisis de sensibilidad. Ejemplo: \code{[0.5, 1]}. Lista de números; por defecto, \code{[0.25, 0.5, 1]}. Formato completo: \code{sensibilidad.lambda}.}
 \item{\code{sensibilidad.correlacion_edad} (\eqn{\rho}{ρ})}{Valores de ancla.correlacion_edad del análisis de sensibilidad. Ejemplo: \code{[0, 0.9]}. Lista de números; por defecto, \code{[0, 0.5, 0.9]}. Formato completo: \code{sensibilidad.rho}.}
 \item{\code{sensibilidad.kappa} (\eqn{\kappa}{κ})}{Valores de subnacional.kappa del análisis de sensibilidad. Ejemplo: \code{[1]}. Lista de números; por defecto, \code{[0.5, 1]}. Formato completo: \code{sensibilidad.kappa}.}

@@ -2,7 +2,8 @@
 
 Carpeta de desarrollo (excluida del paquete por `.Rbuildignore`). Todo se ejecuta desde la raíz del repositorio.
 
-- `generar_acs_peru.R`: genera los datos de ejemplo (100 % sintéticos) en sus dos formatos, con los mismos números:
+- `generar_acs_peru.R`: genera los datos de ejemplo (100 % sintéticos) en sus dos formatos, con los mismos números
+  salvo los proxies departamentales (el simple trae la encuesta de la que se calibran; el completo, los calibrados):
   `inst/extdata/acs_peru/` (el formato simple: el proyecto que se copia para empezar, ver `?dl_proyecto`) e
   `inst/extdata/acs_peru_completo/` (el formato completo de la versión 0.2.2, el que usan el arnés de
   compatibilidad y las guías avanzadas); también las tablas de referencia del paquete (`inst/referencia/`: grupos de
@@ -31,8 +32,8 @@ Carpeta de desarrollo (excluida del paquete por `.Rbuildignore`). Todo se ejecut
 
 ## Reproducibilidad
 
-Semilla `20260929` (un bloque por componente: `+1` proxies, `+2` ruido del ancla, `+3` datos locales), sin fechas ni
-rutas dentro de los archivos, CSV con `data.table::fwrite(eol = "\n")` y texto en UTF-8 con `\n`. Dos corridas dan
+Semilla `20260929` (un bloque por componente: `+1` proxies, `+2` ruido del ancla, `+3` datos locales, `+4` la encuesta
+de `proxies_crudos.csv`), sin fechas ni rutas dentro de los archivos, CSV con `data.table::fwrite(eol = "\n")` y texto en UTF-8 con `\n`. Dos corridas dan
 archivos idénticos byte a byte (comprobado con `git status --porcelain` tras una segunda corrida). La EDO de la verdad
 se resuelve con `dl_edo_resolver` (antes `dl_ode_solve`) del paquete: el código del árbol cargado con `pkgload` (o,
 sin `pkgload`, el paquete instalado; mismas cuentas por la invariancia de coma flotante).
@@ -68,6 +69,15 @@ sin `pkgload`, el paquete instalado; mismas cuentas por la invariancia de coma f
   efecto sigue un índice de desarrollo sintético (orden aproximado de los departamentos, correlación 0.9 con LDI, 0.85
   con HAQ y 0.5 con SEV) más ruido propio, para que Lima, Callao, Arequipa, Moquegua y Tacna queden arriba en LDI y
   HAQ y Huancavelica, Apurímac o Cajamarca abajo. No describe a los departamentos reales.
+- Encuesta (`acs_peru/proxies_crudos.csv`, solo en el formato simple; el completo trae los proxies ya calibrados):
+  tres ediciones (2019, 2021 y 2023) de un indicador por covariable. El gradiente verdadero de cada serie es el de los
+  proxies calibrados (log de la razón con el valor nacional en SEV y LDI, diferencia en HAQ), 2021 en la recta entre
+  2019 y 2023; el nivel de la encuesta es otro (SEV x 0.2 y LDI x 0.25, deriva de 1 % y 2 % por año; HAQ - 6 puntos,
+  deriva de 0.5 puntos por año), y el ruido de muestreo tiene error `cv x sqrt(1000 / n_d)` (cv 0.02 en SEV y 0.04
+  en LDI; 1.5 puntos en HAQ), con `n_d` la muestra efectiva del departamento. Valores con 4 cifras significativas y
+  errores con 2. Con la configuración del ejemplo (HAQ en `diferencia`), q queda dentro de su intervalo en las tres
+  covariables y los proxies calibrados de 2023 difieren de los verdaderos en alrededor de un error estándar (~4 % en
+  LDI).
 - Covariables nacionales (también Global y la región 120): valores inventados; los tres CSV llevan
   `acquisition_id = sintetico_cov_v1` (el paquete lee solo las columnas que necesita).
 - Datos locales (`datos.csv`, solo 9100): csmr nacional del registro vital, estudio de prevalencia con conteos,

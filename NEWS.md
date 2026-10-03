@@ -1,3 +1,61 @@
+# dismodlite 2.1.0
+
+Los valores subnacionales de una covariable pueden venir de una encuesta: el paquete los calibra al leer el proyecto.
+
+## De la encuesta a la covariable
+
+* Tabla nueva del contrato, `proxies_crudos` (la décima): un indicador de encuesta, u otra fuente con ediciones, ya
+  agregado por ubicación subnacional y edición, con su error estándar (`ubicacion`, `anio`, `sexo`, edades,
+  `covariable`, `indicador`, `valor`, `error_estandar` y `fuente`). Una fila sin edades es de todas las edades de la
+  población, empiece donde empiece.
+* `dl_calibrar_proxies()` convierte esos valores en las filas subnacionales de `covariables` del año que se estima:
+  - el gradiente de cada ubicación en cada edición, frente al promedio de la edición ponderado por la población, en
+    `cociente` (log de la razón) o en `diferencia` (puntos);
+  - el gradiente del año: un paseo aleatorio observado con error, suavizado con todas las ediciones (filtro de Kalman
+    y suavizador RTS), con su varianza por año q estimada por máxima verosimilitud para cada covariable; o la edición
+    del año o la más cercana (`metodo = "edicion"`);
+  - el cierre exacto en el valor nacional: el promedio ponderado por la población de las filas calibradas es el valor
+    nacional de `covariables`.
+  Devuelve también la calibración de cada covariable (método, transformación, q, ediciones usadas y excluidas, años
+  de la población), las series observadas y suavizadas y las ediciones excluidas. Con `ubicacion_gbd` lee
+  `covariables` desde una carpeta de descargas del GHDx con varias ubicaciones (como en `dl_tabla()`).
+* `dl_proyecto()` y `dl_configuracion()` calibran `proxies_crudos` al leer el proyecto, para el año que se estima y
+  con el valor nacional del año del ancla. Claves nuevas de la configuración: `proxies.metodo`,
+  `proxies.transformacion` (por covariable; por defecto, `cociente`) y `proxies.excluir` (ediciones que no entran,
+  cada una con su motivo). Las filas subnacionales de cada covariable vienen de una sola tabla: si vienen de
+  `covariables` y de `proxies_crudos`, es un error.
+* `print()` del proyecto y `dl_revisar_proyecto()` (paso «proxies») muestran, por covariable, el método, q y las
+  ediciones, y dicen si q quedó en un borde de su intervalo de búsqueda (relativo al error de las ediciones, así que
+  no depende de las unidades del indicador).
+* `dl_correr()` congela `proxies_crudos` en `inputs/contrato/` (repetir la corrida desde ahí vuelve a calibrar
+  igual), escribe las series en `diagnostics/proxies_series.csv` y registra la calibración en `params.proxies` del
+  manifiesto.
+* `dl_nuevo_proyecto()` escribe también la plantilla `proxies_crudos.csv`.
+* Los proxies de un proyecto son los del año con que se tradujo: si el año de su configuración cambia después
+  (`p$configuracion$years$ajuste`), `dl_insumos()` se detiene con un error que pide volver a llamar a
+  `dl_proyecto()` con ese año (antes, la tabla `cov_proxy` quedaba vacía y la cascada fallaba más adelante).
+
+## El ejemplo
+
+* El proyecto de ejemplo (`dl_ejemplo()`) trae `proxies_crudos.csv`, una encuesta sintética con tres ediciones
+  (2019, 2021 y 2023), en lugar de `covariables/proxies.csv`; su configuración declara el HAQ en `diferencia`. Sus
+  proxies departamentales son ahora los de la calibración, así que las estimaciones departamentales del ejemplo
+  cambian un poco. `acs_peru_completo` no cambia.
+* `dl_rutas_ejemplo(anio = 2019)` y `dl_rutas_ejemplo(anio = 2024)` traen los proxies de ese año (en la versión
+  2.0.0, la tabla `cov_proxy` del formato simple quedaba vacía en esos años).
+
+## Compatibilidad
+
+* Un proyecto sin `proxies_crudos` da exactamente los mismos insumos que con la versión 2.0.0. El arnés de
+  compatibilidad sigue reproduciendo la versión 0.2.2 bit a bit (sus escenarios del contrato leen el ejemplo con
+  los proxies ya calibrados de `acs_peru_completo`).
+
+## Guías
+
+* «Estimación subnacional» explica, en la sección «De la encuesta a la covariable», el gradiente, el paseo
+  aleatorio, cómo leer q, el cierre, cuándo usar `cociente` o `diferencia` y cómo queda registrada la calibración.
+* «Preparar tus datos» describe las diez tablas, con `proxies_crudos` y la regla de una sola fuente por covariable.
+
 # dismodlite 2.0.0
 
 Los insumos pasan a ser un contrato público y corto: unas pocas tablas con un eje común, que se preparan igual vengan

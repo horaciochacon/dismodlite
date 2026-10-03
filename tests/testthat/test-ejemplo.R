@@ -6,12 +6,12 @@ test_that("dl_ejemplo devuelve rutas que existen y falla con un nombre desconoci
   # dl_ejemplo() es el proyecto en el contrato de insumos; el mismo proyecto en el formato completo está al lado
   expect_identical(dl_ejemplo(), system.file("extdata", "acs_peru", package = "dismodlite"))
   expect_identical(dirname(dl_ejemplo()), dirname(ruta_acs()))
-  for (f in c("config/9100.yaml", "ubicaciones.csv", "poblacion.csv", "covariables/proxies.csv", "betas.csv",
+  for (f in c("config/9100.yaml", "ubicaciones.csv", "poblacion.csv", "proxies_crudos.csv", "betas.csv",
               "datos.csv", "severidad.csv", "verdad.csv"))
     expect_true(file.exists(dl_ejemplo(f)), info = f)
   expect_length(list.files(dl_ejemplo("ancla")), 1L)
   # cada tabla del proyecto es una tabla del contrato válida (sus descargas, por su lector)
-  for (tabla in c("ubicaciones", "poblacion", "betas", "datos", "severidad"))
+  for (tabla in c("ubicaciones", "poblacion", "betas", "datos", "severidad", "proxies_crudos"))
     expect_s3_class(dl_tabla(tabla, dl_ejemplo(paste0(tabla, ".csv"))), "dl_tabla")
   expect_s3_class(dl_tabla("ancla", dl_ejemplo("ancla")), "dl_tabla")
   expect_s3_class(dl_tabla("covariables", dl_ejemplo("covariables"), ubicacion_gbd = 123), "dl_tabla")
@@ -76,7 +76,26 @@ test_that("dl_rutas_ejemplo exige la causa, la valida y acepta una configuraci\u
   expect_error(dl_rutas_ejemplo(9102L, formato = "otro"), "`formato` debe ser \"simple\" o \"completo\"")
   r19 <- dl_rutas_ejemplo(9100L, anio = 2019L)
   expect_identical(attr(r19, "anio_ejemplo"), 2019L)
-  expect_identical(structure(r19, anio_ejemplo = NULL), dl_rutas_ejemplo(9100L))
+  expect_identical(names(r19), names(dl_rutas_ejemplo(9100L)))
+})
+
+test_that("dl_rutas_ejemplo(anio =) trae los proxies calibrados para ese año", {
+  for (a in c(2019L, 2024L)) {
+    b <- b24 <- suppressMessages(dl_insumos(dl_configuracion_ejemplo(9100L, anio = a),
+                                            dl_rutas_ejemplo(9100L, anio = a)))
+    expect_gt(nrow(b$cov_proxy), 0L)
+    expect_identical(unique(as.integer(b$cov_proxy$year)), a)
+    expect_setequal(unique(b$cov_proxy$location_id), sprintf("%02d", 1:25))
+  }
+  # 2024 no tiene valor nacional de las covariables: cierra en el de 2023, el año del ancla
+  h <- b24$cov_proxy[as.integer(covariate_id_gbd) == 1099L]          # haqi
+  # la copia de cada año se arma aparte y se renombra: en la carpeta solo quedan las de los años, completas
+  raiz <- file.path(tempdir(), "dismodlite_ejemplo")
+  expect_true(all(c("2019", "2024") %in% list.files(raiz)))
+  expect_true(all(list.files(raiz) %in% c("2019", "2024")))
+  cfg19 <- readLines(file.path(raiz, "2019", "config", "9101.yaml"))
+  expect_identical(grep("^anio:", cfg19, value = TRUE), "anio: 2019")
+  expect_identical(unique(as.character(h$ancla_ghdx)), "50.9")
 })
 
 test_that("dl_rutas_ejemplo: datos y proxies se quitan o se reemplazan, y ... cambia cualquier pieza", {

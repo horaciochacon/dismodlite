@@ -8,7 +8,7 @@ ejemplo_completo <- function(...) file.path(ruta_acs(), ...)
 
 # Las dos variantes de 9100 que usan las pruebas: el ajuste nacional puro (sin datos locales ni proxies
 # departamentales; las tablas datos y cov_proxy de los insumos quedan vacías) y el completo (datos.csv y los proxies
-# de covariables/proxies.csv).
+# departamentales, calibrados de proxies_crudos.csv al leer el proyecto).
 rutas_nacional <- function() dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE)
 rutas_completas <- function() dl_rutas_ejemplo(9100L)
 
@@ -224,3 +224,26 @@ corrida_mini <- local({
     x
   }
 })
+
+# Reemplaza el bloque `proxies:` de la configuración `f` (el del ejemplo: de «proxies:» a la primera línea en blanco)
+# por las líneas `lineas`, al final del archivo. Devuelve `f`.
+cambiar_proxies_config <- function(f, lineas) {
+  l <- readLines(f, encoding = "UTF-8")
+  i <- which(l == "proxies:" | startsWith(l, "proxies: "))
+  if (length(i)) {
+    fin <- i - 1L + match(TRUE, l[i:length(l)] == "")
+    l <- l[-(i:(if (is.na(fin)) length(l) else fin))]
+  }
+  writeLines(c(l, lineas), f, useBytes = TRUE)
+  f
+}
+
+# El ejemplo con sus proxies departamentales ya calibrados en covariables/proxies.csv y sin proxies_crudos.csv
+# (escribir_proxies_calibrados(), helper-arnes-simple.R): una copia por sesión, en la carpeta temporal, para las
+# pruebas que leen el proyecto sin modificarlo y cuyo tema no es la calibración (las reglas entre tablas, los proxies
+# del contrato). No se edita: para cambiarlo, escribir_proxies_calibrados(copia_ejemplo()).
+ejemplo_calibrado <- function() {
+  d <- file.path(tempdir(), "ejemplo_calibrado")
+  if (!dir.exists(d)) escribir_proxies_calibrados(dl_ejemplo(copiar_en = d))
+  d
+}

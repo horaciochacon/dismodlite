@@ -366,10 +366,24 @@
 # entran los que la configuración declara; si falta uno declarado, lo detiene dl_cascada(), no dl_insumos().
 .dl_materializar_proxy <- function(cfg, paths, sch) {
   px <- .dl_leer_contrato(paths, "cov_proxy", sch, "cov_proxy")
+  if (.dl_es_simple(cfg)) .dl_exigir_proxies_del_anio(px$year, .dl_anio_ajuste(cfg))
   if (nrow(px)) px <- px[year %in% unlist(cfg$years$ajuste)]
   decl <- as.integer(unlist(lapply(cfg$covariables, function(cv) cv$proxy$covariate_id_proxy)))
   if (nrow(px) && length(decl)) px <- px[covariate_id_proxy %in% decl]
   px
+}
+
+# Un proyecto (formato simple) escribe los proxies del año con que se tradujo: si trae proxies (`anios`, el año de
+# cada fila) y ninguno es del que se estima (`ajuste`), el año cambió después de traducir. Error aquí, con el remedio,
+# en vez de la cascada sin proxies más adelante. El formato completo no pasa por aquí: sin proxies del año, la
+# corrida es solo nacional.
+.dl_exigir_proxies_del_anio <- function(anios, ajuste) {
+  anios <- sort(unique(as.integer(anios)))
+  if (!length(anios) || ajuste %in% anios) return(invisible())
+  .dl_stop(paste0("los proxies subnacionales del proyecto son de %s (el a\u00f1o con que se tradujo) y la ",
+                  "configuraci\u00f3n estima %d: vuelve a llamar a dl_proyecto() con anio: %d en la configuraci\u00f3n ",
+                  "(con proxies_crudos, as\u00ed se recalibran para %d)"),
+           paste(anios, collapse = ", "), ajuste, ajuste, ajuste)
 }
 
 # Tabla poblacion: un CSV o una carpeta de estimaciones de población (nacional y departamentos), del año de ajuste,
@@ -464,6 +478,8 @@
 #'     pasan otras.
 #'   - `contrato`: con un proyecto de las tablas del contrato, esas tablas tal como se leyeron (`$tablas` de
 #'     [dl_proyecto()]; no entran en el hash).
+#'   - `calibracion_proxies`: con un proyecto que trae `proxies_crudos`, su calibración (el resultado de
+#'     [dl_calibrar_proxies()], con sus atributos `calibracion` y `series`; no entra en el hash).
 #' @seealso [dl_proyecto()] (el argumento habitual), [dl_ajustar()] (el paso siguiente), [dl_revisar_proyecto()]
 #'   (todos los problemas de un proyecto juntos) y [dl_congelar_insumos()] (las tablas en disco).
 #' @family insumos
@@ -481,6 +497,7 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
     .dl_stop("falta `configuracion` (la de dl_configuracion() o dl_configuracion_ejemplo())")
   # con un proyecto simple, los mensajes en sus palabras
   simple <- inherits(configuracion, "dl_proyecto") && identical(configuracion$formato, "simple")
+  calibracion <- NULL
   if (inherits(configuracion, "dl_proyecto")) {
     if (simple && !file.exists(file.path(dirname(configuracion$rutas$poblacion), "listo")))
       .dl_stop(paste0("la traducci\u00f3n de este proyecto ya no est\u00e1 (cambi\u00f3 la configuraci\u00f3n o una ",
@@ -490,6 +507,7 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
     if (missing(rutas)) rutas <- configuracion$rutas
     contrato <- configuracion$tablas
     datos <- contrato$datos
+    calibracion <- configuracion$calibracion
     configuracion <- configuracion$configuracion
   }
   # una lista con cause_id también vale (la versión 0.2.2 no exigía la clase); otro objeto del paquete, no
@@ -499,6 +517,7 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
   b <- .dl_en_simple(.dl_armar_insumos(configuracion, rutas), simple, if (simple) datos)
   # las tablas del contrato del proyecto, tal como se leyeron (fuera del hash, que es el de las tablas de los insumos)
   if (simple) b$contrato <- contrato
+  b$calibracion_proxies <- calibracion     # sin proxies_crudos, los insumos no llevan el campo
   b
 }
 

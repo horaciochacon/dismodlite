@@ -25,6 +25,7 @@ dl_plantilla("covariables")
 \link{dl_tablas}, \code{\link[=dl_tabla]{dl_tabla()}}, \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}}.
 
 Funciones del proyecto:
+\code{\link{dl_calibrar_proxies}()},
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_nuevo_proyecto}()},

@@ -70,7 +70,9 @@ La carpeta de la corrida:
 \item \verb{diagnostics/}: \code{mcmc.csv} (R-hat y ESS), \code{aceptacion.csv}, \code{desplazamiento_splits.csv}, \code{validacion.csv}
 (\code{\link[=dl_validar_ancla]{dl_validar_ancla()}}), \code{sensibilidad.csv} (\code{\link[=dl_sensibilidad]{dl_sensibilidad()}}, si se da) y, con una cascada, \code{renorm.csv}
 (los factores de renormalización), \code{dx_bandas.csv} (la mediana y el intervalo de dX por ubicación, sexo,
-covariable y banda) y \code{amplitud.csv} (la validación de la amplitud, si se calculó).
+covariable y banda) y \code{amplitud.csv} (la validación de la amplitud, si se calculó). Con un proyecto que trae
+\code{proxies_crudos}, \code{proxies_series.csv}: las series de su calibración (el atributo \code{series} de
+\code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}: el gradiente observado y el suavizado por ubicación y edición).
 \item \verb{inputs/}: los insumos congelados (\code{\link[=dl_congelar_insumos]{dl_congelar_insumos()}}), la configuración usada (\code{config_usado.yaml}, en el
 formato completo) y las descargas de covariables (\verb{ghdx_cov/}, solo con los insumos del formato completo). Con un
 proyecto de las tablas del contrato (\code{\link[=dl_proyecto]{dl_proyecto()}}), \verb{inputs/contrato/} guarda las tablas que se usaron
@@ -82,6 +84,8 @@ si es un subtipo sin betas propias, cuya configuración congelada lleva además 
 (la causa padre, que \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} exige). La carpeta de \code{severidad.particion} se copia en
 \verb{inputs/contrato/particion/<corrida>/}, con la ruta de la configuración congelada cambiada a ella y el sha256 de
 cada archivo en \code{inputs$contrato} (\code{particion}); la tabla \code{severidad}, que sale de ella, no se congela aparte.
+\code{proxies_crudos} se congela como vino (y \code{covariables.csv} sin las filas calibradas): el proyecto congelado
+vuelve a calibrar con la misma configuración y da los mismos insumos.
 \item \code{manifest.yaml}: la descripción de la corrida (abajo).
 }
 
@@ -92,7 +96,9 @@ a medio escribir se borra.
 \code{manifest.yaml} describe la corrida: identificación, causa, parámetros, insumos (con el sha256 de cada tabla
 congelada), cascada, datos, \code{decisiones} (las de la configuración; una lista vacía si no hay), validación y
 limitaciones; en un proyecto con las tablas del contrato de insumos, además, \code{configuracion} (el formato y las
-claves que tomaron su valor por defecto). En la cascada, \code{haqi_nacional} se conserva por compatibilidad con la versión 0.2.2: es \code{false} solo si la
+claves que tomaron su valor por defecto) y, si el proyecto trae \code{proxies_crudos}, \code{params.proxies}: por covariable,
+el método, la transformación, q, el borde de su intervalo en que quedó (si quedó en uno), las ediciones usadas y
+las excluidas, cada una con su \code{anio} y su \code{motivo}. En la cascada, \code{haqi_nacional} se conserva por compatibilidad con la versión 0.2.2: es \code{false} solo si la
 cascada aplicó un proxy subnacional de una covariable llamada \code{haqi}; si no (también en un proyecto sin esa
 covariable), es \code{true}.
 

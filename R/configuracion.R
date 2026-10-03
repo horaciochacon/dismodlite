@@ -181,10 +181,11 @@
 #' Las claves con punto van dentro de su bloque (`ancla.peso` es `peso:` bajo `ancla:`). Las covariables actúan solo
 #' en la estimación subnacional: con sus valores por ubicación en la tabla `covariables`, la diferencia de log i (o de
 #' log f, con `efecto_sobre: mortalidad_exceso` en la tabla `betas`) de cada ubicación es `beta` por su diferencia con
-#' el valor nacional; el ajuste nacional no cambia. `avanzado:` pasa claves del formato completo tal cual y se aplica
-#' al final (para expertos). El bloque `subnacional` también se puede llamar `departamentos`, su nombre anterior. La
-#' carpeta del proyecto y sus archivos: ver [dl_proyecto()]. Todas las claves, con su valor por defecto, están en la
-#' tabla de la sección siguiente.
+#' el valor nacional; el ajuste nacional no cambia. Si el proyecto trae `proxies_crudos`, leerlo la calibra para el
+#' año que se estima (`anio`, o el de `cambios`) con las claves `proxies.*` ([dl_calibrar_proxies()]). `avanzado:`
+#' pasa claves del formato completo tal cual y se aplica al final (para expertos). El bloque `subnacional` también se
+#' puede llamar `departamentos`, su nombre anterior. La carpeta del proyecto y sus archivos: ver [dl_proyecto()].
+#' Todas las claves, con su valor por defecto, están en la tabla de la sección siguiente.
 #'
 #' @param causa Identificador de la causa (`cause_id`).
 #' @param carpeta_config La carpeta que tiene la configuración (`<causa>.yaml`, o `config.yaml` en un proyecto

@@ -17,9 +17,10 @@ dl_rutas_ejemplo(
 \item{causa}{Causa del ejemplo: 9100 (la causa padre) o 9101, 9102, 9103 (subtipos); también se acepta una
 configuración de \code{\link[=dl_configuracion]{dl_configuracion()}} (se usa su \code{cause_id}).}
 
-\item{anio}{Año de la corrida: 2019, 2023 o 2024, o \code{NULL} (el de la configuración). Los archivos traen todos los
-años y el año de la corrida lo fija la configuración (\code{years.ajuste}, o el argumento \code{anio} de
-\code{\link[=dl_configuracion_ejemplo]{dl_configuracion_ejemplo()}}); si se da aquí, \code{\link[=dl_insumos]{dl_insumos()}} comprueba que coincida con el de la configuración.}
+\item{anio}{Año de la corrida: 2019, 2023 o 2024, o \code{NULL} (el de la configuración). El año de la corrida lo fija
+la configuración (\code{years.ajuste}, o el argumento \code{anio} de \code{\link[=dl_configuracion_ejemplo]{dl_configuracion_ejemplo()}}); si se da aquí,
+\code{\link[=dl_insumos]{dl_insumos()}} comprueba que coincida con el de la configuración. En el formato simple, los proxies
+departamentales son los de la calibración de \code{proxies_crudos} para ese año (ver \code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}).}
 
 \item{datos}{\code{TRUE} usa los datos locales del ejemplo (\code{datos.csv}), \code{FALSE} o \code{NULL} los dejan fuera; también
 acepta la ruta de un CSV propio con la tabla \code{datos} del formato completo.}

@@ -16,9 +16,12 @@ carpeta) y `?dl_configuracion` (las claves de la configuración).
 - `ancla/`: la estimación de referencia, una descarga de GBD Results con «ID y nombre»: prevalencia,
   incidencia, mortalidad y AVD por edad y sexo de las cuatro causas, 2019 y 2023.
 - `covariables/`: descargas del GHDx de SEV, LDI y HAQ (valores inventados) para Perú (123), Global (1) y la
-  región (120), y `proxies.csv`: las tres covariables por departamento (2019, 2023 y 2024; el SEV por grupo
-  de edad); su promedio ponderado por la población es el valor nacional. Siguen un índice sintético y no
-  describen a los departamentos reales.
+  región (120): los valores nacionales.
+- `proxies_crudos.csv`: una encuesta de hogares sintética con tres ediciones (2019, 2021 y 2023) que mide un
+  indicador de cada covariable por departamento (el del SEV por sexo y grupo de edad), con su error estándar.
+  El paquete la calibra al leer el proyecto (`?dl_calibrar_proxies`): las filas departamentales del año que
+  se estima, cuyo promedio ponderado por la población es el valor nacional. `config/` declara el HAQ en
+  `diferencia` (`proxies.transformacion`). Siguen un índice sintético y no describen a los departamentos reales.
 - `betas.csv`: las betas de las tres covariables (las de la causa 9100; los subtipos usan las de su padre).
 - `datos.csv` (solo la causa 9100): mortalidad nacional, un estudio de prevalencia, una cohorte de incidencia y
   un valor atípico (2023); mortalidad y prevalencia departamentales de 2019 que sirven para validar.
@@ -26,4 +29,5 @@ carpeta) y `?dl_configuracion` (las claves de la configuración).
 - `verdad.csv`: curvas verdaderas p, i y f por edad, nacionales y departamentales, de 2019 y 2023 (no es un
   insumo del modelo).
 
-El mismo proyecto en el formato completo de la versión 0.2.2 está en `acs_peru_completo`.
+El mismo proyecto en el formato completo de la versión 0.2.2 está en `acs_peru_completo`, con los proxies
+departamentales ya calibrados en lugar de la encuesta.

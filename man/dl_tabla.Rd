@@ -37,6 +37,7 @@ dl_tabla("ancla", dl_ejemplo("ancla"))
 \link{dl_tablas} (el contrato), \code{\link[=dl_plantilla]{dl_plantilla()}}, \code{\link[=dl_proyecto]{dl_proyecto()}}.
 
 Funciones del proyecto:
+\code{\link{dl_calibrar_proxies}()},
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_nuevo_proyecto}()},
