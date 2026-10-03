@@ -180,12 +180,12 @@
        con_edades = con_edades)
 }
 
-# `excluir` como data.frame(anio, motivo); vacío si es NULL. Error si no tiene esas columnas, si una edición no
-# trae motivo o si se repite.
+# `excluir` como data.frame(anio, motivo); vacío si es NULL. Error si no tiene esas columnas, si un año no es un
+# entero finito, si una edición no trae motivo o si se repite.
 .dl_validar_excluir <- function(excluir) {
   if (is.null(excluir)) return(data.frame(anio = integer(), motivo = character()))
   if (!is.data.frame(excluir) || !all(c("anio", "motivo") %in% names(excluir)) || !is.numeric(excluir$anio) ||
-      anyNA(excluir$anio) || any(excluir$anio != round(excluir$anio)))
+      !all(is.finite(excluir$anio)) || any(excluir$anio != round(excluir$anio)))
     .dl_stop("`excluir` debe ser un data.frame con las columnas anio (a\u00f1os enteros) y motivo: una fila por edici\u00f3n excluida")
   sin <- is.na(excluir$motivo) | !nzchar(trimws(as.character(excluir$motivo)))
   if (any(sin))

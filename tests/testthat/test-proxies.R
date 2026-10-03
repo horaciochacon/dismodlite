@@ -349,4 +349,7 @@ test_that("errores menores: sexo que falta en la población y años de excluir n
   expect_error(dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023), "poblaci\u00f3n no trae mujeres")
   expect_error(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), 2023,
                                    excluir = data.frame(anio = 2021.5, motivo = "x")), "enteros")
+  for (a in c(Inf, -Inf, NaN))
+    expect_error(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), 2023,
+                                     excluir = data.frame(anio = a, motivo = "x")), "enteros")
 })
