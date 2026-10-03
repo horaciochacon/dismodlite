@@ -35,9 +35,19 @@
 
 # g y se_g de las ubicaciones de una edición, sexo y banda: valores `p`, errores `se`, poblaciones `N`.
 .dl_gradiente_edicion <- function(p, se, N, transformacion) {
+  .dl_validar_transformacion(transformacion)
+  if (transformacion == "cociente" && any(p <= 0))
+    .dl_stop("la transformaci\u00f3n \u00abcociente\u00bb necesita valores positivos y hay valores iguales o menores que 0; usa la \u00abdiferencia\u00bb")
   pbar <- sum(N * p) / sum(N)
   if (transformacion == "cociente") list(g = log(p / pbar), se_g = se / p)
   else list(g = p - pbar, se_g = se)
+}
+
+# Error si `transformacion` no es una de las dos que conoce el cierre y el gradiente.
+.dl_validar_transformacion <- function(transformacion) {
+  if (!length(transformacion) || !transformacion[1L] %in% c("cociente", "diferencia"))
+    .dl_stop("transformaci\u00f3n desconocida \u00ab%s\u00bb (se esperaba \u00abcociente\u00bb o \u00abdiferencia\u00bb)",
+             paste(transformacion, collapse = ", "))
 }
 
 # ---- Filtro de Kalman y suavizador RTS del nivel local ----
@@ -45,8 +55,10 @@
 # Filtro sobre los tiempos ordenados `t` (observaciones `y` con error `se`) más el tiempo `t_obj` sin observación si no
 # está entre ellos; empieza en el primer tiempo observado (prior difuso). Devuelve, en la malla `tt`, la media y
 # varianza filtradas (m, P), las de predicción (m_pred, P_pred) y la log-verosimilitud de predicción de las
-# observaciones 2..n.
+# observaciones 2..n. Los tiempos `t` pueden venir en cualquier orden pero no repetidos (una edición por año).
 .dl_kalman_nivel_local <- function(t, y, se, q, t_obj) {
+  if (anyDuplicated(t))
+    .dl_stop("una serie tiene a\u00f1os repetidos: %s", paste(sort(unique(t[duplicated(t)])), collapse = ", "))
   o <- order(t); t <- t[o]; y <- y[o]; se <- se[o]
   tt <- sort(unique(c(t, t_obj[t_obj >= t[1L]])))
   k_obs <- match(tt, t)
@@ -62,15 +74,16 @@
     var_innov <- P_pred[k] + se[j]^2                # varianza de la innovación
     v <- y[j] - m_pred[k]                           # innovación
     loglik <- loglik - 0.5 * (log(2 * pi * var_innov) + v^2 / var_innov)
-    K <- P_pred[k] / var_innov                              # ganancia
+    K <- P_pred[k] / var_innov                      # ganancia
     m[k] <- m_pred[k] + K * v
     P[k] <- (1 - K) * P_pred[k]
   }
   list(tt = tt, m = m, P = P, m_pred = m_pred, P_pred = P_pred, loglik = loglik)
 }
 
-# Suavizador RTS: la media y la varianza del gradiente en `t_obj` dadas todas las observaciones de la serie. Antes de
-# la primera observación, el paseo aleatorio es reversible: la estimación del primer tiempo con q por cada año de más.
+# Suavizador RTS: la media y la varianza del gradiente en `t_obj` (un solo año) dadas todas las observaciones de la
+# serie. Antes de la primera observación, el paseo aleatorio es reversible: la estimación del primer tiempo con q por
+# cada año de más.
 .dl_suavizar_serie <- function(t, y, se, q, t_obj) {
   f <- .dl_kalman_nivel_local(t, y, se, q, t_obj)
   n <- length(f$tt)
@@ -101,6 +114,8 @@
 
 # X_d y su error (cabecera) desde ĝ (`g`), S, los pesos de población `w` (se normalizan) y el valor nacional X.
 .dl_cerrar_proxies <- function(g, S, w, X, transformacion) {
+  .dl_validar_transformacion(transformacion)
+  if (!sum(w) > 0) .dl_stop("los pesos de poblaci\u00f3n del cierre suman 0 (o no son v\u00e1lidos); no se puede normalizar")
   w <- w / sum(w)
   if (transformacion == "cociente") {
     valor <- X * exp(g) / sum(w * exp(g))

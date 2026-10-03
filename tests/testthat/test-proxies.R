@@ -76,3 +76,36 @@ test_that("el cierre es exacto en el valor nacional", {
   r <- dismodlite:::.dl_cerrar_proxies(g, S, w, X, "cociente")
   expect_equal(r$se, r$valor * sqrt(S))
 })
+
+test_that("los años en desorden dan lo mismo que ordenados", {
+  t <- c(2018, 2019, 2021, 2024); y <- c(0.10, 0.25, 0.05, 0.18); se <- c(0.1, 0.12, 0.08, 0.15)
+  o <- c(3, 1, 4, 2)
+  expect_equal(dismodlite:::.dl_suavizar_serie(t[o], y[o], se[o], 0.01, 2022),
+               dismodlite:::.dl_suavizar_serie(t, y, se, 0.01, 2022))
+  expect_equal(dismodlite:::.dl_kalman_nivel_local(t[o], y[o], se[o], 0.01, 2022)$loglik,
+               dismodlite:::.dl_kalman_nivel_local(t, y, se, 0.01, 2022)$loglik)
+})
+
+test_that("una serie con años repetidos es un error, no una observación descartada", {
+  expect_error(dismodlite:::.dl_suavizar_serie(c(2018, 2018, 2020), c(0.1, 0.2, 0.3), rep(0.1, 3), 0.01, 2020),
+               "años repetidos: 2018")
+  expect_error(dismodlite:::.dl_estimar_q(list(list(t = c(2018, 2018), y = c(0.1, 0.2), se = c(0.1, 0.1)))),
+               "años repetidos")
+})
+
+test_that("una transformación desconocida es un error", {
+  expect_error(dismodlite:::.dl_gradiente_edicion(c(0.2, 0.4), c(0.02, 0.04), c(1, 3), "log"), "desconocida")
+  expect_error(dismodlite:::.dl_cerrar_proxies(0.1, 0.01, 1, 5, "log"), "desconocida")
+  expect_error(dismodlite:::.dl_cerrar_proxies(0.1, 0.01, 1, 5, NULL), "desconocida")
+})
+
+test_that("el cociente con un valor menor o igual que 0 es un error; la diferencia lo acepta", {
+  expect_error(dismodlite:::.dl_gradiente_edicion(c(0, 0.4), c(0.02, 0.04), c(1, 3), "cociente"), "positivos")
+  expect_error(dismodlite:::.dl_gradiente_edicion(c(-0.1, 0.4), c(0.02, 0.04), c(1, 3), "cociente"), "positivos")
+  expect_no_error(dismodlite:::.dl_gradiente_edicion(c(0, 0.4), c(0.02, 0.04), c(1, 3), "diferencia"))
+})
+
+test_that("el cierre con pesos que suman 0 es un error", {
+  expect_error(dismodlite:::.dl_cerrar_proxies(c(0.1, 0.2), c(0.01, 0.02), c(0, 0), 5, "cociente"), "suman 0")
+  expect_error(dismodlite:::.dl_cerrar_proxies(c(0.1, 0.2), c(0.01, 0.02), c(0, 0), 5, "diferencia"), "suman 0")
+})
