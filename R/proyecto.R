@@ -520,8 +520,9 @@
 #' cual; solo se calcula lo que sale de la población (el total nacional, si no viene) y la agrupación del ancla en las
 #' bandas de la población (con `poblacion_detalle`, si el ancla es más fina).
 #'
-#' `print()` muestra la causa, el año, las tablas que encontró, el modo subnacional y las claves de la configuración
-#' que tomaron su valor por defecto.
+#' `print()` muestra la causa, el año, las tablas que encontró, el modo subnacional, la calibración de
+#' `proxies_crudos` (por covariable: el método, q y las ediciones) y las claves de la configuración que tomaron su
+#' valor por defecto.
 #'
 #' Sin carpeta, las rutas relativas de la configuración (`severidad.particion`) se resuelven contra el directorio de
 #' trabajo; con carpeta, contra la carpeta del proyecto. Las secuelas y los estados de salud de una partición de
@@ -535,12 +536,13 @@
 #'   ubicaciones.csv
 #'   poblacion.csv
 #'   ancla/               # cualquier CSV: descargas de GBD tal cual o tablas del contrato
-#'   covariables/         # descargas del GHDx y/o la tabla del contrato con los proxies
+#'   covariables/         # descargas del GHDx y/o la tabla del contrato con los proxies ya calibrados
 #'   betas.csv
 #'   datos.csv
 #'   severidad.csv
 #'   fuentes_gbd/
 #'   poblacion_detalle.csv
+#'   proxies_crudos.csv   # un indicador de encuesta por ubicación y edición: se calibra al leer
 #'   particion/<corrida>/ # opcional: la partición de severidad que nombra severidad.particion
 #' ```
 #' Cada tabla es `<tabla>.csv` o una carpeta `<tabla>/` cuyos CSV se juntan (cada uno pasa por su lector), como
@@ -551,7 +553,10 @@
 #' el país y, si hay ubicaciones subnacionales, en cada una con las tasas nacionales. [dl_correr()], que calcula los
 #' años vividos con discapacidad (AVD), necesita también `severidad` (o `severidad.particion` en la configuración).
 #' `covariables` y `betas` agregan las diferencias entre ubicaciones subnacionales y `datos`, los datos locales. Las
-#' columnas de cada tabla, sus unidades y sus valores están en [dl_tablas].
+#' columnas de cada tabla, sus unidades y sus valores están en [dl_tablas]. Con `proxies_crudos`, `dl_proyecto()`
+#' calibra los valores subnacionales de sus covariables para el año que se estima ([dl_calibrar_proxies()], con las
+#' claves `proxies.*` de la configuración) y los agrega a `covariables`; los de cada covariable vienen de una sola de
+#' las dos tablas.
 #'
 #' Con varias causas, cada una tiene su configuración en `config/<causa>.yaml` y comparten las tablas, que traen las
 #' filas de todas en la columna `causa` (sin ella, una fila vale para todas). Una causa que es la suma de otras las
@@ -581,8 +586,8 @@
 #'   las tablas).
 #' @param causa Causa (`cause_id`, un entero); `NULL` si el proyecto tiene una sola o la configuración la declara.
 #' @param ... Tablas del contrato por su nombre (ver [dl_tablas]: `ubicaciones`, `poblacion`, `ancla`, `covariables`,
-#'   `betas`, `datos`, `severidad`, `fuentes_gbd`, `poblacion_detalle`): un `data.frame` o la ruta de un CSV o de una
-#'   carpeta. Reemplazan a las de la carpeta.
+#'   `betas`, `datos`, `severidad`, `fuentes_gbd`, `poblacion_detalle`, `proxies_crudos`): un `data.frame` o la ruta
+#'   de un CSV o de una carpeta. Reemplazan a las de la carpeta.
 #' @param configuracion Ruta del YAML de la configuración o una lista con sus claves (opcional; por defecto, la de la
 #'   carpeta).
 #' @return Objeto de clase `dl_proyecto`: una lista con
@@ -593,7 +598,10 @@
 #'     traducción anterior se borra), vuelve a llamar a `dl_proyecto()`.
 #'   - `carpeta`: la carpeta del proyecto (`NULL` sin carpeta).
 #'   - `formato`: `"simple"` (un proyecto con las tablas del contrato) o `"completo"` (el formato de la 0.2.2).
-#'   - `tablas`: las tablas del contrato, una lista nombrada de [dl_tabla()] (`NULL` en el formato completo).
+#'   - `tablas`: las tablas del contrato, una lista nombrada de [dl_tabla()] (`NULL` en el formato completo), tal
+#'     como vinieron (`covariables` sin las filas calibradas).
+#'   - `calibracion`: solo si el proyecto trae `proxies_crudos`, el resultado de [dl_calibrar_proxies()] (las filas
+#'     calibradas, con los atributos `calibracion`, `series` y `excluidas`).
 #' @seealso [dl_tablas] (las tablas), [dl_configuracion()] (las claves de la configuración), [dl_insumos()] (el paso
 #'   siguiente), [dl_ejemplo()] (el proyecto de ejemplo), [dl_nuevo_proyecto()] (crear la carpeta de un proyecto),
 #'   [dl_revisar_proyecto()] (revisarla antes de correr) y [dl_correr()] (la corrida completa en una llamada).
@@ -715,6 +723,10 @@ print.dl_proyecto <- function(x, ...) {
   cat(sprintf("    %-*s %s\n", max(nchar(names(arch))), names(arch), arch), sep = "")
   if (simple) {
     cat(sprintf("  subnacional: %s\n", cfg$origen$subnacional))
+    if (!is.null(x$calibracion)) {
+      cat(sprintf("  proxies calibrados de proxies_crudos (a\u00f1o %d):\n", x$calibracion$anio[1L]))
+      cat(sprintf("    %s\n", strsplit(.dl_linea_proxies(x$calibracion), "\n", fixed = TRUE)[[1L]]), sep = "")
+    }
     pd <- cfg$origen$por_defecto
     if (length(pd)) {
       t <- .dl_claves_simple()

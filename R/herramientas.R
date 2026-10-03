@@ -68,7 +68,8 @@
 
 # Las tablas con plantilla en un proyecto nuevo (solo el encabezado: una tabla opcional sin filas es como si no
 # estuviera) y las carpetas para las descargas tal cual.
-.DL_PLANTILLAS_NUEVO <- c("ubicaciones", "poblacion", "betas", "datos", "severidad", "poblacion_detalle")
+.DL_PLANTILLAS_NUEVO <- c("ubicaciones", "poblacion", "betas", "datos", "severidad", "poblacion_detalle",
+                          "proxies_crudos")
 .DL_CARPETAS_NUEVO <- c("ancla", "covariables", "fuentes_gbd")
 
 # LEEME.md de un proyecto nuevo: la carpeta del proyecto (la de ?dl_proyecto), los pasos, con las direcciones de GBD
@@ -83,12 +84,13 @@
     "ubicaciones.csv        # la nacional (sin padre) y las subnacionales (con la nacional de padre)",
     "poblacion.csv          # por ubicaci\u00f3n, a\u00f1o, sexo y banda de edad: las bandas del modelo",
     "ancla/                 # descargas de GBD Results tal cual, o la tabla ancla",
-    "covariables/           # descargas del GHDx (valor nacional) y la tabla con los proxies subnacionales",
+    "covariables/           # descargas del GHDx (valor nacional) y los proxies ya calibrados, si los hay",
     "betas.csv              # el efecto de cada covariable",
     "datos.csv              # datos locales",
     "severidad.csv          # estados de salud y sus proporciones (para los AVD)",
     "fuentes_gbd/           # la lista de fuentes del GHDx que GBD ya us\u00f3",
     "poblacion_detalle.csv  # poblaci\u00f3n nacional con m\u00e1s detalle de edad, si el ancla es m\u00e1s fina",
+    "proxies_crudos.csv     # un indicador de encuesta por ubicaci\u00f3n y edici\u00f3n (se calibra al leer)",
     "particion/<corrida>/   # (opcional) la partici\u00f3n de severidad que nombra severidad.particion",
     "```", "",
     "Una tabla con solo el encabezado no se usa: las obligatorias son `ubicaciones`, `poblacion` y `ancla`.", "",
@@ -96,7 +98,10 @@
     "2. Llena `ubicaciones.csv` y `poblacion.csv`.",
     sprintf("3. Pon en `ancla/` las descargas de GBD Results (%s), sin editar.", url$gbd$url),
     sprintf(paste0("4. Si usas covariables, llena `betas.csv` y pon en `covariables/` sus descargas del GHDx (%s), ",
-                   "sin editar, y la tabla de sus proxies subnacionales."), url$ghdx$url),
+                   "sin editar. Sus valores subnacionales salen de una sola de dos fuentes por covariable: ",
+                   "`proxies_crudos.csv` (un indicador de encuesta, que se calibra al leer; ver ",
+                   "`?dl_calibrar_proxies`) o una tabla en `covariables/` con los proxies ya calibrados."),
+            url$ghdx$url),
     "5. Llena las dem\u00e1s tablas que uses (`severidad.csv`, para los AVD; `datos.csv`; ...).",
     sprintf("6. Revisa el proyecto: `dl_revisar_proyecto(\"%s\")`.", ruta),
     sprintf(paste0("7. Pru\u00e9balo con `dl_correr(\"%s\", semilla = 1, rapido = TRUE)`; la corrida final, con ",
@@ -117,9 +122,9 @@
 #'   valor dado o vacías; `nombre`, si se da, también. Las demás van comentadas con su valor por defecto o, si no
 #'   tienen un valor fijo, con un ejemplo. Para usar otro valor se quita el `#` de la línea (y el de su
 #'   bloque, como `ancla:` para `ancla.peso`).
-#' - `ubicaciones.csv`, `poblacion.csv`, `betas.csv`, `datos.csv`, `severidad.csv` y `poblacion_detalle.csv`, con
-#'   solo el encabezado (las columnas de [dl_plantilla()]). Una tabla con solo el encabezado es como si no estuviera:
-#'   las opcionales que no se llenan no se usan.
+#' - `ubicaciones.csv`, `poblacion.csv`, `betas.csv`, `datos.csv`, `severidad.csv`, `poblacion_detalle.csv` y
+#'   `proxies_crudos.csv`, con solo el encabezado (las columnas de [dl_plantilla()]). Una tabla con solo el
+#'   encabezado es como si no estuviera: las opcionales que no se llenan no se usan.
 #' - `ancla/`, `covariables/` y `fuentes_gbd/`, vacías: ahí van las descargas de GBD Results y del GHDx, sin editar
 #'   (o las tablas del contrato).
 #' - `LEEME.md`: la carpeta del proyecto, los pasos, de dónde se descarga cada archivo y cómo revisar y correr el
@@ -378,7 +383,10 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     return(omitir())
   }
   px <- .dl_revisar_proxies(s, cf$archivo, tablas, fallidas, revisar, anotar)
-  if (!px$ok) return(omitir())
+  if (!px$ok) {
+    anotar("configuraci\u00f3n", "omitido", "su traducci\u00f3n espera a la calibraci\u00f3n de proxies_crudos")
+    return(omitir())
+  }
   pre <- revisar("configuraci\u00f3n",
                  .dl_config_de_tablas(s, cf$archivo, cf$causa, tablas, .dl_causas_config(carpeta, s, cf$causa),
                                       carpeta, calibracion = px$calibracion),

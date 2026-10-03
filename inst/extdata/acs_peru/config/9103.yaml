@@ -11,6 +11,10 @@ mortalidad_exceso:
 subnacional:
   anio_validacion: 2019          # año de los datos subnacionales reservados para validar
 
+proxies:                         # la calibración de proxies_crudos.csv (?dl_calibrar_proxies)
+  transformacion:
+    haqi: diferencia             # un índice de 0 a 100: en puntos; el SEV y el LDI, en cociente
+
 sensibilidad:
   peso: [0.1, 0.5, 1.0]
 

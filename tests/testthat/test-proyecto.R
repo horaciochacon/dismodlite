@@ -33,7 +33,7 @@ test_that("las dos puertas dan el mismo proyecto", {
 test_that("sin carpeta: la configuración y todas las tablas como argumentos", {
   d <- dl_ejemplo()
   args <- lapply(stats::setNames(nm = c("ubicaciones", "poblacion", "ancla", "covariables", "betas", "datos",
-                                        "severidad")),
+                                        "severidad", "proxies_crudos")),
                  function(t) { f <- file.path(d, t); if (file.exists(f)) f else paste0(f, ".csv") })
   p <- do.call(dl_proyecto, c(list(causa = 9100, configuracion = file.path(d, "config", "9100.yaml")), args))
   expect_identical(suppressMessages(dl_insumos(p))$hash, suppressMessages(dl_insumos(dl_proyecto(d, 9100)))$hash)
@@ -223,6 +223,13 @@ test_that("print() muestra las tablas del proyecto y lo tomado por defecto", {
   expect_match(salida, "betas +no")
   expect_match(salida, "subnacional: plano")
   expect_match(salida, "tomado por defecto")
+  expect_false(grepl("proxies calibrados", salida))
+  # con proxies_crudos, la calibración: por covariable, el método, q y las ediciones
+  salida <- capture.output(print(dl_proyecto(dl_ejemplo(), 9100)))
+  i <- grep("^  proxies calibrados de proxies_crudos \\(año 2023\\):$", salida)
+  expect_length(i, 1L)
+  expect_match(salida[i + 1:3], paste0("^    (SEV_scalar_agestd_cvd_pvd|LDI_pc|haqi): paseo_aleatorio, ",
+                                       "q = [0-9.e-]+, ediciones 2019, 2021, 2023$"))
 })
 
 test_that("un subtipo sin betas propias usa las de su causa padre (subtipos en la configuración del padre)", {
@@ -277,7 +284,7 @@ test_that("un subtipo sin betas propias ni de la causa de avanzado.extraction: e
 })
 
 test_that("proxies en bandas que no son de GBD ni de la población (uniones de sus bandas) llevan su id y cierran", {
-  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
+  d <- escribir_proxies_calibrados(dl_ejemplo(copiar_en = withr::local_tempdir()))
   f <- file.path(d, "covariables", "proxies.csv")
   px <- data.table::fread(f, colClasses = list(character = "ubicacion"), encoding = "UTF-8")
   pob <- data.table::fread(file.path(d, "poblacion.csv"), colClasses = list(character = "ubicacion"))
@@ -820,19 +827,24 @@ test_that("la configuración comentada de un proyecto nuevo trae las claves prox
 # ---- Proyecto con proxies_crudos: calibra al leer ----
 
 test_that("un proyecto con proxies_crudos calibra al leer y la puerta de R da el mismo hash", {
-  d <- escribir_proxies_crudos(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
   p <- dl_proyecto(d, 9100)
   cal <- p$calibracion
+  covs <- c("SEV_scalar_agestd_cvd_pvd", "LDI_pc", "haqi")
   expect_s3_class(cal, "dl_tabla")
-  expect_identical(attr(cal, "calibracion")$covariable, "haqi")
+  expect_identical(attr(cal, "calibracion")$covariable, covs)
+  expect_identical(attr(cal, "calibracion")$transformacion, c("cociente", "cociente", "diferencia"))
   expect_identical(sort(unique(cal$ubicacion)), sort(p$tablas$ubicaciones$ubicacion[-1L]))
-  # las tablas del proyecto quedan como vinieron: covariables sin filas subnacionales de haqi, proxies_crudos aparte
+  expect_identical(unique(cal$anio), 2023L)
+  # las tablas del proyecto quedan como vinieron: covariables sin filas subnacionales, proxies_crudos aparte
   cv <- p$tablas$covariables
-  expect_false(any(cv$covariable == "haqi" & !is.na(cv$ubicacion) & cv$ubicacion != "123"))
-  expect_identical(nrow(p$tablas$proxies_crudos), 75L)
+  expect_false(any(cv$covariable %in% covs & !is.na(cv$ubicacion) & cv$ubicacion != "123"))
+  expect_identical(nrow(p$tablas$proxies_crudos), 1500L)
   b <- suppressMessages(dl_insumos(p))      # antes de la otra puerta, que traduce en la misma carpeta
+  expect_identical(sort(unique(b$cov_proxy$location_id)), sort(unique(cal$ubicacion)))
   # puerta de R: calibrar a mano y pasar covariables completas, sin proxies_crudos
-  cal2 <- dl_calibrar_proxies(p$tablas$proxies_crudos, cv, p$tablas$poblacion, anio = 2023)
+  cal2 <- dl_calibrar_proxies(p$tablas$proxies_crudos, cv, p$tablas$poblacion, anio = 2023,
+                              transformacion = c(haqi = "diferencia"))
   unlink(file.path(d, "proxies_crudos.csv"))
   p2 <- dl_proyecto(d, 9100, covariables = data.table::rbindlist(list(cv, cal2), fill = TRUE))
   expect_null(p2$calibracion)
@@ -844,15 +856,16 @@ test_that("un proyecto con proxies_crudos calibra al leer y la puerta de R da el
 })
 
 test_that("el proyecto calibra con proxies.metodo, proxies.transformacion, proxies.excluir y el año del ancla", {
-  d <- escribir_proxies_crudos(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
   f <- file.path(d, "config", "9100.yaml")
-  write(c("proxies:", "  metodo: edicion", "  transformacion: {haqi: diferencia}",
-          "  excluir: [{anio: 2021, motivo: prueba}]"), f, append = TRUE)
+  cambiar_proxies_config(f, c("proxies:", "  metodo: edicion", "  transformacion: {haqi: diferencia}",
+                              "  excluir: [{anio: 2021, motivo: prueba}]"))
   p <- dl_proyecto(d, 9100)
   k <- attr(p$calibracion, "calibracion")
-  expect_identical(k[, c("metodo", "transformacion", "ediciones", "excluidas")],
+  expect_identical(k[covariable == "haqi", c("metodo", "transformacion", "ediciones", "excluidas")],
                    data.table::data.table(metodo = "edicion", transformacion = "diferencia", ediciones = "2023",
                                           excluidas = "2021 (prueba)"))
+  expect_identical(k$transformacion, c("cociente", "cociente", "diferencia"))
   # los años de `cambios` (dl_configuracion()) mandan sobre los de la configuración: calibra el año que se estima
   s <- dismodlite:::.dl_leer_config(f)
   cal <- dismodlite:::.dl_calibracion_proyecto(s, f, p$tablas, list(years = list(ajuste = 2019L)))
@@ -860,28 +873,29 @@ test_that("el proyecto calibra con proxies.metodo, proxies.transformacion, proxi
   expect_identical(dl_configuracion(9100, file.path(d, "config"),
                                     cambios = list(years = list(ajuste = 2019L)))$years$ajuste, 2019L)
   # una covariable de proxies.transformacion que no está en proxies_crudos, en palabras de la clave
-  writeLines(sub("haqi: diferencia", "ldi: diferencia", readLines(f)), f)
-  expect_error(dl_proyecto(d, 9100), "proxies.transformacion.ldi: .*no está en proxies_crudos")
+  writeLines(sub("haqi: diferencia", "otra: diferencia", readLines(f)), f)
+  expect_error(dl_proyecto(d, 9100), "proxies.transformacion.otra: .*no está en proxies_crudos")
 })
 
 test_that("subnacionales de una covariable en las dos tablas es un problema", {
   d <- dl_ejemplo(copiar_en = withr::local_tempdir())
-  px <- data.table::fread(file.path(d, "covariables", "proxies.csv"), colClasses = list(character = "ubicacion"))
-  data.table::fwrite(px[covariable == "haqi" & anio == 2023, list(ubicacion, anio, sexo, edad_inicio = 30,
-                                                                    covariable, valor, error_estandar = 1)],
-                     file.path(d, "proxies_crudos.csv"))
+  cr <- data.table::fread(file.path(d, "proxies_crudos.csv"), colClasses = list(character = "ubicacion"),
+                          encoding = "UTF-8")
+  sub <- cr[covariable == "haqi" & anio == 2023, list(ubicacion, anio, sexo, edad_inicio, covariable, valor,
+                                                      error_estandar)]
+  data.table::fwrite(sub, file.path(d, "covariables", "subnacionales.csv"))
   expect_error(dl_proyecto(d, 9100), "proxies_crudos: la covariable haqi tiene filas subnacionales en las dos tablas")
   # la regla entre tablas, sobre las tablas como vinieron
   p <- dl_proyecto(dl_ejemplo(), 9100)
-  tablas <- c(p$tablas, list(proxies_crudos = dl_tabla("proxies_crudos", file.path(d, "proxies_crudos.csv"))))
+  tablas <- p$tablas
+  tablas$covariables <- dl_tabla("covariables", data.table::rbindlist(list(tablas$covariables, sub), fill = TRUE))
   pr <- dismodlite:::.dl_problemas_proyecto(p$tablas, p$configuracion, originales = tablas)
   expect_match(pr$problemas, "haqi tiene filas subnacionales en las dos tablas", all = FALSE)
   expect_length(dismodlite:::.dl_problemas_proyecto(p$tablas, p$configuracion)$problemas, 0L)
 })
 
 test_that("una covariable calibrada sin beta la ve la regla de siempre", {
-  d <- escribir_proxies_crudos(dl_ejemplo(copiar_en = withr::local_tempdir()))
-  p <- dl_proyecto(d, 9100)
+  p <- dl_proyecto(dl_ejemplo(), 9100)
   tm <- dismodlite:::.dl_tablas_modelo(p$tablas, p$calibracion)
   expect_true(any(tm$covariables$covariable == "haqi" & tm$covariables$ubicacion %in% "01"))
   tm$betas <- tm$betas[covariable != "haqi"]

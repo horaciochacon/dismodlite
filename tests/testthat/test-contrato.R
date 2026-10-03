@@ -1,6 +1,7 @@
-test_that("la definición del contrato tiene las nueve tablas y el eje en cada una", {
+test_that("la definición del contrato tiene las diez tablas y el eje en cada una", {
   ref <- dismodlite:::.dl_tablas_ref()
   expect_setequal(unique(ref$tabla), dismodlite:::.DL_TABLAS)
+  expect_length(dismodlite:::.DL_TABLAS, 10L)
   expect_true(all(ref$columna[ref$rol == "eje"] %in% dismodlite:::.DL_EJE))
   expect_identical(dismodlite:::.dl_columnas_contrato("poblacion", "exigidas"),
                    c("ubicacion", "anio", "sexo", "edad_inicio", "edad_fin", "poblacion"))

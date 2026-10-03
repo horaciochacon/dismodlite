@@ -240,6 +240,25 @@ test_that("exclusiones: la edición no entra y queda declarada con su motivo", {
   expect_match(cal$fuente[1], "^índice de prueba: calibrado \\(paseo_aleatorio, q = .*ediciones 2019, 2023\\)")
 })
 
+test_that("sin edades, todas las edades: la población de todas sus bandas, aunque empiece después de 0", {
+  # población desde 30 años, en dos bandas
+  pob <- data.frame(ubicacion = rep(c("A", "B"), each = 4), anio = rep(c(2019, 2019, 2023, 2023), 2),
+                    sexo = "ambos", edad_inicio = rep(c(30, 60), 4), edad_fin = rep(c(60, NA), 4),
+                    poblacion = c(60, 40, 70, 40, 200, 100, 190, 100))
+  cal <- dl_calibrar_proxies(crudos_toy(), nac_toy(), pob, anio = 2023, transformacion = c(haqi = "diferencia"))
+  expect_false("edad_inicio" %in% names(cal))
+  w <- c(A = 110, B = 290)[cal$ubicacion]
+  expect_equal(sum(w * cal$valor) / sum(w), 50, tolerance = 1e-12)
+  # con las columnas de edad, una covariable con las edades vacías es de todas las edades y sale sin edades
+  cr <- rbind(cbind(crudos_toy(), edad_inicio = NA, edad_fin = NA),
+              cbind(transform(crudos_toy(), covariable = "ldi"), edad_inicio = 60, edad_fin = NA))
+  nac <- rbind(nac_toy(), transform(nac_toy(), covariable = "ldi"))
+  cal2 <- dl_calibrar_proxies(cr, nac, pob, anio = 2023, transformacion = c(haqi = "diferencia"))
+  expect_identical(cal2$valor[cal2$covariable == "haqi"], cal$valor)
+  expect_true(all(is.na(cal2$edad_inicio[cal2$covariable == "haqi"])))
+  expect_identical(unique(cal2$edad_inicio[cal2$covariable == "ldi"]), 60)
+})
+
 test_that("cociente por sexo y banda: suma los sexos de la población y cierra en el nacional de cada banda", {
   pob <- expand.grid(ubicacion = c("A", "B"), anio = 2023, sexo = c("hombres", "mujeres"),
                      edad_inicio = c(0, 15, 50), stringsAsFactors = FALSE)

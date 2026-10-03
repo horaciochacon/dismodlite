@@ -8,7 +8,7 @@ ejemplo_completo <- function(...) file.path(ruta_acs(), ...)
 
 # Las dos variantes de 9100 que usan las pruebas: el ajuste nacional puro (sin datos locales ni proxies
 # departamentales; las tablas datos y cov_proxy de los insumos quedan vacías) y el completo (datos.csv y los proxies
-# de covariables/proxies.csv).
+# departamentales, calibrados de proxies_crudos.csv al leer el proyecto).
 rutas_nacional <- function() dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE)
 rutas_completas <- function() dl_rutas_ejemplo(9100L)
 
@@ -225,20 +225,25 @@ corrida_mini <- local({
   }
 })
 
-# Lleva el haqi subnacional de la copia del ejemplo `d` (covariables/proxies.csv) a proxies_crudos.csv: tres ediciones
-# (2019, 2021, 2023) de un índice de prueba en la banda de la población (30 años y más), con ruido por ubicación y
-# edición para que q quede dentro de su intervalo. Devuelve `d`.
-escribir_proxies_crudos <- function(d) {
-  px <- data.table::fread(file.path(d, "covariables", "proxies.csv"), colClasses = list(character = "ubicacion"),
-                          encoding = "UTF-8")
-  h <- unique(px[covariable == "haqi"], by = "ubicacion")
-  crudos <- data.table::rbindlist(lapply(c(2019L, 2021L, 2023L), function(a) {
-    ruido <- withr::with_seed(a, stats::rnorm(nrow(h), sd = 0.05))
-    h[, list(ubicacion, anio = a, sexo, edad_inicio = 30, edad_fin = NA_real_, covariable,
-             indicador = "índice de prueba", valor = valor * (1 + 0.01 * (a - 2021)) * exp(ruido),
-             error_estandar = 1)]
-  }))
-  data.table::fwrite(px[covariable != "haqi"], file.path(d, "covariables", "proxies.csv"), eol = "\n")
-  data.table::fwrite(crudos, file.path(d, "proxies_crudos.csv"), eol = "\n")
+# Reemplaza el bloque `proxies:` de la configuración `f` (el del ejemplo: de «proxies:» a la primera línea en blanco)
+# por las líneas `lineas`, al final del archivo. Devuelve `f`.
+cambiar_proxies_config <- function(f, lineas) {
+  l <- readLines(f, encoding = "UTF-8")
+  i <- which(l == "proxies:" | startsWith(l, "proxies: "))
+  if (length(i)) {
+    fin <- i - 1L + match(TRUE, l[i:length(l)] == "")
+    l <- l[-(i:(if (is.na(fin)) length(l) else fin))]
+  }
+  writeLines(c(l, lineas), f, useBytes = TRUE)
+  f
+}
+
+# El ejemplo con sus proxies departamentales ya calibrados en covariables/proxies.csv y sin proxies_crudos.csv
+# (escribir_proxies_calibrados(), helper-arnes-simple.R): una copia por sesión, en la carpeta temporal, para las
+# pruebas que leen el proyecto sin modificarlo y cuyo tema no es la calibración (las reglas entre tablas, los proxies
+# del contrato). No se edita: para cambiarlo, escribir_proxies_calibrados(copia_ejemplo()).
+ejemplo_calibrado <- function() {
+  d <- file.path(tempdir(), "ejemplo_calibrado")
+  if (!dir.exists(d)) escribir_proxies_calibrados(dl_ejemplo(copiar_en = d))
   d
 }

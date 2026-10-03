@@ -143,8 +143,9 @@
 # ---- Entradas ----
 
 # Las tablas leídas con dl_tabla() y las ediciones de `excluir` quitadas de los crudos. Los crudos sin sexo son de
-# ambos sexos y sin edades, de todas las edades (banda 0-125); `con_edades` dice si las traían (las filas que salen
-# las llevan solo entonces); avisa si `excluir` nombra ediciones que no están. `ubicaciones`: las subnacionales de
+# ambos sexos y sin edades (sin las columnas o con edad_inicio vacía en una fila), de todas las edades (banda 0-125,
+# que suma todas las bandas de la población); `con_edades` dice si traían las columnas (las filas que salen las
+# llevan solo entonces, vacías en las de todas las edades); avisa si `excluir` nombra ediciones que no están. `ubicaciones`: las subnacionales de
 # los crudos, también las de ediciones excluidas; `quitadas`: las (covariable, anio) excluidas, con su motivo;
 # `covs`: las covariables de los crudos.
 .dl_leer_entradas_proxies <- function(crudos, covariables, poblacion, excluir) {
@@ -152,6 +153,8 @@
   con_edades <- "edad_inicio" %in% names(cr)
   if (!"sexo" %in% names(cr)) data.table::set(cr, j = "sexo", value = "ambos")
   if (!con_edades) data.table::set(cr, j = c("edad_inicio", "edad_fin"), value = list(0, .DL_EDAD_ABIERTA))
+  todas <- which(is.na(cr$edad_inicio))
+  data.table::set(cr, i = todas, j = c("edad_inicio", "edad_fin"), value = list(0, .DL_EDAD_ABIERTA))
   excluir <- .dl_validar_excluir(excluir)
   fuera <- cr$anio %in% excluir$anio
   if (length(sobran <- setdiff(excluir$anio, cr$anio)))
@@ -240,9 +243,11 @@
   if (a0 == 0 && a1 == .DL_EDAD_ABIERTA) "todas las edades" else .dl_nombre_banda(a0, a1)
 
 # Error si la banda [a0, a1) de `b` (una fila: covariable, sexo, edad_inicio, edad_fin) no es una unión de bandas de
-# la población de su sexo: ninguna banda de la población la cruza y las que caen dentro la cubren entera.
+# la población de su sexo: ninguna banda de la población la cruza y las que caen dentro la cubren entera. Todas las
+# edades (0-125) es la suma de todas las bandas de la población, empiece donde empiece.
 .dl_validar_banda_crudos <- function(b, pob) {
   f <- .dl_poblacion_sexo(pob, b$sexo)
+  if (b$edad_inicio == 0 && b$edad_fin == .DL_EDAD_ABIERTA && nrow(f)) return(invisible())
   B <- unique(f[, c("edad_inicio", "edad_fin"), with = FALSE])
   dentro <- B$edad_inicio >= b$edad_inicio & B$edad_fin <= b$edad_fin
   cruza <- B$edad_inicio < b$edad_fin & B$edad_fin > b$edad_inicio & !dentro
@@ -524,7 +529,8 @@
 #' @param crudos Tabla `proxies_crudos` (ver [dl_tablas]): `data.frame` o ruta de un CSV o una carpeta.
 #' @param covariables Tabla `covariables`, con el valor nacional de cada covariable de los crudos.
 #' @param poblacion Tabla `poblacion` de las ubicaciones de los crudos; sus bandas de edad (y sus sexos, para «ambos»)
-#'   deben poder sumarse en las de los crudos.
+#'   deben poder sumarse en las de los crudos. Una fila de los crudos sin edades (o sin las columnas de edad) es de
+#'   todas las edades: su población es la de todas las bandas de `poblacion`, empiecen donde empiecen.
 #' @param anio Año que se estima: el de las filas que salen.
 #' @param metodo Método temporal: `"paseo_aleatorio"` (por defecto) o `"edicion"`.
 #' @param transformacion Vector (o lista) con nombres, covariable = `"cociente"` o `"diferencia"`. Las covariables que
@@ -532,8 +538,8 @@
 #' @param excluir `data.frame` con `anio` y `motivo`: ediciones que no entran. Cada una necesita su motivo.
 #' @param anio_nacional Año del valor nacional que cierra las filas. Por defecto, `anio`.
 #' @return Una [dl_tabla()] `covariables` con las filas subnacionales del año: `ubicacion`, `anio`, `sexo`, las
-#'   edades (si los crudos las traen), `covariable`, `valor`, `error_estandar` y `fuente` (el indicador, el método,
-#'   q y las ediciones de la serie). Tres atributos:
+#'   edades (si los crudos las traen; vacías en las de todas las edades), `covariable`, `valor`, `error_estandar` y
+#'   `fuente` (el indicador, el método, q y las ediciones de la serie). Tres atributos:
 #'   - `calibracion`: un `data.table` por covariable con `metodo`, `transformacion`, `q`, `q_en_borde` (el borde de su
 #'     intervalo de búsqueda en que quedó q, `"inferior"` o `"superior"`; `NA` si no quedó en ninguno o no hay q),
 #'     `ediciones` (las usadas: con el paseo aleatorio, todas las no excluidas; con `edicion`, las elegidas en alguna
@@ -561,6 +567,15 @@
 #' s <- attr(cal, "series")
 #' plot(g ~ anio, s, col = factor(ubicacion), pch = 19, ylab = "gradiente")
 #' for (u in unique(s$ubicacion)) lines(g_suavizado ~ anio, s[s$ubicacion == u, ])
+#'
+#' # el proyecto de ejemplo trae una encuesta con tres ediciones (proxies_crudos.csv): dl_proyecto() la calibra
+#' p <- dl_proyecto(dl_ejemplo(), causa = 9100)
+#' attr(p$calibracion, "calibracion")[, c("covariable", "transformacion", "q", "ediciones")]
+#' # la misma calibración a mano, para otro año, con el método de la edición más cercana
+#' t <- p$tablas
+#' cal19 <- dl_calibrar_proxies(t$proxies_crudos, t$covariables, t$poblacion, anio = 2019, metodo = "edicion",
+#'                              transformacion = c(haqi = "diferencia"))
+#' head(cal19)
 #' @export
 dl_calibrar_proxies <- function(crudos, covariables, poblacion, anio, metodo = c("paseo_aleatorio", "edicion"),
                                 transformacion = NULL, excluir = NULL, anio_nacional = anio) {
@@ -576,6 +591,8 @@ dl_calibrar_proxies <- function(crudos, covariables, poblacion, anio, metodo = c
     .dl_calibrar_covariable(g, e, tr[[g$covariable[1L]]], anio, anio_nacional, metodo))
   filas <- data.table::rbindlist(lapply(partes, `[[`, "filas"))
   if (!e$con_edades) data.table::set(filas, j = c("edad_inicio", "edad_fin"), value = NULL)
+  else data.table::set(filas, i = which(filas$edad_inicio == 0 & filas$edad_fin == .DL_EDAD_ABIERTA),
+                       j = c("edad_inicio", "edad_fin"), value = list(NA_real_, NA_real_))
   out <- dl_tabla("covariables", filas)
   data.table::setattr(out, "calibracion", data.table::rbindlist(lapply(partes, `[[`, "calibracion")))
   data.table::setattr(out, "series", data.table::rbindlist(lapply(partes, `[[`, "series")))

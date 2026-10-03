@@ -21,7 +21,8 @@ dl_calibrar_proxies(
 \item{covariables}{Tabla \code{covariables}, con el valor nacional de cada covariable de los crudos.}
 
 \item{poblacion}{Tabla \code{poblacion} de las ubicaciones de los crudos; sus bandas de edad (y sus sexos, para «ambos»)
-deben poder sumarse en las de los crudos.}
+deben poder sumarse en las de los crudos. Una fila de los crudos sin edades (o sin las columnas de edad) es de
+todas las edades: su población es la de todas las bandas de \code{poblacion}, empiecen donde empiecen.}
 
 \item{anio}{Año que se estima: el de las filas que salen.}
 
@@ -36,8 +37,8 @@ no nombra usan \code{"cociente"}.}
 }
 \value{
 Una \code{\link[=dl_tabla]{dl_tabla()}} \code{covariables} con las filas subnacionales del año: \code{ubicacion}, \code{anio}, \code{sexo}, las
-edades (si los crudos las traen), \code{covariable}, \code{valor}, \code{error_estandar} y \code{fuente} (el indicador, el método,
-q y las ediciones de la serie). Tres atributos:
+edades (si los crudos las traen; vacías en las de todas las edades), \code{covariable}, \code{valor}, \code{error_estandar} y
+\code{fuente} (el indicador, el método, q y las ediciones de la serie). Tres atributos:
 \itemize{
 \item \code{calibracion}: un \code{data.table} por covariable con \code{metodo}, \code{transformacion}, \code{q}, \code{q_en_borde} (el borde de su
 intervalo de búsqueda en que quedó q, \code{"inferior"} o \code{"superior"}; \code{NA} si no quedó en ninguno o no hay q),
@@ -121,6 +122,15 @@ attr(cal, "calibracion")
 s <- attr(cal, "series")
 plot(g ~ anio, s, col = factor(ubicacion), pch = 19, ylab = "gradiente")
 for (u in unique(s$ubicacion)) lines(g_suavizado ~ anio, s[s$ubicacion == u, ])
+
+# el proyecto de ejemplo trae una encuesta con tres ediciones (proxies_crudos.csv): dl_proyecto() la calibra
+p <- dl_proyecto(dl_ejemplo(), causa = 9100)
+attr(p$calibracion, "calibracion")[, c("covariable", "transformacion", "q", "ediciones")]
+# la misma calibración a mano, para otro año, con el método de la edición más cercana
+t <- p$tablas
+cal19 <- dl_calibrar_proxies(t$proxies_crudos, t$covariables, t$poblacion, anio = 2019, metodo = "edicion",
+                             transformacion = c(haqi = "diferencia"))
+head(cal19)
 }
 \seealso{
 \link{dl_tablas} (la tabla \code{proxies_crudos}), \code{\link[=dl_tabla]{dl_tabla()}}, \code{\link[=dl_proyecto]{dl_proyecto()}}.
