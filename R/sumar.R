@@ -146,9 +146,10 @@
 }
 
 # Limitaciones del manifiesto de una suma, armadas con lo que hizo la suma (hijas sumadas y omitidas, año del ancla,
-# hijas con la fase aguda descontada). Cada condición aporta siempre el mismo número de limitaciones. Los textos no
-# llevan «: » (el manifiesto los emite sin comillas).
-.dl_limitaciones_suma <- function(ids_hijas, omitidas, anio, anio_ancla, fraccion_aguda) {
+# hijas con la fase aguda descontada, hijas `forzadas`: las de una suma de producción de dl_correr() escritas con
+# forzar = TRUE). Cada condición aporta siempre el mismo número de limitaciones. Los textos no llevan «: » (el
+# manifiesto los emite sin comillas).
+.dl_limitaciones_suma <- function(ids_hijas, omitidas, anio, anio_ancla, fraccion_aguda, forzadas = integer()) {
   c(list(
     sprintf(paste0("suma simulaci\u00f3n a simulaci\u00f3n de %d causas hijas (%s) \u2014 ",
                    .DL_LIMITACION_CORRELACION_HIJAS, " (cada hija viene de su propio ajuste)"),
@@ -164,7 +165,11 @@
       list(sprintf(paste0("fase aguda descontada del csmr en la(s) hija(s) %s \u2014 su incidencia es ",
                           .DL_LIMITACION_INCIDENCIA_AGUDA, " del ancla, y as\u00ed entra en la suma (ver ",
                           "causa.hijas[].csmr_fraccion_aguda)"),
-                   paste(ids_hijas[fraccion_aguda > 0], collapse = ", "))))
+                   paste(ids_hijas[fraccion_aguda > 0], collapse = ", "))),
+    if (length(forzadas))
+      list(sprintf(paste0("corrida(s) de la(s) hija(s) %s escrita(s) con forzar = TRUE \u2014 sus cadenas no pasaron ",
+                          "la compuerta de convergencia y la suma las toma igual (ver validacion.gates en el ",
+                          "manifiesto de cada una)"), paste(forzadas, collapse = ", "))))
 }
 
 #' Sumar las corridas de las causas hijas
@@ -229,6 +234,15 @@
 dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("DATA_ROOT"), nombre_causa = NULL,
                            nivel = 0.95, registrar = !is.null(registro), registro = NULL, rutas = dl_rutas(),
                            omitidas = NULL) {
+  .dl_sumar_corridas(corridas_hijas, causa, nombre, carpeta, nombre_causa, nivel, registrar, registro, rutas, omitidas)
+}
+
+# La suma de dl_sumar_hijas(), con sus argumentos, y `forzadas`: las hijas cuya corrida se escribió con forzar = TRUE
+# y que el manifiesto declara entre sus limitaciones (las que da dl_correr() de una suma de producción;
+# dl_sumar_hijas() no da ninguna). Un `nombre` que falta en dl_sumar_hijas() falta también aquí.
+.dl_sumar_corridas <- function(corridas_hijas, causa, nombre, carpeta, nombre_causa = NULL, nivel = 0.95,
+                               registrar = !is.null(registro), registro = NULL, rutas = dl_rutas(), omitidas = NULL,
+                               forzadas = integer()) {
   .dl_exigir_registro(registrar, registro)
   .dl_exigir_nivel(nivel, exportable = TRUE)
   if (missing(nombre)) .dl_stop("falta `nombre` (nombre corto de la corrida de la suma, p. ej. \"acs-suma\")")
@@ -290,7 +304,7 @@ dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("
                   estadistico_puntual = .DL_ESTADISTICO_PUNTUAL, version_paquete = dl_version()),
     inputs = list(runs_hijas = lapply(hijas, function(h) h$run_id)),
     files = archivos,
-    limitaciones = .dl_limitaciones_suma(ids_hijas, omitidas, anio, anio_ancla, fraccion_aguda)))
+    limitaciones = .dl_limitaciones_suma(ids_hijas, omitidas, anio, anio_ancla, fraccion_aguda, forzadas)))
   .dl_escribir_manifest(man, dir_run)
   .dl_corrida_escrita(man, dir_run, if (registrar) registro)
 }

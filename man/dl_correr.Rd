@@ -108,8 +108,10 @@ Con \code{anios}, la causa se corre una vez por año, en orden, y el proyecto se
 (\code{dl_proyecto(anio = )}, con la regla del año del ancla de \code{\link[=dl_proyecto]{dl_proyecto()}}): un proyecto sirve para varios años sin
 editar su configuración. Las comprobaciones de los argumentos se hacen una vez, antes del primer año; el nombre de
 cada corrida lleva el año (\verb{causa-<causa>-<año>}, y \code{-prueba} con \code{rapido = TRUE}), y cada corrida es de por sí
-una corrida completa, como la de un \code{dl_correr()} sin \code{anios}. Si un año falla, \code{dl_correr()} se detiene ahí con el
-error de ese año y dice qué años quedaron escritos; esas corridas siguen en su carpeta.
+una corrida completa, como la de un \code{dl_correr()} sin \code{anios}. El proyecto de todos los años se lee antes de correr
+el primero: si el de alguno no se puede leer (el ancla no trae ese año ni el anterior, falta su población...),
+\code{dl_correr()} se detiene ahí, con el año y el problema, sin haber escrito ninguna corrida. Si un año falla al
+correr, se detiene con el error de ese año y dice qué años quedaron escritos; esas corridas siguen en su carpeta.
 
 La causa debe tener severidad (sus estados de salud en \code{severidad.csv} o desde \code{severidad.particion}): sin ella los
 AVD serían cero y la corrida no se escribe. \code{dl_correr()} lo comprueba antes de ajustar.
@@ -129,12 +131,13 @@ La corrida más reciente de un subtipo es la del último día (la fecha de su no
 versión. Si ese día hay corridas del subtipo con nombres distintos (por ejemplo \verb{causa-<causa>} y
 \verb{causa-<causa>-<año>}), gana la que se escribió última, por la fecha de modificación de su \code{manifest.yaml}: copiar
 la carpeta de las corridas sin conservar las fechas de los archivos puede cambiar ese desempate. Los mensajes dicen
-qué corrida se tomó de cada subtipo y cuáles se escribieron con \code{forzar = TRUE}; para elegirlas a mano,
-\code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}. Los subtipos de una suma son causas que se ajustan: una suma no puede ser subtipo de otra suma.
+qué corrida se tomó de cada subtipo y cuáles se escribieron con \code{forzar = TRUE}, que en una suma de producción
+quedan también entre las limitaciones de su manifiesto; para elegirlas a mano, \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}. Los subtipos de
+una suma son causas que se ajustan: una suma no puede ser subtipo de otra suma.
 
-Los ajustes quedan en la caché de la sesión:
-\code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
-proyecto con las tablas del contrato, los mensajes de todos los pasos citan sus claves y sus tablas (como \code{\link[=dl_insumos]{dl_insumos()}}).
+Los ajustes quedan en la caché de la sesión: \code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el
+de la corrida sin volver a muestrear. Con un proyecto con las tablas del contrato, los mensajes de todos los pasos
+citan sus claves y sus tablas (como \code{\link[=dl_insumos]{dl_insumos()}}).
 }
 \examples{
 \donttest{

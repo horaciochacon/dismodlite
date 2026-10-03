@@ -43,8 +43,9 @@ como vinieron (\code{covariables} sin las filas calibradas). De una suma de subt
 \code{poblacion}.
 \item \code{calibracion}: solo si el proyecto trae \code{proxies_crudos}, el resultado de \code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}} (las filas
 calibradas, con los atributos \code{calibracion}, \code{series} y \code{excluidas}).
-\item \code{configuracion_dada}: solo si \code{configuracion} se dio como lista, esa lista tal como se dio (con ella
-\code{\link[=dl_correr]{dl_correr()}} vuelve a leer el proyecto para cada año de \code{anios}).
+\item \code{configuracion_dada}: solo si \code{configuracion} se dio como lista, esa lista tal como se dio.
+\item \code{tablas_dadas}: solo si se dieron tablas en \code{...}, esas tablas tal como se dieron (un \code{data.frame} o una
+ruta). Con las dos, \code{\link[=dl_correr]{dl_correr()}} vuelve a leer el mismo proyecto para cada año de \code{anios}.
 }
 }
 \description{
@@ -95,7 +96,9 @@ proyecta desde 2023»). La proyección queda en la procedencia del año del ancl
 limitaciones del manifiesto de la corrida, y \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} la muestra como aviso;
 \item con \code{ancla.anio}, ese año, que no puede ser posterior al \code{anio} de la configuración. Con el argumento \code{anio}
 es el menor entre los dos: una configuración con \code{anio: 2024} y \code{ancla: {anio: 2023}} sirve para 2024
-(proyectado desde 2023) y, con \code{anio = 2023} o un año anterior, para ese año con su propia ancla;
+(proyectado desde 2023) y, con \code{anio = 2023} o un año anterior, para ese año con su propia ancla. El argumento
+\code{anio} solo baja el año del ancla declarado con \code{ancla.anio}: uno declarado en \code{avanzado} (o en \code{years.ancla}
+del formato completo) no se ajusta solo, y para un año anterior hay que cambiarlo en la configuración;
 \item el ancla es, a lo sumo, de un año antes del que se estima: mantiene el nivel nacional, no lo extrapola. Si el
 ancla no trae el año ni ninguno anterior, las reglas entre tablas dicen qué falta.
 }

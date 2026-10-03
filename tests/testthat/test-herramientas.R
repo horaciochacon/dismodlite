@@ -452,17 +452,33 @@ test_that("dl_correr(anios = ) corre la causa una vez por año y devuelve una co
   expect_identical(names(r2), "2023")
   expect_match(r2[["2023"]]$run_id, "_causa-9100-2023-prueba_v1$")
   expect_identical(estimaciones(r2[["2023"]]), estimaciones(correr(d, 9100)))
-  # un año que falla: el error dice cuál y qué años quedaron escritos, que existen en disco
-  e <- expect_error(correr(d, anios = c(2019, 2025)), "^dl_correr\\(\\): la corrida del año 2025 falló: ",
-                    class = "dl_error")
-  expect_match(conditionMessage(e), "Quedaron escritas las corridas de: 2019 \\(.*_causa-9101-2019-prueba_v2\\)\\.")
-  expect_identical(e$anio, 2025L)
-  expect_identical(e$escritas, 2019L)
-  lineas <- strsplit(conditionMessage(e), "\n")[[1L]]
-  escrita <- sub("^.*\\(([^()]*_causa-9101-2019-prueba_v2)\\)\\.$", "\\1", grep("Quedaron", lineas, value = TRUE))
-  expect_true(escrita %in% list.files(file.path(salida, "mod", "dismod_lite")))
-  e0 <- expect_error(correr(d, anios = 2025), "la corrida del año 2025 falló")
-  expect_match(conditionMessage(e0), "No quedó escrita ninguna corrida\\.")
+  # un año que no se puede leer se descubre antes de correr ninguno: el error dice cuál y no se escribe nada
+  escritas <- function() list.files(file.path(salida, "mod", "dismod_lite"))
+  antes <- escritas()
+  for (anios in list(c(2019, 2025), c(2025, 2019), 2025)) {
+    e <- expect_error(correr(d, anios = anios), "^dl_correr\\(\\): el proyecto no se puede leer para el año 2025: ",
+                      class = "dl_error")
+    expect_match(conditionMessage(e), "No se corrió ningún año: corrige ese año o quítalo de `anios`\\.$")
+    expect_no_match(conditionMessage(e), "la corrida del año")
+    expect_identical(e[c("anio", "escritas")], list(anio = 2025L, escritas = integer()))
+  }
+  expect_error(correr(p, anios = c(2019, 2025)), "el proyecto no se puede leer para el año 2025", class = "dl_error")
+  expect_identical(escritas(), antes)
+})
+
+test_that("dl_correr(anios = ) lee el proyecto de cada año una sola vez: sus mensajes no se repiten", {
+  d <- copia_ejemplo()
+  mensajes <- character()
+  r <- withCallingHandlers(dl_correr(d, 9101, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                     carpeta_salida = withr::local_tempdir(), anios = c(2023, 2024)),
+                           message = function(m) {
+                             mensajes <<- c(mensajes, conditionMessage(m)); invokeRestart("muffleMessage")
+                           })
+  expect_identical(names(r), c("2023", "2024"))
+  # la proyección de 2024 se anuncia una vez, al leer los años, antes de correr el primero
+  proyeccion <- grep("el ancla no trae 2024: se proyecta desde 2023", mensajes)
+  expect_length(proyeccion, 1L)
+  expect_lt(proyeccion, grep("año 2023 \\(1 de 2\\)", mensajes))
 })
 
 test_that("el error de un año conserva la clase del error original", {
@@ -475,6 +491,30 @@ test_that("el error de un año conserva la clase del error original", {
   # el de un error del paquete sigue siendo un dl_error, sin clases repetidas
   e <- expect_error(.dl_en_anio(2020L, list(), .dl_stop("no se pudo")), "falló: no se pudo", class = "dl_error")
   expect_identical(class(e), c("dl_error", "error", "condition"))
+})
+
+test_that("el error de un año conserva los campos del error original", {
+  e <- expect_error(.dl_en_anio(2020L, list(), .dl_stop("faltan corridas", campos = list(faltan = 9102L, anio = 1L))),
+                    "la corrida del año 2020 falló: faltan corridas", class = "dl_error")
+  expect_identical(e$faltan, 9102L)
+  expect_identical(e$anio, 2020L)                         # el año que falló, no el campo del original
+  expect_identical(e$detalle, "la corrida del año 2020 falló: faltan corridas\n  No quedó escrita ninguna corrida.")
+  expect_identical(sum(names(e) %in% c("message", "call", "detalle", "funcion", "anio", "escritas")), 6L)
+  propio <- structure(class = c("error_propio", "error", "condition"),
+                      list(message = "algo falló", call = NULL, dato = list(a = 1)))
+  expect_identical(expect_error(.dl_en_anio(2020L, list(), stop(propio)), class = "error_propio")$dato, list(a = 1))
+  # los problemas entre tablas de un año de dl_correr(anios = ) se leen igual que los de dl_proyecto()
+  d <- copia_ejemplo()
+  f <- file.path(d, "ubicaciones.csv")
+  u <- leer_texto(f)
+  escribir_texto(u[rep(seq_len(nrow(u)), ifelse(seq_len(nrow(u)) == 2L, 2L, 1L))], f)
+  e0 <- expect_error(suppressMessages(dl_proyecto(d, 9101)), class = "dl_error")
+  expect_gt(length(e0$problemas), 0L)
+  for (anios in list(2023, c(2019, 2023))) {
+    e <- expect_error(suppressMessages(dl_correr(d, 9101, semilla = 1, rapido = TRUE, anios = anios)),
+                      sprintf("el proyecto no se puede leer para el año %d", anios[1L]), class = "dl_error")
+    expect_identical(e$problemas, e0$problemas)
+  }
 })
 
 test_that("dl_correr(anios = ) con forzar = TRUE y registro: cada año se escribe forzado y queda registrado", {
@@ -608,6 +648,12 @@ test_that("dl_correr() de una suma busca las corridas de sus subtipos y las suma
   e <- expect_error(suppressMessages(dl_correr(d, 9200, carpeta_salida = salida, rapido = TRUE, anios = c(2019, 2023))),
                     "la corrida del año 2023 falló: falta la corrida de prueba de 2023", class = "dl_error")
   expect_identical(e$escritas, 2019L)
+  expect_identical(e[c("faltan", "anio")], list(faltan = 9102L, anio = 2023L))
+  # un año que falla al correr (el proyecto de cada año se leyó bien): el error dice qué años quedaron escritos
+  expect_match(conditionMessage(e), "Quedaron escritas las corridas de: 2019 \\(.*_causa-9200-2019-prueba_v[0-9]+\\)\\.$")
+  escrita <- sub("^.*\\(([^()]*_causa-9200-2019-prueba_v[0-9]+)\\)\\.$", "\\1",
+                 grep("Quedaron", strsplit(conditionMessage(e), "\n")[[1L]], value = TRUE))
+  expect_true(escrita %in% list.files(corridas))
   expect_identical(length(list.files(corridas)), n)              # se borró una y quedó escrita la suma de 2019
 
   # las corridas de un subtipo que declara otra causa padre no se suman: el error dice cómo declararla
@@ -621,6 +667,75 @@ test_that("dl_correr() de una suma busca las corridas de sus subtipos y las suma
 
   # un proyecto que se ajusta sigue exigiendo la semilla
   expect_error(dl_correr(d, 9101, carpeta_salida = salida, rapido = TRUE), "^dl_correr\\(\\): falta `semilla`")
+})
+
+test_that("una suma de producción declara en sus limitaciones los subtipos escritos con forzar = TRUE", {
+  d <- copia_con_suma()
+  salida <- file.path(withr::local_tempdir(), "resultados")
+  o <- do.call(dl_opciones_mcmc, .DL_OPCIONES_PRUEBA)      # cadenas cortas, en corridas de producción
+  for (k in 9101:9103)
+    suppressMessages(dl_correr(d, k, semilla = 1, opciones = o, sensibilidad = FALSE, forzar = TRUE,
+                               carpeta_salida = salida))
+  suma <- suppressMessages(dl_correr(d, 9200, carpeta_salida = salida))
+  expect_match(suma$run_id, "_causa-9200_v1$")
+  lim <- unlist(yaml::read_yaml(file.path(suma$dir, "manifest.yaml"))$limitaciones)
+  expect_identical(lim, unlist(suma$manifest$limitaciones))
+  expect_length(grep("forzar = TRUE", lim), 1L)
+  expect_match(lim[length(lim)], "^corrida\\(s\\) de la\\(s\\) hija\\(s\\) 9101, 9102, 9103 escrita\\(s\\) con forzar = TRUE")
+  # dl_sumar_hijas(), con las mismas corridas elegidas a mano, escribe el manifiesto de siempre
+  a_mano <- dl_sumar_hijas(file.path(dirname(suma$dir), vapply(suma$manifest$causa$hijas, `[[`, "", "run_id")),
+                           causa = 9200, nombre = "a-mano", carpeta = salida, nombre_causa = "Suma sintética de subtipos",
+                           rutas = suppressMessages(dl_proyecto(d, 9200))$rutas)
+  expect_identical(unlist(a_mano$manifest$limitaciones), lim[-length(lim)])
+  # y una suma de prueba no lo dice: toda corrida de prueba se escribe así
+  for (k in 9101:9103)
+    suppressMessages(dl_correr(d, k, semilla = 1, rapido = TRUE, sensibilidad = FALSE, carpeta_salida = salida))
+  prueba <- suppressMessages(dl_correr(d, 9200, carpeta_salida = salida, rapido = TRUE))
+  expect_no_match(unlist(prueba$manifest$limitaciones), "forzar")
+})
+
+test_that("la revisión avisa de una clave corta y su equivalente de `avanzado` con valores distintos", {
+  avisos <- function(s) { x <- character(); .dl_avisar_avanzado(s, function(paso, estado, detalle) {
+    expect_identical(c(paso, estado), c("configuración", "aviso")); x <<- c(x, detalle) }); x }
+  procedencia <- "prueba"
+  s <- list(causa = 502L, anio = 2023L, subtipo_de = 501L, remision = 0.1,
+            ancla = list(error_maximo = 0.1, peso = 0.5),
+            mortalidad_exceso = list(fraccion_aguda = 0.3), sensibilidad = list(fraccion_aguda = list(0, 0.3)),
+            avanzado = list(anchor = list(gate_err_mediano = list(valor = 0.2, procedencia = procedencia),
+                                          lambda = list(valor = 0.5, procedencia = procedencia)),
+                            emr_prior = list(fraccion_aguda = list(valor = 0.4, procedencia = procedencia)),
+                            sensibilidad = list(fraccion_aguda = list(0, 0.5)),
+                            extraction = list(cause_id = 777L, motivo = "prueba"), nsub = 4L))
+  a <- avisos(s)
+  expect_length(a, 4L)                     # ancla.peso dice lo mismo que avanzado: anchor.lambda; nsub no tiene clave
+  expect_identical(a[1], paste0("ancla.error_maximo (0.1) y avanzado: anchor.gate_err_mediano (0.2) dicen valores ",
+                                "distintos: rige el de `avanzado`; deja uno de los dos"))
+  expect_match(a[2], "^mortalidad_exceso.fraccion_aguda \\(0.3\\) y avanzado: emr_prior.fraccion_aguda \\(0.4\\) dicen")
+  expect_match(a[3], "^sensibilidad.fraccion_aguda \\(0, 0.3\\) y avanzado: sensibilidad.fraccion_aguda \\(0, 0.5\\) dicen")
+  expect_match(a[4], "^subtipo_de \\(501\\) y avanzado: extraction.cause_id \\(777\\) dicen")
+  # los mismos valores, solo la clave corta, solo `avanzado` o un bloque de `avanzado` sin el valor: sin aviso
+  igual <- s
+  igual$avanzado <- list(anchor = list(gate_err_mediano = list(valor = 0.1, procedencia = procedencia)),
+                         emr_prior = list(fraccion_aguda = list(cfr_30d = 0.1)), extraction = list(cause_id = 501L))
+  expect_length(avisos(igual), 0L)
+  expect_length(avisos(s[names(s) != "avanzado"]), 0L)
+  expect_length(avisos(s[c("causa", "anio", "avanzado")]), 0L)
+  # en la revisión de la carpeta y en la del proyecto leído, en el paso de la configuración; dl_proyecto() no cambia
+  f <- dl_ejemplo("config", "9101.yaml")
+  d <- copia_ejemplo(`config/9101.yaml` = c(
+    readLines(f, encoding = "UTF-8"), "ancla:", "  error_maximo: 0.1", "avanzado:", "  anchor:",
+    "    gate_err_mediano: {valor: 0.2, procedencia: prueba}"))
+  esperado <- "^ancla.error_maximo \\(0.1\\) y avanzado: anchor.gate_err_mediano \\(0.2\\) dicen valores distintos"
+  r <- revisar_callado(d, causa = 9101)
+  expect_false(any(r$estado == "error"))
+  expect_match(r$detalle[r$paso == "configuración" & r$estado == "aviso"], esperado)
+  p <- expect_no_warning(suppressMessages(dl_proyecto(d, 9101)))
+  expect_identical(p$configuracion$anchor$gate_err_mediano$valor, 0.2)
+  r2 <- revisar_callado(p)
+  expect_match(r2$detalle[r2$paso == "configuración" & r2$estado == "aviso"], esperado)
+  # el ejemplo, sin `avanzado`, no trae el aviso
+  r3 <- revisar_callado(copia_ejemplo(), causa = 9101)
+  expect_false(any(r3$paso == "configuración" & r3$estado == "aviso"))
 })
 
 test_that("un año que el ancla no trae: la revisión no tiene errores y avisa de la proyección", {

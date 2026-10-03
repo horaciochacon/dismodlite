@@ -428,6 +428,9 @@ test_that("valor_nacional_de: cierra en el valor nacional de la covariable nombr
   base <- dl_calibrar_proxies(crudos_toy(), dos, pob_toy(), anio = 2023)
   expect_equal(sum(w * base$valor) / sum(w), 50, tolerance = 1e-12)
   expect_identical(attr(base, "calibracion")$valor_nacional_de, NA_character_)
+  # el manifiesto de una corrida solo trae la clave en la covariable que toma su valor nacional de otra
+  expect_identical(dismodlite:::.dl_params_proxies(cal)$proxies$haqi$valor_nacional_de, "haqi_estandarizado")
+  expect_false("valor_nacional_de" %in% names(dismodlite:::.dl_params_proxies(base)$proxies$haqi))
   # solo cambia el valor nacional del cierre: el gradiente y q son los mismos
   expect_identical(attr(cal2, "series"), attr(base, "series"))
   expect_identical(attr(cal2, "calibracion")$q, attr(base, "calibracion")$q)

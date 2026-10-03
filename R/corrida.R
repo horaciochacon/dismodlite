@@ -291,8 +291,8 @@
 # Clave params.proxies del manifiesto: por covariable de la calibración `cal` (b$calibracion_proxies), el método, la
 # transformación, q (6 cifras significativas; sin q, nada), el borde de su intervalo en que quedó («inferior» o
 # «superior»; en ninguno, nada), las ediciones usadas, las excluidas, cada una con su anio y su motivo (sin
-# excluidas, nada), y valor_nacional_de (la covariable que dio el valor nacional, si es otra; si no, nada). NULL sin
-# calibración: los manifiestos sin proxies_crudos no cambian.
+# excluidas, nada), y valor_nacional_de (la covariable que dio el valor nacional), solo si es otra: sin ella la clave
+# no está. NULL sin calibración: los manifiestos sin proxies_crudos no cambian.
 .dl_params_proxies <- function(cal) {
   if (is.null(cal)) return(NULL)
   k <- attr(cal, "calibracion")
@@ -301,12 +301,12 @@
     x <- ex[ex$covariable == cov]
     if (nrow(x)) lapply(seq_len(nrow(x)), function(j) list(anio = as.integer(x$anio[j]), motivo = x$motivo[j]))
   }
-  list(proxies = stats::setNames(lapply(seq_len(nrow(k)), function(i) list(
+  list(proxies = stats::setNames(lapply(seq_len(nrow(k)), function(i) c(list(
     metodo = k$metodo[i], transformacion = k$transformacion[i],
     q = if (!is.na(k$q[i])) signif(k$q[i], 6L), q_en_borde = if (!is.na(k$q_en_borde[i])) k$q_en_borde[i],
     ediciones = as.list(as.integer(strsplit(k$ediciones[i], ", ", fixed = TRUE)[[1L]])),
-    excluidas = excluidas(k$covariable[i]),
-    valor_nacional_de = if (!is.na(k$valor_nacional_de[i])) k$valor_nacional_de[i])), k$covariable))
+    excluidas = excluidas(k$covariable[i])),
+    if (!is.na(k$valor_nacional_de[i])) list(valor_nacional_de = k$valor_nacional_de[i]))), k$covariable))
 }
 
 # Manifiesto (manifest.yaml) de una corrida de dl_exportar_corrida(): identificación, causa, parámetros, insumos,

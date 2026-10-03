@@ -230,10 +230,11 @@
 }
 
 # Error si el subtipo_de de la configuración `s` de `causa` dice una causa padre y la configuración de otra causa del
-# proyecto (`causas`) declara a `causa` en `subtipos`: la relación se dice en un solo sitio o en los dos igual.
+# proyecto (`causas`) declara a `causa` en `subtipos`: la relación se dice en un solo sitio o en los dos igual. Un
+# subtipo_de que no es un entero positivo, o que es la propia causa, lo rechaza la validación de la configuración.
 .dl_comprobar_subtipo_de <- function(s, archivo, causa, causas) {
   declarado <- .dl_valor_en(s, "subtipo_de")
-  if (!.dl_es_entero1(declarado) || declarado < 1) return(invisible())     # su forma la revisa la configuración
+  if (!.dl_es_entero1(declarado) || declarado < 1 || declarado == causa) return(invisible())
   otros <- setdiff(.dl_padres_de(causas, causa), as.integer(declarado))
   if (length(otros))
     .dl_stop_config_simple(archivo, sprintf(paste0(
@@ -652,7 +653,9 @@
 #'   limitaciones del manifiesto de la corrida, y [dl_revisar_proyecto()] la muestra como aviso;
 #' - con `ancla.anio`, ese año, que no puede ser posterior al `anio` de la configuración. Con el argumento `anio`
 #'   es el menor entre los dos: una configuración con `anio: 2024` y `ancla: {anio: 2023}` sirve para 2024
-#'   (proyectado desde 2023) y, con `anio = 2023` o un año anterior, para ese año con su propia ancla;
+#'   (proyectado desde 2023) y, con `anio = 2023` o un año anterior, para ese año con su propia ancla. El argumento
+#'   `anio` solo baja el año del ancla declarado con `ancla.anio`: uno declarado en `avanzado` (o en `years.ancla`
+#'   del formato completo) no se ajusta solo, y para un año anterior hay que cambiarlo en la configuración;
 #' - el ancla es, a lo sumo, de un año antes del que se estima: mantiene el nivel nacional, no lo extrapola. Si el
 #'   ancla no trae el año ni ninguno anterior, las reglas entre tablas dicen qué falta.
 #'
@@ -760,8 +763,9 @@
 #'     `poblacion`.
 #'   - `calibracion`: solo si el proyecto trae `proxies_crudos`, el resultado de [dl_calibrar_proxies()] (las filas
 #'     calibradas, con los atributos `calibracion`, `series` y `excluidas`).
-#'   - `configuracion_dada`: solo si `configuracion` se dio como lista, esa lista tal como se dio (con ella
-#'     [dl_correr()] vuelve a leer el proyecto para cada año de `anios`).
+#'   - `configuracion_dada`: solo si `configuracion` se dio como lista, esa lista tal como se dio.
+#'   - `tablas_dadas`: solo si se dieron tablas en `...`, esas tablas tal como se dieron (un `data.frame` o una
+#'     ruta). Con las dos, [dl_correr()] vuelve a leer el mismo proyecto para cada año de `anios`.
 #' @seealso [dl_tablas] (las tablas), [dl_configuracion()] (las claves de la configuración), [dl_insumos()] (el paso
 #'   siguiente), [dl_ejemplo()] (el proyecto de ejemplo), [dl_nuevo_proyecto()] (crear la carpeta de un proyecto),
 #'   [dl_revisar_proyecto()] (revisarla antes de correr) y [dl_correr()] (la corrida completa en una llamada).
@@ -874,21 +878,21 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL,
   donde <- carpeta %||% if (is.list(cf$origen)) sprintf("configuracion_%s", digest::digest(cf$origen))
                         else normalizePath(cf$archivo, winslash = "/")
   p <- .dl_proyecto_armado(carpeta, donde, pre)
-  p$configuracion_dada <- cf$origen     # la lista tal como se dio, para leer otro año; sin ella, NULL
+  # lo que se dio como argumento, tal como se dio, para leer otro año; sin ello, el objeto no lleva el campo
+  p$configuracion_dada <- cf$origen
+  if (length(dadas)) p$tablas_dadas <- dadas
   p
 }
 
-# El mismo proyecto `p` leído para el año `anio` (dl_proyecto(anio = )): de su carpeta o, si sus tablas vinieron como
-# argumentos, de esas tablas con la configuración dada (la lista o su archivo). El que ya es de ese año se devuelve tal
-# cual.
+# El mismo proyecto `p` leído para el año `anio` (dl_proyecto(anio = )): de su carpeta, si la tiene, con las tablas
+# que se dieron como argumentos (`tablas_dadas`, que reemplazan a las de la carpeta) y la configuración dada (la lista
+# o su archivo). El que ya es de ese año se devuelve tal cual.
 .dl_proyecto_de_anio <- function(p, anio) {
   if (identical(.dl_anio_ajuste(p$configuracion), as.integer(anio))) return(p)
-  causa <- p$configuracion$cause_id
   archivo <- p$configuracion$origen$archivo
   configuracion <- p$configuracion_dada %||% if (.dl_es_texto1(archivo) && file.exists(archivo)) archivo
-  if (!is.null(p$carpeta)) return(dl_proyecto(p$carpeta, causa, configuracion = configuracion, anio = anio))
-  do.call(dl_proyecto, c(list(causa = causa, configuracion = configuracion, anio = anio),
-                         Filter(Negate(is.null), p$tablas)))
+  do.call(dl_proyecto, c(list(carpeta = p$carpeta, causa = p$configuracion$cause_id, configuracion = configuracion,
+                              anio = anio), p$tablas_dadas))
 }
 
 # Las reglas entre tablas (.dl_problemas_proyecto) de `pre` (.dl_preparar_contrato), antes de traducir: sus avisos,

@@ -328,6 +328,10 @@ test_that("subtipo_de y el subtipos de la configuración del padre: la misma cau
   expect_match(dismodlite:::.dl_problemas_config_simple(list(causa = 9101L, anio = 2023L, edad_inicio = 30,
                                                              subtipo_de = 9101L)),
                "^subtipo_de: es la propia causa \\(9101\\)")
+  # y ese es el error también cuando la configuración del padre ya la declara en `subtipos`
+  e <- expect_error(dl_proyecto(copia(9101L), 9101), class = "dl_error")
+  expect_match(conditionMessage(e), "subtipo_de: es la propia causa \\(9101\\): debe ser la causa padre")
+  expect_no_match(conditionMessage(e), "los dos deben decir la misma causa padre")
 })
 
 # ---- Una causa que es la suma de sus subtipos (suma_de_subtipos) ----
@@ -1327,6 +1331,41 @@ test_that("un año anterior a todos los del ancla: el error de las reglas, que n
                                     "anterior que trae es 2019: el ancla se proyecta a lo sumo un año"))
 })
 
+# ---- Las tablas dadas como argumentos, al leer otro año ----
+
+test_that("un proyecto con carpeta y una tabla dada se relee para otro año con esa tabla, no con la de la carpeta", {
+  d <- copia_ejemplo()
+  mi_pob <- as.data.frame(leer_texto(file.path(d, "poblacion.csv")))
+  mi_pob$poblacion <- as.numeric(mi_pob$poblacion) * 2
+  p <- suppressMessages(dl_proyecto(d, 9101, poblacion = mi_pob))
+  expect_identical(p$tablas_dadas, list(poblacion = mi_pob))
+  de_2019 <- function(q) { x <- as.data.frame(q$tablas$poblacion); x[x$anio == 2019, ] }
+  p19 <- suppressMessages(.dl_proyecto_de_anio(p, 2019L))
+  expect_identical(.dl_anio_ajuste(p19$configuracion), 2019L)
+  expect_identical(p19$carpeta, p$carpeta)
+  expect_identical(p19$tablas_dadas, p$tablas_dadas)
+  expect_identical(de_2019(p19), de_2019(p))
+  hash19 <- suppressMessages(dl_insumos(p19))$hash
+  # el mismo año leído solo de la carpeta (su traducción reemplaza a la anterior de ese año) trae otra población
+  carpeta19 <- suppressMessages(dl_proyecto(d, 9101, anio = 2019))
+  expect_identical(de_2019(p19)$poblacion, de_2019(carpeta19)$poblacion * 2)
+  expect_false(identical(hash19, suppressMessages(dl_insumos(carpeta19))$hash))
+  # las demás tablas siguen siendo las de la carpeta
+  expect_identical(p19$tablas$ancla, carpeta19$tablas$ancla)
+  # una tabla vacía dada como argumento deja fuera la de la carpeta, también al releer
+  sin <- suppressMessages(dl_proyecto(d, 9101, datos = data.frame()))
+  expect_null(sin$tablas$datos)
+  expect_false(is.null(carpeta19$tablas$datos))
+  expect_null(suppressMessages(.dl_proyecto_de_anio(sin, 2019L))$tablas$datos)
+  # sin tablas dadas, el objeto no lleva el campo
+  expect_false("tablas_dadas" %in% names(suppressMessages(dl_proyecto(d, 9101))))
+  # dl_correr(anios = ) corre cada año con la tabla dada: la población congelada de la corrida es la dada
+  r <- suppressMessages(dl_correr(p, semilla = 1, rapido = TRUE, sensibilidad = FALSE, anios = 2019,
+                                  carpeta_salida = withr::local_tempdir()))
+  cong <- data.table::fread(file.path(r[["2019"]]$dir, "inputs", "contrato", "poblacion.csv"))
+  expect_equal(cong$poblacion, mi_pob$poblacion)
+})
+
 # ---- valor_nacional_de ----
 
 # Las tablas del proyecto de la carpeta `d` (el ejemplo, causa 9100) con la beta de haqi anclada en otra covariable,
@@ -1405,7 +1444,8 @@ test_that("valor_nacional_de con proxies_crudos: la calibración cierra en la co
       r <- suppressMessages(dl_correr(p, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
                                       carpeta_salida = withr::local_tempdir()))
       expect_identical(r$manifest$params$proxies$haqi$valor_nacional_de, "haqi_estandarizado")
-      expect_null(r$manifest$params$proxies$LDI_pc$valor_nacional_de)
+      expect_false("valor_nacional_de" %in% names(r$manifest$params$proxies$LDI_pc))
+      expect_length(grep("valor_nacional_de", readLines(file.path(r$dir, "manifest.yaml"), encoding = "UTF-8")), 1L)
     }
     px <- b$cov_proxy[covariate_id_gbd == 1098L]
     expect_identical(unique(px$ancla_ghdx), 50.9 + 3)

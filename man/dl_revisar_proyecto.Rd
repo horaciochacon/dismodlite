@@ -34,7 +34,9 @@ se reconoce, bandas de edad que se solapan... La línea en orden dice cuántas f
 (o que solo trae el encabezado) es un error;
 \item \code{configuración}: sus claves y valores, como los lee \code{\link[=dl_configuracion]{dl_configuracion()}}. Su traducción toma cosas de las
 tablas (la ubicación nacional, las betas): si \code{ubicaciones}, \code{betas} o \code{covariables} tienen un error, espera
-(\code{-});
+(\code{-}). Avisa (\code{!}) de una clave que el bloque \code{avanzado} también declara, en su clave del formato completo, con
+otro valor (por ejemplo \code{ancla.error_maximo} y \code{avanzado: anchor.gate_err_mediano}): rige el de \code{avanzado}, y
+\code{\link[=dl_proyecto]{dl_proyecto()}} no lo dice;
 \item \code{proyecto}: las reglas que cruzan tablas, cada problema con su tabla delante: que toda ubicación esté en
 \code{ubicaciones} (sin códigos repetidos, una sola sin \code{padre}, la nacional; las subnacionales con la nacional de
 padre); que la población traiga el año que se estima y los sexos del modelo, con las mismas bandas de edad en

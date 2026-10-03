@@ -251,13 +251,17 @@ test_that("las limitaciones de una suma salen de lo que hizo la suma, sin texto 
 })
 
 # Una carpeta de corridas con manifiestos mínimos: `x` es una lista de list(run_id, causa, anio) y, si hace falta,
-# `escrita` (la hora en que se escribió el manifiesto) y `forzada` (validacion.gates.force).
+# `escrita` (la hora en que se escribió el manifiesto), `forzada` (validacion.gates.force), `padre`
+# (causa.extraction_cause_id) y `agregacion` (causa.agregacion, la de la corrida de una suma).
 corridas_escritas <- function(x, env = parent.frame()) {
   salida <- withr::local_tempdir(.local_envir = env)
   for (r in x) {
     dir <- .dl_dir_corrida(salida, r$run_id)
     dir.create(dir, recursive = TRUE)
-    man <- list(run_id = r$run_id, causa = list(cause_id = r$causa), params = list(year = r$anio))
+    man <- list(run_id = r$run_id, causa = c(list(cause_id = r$causa), list(extraction_cause_id = r$padre,
+                                                                              agregacion = r$agregacion)),
+                params = list(year = r$anio))
+    man$causa <- Filter(Negate(is.null), man$causa)
     if (!is.null(r$forzada)) man$validacion <- list(gates = list(force = r$forzada))
     yaml::write_yaml(man, file.path(dir, "manifest.yaml"))
     if (!is.null(r$escrita)) Sys.setFileTime(file.path(dir, "manifest.yaml"), as.POSIXct(r$escrita, tz = "UTC"))
@@ -387,6 +391,42 @@ test_that("la suma dice qué corrida tomó de cada subtipo y cuáles se escribie
   # ninguna forzada: solo las corridas; en una suma de prueba no se dice (toda corrida de prueba se escribe forzada)
   expect_length(decir(c(9104L, 9101L), rapido = FALSE), 2L)
   expect_length(decir(9101:9102, rapido = TRUE), 2L)
+  # devuelve los subtipos de una suma de producción escritos con forzar = TRUE, que van a sus limitaciones
+  forzadas <- function(causas, rapido)
+    suppressMessages(.dl_decir_corridas_suma(causas, .dl_corridas_de_subtipos(salida, causas, 2023L, prueba = FALSE),
+                                             rapido))
+  expect_identical(forzadas(9101:9104, rapido = FALSE), 9102:9103)
+  expect_identical(forzadas(c(9104L, 9101L), rapido = FALSE), integer())
+  expect_identical(forzadas(9101:9104, rapido = TRUE), integer())
+  lim <- unlist(.dl_limitaciones_suma(9101:9103, NULL, 2023L, 2023L, c(0, 0, 0), forzadas = 9102:9103))
+  expect_length(lim, 3L)
+  expect_match(lim[3], paste0("^corrida\\(s\\) de la\\(s\\) hija\\(s\\) 9102, 9103 escrita\\(s\\) con forzar = TRUE ",
+                              "\u2014 sus cadenas no pasaron la compuerta de convergencia"))
+  expect_false(grepl(": ", lim[3]))
+  expect_identical(unlist(.dl_limitaciones_suma(9101:9103, NULL, 2023L, 2023L, c(0, 0, 0), forzadas = integer())),
+                   lim[1:2])
+})
+
+test_that("la suma exige de cada corrida que sea de una causa que se ajusta y que declare a su causa padre", {
+  corrida <- function(causa, padre = NULL, agregacion = NULL)
+    list(run_id = sprintf("2026-01-10_causa-%d_v1", causa), causa = causa, anio = 2023L, padre = padre,
+         agregacion = agregacion)
+  salida <- corridas_escritas(list(corrida(9101L, 9200L), corrida(9102L, 9200L), corrida(9103L, 9100L),
+                                   corrida(9104L), corrida(9300L, agregacion = "suma_de_hijas")))
+  exigir <- function(causas)
+    .dl_exigir_subtipos_de(causas, .dl_corridas_de_subtipos(salida, causas, 2023L, prueba = FALSE), 9200L)
+  expect_no_error(exigir(9101:9102))
+  # otra causa padre, o ninguna: cómo declararla
+  expect_error(exigir(9101:9104),
+               paste0("^dismodlite: la\\(s\\) corrida\\(s\\) 2026-01-10_causa-9103_v1, 2026-01-10_causa-9104_v1 ",
+                      "\\(subtipo\\(s\\) 9103, 9104\\) no declara\\(n\\) a la causa 9200 como su causa padre: ",
+                      ".*subtipo_de: 9200"), class = "dl_error")
+  # la corrida de una suma: no se manda a declarar una causa padre, que una suma no puede declarar
+  e <- expect_error(exigir(c(9101L, 9300L, 9103L)), class = "dl_error")
+  expect_match(conditionMessage(e), paste0("^dismodlite: la\\(s\\) corrida\\(s\\) 2026-01-10_causa-9300_v1 ",
+                                           "\\(subtipo\\(s\\) 9300\\) es/son la suma de otras corridas: una suma no ",
+                                           "puede ser subtipo de otra suma\\."))
+  expect_no_match(conditionMessage(e), "subtipo_de|causa padre")
 })
 
 test_that("la corrida congela las tablas del contrato y sirven para repetirla", {
@@ -507,6 +547,9 @@ test_that("la corrida de un proyecto con proxies_crudos registra la calibración
   expect_null(px$q_en_borde)                                 # dentro de su intervalo
   expect_null(px$excluidas)
   expect_identical(unlist(px$ediciones), c(2019L, 2021L, 2023L))
+  # ninguna covariable toma su valor nacional de otra: el manifiesto no trae la clave valor_nacional_de
+  expect_false(any(vapply(man$params$proxies, function(x) "valor_nacional_de" %in% names(x), NA)))
+  expect_false(any(grepl("valor_nacional_de", readLines(file.path(r$dir, "manifest.yaml"), encoding = "UTF-8"))))
   # los crudos se congelan como vinieron, sin filas calibradas en covariables
   expect_true("proxies_crudos" %in% unlist(lapply(man$inputs$contrato, `[[`, "tabla")))
   cv <- data.table::fread(file.path(cong, "covariables.csv"), colClasses = "character", na.strings = "")

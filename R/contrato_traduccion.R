@@ -284,7 +284,10 @@
   # El modelo no usa las filas de ambos sexos: si son más finas y el detalle no trae ambos, se dejan fuera.
   if (any(fina & a$sexo == "ambos") && !"ambos" %in% detalle$sexo) {
     sigue <- a$sexo != "ambos"
-    a <- a[sigue]; B0 <- B0[sigue]; B1 <- B1[sigue]; fina <- fina[sigue]
+    a <- a[sigue]
+    B0 <- B0[sigue]
+    B1 <- B1[sigue]
+    fina <- fina[sigue]
     if (!any(fina)) return(a)
   }
   finas <- a[fina][, `:=`(B0 = B0[fina], B1 = B1[fina])]
