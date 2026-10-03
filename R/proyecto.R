@@ -768,7 +768,22 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL,
   if (!is.null(proyeccion)) .dl_message("%s", proyeccion)
   donde <- carpeta %||% if (is.list(cf$origen)) sprintf("configuracion_%s", digest::digest(cf$origen))
                         else normalizePath(cf$archivo, winslash = "/")
-  .dl_proyecto_armado(carpeta, donde, pre)
+  p <- .dl_proyecto_armado(carpeta, donde, pre)
+  p$configuracion_dada <- cf$origen     # la lista tal como se dio, para leer otro año; sin ella, NULL
+  p
+}
+
+# El mismo proyecto `p` leído para el año `anio` (dl_proyecto(anio = )): de su carpeta o, si sus tablas vinieron como
+# argumentos, de esas tablas con la configuración dada (la lista o su archivo). El que ya es de ese año se devuelve tal
+# cual.
+.dl_proyecto_de_anio <- function(p, anio) {
+  if (identical(.dl_anio_ajuste(p$configuracion), as.integer(anio))) return(p)
+  causa <- p$configuracion$cause_id
+  archivo <- p$configuracion$origen$archivo
+  configuracion <- p$configuracion_dada %||% if (.dl_es_texto1(archivo) && file.exists(archivo)) archivo
+  if (!is.null(p$carpeta)) return(dl_proyecto(p$carpeta, causa, configuracion = configuracion, anio = anio))
+  do.call(dl_proyecto, c(list(causa = causa, configuracion = configuracion, anio = anio),
+                         Filter(Negate(is.null), p$tablas)))
 }
 
 # Las reglas entre tablas (.dl_problemas_proyecto) de `pre` (.dl_preparar_contrato), antes de traducir: sus avisos,

@@ -592,6 +592,13 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' `ancla.correlacion_edad` de la configuración y la corrida escrita con `forzar = TRUE`, sin exigir la convergencia
 #' (el manifiesto lo declara). Su nombre termina en `-prueba` y sus números no sirven para publicar.
 #'
+#' Con `anios`, la causa se corre una vez por año, en orden, y el proyecto se vuelve a leer para cada uno
+#' (`dl_proyecto(anio = )`, con la regla del año del ancla de [dl_proyecto()]): un proyecto sirve para varios años sin
+#' editar su configuración. Las comprobaciones de los argumentos se hacen una vez, antes del primer año; el nombre de
+#' cada corrida lleva el año (`causa-<causa>-<año>`, y `-prueba` con `rapido = TRUE`), y cada corrida es de por sí
+#' una corrida completa, como la de un `dl_correr()` sin `anios`. Si un año falla, `dl_correr()` se detiene ahí con el
+#' error de ese año y dice qué años quedaron escritos; esas corridas siguen en su carpeta.
+#'
 #' La causa debe tener severidad (sus estados de salud en `severidad.csv` o desde `severidad.particion`): sin ella los
 #' AVD serían cero y la corrida no se escribe. `dl_correr()` lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
 #' [dl_ajustar()] con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
@@ -615,11 +622,18 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' @param forzar `TRUE` escribe la corrida aunque las cadenas no hayan convergido (queda declarado en el manifiesto;
 #'   ver Detalles); no salta la compuerta del ancla. `FALSE` (por defecto) exige la convergencia, salvo con
 #'   `rapido = TRUE`, que la salta siempre.
-#' @return Objeto de clase `dl_run`, como el de [dl_exportar_corrida()], una lista con `run_id` (el identificador de
-#'   la corrida, `<AAAA-MM-DD>_causa-<causa>_v<n>`, o `..._causa-<causa>-prueba_v<n>` con `rapido = TRUE`), `dir`
-#'   (su carpeta), `manifest` (el contenido de su `manifest.yaml`, como lista) y `files` (las tablas de celdas
-#'   escritas, una por medida, con su ruta, su sha256 y su número de filas). Los mensajes dicen qué paso corre y, al
-#'   final, dónde quedó la corrida.
+#' @param anios Vector de años enteros, sin `NA` ni repetidos (por ejemplo `2019:2023`): corre la causa una vez por
+#'   año, en orden, con el proyecto leído para cada uno (ver Detalles). `NULL` (por defecto) corre una sola vez, el
+#'   año de la configuración del proyecto.
+#' @return Sin `anios`, un objeto de clase `dl_run`, como el de [dl_exportar_corrida()], una lista con `run_id` (el
+#'   identificador de la corrida, `<AAAA-MM-DD>_causa-<causa>_v<n>`, o `..._causa-<causa>-prueba_v<n>` con
+#'   `rapido = TRUE`), `dir` (su carpeta), `manifest` (el contenido de su `manifest.yaml`, como lista) y `files` (las
+#'   tablas de celdas escritas, una por medida, con su ruta, su sha256 y su número de filas). Los mensajes dicen qué
+#'   paso corre y, al final, dónde quedó la corrida.
+#'
+#'   Con `anios`, una lista de clase `dl_corridas` con un `dl_run` por año, con los años como nombres
+#'   (`corridas[["2023"]]`); su identificador es `<AAAA-MM-DD>_causa-<causa>-<año>_v<n>`
+#'   (`..._causa-<causa>-<año>-prueba_v<n>` con `rapido = TRUE`). `print()` muestra una línea por año.
 #' @seealso [dl_proyecto()], [dl_revisar_proyecto()] (antes de correr), [dl_opciones_mcmc()] (las cadenas),
 #'   [dl_estimaciones()] y [dl_exportar_corrida()] (el contenido de la carpeta de la corrida); para los subtipos de una
 #'   causa, [dl_sumar_hijas()].
@@ -640,16 +654,25 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' run$manifest$configuracion$por_defecto
 #' unlink(salida, recursive = TRUE)
 #'
+#' # la misma causa para dos años: una corrida por año, que el proyecto relee para cada uno
+#' corridas <- dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+#'                       carpeta_salida = salida, anios = c(2019, 2023))
+#' corridas
+#' corridas[["2023"]]$run_id
+#' unlink(salida, recursive = TRUE)
+#'
 #' # la corrida de producción de un proyecto propio: las cadenas por defecto (1000 simulaciones,
 #' # 4 cadenas de 50 000 iteraciones) o las mismas con el motor en C++, más rápido
 #' # dl_correr("mi_proyecto", semilla = 1)
 #' # dl_correr("mi_proyecto", semilla = 1, opciones = dl_opciones_mcmc(motor = "rcpp"))
 #' # y, para mirar una corrida cuyas cadenas aún no convergen, sin la compuerta de la convergencia
 #' # dl_correr("mi_proyecto", semilla = 1, forzar = TRUE)
+#' # y una corrida de producción por año
+#' # dl_correr("mi_proyecto", semilla = 1, anios = 2018:2023)
 #' }
 #' @export
 dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, rapido = FALSE, sensibilidad = TRUE,
-                      opciones = NULL, registro = NULL, forzar = FALSE) {
+                      opciones = NULL, registro = NULL, forzar = FALSE, anios = NULL) {
   if (missing(proyecto)) .dl_stop("falta `proyecto` (la carpeta del proyecto o un proyecto de dl_proyecto())")
   .dl_exigir_semilla(semilla)
   .dl_exigir_si_no(rapido, "rapido")
@@ -658,8 +681,11 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
   if (!is.null(opciones)) .dl_exigir_clase(opciones, "dl_mcmc_opts", "opciones", "dl_opciones_mcmc()")
   if (!is.null(carpeta_salida)) .dl_exigir_carpeta(carpeta_salida, argumento = "carpeta_salida")
   .dl_exigir_registro(!is.null(registro), registro)
+  if (!is.null(anios)) anios <- .dl_exigir_anios(anios)
   p <- if (inherits(proyecto, "dl_proyecto")) proyecto
-       else if (.dl_es_texto1(proyecto) && dir.exists(proyecto)) dl_proyecto(proyecto, causa)
+       else if (.dl_es_texto1(proyecto) && dir.exists(proyecto))
+         if (is.null(anios)) dl_proyecto(proyecto, causa)
+         else .dl_en_anio(anios[1L], list(), dl_proyecto(proyecto, causa, anio = anios[1L]))
        else .dl_stop("`proyecto` debe ser la carpeta de un proyecto o un proyecto de dl_proyecto(); es %s",
                      .dl_describir_objeto(proyecto))
   cfg <- p$configuracion
@@ -671,14 +697,68 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
       .dl_stop("el proyecto est\u00e1 dentro de la instalaci\u00f3n del paquete (%s): da `carpeta_salida`", p$carpeta)
     carpeta_salida <- file.path(p$carpeta, "resultados")
   }
+  o <- opciones %||% if (rapido) do.call(dl_opciones_mcmc, .DL_OPCIONES_PRUEBA) else dl_opciones_mcmc()
+  if (rapido)
+    .dl_message(paste0("corrida de prueba (rapido = TRUE): %d cadena(s) de %d iteraciones y forzar = TRUE, que la ",
+                       "escribe aunque las cadenas no converjan. Sus n\u00fameros no sirven para publicar: para la ",
+                       "corrida final, rapido = FALSE"), o$chains, o$iter)
+  nombre <- function(anio) sprintf("causa-%d%s%s", cfg$cause_id, if (is.null(anio)) "" else paste0("-", anio),
+                                   if (rapido) "-prueba" else "")
+  correr <- function(p, anio) .dl_correr_proyecto(p, semilla, carpeta_salida, rapido, sensibilidad, o, registro, forzar,
+                                                  nombre(anio))
+  if (is.null(anios)) return(correr(p, NULL))
+  .dl_correr_anios(p, anios, correr)
+}
+
+# Las corridas de `anios` (.dl_exigir_anios), una por año y en orden: `correr(p, anio)` corre el proyecto `p`, leído
+# para ese año (.dl_proyecto_de_anio). Devuelve un `dl_corridas` con una corrida por año.
+.dl_correr_anios <- function(p, anios, correr) {
+  corridas <- list()
+  for (k in seq_along(anios)) {
+    .dl_message("a\u00f1o %d (%d de %d)", anios[k], k, length(anios))
+    corridas[[as.character(anios[k])]] <- .dl_en_anio(anios[k], corridas,
+                                                      correr(.dl_proyecto_de_anio(p, anios[k]), anios[k]))
+  }
+  structure(corridas, class = "dl_corridas")
+}
+
+# Evalúa `expr`, que corre o lee el proyecto del año `anio`. Si falla, el error es el mismo con el año delante y dice
+# qué años quedaron escritos (`corridas`: las que van).
+.dl_en_anio <- function(anio, corridas, expr) {
+  tryCatch(expr, error = function(e) {
+    hechas <- vapply(corridas, function(r) r$run_id, "")
+    .dl_stop("la corrida del a\u00f1o %d fall\u00f3: %s\n  %s", anio, .dl_detalle(e),
+             if (length(hechas)) sprintf("Quedaron escritas las corridas de: %s.",
+                                         paste(sprintf("%s (%s)", names(hechas), hechas), collapse = ", "))
+             else "No qued\u00f3 escrita ninguna corrida.",
+             campos = list(anio = anio, escritas = as.integer(names(corridas))))
+  })
+}
+
+# `anios` de dl_correr(): un vector de años enteros, sin NA ni repetidos. Devuelve los enteros.
+.dl_exigir_anios <- function(anios) {
+  if (!is.numeric(anios) || !length(anios) || anyNA(anios) || !all(is.finite(anios)) || any(anios != round(anios)) ||
+      any(anios < 1) || any(anios > .Machine$integer.max))
+    .dl_stop("`anios` debe ser un vector de a\u00f1os, n\u00fameros enteros sin NA (por ejemplo 2018:2023); es %s",
+             .dl_describir_objeto(anios))
+  if (anyDuplicated(anios))
+    .dl_stop("`anios` no debe repetir a\u00f1os: se repite %s", paste(unique(anios[duplicated(anios)]), collapse = ", "))
+  as.integer(anios)
+}
+
+#' @export
+print.dl_corridas <- function(x, ...) {
+  cat(sprintf("<dl_corridas> %d corrida(s), una por a\u00f1o\n", length(x)))
+  cat(sprintf("  %s: %s\n", names(x), vapply(x, function(r) r$run_id, "")), sep = "")
+  invisible(x)
+}
+
+# La corrida de un proyecto ya leído (`p`, para el año que se estima) con las opciones `o` del ajuste nacional y la
+# carpeta del resultado llamada `nombre`: los pasos de dl_correr(), que ya comprobó sus argumentos.
+.dl_correr_proyecto <- function(p, semilla, carpeta_salida, rapido, sensibilidad, o, registro, forzar, nombre) {
+  cfg <- p$configuracion
   # con un proyecto simple, los mensajes en sus palabras
   .dl_en_simple(simple = .dl_es_simple(cfg), datos = p$tablas$datos, {
-    o <- opciones %||% if (rapido) do.call(dl_opciones_mcmc, .DL_OPCIONES_PRUEBA) else dl_opciones_mcmc()
-    if (rapido)
-      .dl_message(paste0("corrida de prueba (rapido = TRUE): %d cadena(s) de %d iteraciones y forzar = TRUE, que la ",
-                         "escribe aunque las cadenas no converjan. Sus n\u00fameros no sirven para publicar: para la ",
-                         "corrida final, rapido = FALSE"), o$chains, o$iter)
-
     .dl_message("causa %d: insumos", cfg$cause_id)
     b <- dl_insumos(p)
     .dl_exigir_severidad(b$severidad, cfg$cause_id)
@@ -733,7 +813,7 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
 
     resumen <- dl_resumir(list(fit = ajuste, yld = avd, bundle = b))
     run <- dl_exportar_corrida(list(resumen = resumen, fit = ajuste, yld = avd, bundle = b),
-                               nombre = sprintf("causa-%d%s", cfg$cause_id, if (rapido) "-prueba" else ""),
+                               nombre = nombre,
                                carpeta = carpeta_salida, etiquetas = etiquetas, validacion = validacion,
                                sensibilidad = sens, forzar = forzar || rapido, registro = registro)
     .dl_message("corrida escrita en %s%s", run$dir, if (rapido) " (prueba: no sirve para publicar)" else "")

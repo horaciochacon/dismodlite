@@ -380,6 +380,73 @@ test_that("dl_correr(forzar = TRUE) escribe la corrida aunque las cadenas no con
     expect_error(dl_correr(d, 9101, semilla = 1, forzar = mal), "`forzar` debe ser TRUE o FALSE")
 })
 
+test_that("dl_correr(anios = ) valida `anios` antes de leer ni ajustar nada", {
+  d <- copia_ejemplo()
+  for (mal in list(integer(), c(2019, NA), 2019.5, "2019", c(2019, 2019), TRUE, c(2019, Inf), 0))
+    expect_error(dl_correr(d, 9101, semilla = 1, carpeta_salida = tempdir(), anios = mal),
+                 "`anios` debe ser|`anios` no debe repetir")
+  expect_error(dl_correr(d, 9101, semilla = 1, carpeta_salida = tempdir(), anios = c(2019, 2023, 2019)),
+               "`anios` no debe repetir años: se repite 2019")
+})
+
+test_that("dl_correr(anios = ) corre la causa una vez por año y devuelve una corrida por año", {
+  d <- copia_ejemplo()
+  salida <- file.path(withr::local_tempdir(), "resultados")
+  correr <- function(p, causa = 9101, ...)
+    suppressMessages(dl_correr(p, causa, semilla = 1, rapido = TRUE, sensibilidad = FALSE, carpeta_salida = salida, ...))
+  estimaciones <- function(run)
+    utils::read.csv(file.path(run$dir, "cause", "prevalence", paste0(run$run_id, ".csv")),
+                    fileEncoding = "UTF-8")[, c("val", "lower", "upper")]
+  # la carpeta: un año que no es el de la configuración (2019) y el que sí (2023)
+  r <- correr(d, anios = c(2019, 2023))
+  expect_s3_class(r, "dl_corridas")
+  expect_length(r, 2L)
+  expect_identical(names(r), c("2019", "2023"))
+  expect_true(all(vapply(r, inherits, NA, "dl_run")))
+  expect_identical(vapply(r, function(x) x$manifest$params$year, 0L), c("2019" = 2019L, "2023" = 2023L))
+  expect_match(r[["2019"]]$run_id, "_causa-9101-2019-prueba_v1$")
+  expect_match(r[["2023"]]$run_id, "_causa-9101-2023-prueba_v1$")
+  expect_true(all(dir.exists(vapply(r, function(x) x$dir, ""))))
+  expect_false(isTRUE(all.equal(estimaciones(r[["2019"]]), estimaciones(r[["2023"]]))))
+  # print(): una línea por año con el identificador de la corrida
+  salida_print <- capture.output(print(r))
+  expect_match(salida_print[1], "^<dl_corridas> 2 corrida\\(s\\)")
+  expect_match(salida_print[2], paste0("^  2019: ", r[["2019"]]$run_id, "$"))
+  expect_match(salida_print[3], paste0("^  2023: ", r[["2023"]]$run_id, "$"))
+  # sin `anios`, todo como antes: una corrida, el año de la configuración y el nombre sin año
+  sola <- correr(d)
+  expect_s3_class(sola, "dl_run")
+  expect_match(sola$run_id, "_causa-9101-prueba_v1$")
+  expect_identical(estimaciones(r[["2023"]]), estimaciones(sola))
+  # un proyecto de dl_proyecto() leído para otro año se relee para cada uno
+  p <- suppressMessages(dl_proyecto(d, 9101, anio = 2019))
+  r1 <- correr(p, anios = 2023)
+  expect_s3_class(r1, "dl_corridas")
+  expect_identical(names(r1), "2023")
+  expect_identical(estimaciones(r1[["2023"]]), estimaciones(sola))
+  # y uno con las tablas como argumentos (el de la causa 9100, que trae sus betas: una causa que las toma de otra
+  # las busca en la carpeta), también
+  cfg <- yaml::read_yaml(file.path(d, "config", "9100.yaml"))
+  m <- suppressMessages(do.call(dl_proyecto, c(list(configuracion = cfg, anio = 2019),
+                                               Filter(Negate(is.null), dl_proyecto(d, 9100)$tablas))))
+  expect_null(m$carpeta)
+  r2 <- correr(m, 9100, anios = 2023)
+  expect_identical(names(r2), "2023")
+  expect_match(r2[["2023"]]$run_id, "_causa-9100-2023-prueba_v1$")
+  expect_identical(estimaciones(r2[["2023"]]), estimaciones(correr(d, 9100)))
+  # un año que falla: el error dice cuál y qué años quedaron escritos, que existen en disco
+  e <- expect_error(correr(d, anios = c(2019, 2025)), "^dl_correr\\(\\): la corrida del año 2025 falló: ",
+                    class = "dl_error")
+  expect_match(conditionMessage(e), "Quedaron escritas las corridas de: 2019 \\(.*_causa-9101-2019-prueba_v2\\)\\.")
+  expect_identical(e$anio, 2025L)
+  expect_identical(e$escritas, 2019L)
+  lineas <- strsplit(conditionMessage(e), "\n")[[1L]]
+  escrita <- sub("^.*\\(([^()]*_causa-9101-2019-prueba_v2)\\)\\.$", "\\1", grep("Quedaron", lineas, value = TRUE))
+  expect_true(escrita %in% list.files(file.path(salida, "mod", "dismod_lite")))
+  e0 <- expect_error(correr(d, anios = 2025), "la corrida del año 2025 falló")
+  expect_match(conditionMessage(e0), "No quedó escrita ninguna corrida\\.")
+})
+
 test_that("un año que el ancla no trae: la revisión no tiene errores y avisa de la proyección", {
   d <- copia_ejemplo()
   r <- revisar_callado(suppressMessages(dl_proyecto(d, 9101, anio = 2024)))

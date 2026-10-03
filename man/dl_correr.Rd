@@ -13,7 +13,8 @@ dl_correr(
   sensibilidad = TRUE,
   opciones = NULL,
   registro = NULL,
-  forzar = FALSE
+  forzar = FALSE,
+  anios = NULL
 )
 }
 \arguments{
@@ -43,13 +44,21 @@ corrida sigue siendo una prueba.}
 \item{forzar}{\code{TRUE} escribe la corrida aunque las cadenas no hayan convergido (queda declarado en el manifiesto;
 ver Detalles); no salta la compuerta del ancla. \code{FALSE} (por defecto) exige la convergencia, salvo con
 \code{rapido = TRUE}, que la salta siempre.}
+
+\item{anios}{Vector de años enteros, sin \code{NA} ni repetidos (por ejemplo \code{2019:2023}): corre la causa una vez por
+año, en orden, con el proyecto leído para cada uno (ver Detalles). \code{NULL} (por defecto) corre una sola vez, el
+año de la configuración del proyecto.}
 }
 \value{
-Objeto de clase \code{dl_run}, como el de \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}, una lista con \code{run_id} (el identificador de
-la corrida, \verb{<AAAA-MM-DD>_causa-<causa>_v<n>}, o \verb{..._causa-<causa>-prueba_v<n>} con \code{rapido = TRUE}), \code{dir}
-(su carpeta), \code{manifest} (el contenido de su \code{manifest.yaml}, como lista) y \code{files} (las tablas de celdas
-escritas, una por medida, con su ruta, su sha256 y su número de filas). Los mensajes dicen qué paso corre y, al
-final, dónde quedó la corrida.
+Sin \code{anios}, un objeto de clase \code{dl_run}, como el de \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}, una lista con \code{run_id} (el
+identificador de la corrida, \verb{<AAAA-MM-DD>_causa-<causa>_v<n>}, o \verb{..._causa-<causa>-prueba_v<n>} con
+\code{rapido = TRUE}), \code{dir} (su carpeta), \code{manifest} (el contenido de su \code{manifest.yaml}, como lista) y \code{files} (las
+tablas de celdas escritas, una por medida, con su ruta, su sha256 y su número de filas). Los mensajes dicen qué
+paso corre y, al final, dónde quedó la corrida.
+
+Con \code{anios}, una lista de clase \code{dl_corridas} con un \code{dl_run} por año, con los años como nombres
+(\code{corridas[["2023"]]}); su identificador es \verb{<AAAA-MM-DD>_causa-<causa>-<año>_v<n>}
+(\verb{..._causa-<causa>-<año>-prueba_v<n>} con \code{rapido = TRUE}). \code{print()} muestra una línea por año.
 }
 \description{
 El recorrido estándar de una corrida en una sola llamada: lee el proyecto, arma los insumos, ajusta, lleva el
@@ -95,6 +104,13 @@ simulaciones, 2 cadenas de 2000 iteraciones), las mismas en la sensibilidad, eti
 \code{ancla.correlacion_edad} de la configuración y la corrida escrita con \code{forzar = TRUE}, sin exigir la convergencia
 (el manifiesto lo declara). Su nombre termina en \code{-prueba} y sus números no sirven para publicar.
 
+Con \code{anios}, la causa se corre una vez por año, en orden, y el proyecto se vuelve a leer para cada uno
+(\code{dl_proyecto(anio = )}, con la regla del año del ancla de \code{\link[=dl_proyecto]{dl_proyecto()}}): un proyecto sirve para varios años sin
+editar su configuración. Las comprobaciones de los argumentos se hacen una vez, antes del primer año; el nombre de
+cada corrida lleva el año (\verb{causa-<causa>-<año>}, y \code{-prueba} con \code{rapido = TRUE}), y cada corrida es de por sí
+una corrida completa, como la de un \code{dl_correr()} sin \code{anios}. Si un año falla, \code{dl_correr()} se detiene ahí con el
+error de ese año y dice qué años quedaron escritos; esas corridas siguen en su carpeta.
+
 La causa debe tener severidad (sus estados de salud en \code{severidad.csv} o desde \code{severidad.particion}): sin ella los
 AVD serían cero y la corrida no se escribe. \code{dl_correr()} lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
 \code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
@@ -116,12 +132,21 @@ head(prev[, c("location_name", "sex_name", "age_group_name", "val", "lower", "up
 run$manifest$configuracion$por_defecto
 unlink(salida, recursive = TRUE)
 
+# la misma causa para dos años: una corrida por año, que el proyecto relee para cada uno
+corridas <- dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                      carpeta_salida = salida, anios = c(2019, 2023))
+corridas
+corridas[["2023"]]$run_id
+unlink(salida, recursive = TRUE)
+
 # la corrida de producción de un proyecto propio: las cadenas por defecto (1000 simulaciones,
 # 4 cadenas de 50 000 iteraciones) o las mismas con el motor en C++, más rápido
 # dl_correr("mi_proyecto", semilla = 1)
 # dl_correr("mi_proyecto", semilla = 1, opciones = dl_opciones_mcmc(motor = "rcpp"))
 # y, para mirar una corrida cuyas cadenas aún no convergen, sin la compuerta de la convergencia
 # dl_correr("mi_proyecto", semilla = 1, forzar = TRUE)
+# y una corrida de producción por año
+# dl_correr("mi_proyecto", semilla = 1, anios = 2018:2023)
 }
 }
 \seealso{
