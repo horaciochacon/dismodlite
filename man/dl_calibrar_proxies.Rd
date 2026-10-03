@@ -21,8 +21,9 @@ dl_calibrar_proxies(
 \item{covariables}{Tabla \code{covariables}, con el valor nacional de cada covariable de los crudos.}
 
 \item{poblacion}{Tabla \code{poblacion} de las ubicaciones de los crudos; sus bandas de edad (y sus sexos, para «ambos»)
-deben poder sumarse en las de los crudos. Una fila de los crudos sin edades (o sin las columnas de edad) es de
-todas las edades: su población es la de todas las bandas de \code{poblacion}, empiecen donde empiecen.}
+deben poder sumarse en las de los crudos. Una fila de los crudos sin edades (o sin las columnas de edad, o con
+la banda de 0 y más) es de todas las edades: su población es la de todas las bandas de \code{poblacion}, empiecen
+donde empiecen.}
 
 \item{anio}{Año que se estima: el de las filas que salen.}
 

@@ -257,6 +257,10 @@ test_that("sin edades, todas las edades: la población de todas sus bandas, aunq
   expect_identical(cal2$valor[cal2$covariable == "haqi"], cal$valor)
   expect_true(all(is.na(cal2$edad_inicio[cal2$covariable == "haqi"])))
   expect_identical(unique(cal2$edad_inicio[cal2$covariable == "ldi"]), 60)
+  # la banda explícita de 0 y más es la misma: todas las edades
+  cal3 <- dl_calibrar_proxies(cbind(crudos_toy(), edad_inicio = 0, edad_fin = NA), nac_toy(), pob, anio = 2023,
+                              transformacion = c(haqi = "diferencia"))
+  expect_identical(cal3$valor, cal$valor)
 })
 
 test_that("cociente por sexo y banda: suma los sexos de la población y cierra en el nacional de cada banda", {

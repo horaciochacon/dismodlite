@@ -315,9 +315,12 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 # El paso «proxies» de la revisión de una carpeta: la calibración de proxies_crudos (.dl_calibracion_proyecto), con
 # sus avisos y sus errores, cuando las tablas de las que toma algo se leyeron (`fallidas`: las que no). Devuelve
 # list(ok, calibracion): `ok` es FALSE si la calibración falló o espera a una tabla; sin proxies_crudos, la
-# calibración es NULL y no hay paso.
+# calibración es NULL y no hay paso, salvo un aviso si la configuración trae claves proxies.* (no se usan).
 .dl_revisar_proxies <- function(s, archivo, tablas, fallidas, revisar, anotar) {
-  if (is.null(tablas$proxies_crudos)) return(list(ok = TRUE, calibracion = NULL))
+  if (is.null(tablas$proxies_crudos)) {
+    .dl_avisar_proxies_sin_crudos(s, anotar)
+    return(list(ok = TRUE, calibracion = NULL))
+  }
   espera <- intersect(c("covariables", "poblacion"), fallidas)
   if (length(espera)) {
     anotar("proxies", "omitido", sprintf("la calibraci\u00f3n espera a la tabla %s", espera[1L]))
@@ -325,6 +328,13 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   }
   cal <- revisar("proxies", .dl_calibracion_proyecto(s, archivo, tablas), .dl_linea_proxies)
   list(ok = !is.null(cal), calibracion = cal)
+}
+
+# Aviso del paso «proxies» cuando la configuración `s` trae claves proxies.* y el proyecto no trae proxies_crudos:
+# esas claves no se usan (solo en la revisión; dl_proyecto() no avisa).
+.dl_avisar_proxies_sin_crudos <- function(s, anotar) {
+  if (length(s[["proxies"]]))
+    anotar("proxies", "aviso", "las claves proxies.* no se usan: el proyecto no trae proxies_crudos")
 }
 
 # Los pasos de un proyecto ya armado `p` (dl_proyecto(): sus tablas ya se leyeron y su configuración se tradujo): cada
@@ -343,7 +353,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   if (!is.null(p$calibracion)) {
     for (a in attr(p$calibracion, "avisos")) anotar("proxies", "aviso", a)
     anotar("proxies", "ok", .dl_linea_proxies(p$calibracion))
-  }
+  } else .dl_avisar_proxies_sin_crudos(cfg$origen$configuracion, anotar)
   archivo <- cfg$origen$archivo
   anotar("configuraci\u00f3n", "ok", sprintf("%s: proyecto", if (identical(archivo, "configuracion"))
     "la configuraci\u00f3n dada como lista" else basename(archivo)))

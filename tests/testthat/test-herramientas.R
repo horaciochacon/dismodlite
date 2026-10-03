@@ -668,9 +668,23 @@ test_that("la revisión de un proyecto con proxies_crudos tiene el paso «proxie
   expect_false(any(r$estado == "error"))
   r2 <- revisar_callado(suppressMessages(dl_proyecto(d, 9100)))
   expect_identical(r2[r2$paso == "proxies", "detalle"], x$detalle)
-  # sin proxies_crudos no hay paso «proxies»
+  # sin proxies_crudos ni claves proxies.* no hay paso «proxies»
   sin <- escribir_proxies_calibrados(dl_ejemplo(copiar_en = withr::local_tempdir()))
   expect_false("proxies" %in% revisar_callado(sin, causa = 9100)$paso)
+})
+
+test_that("claves proxies.* sin proxies_crudos: un aviso en la revisión (carpeta y proyecto leído), nada más", {
+  d <- escribir_proxies_calibrados(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  cat("proxies:\n  transformacion: {haqi: diferencia}\n", file = file.path(d, "config", "9100.yaml"), append = TRUE)
+  aviso <- "las claves proxies.* no se usan: el proyecto no trae proxies_crudos"
+  for (x in list(d, suppressMessages(dl_proyecto(d, 9100)))) {
+    r <- revisar_callado(x, causa = 9100)
+    expect_identical(r$estado[r$paso == "proxies"], "aviso")
+    expect_identical(r$detalle[r$paso == "proxies"], aviso)
+    expect_false(any(r$estado == "error"))
+  }
+  # dl_proyecto() no avisa
+  expect_no_warning(suppressMessages(dl_proyecto(d, 9100)))
 })
 
 test_that("el paso «proxies» muestra el borde inferior de q, los avisos y los errores de la calibración", {

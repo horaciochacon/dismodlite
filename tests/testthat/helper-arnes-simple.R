@@ -123,7 +123,8 @@
 # Los proxies departamentales ya calibrados con que corrió la versión 0.2.2 (proxies_departamentales.csv de
 # acs_peru_completo) en la carpeta del proyecto `d`, como covariables/proxies.csv del contrato (filas subnacionales de
 # covariables, con el texto exacto de sus números: la misma conversión que hacía data-raw/generar_acs_peru.R antes
-# de la versión 2.1.0), y sin proxies_crudos.csv. Así el proyecto da los insumos de la 0.2.2 bit a bit. Devuelve `d`.
+# de la versión 2.1.0), sin proxies_crudos.csv y sin el bloque `proxies:` de las configuraciones (sin crudos no se
+# usa). Así el proyecto da los insumos de la 0.2.2 bit a bit. Devuelve `d`.
 escribir_proxies_calibrados <- function(d) {
   px <- .csv_leer_texto(file.path(ruta_acs(), "proxies_departamentales.csv"))
   b <- .BANDAS_PROXIES_0_2_2[match(px$age_group_id, .BANDAS_PROXIES_0_2_2$age_group_id)]
@@ -135,6 +136,15 @@ escribir_proxies_calibrados <- function(d) {
                                 fuente = unname(.FUENTES_PROXIES_0_2_2[px$covariate_id_proxy]))
   .csv_escribir_texto(out, file.path(d, "covariables", "proxies.csv"))
   unlink(file.path(d, "proxies_crudos.csv"))
+  # el bloque `proxies:`: su línea y las indentadas que la siguen
+  for (f in list.files(file.path(d, "config"), pattern = "[.]yaml$", full.names = TRUE)) {
+    l <- readLines(f, encoding = "UTF-8")
+    i <- which(l == "proxies:" | startsWith(l, "proxies: "))
+    if (!length(i)) next
+    fin <- i
+    while (fin < length(l) && grepl("^ ", l[fin + 1L])) fin <- fin + 1L
+    writeLines(enc2utf8(l[-(i:fin)]), f, useBytes = TRUE)
+  }
   d
 }
 

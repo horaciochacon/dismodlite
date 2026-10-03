@@ -218,17 +218,28 @@ dl_rutas_ejemplo <- function(causa, anio = NULL, datos = TRUE, proxies = TRUE, .
 # configuración, dl_proyecto(dl_ejemplo()); con otro, una copia del ejemplo en la carpeta temporal de la sesión (se
 # hace una vez por año) con `anio: <anio>` en la configuración de cada causa y, después del último año con ancla,
 # `ancla.anio` en ese año. Así proxies_crudos se calibra para el año que se estima, con el valor nacional del ancla.
+# La copia se arma en una carpeta temporal y se renombra al final: una carpeta del año, si existe, está completa.
 .dl_proyecto_ejemplo_anio <- function(causa, anio) {
   if (is.null(anio) || anio == .DL_ANIO_CONFIG_EJEMPLO) return(dl_proyecto(dl_ejemplo(), causa))
-  d <- file.path(tempdir(), "dismodlite_ejemplo", anio)
+  raiz <- file.path(tempdir(), "dismodlite_ejemplo")
+  d <- file.path(raiz, anio)
   if (!dir.exists(d)) {
-    .dl_copiar_ejemplo(d)
-    for (f in list.files(file.path(d, "config"), pattern = "[.]yaml$", full.names = TRUE)) {
+    dir.create(raiz, recursive = TRUE, showWarnings = FALSE)
+    tmp <- tempfile(sprintf("%d_", anio), tmpdir = raiz)
+    on.exit(unlink(tmp, recursive = TRUE), add = TRUE)
+    .dl_copiar_ejemplo(tmp)
+    for (f in list.files(file.path(tmp, "config"), pattern = "[.]yaml$", full.names = TRUE)) {
       l <- readLines(f, encoding = "UTF-8")
-      l <- sub("^anio: [0-9]+$", sprintf("anio: %d", anio), l)
+      k <- grep("^anio: [0-9]+$", l)
+      if (length(k) != 1L)
+        .dl_stop("la configuraci\u00f3n del ejemplo %s no trae una sola l\u00ednea \u00abanio: <a\u00f1o>\u00bb",
+                 basename(f))
+      l[k] <- sprintf("anio: %d", anio)
       if (anio > .DL_ANIO_CONFIG_EJEMPLO) l <- c(l, "", "ancla:", sprintf("  anio: %d", .DL_ANIO_CONFIG_EJEMPLO))
       writeLines(enc2utf8(l), f, useBytes = TRUE)
     }
+    if (!file.rename(tmp, d) && !dir.exists(d))
+      .dl_stop("no se pudo preparar la copia del ejemplo para %d en %s", anio, d)
   }
   dl_proyecto(d, causa)
 }

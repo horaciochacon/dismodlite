@@ -89,6 +89,12 @@ test_that("dl_rutas_ejemplo(anio =) trae los proxies calibrados para ese año", 
   }
   # 2024 no tiene valor nacional de las covariables: cierra en el de 2023, el año del ancla
   h <- b24$cov_proxy[as.integer(covariate_id_gbd) == 1099L]          # haqi
+  # la copia de cada año se arma aparte y se renombra: en la carpeta solo quedan las de los años, completas
+  raiz <- file.path(tempdir(), "dismodlite_ejemplo")
+  expect_true(all(c("2019", "2024") %in% list.files(raiz)))
+  expect_true(all(list.files(raiz) %in% c("2019", "2024")))
+  cfg19 <- readLines(file.path(raiz, "2019", "config", "9101.yaml"))
+  expect_identical(grep("^anio:", cfg19, value = TRUE), "anio: 2019")
   expect_identical(unique(as.character(h$ancla_ghdx)), "50.9")
 })
 

@@ -244,7 +244,8 @@
 
 # Error si la banda [a0, a1) de `b` (una fila: covariable, sexo, edad_inicio, edad_fin) no es una unión de bandas de
 # la población de su sexo: ninguna banda de la población la cruza y las que caen dentro la cubren entera. Todas las
-# edades (0-125) es la suma de todas las bandas de la población, empiece donde empiece.
+# edades (0-125: sin edades o la banda de 0 y más) es la suma de todas las bandas de la población, empiece donde
+# empiece.
 .dl_validar_banda_crudos <- function(b, pob) {
   f <- .dl_poblacion_sexo(pob, b$sexo)
   if (b$edad_inicio == 0 && b$edad_fin == .DL_EDAD_ABIERTA && nrow(f)) return(invisible())
@@ -532,8 +533,9 @@
 #' @param crudos Tabla `proxies_crudos` (ver [dl_tablas]): `data.frame` o ruta de un CSV o una carpeta.
 #' @param covariables Tabla `covariables`, con el valor nacional de cada covariable de los crudos.
 #' @param poblacion Tabla `poblacion` de las ubicaciones de los crudos; sus bandas de edad (y sus sexos, para «ambos»)
-#'   deben poder sumarse en las de los crudos. Una fila de los crudos sin edades (o sin las columnas de edad) es de
-#'   todas las edades: su población es la de todas las bandas de `poblacion`, empiecen donde empiecen.
+#'   deben poder sumarse en las de los crudos. Una fila de los crudos sin edades (o sin las columnas de edad, o con
+#'   la banda de 0 y más) es de todas las edades: su población es la de todas las bandas de `poblacion`, empiecen
+#'   donde empiecen.
 #' @param anio Año que se estima: el de las filas que salen.
 #' @param metodo Método temporal: `"paseo_aleatorio"` (por defecto) o `"edicion"`.
 #' @param transformacion Vector (o lista) con nombres, covariable = `"cociente"` o `"diferencia"`. Las covariables que

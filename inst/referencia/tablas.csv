@@ -83,7 +83,7 @@ poblacion_detalle,poblacion,numero,valor,si,,,0,,population|val,personas,"Poblac
 proxies_crudos,ubicacion,texto,eje,si,,,,,location_id,,"Ubicación subnacional"
 proxies_crudos,anio,entero,eje,si,,,,,year|year_id,,"Año de la edición de la encuesta"
 proxies_crudos,sexo,texto,eje,no,,,,,sex,,"Sexo; sin la columna, ambos"
-proxies_crudos,edad_inicio,numero,eje,no,,,0,125,age_start,años,"Primera edad; sin las columnas de edad, todas las edades"
+proxies_crudos,edad_inicio,numero,eje,no,,,0,125,age_start,años,"Primera edad; sin las columnas de edad (o con las edades vacías), todas las edades de la población"
 proxies_crudos,edad_fin,numero,eje,no,,,0,125,age_end,años,"Fin de la banda (excluido)"
 proxies_crudos,covariable,texto,valor,si,,,,,,,"Covariable de GBD que representa (como en betas)"
 proxies_crudos,indicador,texto,valor,no,,,,,,,"Nombre del indicador crudo; pasa a la fuente de las filas calibradas"

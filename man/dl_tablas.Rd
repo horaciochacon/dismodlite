@@ -293,7 +293,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \code{ubicacion} \tab texto \tab sí \tab Ubicación subnacional\cr
 \code{anio} \tab entero \tab sí \tab Año de la edición de la encuesta\cr
 \code{sexo} \tab texto \tab no \tab Sexo; sin la columna, ambos\cr
-\code{edad_inicio} \tab número \tab no \tab Primera edad; sin las columnas de edad, todas las edades (años)\cr
+\code{edad_inicio} \tab número \tab no \tab Primera edad; sin las columnas de edad (o con las edades vacías), todas las edades de la población (años)\cr
 \code{edad_fin} \tab número \tab no \tab Fin de la banda (excluido) (años)\cr
 \code{covariable} \tab texto \tab sí \tab Covariable de GBD que representa (como en betas)\cr
 \code{indicador} \tab texto \tab no \tab Nombre del indicador crudo; pasa a la fuente de las filas calibradas\cr
@@ -306,7 +306,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \item{\code{ubicacion}}{Ubicación subnacional. Texto, obligatoria.}
 \item{\code{anio}}{Año de la edición de la encuesta. Entero, obligatoria.}
 \item{\code{sexo}}{Sexo; sin la columna, ambos. Texto, opcional.}
-\item{\code{edad_inicio}}{Primera edad; sin las columnas de edad, todas las edades (años). Número, opcional.}
+\item{\code{edad_inicio}}{Primera edad; sin las columnas de edad (o con las edades vacías), todas las edades de la población (años). Número, opcional.}
 \item{\code{edad_fin}}{Fin de la banda (excluido) (años). Número, opcional.}
 \item{\code{covariable}}{Covariable de GBD que representa (como en betas). Texto, obligatoria.}
 \item{\code{indicador}}{Nombre del indicador crudo; pasa a la fuente de las filas calibradas. Texto, opcional.}

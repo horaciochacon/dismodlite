@@ -384,8 +384,8 @@ covariable y las ediciones que no entran (claves `proxies.*`).
 `covariables` (ya calibradas) o de `proxies_crudos` (se calibran). Si una covariable trae filas subnacionales en las
 dos, es un error. Cada tabla puede traer covariables distintas.
 
-Una fila sin edades (o sin las columnas de edad) es de todas las edades, las de la población; con edades, cada banda
-debe ser una unión de bandas de la población.
+Una fila sin edades (o sin las columnas de edad, o con la banda de 0 y más) es de todas las edades, las de la
+población; con edades, cada banda debe ser una unión de bandas de la población.
 
 ```{r}
 #| label: col-crudos
