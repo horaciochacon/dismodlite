@@ -143,10 +143,10 @@ tryCatch(dl_correr(proyecto, causa = 9100, semilla = 1, opciones = opciones,
 
 La corrida de prueba (`dl_correr(rapido = TRUE)`) y `forzar = TRUE`, en `dl_correr()` y en `dl_exportar_corrida()`,
 saltan la compuerta de convergencia y lo declaran en el manifiesto: sirven para ver que todo corre, o para mirar una
-corrida que aún no converge, no para publicar. La del error del ancla no se salta nunca. Con datos locales en el ajuste es la que más importa: la prevalencia ajustada puede alejarse de la
-del ancla, y ese es justamente el efecto de los datos. Si hay una razón para aceptar un error mayor (los datos
-locales son mejores que el ancla, o el ancla tiene pocas bandas de edad), se declara en la configuración, con
-`ancla.error_maximo` (y la razón en `notas`):
+corrida que aún no converge, no para publicar. La del error del ancla no se salta nunca. Con datos locales en el
+ajuste es la que más importa: la prevalencia ajustada puede alejarse de la del ancla, y ese es justamente el efecto
+de los datos. Si hay una razón para aceptar un error mayor (los datos locales son mejores que el ancla, o el ancla
+tiene pocas bandas de edad), se declara en la configuración, con `ancla.error_maximo` (y la razón en `notas`):
 
 ```yaml
 ancla:

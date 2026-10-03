@@ -218,8 +218,10 @@ corridas[["2019"]]$manifest$params$year
 ```
 
 Devuelve una corrida por año, con los años como nombres, y el nombre de cada corrida lleva el año
-(`causa-<causa>-<año>`). Cada una es una corrida completa, como la de un `dl_correr()` sin `anios`. Si un año falla,
-`dl_correr()` se detiene ahí con el error de ese año y dice qué años quedaron escritos, que siguen en su carpeta.
+(`causa-<causa>-<año>`). Cada una es una corrida completa, como la de un `dl_correr()` sin `anios`. Antes de correr
+el primer año, `dl_correr()` lee el proyecto para todos: si el de alguno no se puede leer (por ejemplo, falta su
+población), se detiene ahí, con el año y el problema, sin haber escrito ninguna corrida. Si un año falla al correr,
+se detiene con el error de ese año y dice qué años quedaron escritos, que siguen en su carpeta.
 
 El proyecto necesita las filas de cada año en las descargas del ancla (`ancla/`), en `poblacion.csv` y, para la
 estimación subnacional con covariables, en la tabla `covariables` (los valores nacionales del GHDx y los valores
@@ -289,20 +291,29 @@ la más reciente de cada causa y año.
 ## Todas las causas de un proyecto {#todas}
 
 `dl_correr()` corre una causa. Para correr todas las de un proyecto basta un bucle sobre sus configuraciones
-(`config/<causa>.yaml`); aquí, de prueba:
+(`config/<causa>.yaml`), con las causas que se ajustan primero y las que son la suma de sus subtipos
+(`suma_de_subtipos: sí`) al final; aquí, de prueba:
 
 ```{r}
 #| label: todas
 #| message: false
-causas <- as.integer(sub("[.]yaml$", "", list.files(file.path(proyecto, "config"))))
+archivos <- list.files(file.path(proyecto, "config"), full.names = TRUE)
+causas <- as.integer(sub("[.]yaml$", "", basename(archivos)))
+es_suma <- vapply(archivos, function(archivo) {
+  suma <- yaml::read_yaml(archivo)$suma_de_subtipos        # «sí» se lee como texto; «no», como FALSE
+  !is.null(suma) && !isFALSE(suma)
+}, NA)
+causas <- causas[order(es_suma)]                           # las sumas, al final
 todas <- lapply(causas, function(causa)
   dl_correr(proyecto, causa = causa, semilla = 1, rapido = TRUE, sensibilidad = FALSE))
 vapply(todas, function(corrida) corrida$run_id, "")
 ```
 
-Con `anios` en esa llamada, cada causa se corre para todos los años. Si una causa es la suma de sus subtipos
-(`suma_de_subtipos: sí`), va después de ellos, porque `dl_correr()` la suma con las corridas que encuentra: basta
-ordenar `causas` con los subtipos primero (ver [Subtipos y suma](subtipos-y-suma.html)).
+El orden importa: `dl_correr()` de una suma toma las corridas de sus subtipos que encuentra ya escritas. Si la suma
+corriera antes (en `config/` las causas salen por su número, y el de la causa padre puede ser menor que el de sus
+subtipos), la primera vez fallaría porque faltan esas corridas y, en una segunda pasada, sumaría en silencio las
+anteriores, que se vuelven a correr después. Con `anios` en esa llamada, cada causa se corre para todos los años
+(ver [Subtipos y suma](subtipos-y-suma.html)).
 
 ## El registro de corridas y las tablas consolidadas
 

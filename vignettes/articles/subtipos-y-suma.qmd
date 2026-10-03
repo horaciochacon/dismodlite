@@ -101,8 +101,8 @@ dl_proyecto(proyecto, causa = 9100)
 ```
 
 La causa ya no se ajusta: de las tablas solo usa `ubicaciones` y `poblacion`, y las claves del modelo de su
-configuración (`edad_inicio`, `mortalidad_exceso`, `subnacional`...) no se usan; `nombre` es obligatoria. En un proyecto nuevo,
-la configuración de una suma es así de corta:
+configuración (`edad_inicio`, `mortalidad_exceso`, `subnacional`...) no se usan; `nombre` es obligatoria. En un
+proyecto nuevo, la configuración de una suma es así de corta:
 
 ```yaml
 causa: 1010
@@ -168,6 +168,10 @@ subtipos, que su manifiesto cita. Sus limitaciones lo dicen:
 #| label: limitaciones
 unlist(suma$manifest$limitaciones)
 ```
+
+Si la suma es de producción y la corrida de algún subtipo se escribió con `forzar = TRUE` (sin exigir la
+convergencia de sus cadenas), la suma la toma igual, lo dice en un mensaje y lo declara en una limitación más, que
+nombra esos subtipos.
 
 La correlación entre subtipos no se modela: la simulación *k* de la suma es la suma de las simulaciones *k* de cada
 subtipo, que vienen de ajustes independientes.

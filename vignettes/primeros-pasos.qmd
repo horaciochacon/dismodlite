@@ -135,11 +135,18 @@ Dos argumentos más de `dl_correr()`, para cuando el proyecto sea el tuyo:
 - `forzar = TRUE` escribe la corrida aunque las cadenas no hayan convergido (el manifiesto lo declara), para
   mirarla mientras se afinan las cadenas; no salta la compuerta del ancla.
 
-Y para correr todas las causas de un proyecto, un bucle sobre sus configuraciones:
+Y para correr todas las causas de un proyecto, un bucle sobre sus configuraciones. Las causas que son la suma de
+sus subtipos (`suma_de_subtipos: sí`) van al final, porque `dl_correr()` las suma con las corridas de los subtipos
+que encuentra ya escritas:
 
 ```r
-causas <- as.integer(sub("[.]yaml$", "", list.files(file.path("mi_proyecto", "config"))))
-for (causa in causas) dl_correr("mi_proyecto", causa = causa, semilla = 1)
+archivos <- list.files(file.path("mi_proyecto", "config"), full.names = TRUE)
+causas <- as.integer(sub("[.]yaml$", "", basename(archivos)))
+es_suma <- vapply(archivos, function(archivo) {
+  suma <- yaml::read_yaml(archivo)$suma_de_subtipos        # «sí» se lee como texto; «no», como FALSE
+  !is.null(suma) && !isFALSE(suma)
+}, NA)
+for (causa in causas[order(es_suma)]) dl_correr("mi_proyecto", causa = causa, semilla = 1)
 ```
 
 La guía
