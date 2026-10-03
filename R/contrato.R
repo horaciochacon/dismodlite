@@ -447,9 +447,12 @@ NULL
 # nacional, los datos tienen valores posibles), en R/reglas.R: las corre dl_insumos().
 
 # Problemas (list(problemas, avisos)) de las tablas de un proyecto para la causa de `cfg`. `n_causas`: cuántas causas
-# tienen configuración en el proyecto (con más de una, el ancla dice de qué causa es cada fila).
-.dl_problemas_proyecto <- function(tablas, cfg, n_causas = 1L) list(
-  problemas = c(.dl_regla_ubicaciones(tablas), .dl_regla_ubicaciones_conocidas(tablas),
+# tienen configuración en el proyecto (con más de una, el ancla dice de qué causa es cada fila). `tablas` son las del
+# modelo (covariables con las filas calibradas de proxies_crudos, .dl_tablas_modelo); `originales`, las del proyecto
+# tal como vinieron, para la regla que compara covariables con proxies_crudos.
+.dl_problemas_proyecto <- function(tablas, cfg, n_causas = 1L, originales = tablas) list(
+  problemas = c(.dl_regla_proxies_dos_tablas(originales),
+                .dl_regla_ubicaciones(tablas), .dl_regla_ubicaciones_conocidas(tablas),
                 .dl_regla_poblacion(tablas, cfg), .dl_regla_ancla(tablas, cfg, n_causas),
                 .dl_regla_bandas_ancla(tablas, cfg), .dl_regla_betas(tablas, cfg),
                 .dl_regla_proxies_incompletos(tablas, cfg), .dl_regla_intervalo_nacional(tablas, cfg),
@@ -660,6 +663,17 @@ NULL
             format(signif(suma[[mal[1L]]], 6L)), if (length(por)) sprintf(" en %s %s", paste(por, collapse = ", "),
                                                                            names(suma)[mal[1L]]) else "")
   else character()
+}
+
+# proxies_crudos y covariables: las filas subnacionales de una covariable vienen de una sola de las dos tablas (las de
+# proxies_crudos se calibran y se agregan a covariables). Sobre las tablas tal como vinieron.
+.dl_regla_proxies_dos_tablas <- function(tablas) {
+  cr <- tablas$proxies_crudos; cv <- tablas$covariables
+  if (is.null(cr) || is.null(cv)) return(character())
+  sub <- unique(cv$covariable[!.dl_es_nacional(cv, .dl_ubicacion_nacional(tablas))])
+  sprintf(paste0("proxies_crudos: la covariable %s tiene filas subnacionales en las dos tablas (covariables y ",
+                 "proxies_crudos): deja las de una sola; las de proxies_crudos se calibran y se agregan a covariables"),
+          intersect(unique(cr$covariable), sub))
 }
 
 # Aviso: una covariable con filas subnacionales (proxies) y sin beta de la causa no se usa.

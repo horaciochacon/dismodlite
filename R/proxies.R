@@ -164,8 +164,8 @@
        con_edades = con_edades)
 }
 
-# `excluir` como data.frame(anio, motivo); vacío si es NULL. Error si no tiene esas columnas o si una edición no
-# trae motivo.
+# `excluir` como data.frame(anio, motivo); vacío si es NULL. Error si no tiene esas columnas, si una edición no
+# trae motivo o si se repite.
 .dl_validar_excluir <- function(excluir) {
   if (is.null(excluir)) return(data.frame(anio = integer(), motivo = character()))
   if (!is.data.frame(excluir) || !all(c("anio", "motivo") %in% names(excluir)) || !is.numeric(excluir$anio) ||
@@ -174,6 +174,10 @@
   sin <- is.na(excluir$motivo) | !nzchar(trimws(as.character(excluir$motivo)))
   if (any(sin))
     .dl_stop("cada edici\u00f3n excluida lleva su motivo, y no lo trae: %s", paste(excluir$anio[sin], collapse = ", "))
+  repetidas <- unique(excluir$anio[duplicated(excluir$anio)])
+  if (length(repetidas))
+    .dl_stop("`excluir` repite la(s) edici\u00f3n(es) %s: una fila por edici\u00f3n, con su motivo",
+             paste(repetidas, collapse = ", "))
   data.frame(anio = as.integer(excluir$anio), motivo = as.character(excluir$motivo))
 }
 

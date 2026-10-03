@@ -224,3 +224,21 @@ corrida_mini <- local({
     x
   }
 })
+
+# Lleva el haqi subnacional de la copia del ejemplo `d` (covariables/proxies.csv) a proxies_crudos.csv: tres ediciones
+# (2019, 2021, 2023) de un índice de prueba en la banda de la población (30 años y más), con ruido por ubicación y
+# edición para que q quede dentro de su intervalo. Devuelve `d`.
+escribir_proxies_crudos <- function(d) {
+  px <- data.table::fread(file.path(d, "covariables", "proxies.csv"), colClasses = list(character = "ubicacion"),
+                          encoding = "UTF-8")
+  h <- unique(px[covariable == "haqi"], by = "ubicacion")
+  crudos <- data.table::rbindlist(lapply(c(2019L, 2021L, 2023L), function(a) {
+    ruido <- withr::with_seed(a, stats::rnorm(nrow(h), sd = 0.05))
+    h[, list(ubicacion, anio = a, sexo, edad_inicio = 30, edad_fin = NA_real_, covariable,
+             indicador = "índice de prueba", valor = valor * (1 + 0.01 * (a - 2021)) * exp(ruido),
+             error_estandar = 1)]
+  }))
+  data.table::fwrite(px[covariable != "haqi"], file.path(d, "covariables", "proxies.csv"), eol = "\n")
+  data.table::fwrite(crudos, file.path(d, "proxies_crudos.csv"), eol = "\n")
+  d
+}

@@ -464,6 +464,8 @@
 #'     pasan otras.
 #'   - `contrato`: con un proyecto de las tablas del contrato, esas tablas tal como se leyeron (`$tablas` de
 #'     [dl_proyecto()]; no entran en el hash).
+#'   - `calibracion_proxies`: con un proyecto que trae `proxies_crudos`, su calibración (el resultado de
+#'     [dl_calibrar_proxies()], con sus atributos `calibracion` y `series`; no entra en el hash).
 #' @seealso [dl_proyecto()] (el argumento habitual), [dl_ajustar()] (el paso siguiente), [dl_revisar_proyecto()]
 #'   (todos los problemas de un proyecto juntos) y [dl_congelar_insumos()] (las tablas en disco).
 #' @family insumos
@@ -481,6 +483,7 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
     .dl_stop("falta `configuracion` (la de dl_configuracion() o dl_configuracion_ejemplo())")
   # con un proyecto simple, los mensajes en sus palabras
   simple <- inherits(configuracion, "dl_proyecto") && identical(configuracion$formato, "simple")
+  calibracion <- NULL
   if (inherits(configuracion, "dl_proyecto")) {
     if (simple && !file.exists(file.path(dirname(configuracion$rutas$poblacion), "listo")))
       .dl_stop(paste0("la traducci\u00f3n de este proyecto ya no est\u00e1 (cambi\u00f3 la configuraci\u00f3n o una ",
@@ -490,6 +493,7 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
     if (missing(rutas)) rutas <- configuracion$rutas
     contrato <- configuracion$tablas
     datos <- contrato$datos
+    calibracion <- configuracion$calibracion
     configuracion <- configuracion$configuracion
   }
   # una lista con cause_id también vale (la versión 0.2.2 no exigía la clase); otro objeto del paquete, no
@@ -499,6 +503,7 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
   b <- .dl_en_simple(.dl_armar_insumos(configuracion, rutas), simple, if (simple) datos)
   # las tablas del contrato del proyecto, tal como se leyeron (fuera del hash, que es el de las tablas de los insumos)
   if (simple) b$contrato <- contrato
+  b$calibracion_proxies <- calibracion     # sin proxies_crudos, los insumos no llevan el campo
   b
 }
 

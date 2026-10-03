@@ -249,8 +249,11 @@
 
 # La configuración de `causa` con las tablas ya leídas (lo que sigue a su lectura en .dl_preparar_contrato; la
 # revisión lo hace en su propio paso): la severidad de la partición, si la configuración la declara (error si su
-# carpeta no existe), el contexto y la traducción.
-.dl_config_de_tablas <- function(s, archivo, causa, tablas, causas, base, cambios = NULL) {
+# carpeta no existe), la calibración de proxies_crudos (`calibracion`; la revisión la pasa ya hecha en su paso
+# «proxies»), el contexto y la traducción. El contexto y la traducción ven las tablas del modelo (`tablas_modelo`:
+# covariables con las filas calibradas); `tablas` son las del proyecto tal como vinieron.
+.dl_config_de_tablas <- function(s, archivo, causa, tablas, causas, base, cambios = NULL,
+                                 calibracion = .dl_calibracion_proyecto(s, archivo, tablas)) {
   particion <- .dl_valor_en(s, "severidad.particion")
   if (!is.null(particion)) {
     ruta <- normalizePath(file.path(base, particion), winslash = "/", mustWork = FALSE)
@@ -260,9 +263,57 @@
     particion <- ruta
     tablas$severidad <- .dl_severidad_particion(s, causa, particion)
   }
-  ctx <- .dl_contexto_tablas(tablas, causa, .dl_padre_extraction(s) %||% .dl_padre_de(causas, causa))
-  list(cfg = .dl_config_simple(s, archivo, causa, ctx, cambios), tablas = tablas, causas = causas,
-       particion = particion)
+  tm <- .dl_tablas_modelo(tablas, calibracion)
+  ctx <- .dl_contexto_tablas(tm, causa, .dl_padre_extraction(s) %||% .dl_padre_de(causas, causa))
+  list(cfg = .dl_config_simple(s, archivo, causa, ctx, cambios), tablas = tablas, tablas_modelo = tm,
+       calibracion = calibracion, causas = causas, particion = particion)
+}
+
+# ---- Los proxies crudos del proyecto ----
+
+# La calibración de proxies_crudos (dl_calibrar_proxies) con la configuración `s` (de `archivo`): el año que se
+# estima, el valor nacional del año del ancla (ancla.anio; sin ella, el mismo año, como .dl_anio_ancla) y las claves
+# proxies.metodo, proxies.transformacion y proxies.excluir. NULL si el proyecto no trae proxies_crudos.
+.dl_calibracion_proyecto <- function(s, archivo, tablas) {
+  if (is.null(tablas$proxies_crudos)) return(NULL)
+  s <- .dl_claves_config_simple(s, archivo)
+  .dl_exigir_proxies_proyecto(s, tablas)
+  anio <- as.integer(s$anio)
+  ex <- .dl_valor_en(s, "proxies.excluir")
+  dl_calibrar_proxies(tablas$proxies_crudos, tablas$covariables, tablas$poblacion, anio,
+                      metodo = .dl_valor_en(s, "proxies.metodo") %||% "paseo_aleatorio",
+                      transformacion = unlist(.dl_valor_en(s, "proxies.transformacion")),
+                      excluir = if (length(ex)) data.table::rbindlist(ex, fill = TRUE),
+                      anio_nacional = as.integer(.dl_valor_en(s, "ancla.anio") %||% anio))
+}
+
+# Lo que la calibración del proyecto necesita antes de empezar, en palabras del proyecto: la tabla covariables (con
+# el valor nacional), ninguna covariable con subnacionales en las dos tablas (.dl_regla_proxies_dos_tablas) y las
+# covariables de proxies.transformacion en proxies_crudos.
+.dl_exigir_proxies_proyecto <- function(s, tablas) {
+  covs <- unique(tablas$proxies_crudos$covariable)
+  if (is.null(tablas$covariables))
+    .dl_stop(paste0("proxies_crudos: falta la tabla covariables, con el valor nacional de cada covariable de los ",
+                    "crudos (%s)"), paste(covs, collapse = ", "))
+  pr <- .dl_regla_proxies_dos_tablas(tablas)
+  if (length(pr)) .dl_stop("%s", paste(pr, collapse = "\n"))
+  fuera <- setdiff(names(.dl_valor_en(s, "proxies.transformacion")), covs)
+  if (length(fuera))
+    .dl_stop("%s", paste(sprintf(paste0("proxies.transformacion.%s: la covariable no est\u00e1 en proxies_crudos ",
+                                        "(las de los crudos: %s)"), fuera, paste(covs, collapse = ", ")),
+                         collapse = "; "))
+}
+
+# Las tablas que ve el modelo: las del proyecto con covariables más las filas calibradas de los proxies crudos
+# (`calibracion`, de .dl_calibracion_proyecto; sin ella, las mismas tablas). La tabla unida conserva el origen, los
+# lectores y la ubicacion_gbd de covariables.
+.dl_tablas_modelo <- function(tablas, calibracion) {
+  if (is.null(calibracion)) return(tablas)
+  cv <- tablas$covariables
+  t <- .dl_tabla_contrato(data.table::rbindlist(list(cv, calibracion), fill = TRUE), "covariables", attr(cv, "origen"))
+  for (a in c("lectores", "ubicacion_gbd")) data.table::setattr(t, a, attr(cv, a))
+  tablas$covariables <- t
+  tablas
 }
 
 # ---- La traducción de un proyecto ----
@@ -611,7 +662,7 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL)
 # uno por uno; sus problemas, todos juntos en un error (campo `problemas`), como los de una tabla sola.
 # dl_revisar_proyecto() las corre en su propio paso, sin detenerse.
 .dl_exigir_reglas_proyecto <- function(pre) {
-  pr <- .dl_problemas_proyecto(pre$tablas, pre$cfg, max(1L, nrow(pre$causas)))
+  pr <- .dl_problemas_proyecto(pre$tablas_modelo, pre$cfg, max(1L, nrow(pre$causas)), originales = pre$tablas)
   for (a in pr$avisos) .dl_warn("%s", a)
   if (length(pr$problemas))
     .dl_stop(paste0("el proyecto tiene %d problema(s) entre tablas:\n%s\n  (dl_revisar_proyecto() ",
@@ -620,12 +671,15 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL)
 }
 
 # El objeto dl_proyecto de lo que prepara .dl_preparar_contrato (`pre`), con las rutas de su traducción (`donde`:
-# lo que identifica el proyecto, ver .dl_traducir_proyecto) y la partición de severidad, si la hay.
+# lo que identifica el proyecto, ver .dl_traducir_proyecto; se traducen las tablas del modelo) y la partición de
+# severidad, si la hay. Lleva las tablas tal como vinieron y, con proxies_crudos, su calibración (`calibracion`).
 .dl_proyecto_armado <- function(carpeta, donde, pre) {
-  rutas <- .dl_traducir_proyecto(donde, pre$cfg, pre$tablas, pre$causas)
+  rutas <- .dl_traducir_proyecto(donde, pre$cfg, pre$tablas_modelo, pre$causas)
   if (!is.null(pre$particion)) rutas["severity_split"] <- list(pre$particion)
-  structure(list(configuracion = pre$cfg, rutas = rutas, carpeta = carpeta, formato = "simple", tablas = pre$tablas),
-            class = "dl_proyecto")
+  p <- structure(list(configuracion = pre$cfg, rutas = rutas, carpeta = carpeta, formato = "simple",
+                      tablas = pre$tablas), class = "dl_proyecto")
+  p$calibracion <- pre$calibracion      # sin proxies_crudos, el objeto no lleva el campo
+  p
 }
 
 # El proyecto del formato completo de `carpeta` con la configuración `cfg`: sus rutas, sin tablas del contrato.

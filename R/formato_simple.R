@@ -201,6 +201,9 @@
       else if (!(.dl_es_texto1(e$motivo) && nzchar(trimws(e$motivo))))
         p(como("motivo"), "debe ser un texto (por ejemplo cambio de modo de la encuesta)")
     }
+  anios <- if (registros) unlist(lapply(ex, function(e) if (.dl_es_entero1(e$anio)) as.integer(e$anio)))
+  for (a in unique(anios[duplicated(anios)]))
+    p("proxies.excluir", sprintf("la edici\u00f3n %d se repite: un registro por edici\u00f3n, con su motivo", a))
   probs
 }
 

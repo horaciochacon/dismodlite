@@ -36,6 +36,8 @@ corridas lo registran;
 pasan otras.
 \item \code{contrato}: con un proyecto de las tablas del contrato, esas tablas tal como se leyeron (\verb{$tablas} de
 \code{\link[=dl_proyecto]{dl_proyecto()}}; no entran en el hash).
+\item \code{calibracion_proxies}: con un proyecto que trae \code{proxies_crudos}, su calibración (el resultado de
+\code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}, con sus atributos \code{calibracion} y \code{series}; no entra en el hash).
 }
 }
 \description{

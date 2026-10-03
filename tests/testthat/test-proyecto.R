@@ -816,3 +816,78 @@ test_that("la configuración comentada de un proyecto nuevo trae las claves prox
   y <- yaml::yaml.load(paste(sub("^# ", "", l[i + 0:3]), collapse = "\n"))      # quitar el «# » deja YAML válido
   expect_identical(y$proxies$excluir[[1]]$anio, 2021L)
 })
+
+# ---- Proyecto con proxies_crudos: calibra al leer ----
+
+test_that("un proyecto con proxies_crudos calibra al leer y la puerta de R da el mismo hash", {
+  d <- escribir_proxies_crudos(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  p <- dl_proyecto(d, 9100)
+  cal <- p$calibracion
+  expect_s3_class(cal, "dl_tabla")
+  expect_identical(attr(cal, "calibracion")$covariable, "haqi")
+  expect_identical(sort(unique(cal$ubicacion)), sort(p$tablas$ubicaciones$ubicacion[-1L]))
+  # las tablas del proyecto quedan como vinieron: covariables sin filas subnacionales de haqi, proxies_crudos aparte
+  cv <- p$tablas$covariables
+  expect_false(any(cv$covariable == "haqi" & !is.na(cv$ubicacion) & cv$ubicacion != "123"))
+  expect_identical(nrow(p$tablas$proxies_crudos), 75L)
+  b <- suppressMessages(dl_insumos(p))      # antes de la otra puerta, que traduce en la misma carpeta
+  # puerta de R: calibrar a mano y pasar covariables completas, sin proxies_crudos
+  cal2 <- dl_calibrar_proxies(p$tablas$proxies_crudos, cv, p$tablas$poblacion, anio = 2023)
+  unlink(file.path(d, "proxies_crudos.csv"))
+  p2 <- dl_proyecto(d, 9100, covariables = data.table::rbindlist(list(cv, cal2), fill = TRUE))
+  expect_null(p2$calibracion)
+  b2 <- suppressMessages(dl_insumos(p2))
+  expect_identical(b$hash, b2$hash)
+  expect_identical(b$calibracion_proxies, cal)              # fuera del hash, como el contrato
+  expect_null(b2$calibracion_proxies)
+  expect_identical(b$contrato, p$tablas)
+})
+
+test_that("el proyecto calibra con proxies.metodo, proxies.transformacion, proxies.excluir y el año del ancla", {
+  d <- escribir_proxies_crudos(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  f <- file.path(d, "config", "9100.yaml")
+  write(c("proxies:", "  metodo: edicion", "  transformacion: {haqi: diferencia}",
+          "  excluir: [{anio: 2021, motivo: prueba}]"), f, append = TRUE)
+  p <- dl_proyecto(d, 9100)
+  k <- attr(p$calibracion, "calibracion")
+  expect_identical(k[, c("metodo", "transformacion", "ediciones", "excluidas")],
+                   data.table::data.table(metodo = "edicion", transformacion = "diferencia", ediciones = "2023",
+                                          excluidas = "2021 (prueba)"))
+  # una covariable de proxies.transformacion que no está en proxies_crudos, en palabras de la clave
+  writeLines(sub("haqi: diferencia", "ldi: diferencia", readLines(f)), f)
+  expect_error(dl_proyecto(d, 9100), "proxies.transformacion.ldi: .*no está en proxies_crudos")
+})
+
+test_that("subnacionales de una covariable en las dos tablas es un problema", {
+  d <- dl_ejemplo(copiar_en = withr::local_tempdir())
+  px <- data.table::fread(file.path(d, "covariables", "proxies.csv"), colClasses = list(character = "ubicacion"))
+  data.table::fwrite(px[covariable == "haqi" & anio == 2023, list(ubicacion, anio, sexo, edad_inicio = 30,
+                                                                    covariable, valor, error_estandar = 1)],
+                     file.path(d, "proxies_crudos.csv"))
+  expect_error(dl_proyecto(d, 9100), "proxies_crudos: la covariable haqi tiene filas subnacionales en las dos tablas")
+  # la regla entre tablas, sobre las tablas como vinieron
+  p <- dl_proyecto(dl_ejemplo(), 9100)
+  tablas <- c(p$tablas, list(proxies_crudos = dl_tabla("proxies_crudos", file.path(d, "proxies_crudos.csv"))))
+  pr <- dismodlite:::.dl_problemas_proyecto(p$tablas, p$configuracion, originales = tablas)
+  expect_match(pr$problemas, "haqi tiene filas subnacionales en las dos tablas", all = FALSE)
+  expect_length(dismodlite:::.dl_problemas_proyecto(p$tablas, p$configuracion)$problemas, 0L)
+})
+
+test_that("una covariable calibrada sin beta la ve la regla de siempre", {
+  d <- escribir_proxies_crudos(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  p <- dl_proyecto(d, 9100)
+  tm <- dismodlite:::.dl_tablas_modelo(p$tablas, p$calibracion)
+  expect_true(any(tm$covariables$covariable == "haqi" & tm$covariables$ubicacion %in% "01"))
+  tm$betas <- tm$betas[covariable != "haqi"]
+  pr <- dismodlite:::.dl_problemas_proyecto(tm, p$configuracion, originales = p$tablas)
+  expect_match(pr$avisos, "haqi", all = FALSE)
+})
+
+test_that("ediciones repetidas en proxies.excluir o en `excluir` son un problema claro", {
+  s <- list(causa = 9100L, anio = 2023L, edad_inicio = 30,
+            proxies = list(excluir = list(list(anio = 2021L, motivo = "a"), list(anio = 2021L, motivo = "b"))))
+  expect_match(dismodlite:::.dl_problemas_config_simple(s), "proxies.excluir: la edición 2021 se repite",
+               all = FALSE)
+  expect_error(dismodlite:::.dl_validar_excluir(data.frame(anio = c(2021, 2021), motivo = c("a", "b"))),
+               "`excluir` repite la\\(s\\) edición\\(es\\) 2021")
+})
