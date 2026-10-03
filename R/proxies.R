@@ -527,8 +527,8 @@
 #' ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de `edicion`. q se busca
 #' entre \eqn{10^{-6}\bar\sigma^2}{1e-6 sigma2} y \eqn{10^{3}\bar\sigma^2}{1e3 sigma2}, con
 #' \eqn{\bar\sigma^2}{sigma2} la mediana de se_g² de la covariable: un intervalo relativo al error de las ediciones,
-#' así que el resultado no depende de las unidades del indicador (con `diferencia`, el mismo índice ×100 da los
-#' mismos valores ×100 y q ×10⁴). Si q queda
+#' así que el resultado no depende de las unidades del indicador (con `diferencia`, el mismo índice multiplicado por
+#' 100 da los mismos valores por 100 y q por \eqn{10^4}{10^4}). Si q queda
 #' en un borde de ese intervalo, `calibracion` dice cuál (`q_en_borde`: `"inferior"` o `"superior"`): en el
 #' inferior (gradiente estable) la función lo informa con un mensaje; en el superior (cada edición manda) avisa.
 #' Con pocas ediciones la verosimilitud de q es plana: q puede moverse órdenes de magnitud con una edición más o
