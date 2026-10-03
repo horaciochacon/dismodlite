@@ -17,7 +17,8 @@ Los valores subnacionales de una covariable pueden venir de una encuesta: el paq
   - el cierre exacto en el valor nacional: el promedio ponderado por la población de las filas calibradas es el valor
     nacional de `covariables`.
   Devuelve también la calibración de cada covariable (método, transformación, q, ediciones usadas y excluidas, años
-  de la población), las series observadas y suavizadas y las ediciones excluidas.
+  de la población), las series observadas y suavizadas y las ediciones excluidas. Con `ubicacion_gbd` lee
+  `covariables` desde una carpeta de descargas del GHDx con varias ubicaciones (como en `dl_tabla()`).
 * `dl_proyecto()` y `dl_configuracion()` calibran `proxies_crudos` al leer el proyecto, para el año que se estima y
   con el valor nacional del año del ancla. Claves nuevas de la configuración: `proxies.metodo`,
   `proxies.transformacion` (por covariable; por defecto, `cociente`) y `proxies.excluir` (ediciones que no entran,
@@ -30,6 +31,9 @@ Los valores subnacionales de una covariable pueden venir de una encuesta: el paq
   igual), escribe las series en `diagnostics/proxies_series.csv` y registra la calibración en `params.proxies` del
   manifiesto.
 * `dl_nuevo_proyecto()` escribe también la plantilla `proxies_crudos.csv`.
+* Los proxies de un proyecto son los del año con que se tradujo: si el año de su configuración cambia después
+  (`p$configuracion$years$ajuste`), `dl_insumos()` se detiene con un error que pide volver a llamar a
+  `dl_proyecto()` con ese año (antes, la tabla `cov_proxy` quedaba vacía y la cascada fallaba más adelante).
 
 ## El ejemplo
 

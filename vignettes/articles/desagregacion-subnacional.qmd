@@ -171,7 +171,9 @@ $10^{-6}\,\bar\sigma^2$ y $10^{3}\,\bar\sigma^2$, con $\bar\sigma^2$ la mediana 
 intervalo relativo al error de las ediciones, para que el resultado no dependa de las unidades del indicador (con
 `diferencia`, el mismo índice en una escala 100 veces mayor da los mismos valores por 100 y q por $10^4$). Si q queda en
 el borde inferior de ese intervalo, el gradiente es prácticamente constante y la revisión lo dice; en el superior, cada
-edición manda y el paquete avisa. Con una sola edición por serie, q no se estima y se usa esa edición.
+edición manda y el paquete avisa. Con pocas ediciones (tres en el ejemplo) la verosimilitud de q es plana: q puede
+moverse órdenes de magnitud con una edición más o menos. Léelo como el grado de suavizado que eligen estos datos, no
+como una propiedad estable del indicador. Con una sola edición por serie, q no se estima y se usa esa edición.
 
 El gráfico muestra el gradiente observado de cada edición (puntos, con su intervalo del 95 %) y el suavizado (líneas)
 del HAQ en seis departamentos. Las líneas casi planas dicen que la posición de cada departamento cambia poco entre

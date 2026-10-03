@@ -97,7 +97,10 @@ entre \eqn{10^{-6}\bar\sigma^2}{1e-6 sigma2} y \eqn{10^{3}\bar\sigma^2}{1e3 sigm
 así que el resultado no depende de las unidades del indicador (con \code{diferencia}, el mismo índice ×100 da los
 mismos valores ×100 y q ×10⁴). Si q queda
 en un borde de ese intervalo, \code{calibracion} dice cuál (\code{q_en_borde}: \code{"inferior"} o \code{"superior"}): en el
-inferior (gradiente estable) la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si
+inferior (gradiente estable) la función lo informa con un mensaje; en el superior (cada edición manda) avisa.
+Con pocas ediciones la verosimilitud de q es plana: q puede moverse órdenes de magnitud con una edición más o
+menos. Es el grado de suavizado que eligen estos datos, no una propiedad estable del indicador: no lo compares
+entre encuestas ni lo leas por sí solo. Si
 todas las series de una covariable tienen una sola edición, q no se puede estimar: se usa la edición de cada serie, con un
 aviso, y \code{q} es \code{NA}. Una serie con una sola edición entre otras que sí estiman q coincide con \code{edicion} solo en
 el año de esa edición; en otro año su varianza suma \eqn{q |\Delta t|}{q |dt|}.
