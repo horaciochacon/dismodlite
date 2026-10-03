@@ -89,6 +89,16 @@
 # Las tablas que todo proyecto trae (ver ?dl_tablas); las demás son opcionales.
 .DL_TABLAS_OBLIGATORIAS <- c("ubicaciones", "poblacion", "ancla")
 
+# Las tablas del proyecto de una causa que es la suma de sus subtipos (.dl_es_suma): las únicas que se leen, las dos
+# obligatorias. Dan los catálogos de la corrida de la suma; las demás tablas de la carpeta son de las otras causas.
+.DL_TABLAS_SUMA <- c("ubicaciones", "poblacion")
+
+# Las tablas que se leen (`leidas`) y las que se exigen (`obligatorias`) para la configuración `s` de un proyecto.
+.dl_tablas_de <- function(s) {
+  if (.dl_es_suma(s)) list(leidas = .DL_TABLAS_SUMA, obligatorias = .DL_TABLAS_SUMA)
+  else list(leidas = .DL_TABLAS, obligatorias = .DL_TABLAS_OBLIGATORIAS)
+}
+
 # Dónde está la tabla `tabla` del proyecto: el argumento `dadas[[tabla]]` (un data.frame o una ruta); si no,
 # carpeta/<tabla>.csv; si no, carpeta/<tabla>/. NULL si no está o no tiene filas (un CSV con solo el encabezado, una
 # carpeta sin CSV con filas, un data.frame vacío): una tabla así es como si no estuviera.
@@ -121,10 +131,11 @@
 # .dl_leer_fuente_tabla) y validada sola; los lectores reciben también el código de la ubicación nacional de
 # ubicaciones (`codigo_nacional`, ver .dl_ubicacion_gbd). Error si falta una tabla obligatoria, con dónde se buscó. Con `paso`
 # (la revisión: paso(nombre, expr), como en .dl_traducir_contrato), cada tabla va por su paso, también el error de
-# una obligatoria que falta, y no se detiene.
-.dl_tablas_proyecto <- function(carpeta, dadas, opciones = list(), paso = NULL) {
-  fuentes <- lapply(stats::setNames(nm = .DL_TABLAS), function(t) .dl_fuente_tabla(carpeta, dadas, t))
-  faltan <- .DL_TABLAS_OBLIGATORIAS[vapply(fuentes[.DL_TABLAS_OBLIGATORIAS], is.null, NA)]
+# una obligatoria que falta, y no se detiene. `cuales`: las tablas que se leen y las que se exigen (.dl_tablas_de: las
+# de una suma de subtipos son menos).
+.dl_tablas_proyecto <- function(carpeta, dadas, opciones = list(), paso = NULL, cuales = .dl_tablas_de(NULL)) {
+  fuentes <- lapply(stats::setNames(nm = cuales$leidas), function(t) .dl_fuente_tabla(carpeta, dadas, t))
+  faltan <- cuales$obligatorias[vapply(fuentes[cuales$obligatorias], is.null, NA)]
   donde <- vapply(faltan, .dl_donde_tabla, "", carpeta = carpeta)
   if (length(faltan) && is.null(paso))
     .dl_stop("faltan tablas obligatorias del proyecto (o solo traen el encabezado):\n%s",
@@ -230,6 +241,18 @@
       "deben decir la misma causa padre"), as.integer(declarado), otros[1L], causa))
 }
 
+# Error si la causa `causa` o uno de los `subtipos` de su configuración `s` está en `subtipos` de dos configuraciones
+# del proyecto (`causas`): un subtipo tiene una sola causa padre, la que su corrida declara y la suma exige.
+.dl_comprobar_un_padre <- function(s, archivo, causa, causas) {
+  for (k in unique(c(causa, suppressWarnings(as.integer(unlist(s[["subtipos"]])))))) {
+    padres <- .dl_padres_de(causas, k)
+    if (length(padres) > 1L)
+      .dl_stop_config_simple(archivo, sprintf(paste0(
+        "subtipos: la causa %d est\u00e1 en `subtipos` de las configuraciones de las causas %s: un subtipo tiene una ",
+        "sola causa padre (d\u00e9jala en `subtipos` de una sola)"), k, paste(padres, collapse = " y ")))
+  }
+}
+
 # Lo que la traducción de la configuración de `causa` toma de las tablas (.dl_traducir_config_simple): la ubicación
 # nacional (la que no tiene padre en ubicaciones), las betas de la causa (las de `padre` si es un subtipo sin betas
 # propias), las covariables con filas subnacionales, si hay ubicaciones subnacionales, el nombre de la causa en el
@@ -260,7 +283,7 @@
                                   base = carpeta %||% .dl_raiz_proyecto(archivo)) {
   if (!is.list(s) || is.null(names(s)))
     .dl_stop_config_simple(archivo, "el archivo no es una lista de claves (clave: valor, una por l\u00ednea)")
-  tablas <- .dl_tablas_proyecto(carpeta, dadas, .dl_opciones_lectores(s))
+  tablas <- .dl_tablas_proyecto(carpeta, dadas, .dl_opciones_lectores(s), cuales = .dl_tablas_de(s))
   .dl_config_de_tablas(s, archivo, causa, tablas, .dl_causas_config(carpeta, s, causa), base, cambios,
                        .dl_calibracion_proyecto(s, archivo, tablas, cambios, causa))
 }
@@ -272,7 +295,7 @@
 # la revisión. El contexto y la traducción ven las tablas del modelo (`tablas_modelo`: covariables con las filas
 # calibradas); `tablas` son las del proyecto tal como vinieron.
 .dl_config_de_tablas <- function(s, archivo, causa, tablas, causas, base, cambios = NULL, calibracion = NULL) {
-  particion <- .dl_valor_en(s, "severidad.particion")
+  particion <- if (!.dl_es_suma(s)) .dl_valor_en(s, "severidad.particion")
   if (!is.null(particion)) {
     ruta <- normalizePath(file.path(base, particion), winslash = "/", mustWork = FALSE)
     if (!dir.exists(ruta))
@@ -282,6 +305,7 @@
     tablas$severidad <- .dl_severidad_particion(s, causa, particion)
   }
   .dl_comprobar_subtipo_de(s, archivo, causa, causas)
+  .dl_comprobar_un_padre(s, archivo, causa, causas)
   tm <- .dl_tablas_modelo(tablas, calibracion)
   ctx <- .dl_contexto_tablas(tm, causa, .dl_padre_extraction(s) %||% .dl_padre_de(causas, causa))
   list(cfg = .dl_config_simple(s, archivo, causa, ctx, cambios), tablas = tablas, tablas_modelo = tm,
@@ -631,7 +655,8 @@
 #' `poblacion_detalle/` con un CSV por fuente. Las rutas no se declaran, salvo la de la partición de severidad
 #' (`severidad.particion`, relativa a la carpeta). Los demás archivos de la carpeta (un `LEEME.md`, la carpeta
 #' `resultados/` que escribe [dl_correr()]) no se leen. Una tabla opcional ausente, o con solo el encabezado, no existe (así quedan las plantillas de
-#' [dl_nuevo_proyecto()]). Las obligatorias son `ubicaciones`, `poblacion` y `ancla`: con ellas se estima la causa en
+#' [dl_nuevo_proyecto()]). Las obligatorias son `ubicaciones`, `poblacion` y `ancla` (una causa que es la suma de sus
+#' subtipos solo usa las dos primeras: ver «Subtipos y la causa que es su suma»): con ellas se estima la causa en
 #' el país y, si hay ubicaciones subnacionales, en cada una con las tasas nacionales. [dl_correr()], que calcula los
 #' años vividos con discapacidad (AVD), necesita también `severidad` (o `severidad.particion` en la configuración).
 #' `covariables` y `betas` agregan las diferencias entre ubicaciones subnacionales y `datos`, los datos locales. Las
@@ -641,19 +666,40 @@
 #' las dos tablas.
 #'
 #' Con varias causas, cada una tiene su configuración en `config/<causa>.yaml` y comparten las tablas, que traen las
-#' filas de todas en la columna `causa` (sin ella, una fila vale para todas). Una causa que es la suma de otras las
-#' declara en `subtipos`; un subtipo sin betas propias usa las de su causa padre. El subtipo encuentra a su padre por
-#' esa clave, en otra configuración del mismo proyecto; leído solo (en su propia carpeta), lo declara con
-#' `subtipo_de: <padre>` y, sin betas propias, usa las de esa causa (ver [dl_sumar_hijas()]); si las dos configuraciones
-#' dicen su padre, deben decir la misma causa. La causa padre se lee con `dl_proyecto()` aunque solo se sume: necesita su prevalencia en el
-#' ancla (y su mortalidad, con el prior por defecto de la mortalidad en exceso). Cada subtipo se corre por separado y
-#' sus corridas se suman con [dl_sumar_hijas()], con las rutas del proyecto de la causa padre:
-#' ```r
-#' corridas <- vapply(c(1011, 1012), function(k) dl_correr(carpeta, k, semilla = 1)$dir, "")
-#' dl_sumar_hijas(corridas, causa = 1010, nombre = "suma", carpeta = file.path(carpeta, "resultados"),
-#'                rutas = dl_proyecto(carpeta, 1010)$rutas,
-#'                omitidas = list(list(cause_id = 1013, motivo = "sin datos suficientes")))
+#' filas de todas en la columna `causa` (sin ella, una fila vale para todas).
+#'
+#' @section Subtipos y la causa que es su suma:
+#' Una causa que es la suma de otras las declara en `subtipos`; un subtipo sin betas propias usa las de su causa padre.
+#' El subtipo encuentra a su padre por esa clave, en otra configuración del mismo proyecto; leído solo (en su propia
+#' carpeta), lo declara con `subtipo_de: <padre>` y, sin betas propias, usa las de esa causa; si las dos
+#' configuraciones dicen su padre, deben decir la misma causa. Un subtipo tiene una sola causa padre: que dos
+#' configuraciones del proyecto lo declaren en `subtipos` es un error.
+#'
+#' Si la causa padre no se ajusta, sino que se reporta como la suma de las corridas de sus subtipos, su configuración
+#' lo dice con `suma_de_subtipos: sí`:
+#' ```yaml
+#' causa: 1010
+#' nombre: Enfermedad de ejemplo
+#' anio: 2023
+#' subtipos: [1011, 1012, 1013]
+#' suma_de_subtipos: sí
+#' subtipos_omitidos:                 # opcional: los subtipos que no se modelan, con su motivo
+#'   - {causa: 1013, motivo: sin datos suficientes}
 #' ```
+#' El proyecto de una suma solo usa las tablas `ubicaciones` y `poblacion` (dan los catálogos de su corrida), que son
+#' sus dos tablas obligatorias: no necesita `edad_inicio`, ancla, severidad ni betas, y las demás tablas de la carpeta,
+#' que son de las otras causas, no se leen. Exige `nombre` (el de la causa en las tablas de su corrida). Puede ser una
+#' configuración más de un proyecto con varias causas o vivir en su propia carpeta. `print()` dice qué suma («suma de
+#' los subtipos 1011 + 1012 (omitido: 1013)»), [dl_revisar_proyecto()] revisa sus dos tablas, su configuración y qué
+#' subtipos tienen configuración en el proyecto, y [dl_insumos()] la rechaza: no hay nada que ajustar. Cada subtipo
+#' se corre por separado y [dl_correr()] de la causa las suma, con las corridas que encuentra en la carpeta de las
+#' corridas:
+#' ```r
+#' for (k in c(1011, 1012)) dl_correr(carpeta, k, semilla = 1)
+#' dl_correr(carpeta, 1010)
+#' ```
+#' Una causa padre con `subtipos` y sin `suma_de_subtipos` se ajusta como cualquier otra, con su ancla. Para sumar
+#' corridas elegidas a mano (de otras carpetas, o que no son las más recientes), [dl_sumar_hijas()].
 #'
 #' @section Formato completo:
 #' Un proyecto es del formato completo de la versión 0.2.2 si su configuración trae `schema: dismod_lite/v1`. Tiene
@@ -683,7 +729,8 @@
 #'   - `carpeta`: la carpeta del proyecto (`NULL` sin carpeta).
 #'   - `formato`: `"simple"` (un proyecto con las tablas del contrato) o `"completo"` (el formato de la 0.2.2).
 #'   - `tablas`: las tablas del contrato, una lista nombrada de [dl_tabla()] (`NULL` en el formato completo), tal
-#'     como vinieron (`covariables` sin las filas calibradas).
+#'     como vinieron (`covariables` sin las filas calibradas). De una suma de subtipos, solo `ubicaciones` y
+#'     `poblacion`.
 #'   - `calibracion`: solo si el proyecto trae `proxies_crudos`, el resultado de [dl_calibrar_proxies()] (las filas
 #'     calibradas, con los atributos `calibracion`, `series` y `excluidas`).
 #' @seealso [dl_tablas] (las tablas), [dl_configuracion()] (las claves de la configuración), [dl_insumos()] (el paso
@@ -704,6 +751,12 @@
 #' p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
 #'                  ubicaciones = dl_ejemplo("ubicaciones.csv"),
 #'                  poblacion = dl_ejemplo("poblacion.csv"), ancla = dl_ejemplo("ancla"))
+#'
+#' # una causa que es la suma de sus subtipos: solo su configuración, las ubicaciones y la población
+#' suma <- dl_proyecto(configuracion = list(causa = 9200, nombre = "Suma de ejemplo", anio = 2023,
+#'                                          subtipos = c(9101, 9102, 9103), suma_de_subtipos = "sí"),
+#'                     ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"))
+#' suma
 #' \donttest{
 #' # el paso siguiente: los insumos
 #' b <- dl_insumos(p)
@@ -841,13 +894,16 @@ print.dl_proyecto <- function(x, ...) {
   cat(sprintf("<dl_proyecto> %scausa %d | a\u00f1o %s | %s\n", if (nzchar(nombre)) paste0(nombre, ", ") else "",
               cfg$cause_id, .dl_anio_ajuste(cfg), formato))
   cat(sprintf("  carpeta: %s\n", x$carpeta %||% "(ninguna: las tablas vienen como argumentos)"))
-  arch <- if (simple) vapply(.DL_TABLAS, function(k) {
+  suma <- .dl_es_suma(cfg)
+  if (suma) cat(sprintf("  %s: no se ajusta; dl_correr() suma las corridas de sus subtipos\n",
+                        .dl_texto_suma(cfg$origen$configuracion)))
+  arch <- if (simple) vapply(if (suma) .DL_TABLAS_SUMA else .DL_TABLAS, function(k) {
     t <- x$tablas[[k]]
     if (is.null(t)) "no" else sprintf("%d fila(s), de %s", nrow(t), basename(attr(t, "origen")))
   }, "") else vapply(.DL_CLAVES_RUTAS, function(k) if (is.null(x$rutas[[k]])) "no" else "s\u00ed", "")
   cat(if (simple) "  tablas:\n" else "  archivos:\n")
   cat(sprintf("    %-*s %s\n", max(nchar(names(arch))), names(arch), arch), sep = "")
-  if (simple) {
+  if (simple && !suma) {
     cat(sprintf("  subnacional: %s\n", cfg$origen$subnacional))
     if (!is.null(x$calibracion)) {
       cat(sprintf("  proxies calibrados de proxies_crudos (a\u00f1o %d):\n", x$calibracion$anio[1L]))

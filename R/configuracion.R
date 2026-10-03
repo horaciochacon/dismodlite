@@ -694,6 +694,11 @@ NULL
 
 #' @export
 print.dl_config <- function(x, ...) {
+  if (.dl_es_suma(x)) {
+    cat(sprintf("<dl_config> configuraci\u00f3n de la causa %d | a\u00f1o: %s | %s (no se ajusta)\n", x$cause_id,
+                paste(unlist(x$years$ajuste), collapse = ","), .dl_texto_suma(x$origen$configuracion)))
+    return(invisible(x))
+  }
   cat(sprintf(paste0("<dl_config> configuraci\u00f3n de la causa %d | ancla %s (lambda %.2f, rho %.2f) | ",
                      "a\u00f1o de ajuste: %s | %d transformaciones de covariables\n"),
       x$cause_id, x$anchor$location %||% .dl_loc_ancla(x), x$anchor$lambda, x$anchor$rho_edad,

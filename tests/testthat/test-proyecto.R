@@ -330,6 +330,110 @@ test_that("subtipo_de y el subtipos de la configuración del padre: la misma cau
                "^subtipo_de: es la propia causa \\(9101\\)")
 })
 
+# ---- Una causa que es la suma de sus subtipos (suma_de_subtipos) ----
+
+test_that("suma_de_subtipos y subtipos_omitidos: la forma, con errores que nombran la clave", {
+  base <- list(causa = 9200L, nombre = "Suma", anio = 2023L)
+  forma <- function(...) .dl_problemas_config_simple(c(base, list(...)))
+  # una suma no necesita edad_inicio ni las claves del modelo; sí o no, también con true y false
+  for (v in list("sí", "si", "SÍ", TRUE)) expect_length(forma(subtipos = 9101:9102, suma_de_subtipos = v), 0L)
+  for (v in list("no", FALSE))
+    expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = v), "^edad_inicio: falta \\(obligatoria\\)")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "quizá"),
+               "^suma_de_subtipos: debe ser sí o no$", all = FALSE)
+  expect_match(forma(suma_de_subtipos = "sí"), "^suma_de_subtipos: exige `subtipos`")
+  sin_nombre <- .dl_problemas_config_simple(list(causa = 9200L, anio = 2023L, subtipos = 9101:9102,
+                                                 suma_de_subtipos = "sí"))
+  expect_match(sin_nombre, "^suma_de_subtipos: exige `nombre`")
+  omitido <- list(list(causa = 9102L, motivo = "sin modelo"))
+  expect_length(forma(subtipos = 9101:9102, suma_de_subtipos = "sí", subtipos_omitidos = omitido), 0L)
+  expect_match(forma(edad_inicio = 30, subtipos = 9101:9102, subtipos_omitidos = omitido),
+               "^subtipos_omitidos: exige suma_de_subtipos: sí")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí",
+                     subtipos_omitidos = list(list(causa = 9999L, motivo = "x"))),
+               "^subtipos_omitidos\\[1\\].causa: la causa 9999 no está en `subtipos` \\(9101, 9102\\)")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí", subtipos_omitidos = list(list(causa = 9102L))),
+               "^subtipos_omitidos\\[1\\].motivo: falta \\(obligatoria\\)")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí",
+                     subtipos_omitidos = list(list(causa = "x", motivo = "m"))),
+               "^subtipos_omitidos\\[1\\].causa: debe ser un entero")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí",
+                     subtipos_omitidos = list(list(causa = 9101L, motivo = "a"), list(causa = 9101L, motivo = "b"))),
+               "^subtipos_omitidos: causa repetido: 9101")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí",
+                     subtipos_omitidos = list(list(causa = 9101L, motivo = "a"), list(causa = 9102L, motivo = "b"))),
+               "^subtipos_omitidos: omite todos los `subtipos`")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí", subtipos_omitidos = "9102"),
+               "^subtipos_omitidos: es una lista de registros, cada uno con las claves causa, motivo")
+})
+
+test_that("dl_proyecto() de una suma solo lee ubicaciones y poblacion, y su print() dice qué suma", {
+  d <- copia_con_suma()
+  p <- dl_proyecto(d, 9200)
+  expect_s3_class(p, "dl_proyecto")
+  expect_true(.dl_es_suma(p))
+  expect_true(.dl_es_suma(p$configuracion))
+  expect_false(.dl_es_suma(dl_proyecto(d, 9101)))
+  expect_identical(names(p$tablas), c("ubicaciones", "poblacion"))
+  cfg <- p$configuracion
+  expect_s3_class(cfg, "dl_config")
+  expect_identical(cfg$cause_id, 9200L)
+  expect_identical(.dl_anio_ajuste(cfg), 2023L)
+  expect_null(cfg$suma)
+  expect_identical(cfg$origen$nombre, "Suma sintética de subtipos")
+  # las rutas: la población, los catálogos y el registro, con la causa y sus subtipos
+  expect_setequal(names(Filter(Negate(is.null), unclass(p$rutas))), c("poblacion", "registry", "catalogos"))
+  maestro <- leer_texto(file.path(p$rutas$registry, "master_gbd.csv"))
+  expect_identical(maestro$hijos[maestro$cause_id == "9200"], "9101|9102|9103")
+  salida <- capture.output(print(p))
+  expect_match(salida[1], "^<dl_proyecto> Suma sintética de subtipos, causa 9200 \\| año 2023")
+  expect_true(any(grepl("^  suma de los subtipos 9101 \\+ 9102 \\+ 9103: no se ajusta", salida)))
+  expect_false(any(grepl("ancla|severidad|betas|subnacional|por defecto", salida)))
+  expect_match(capture.output(print(cfg)), "causa 9200 \\| año: 2023 \\| suma de los subtipos 9101 \\+ 9102 \\+ 9103")
+  # con un subtipo omitido: suma.omitidas del formato completo, y el print() lo dice
+  po <- dl_proyecto(copia_con_suma(c("subtipos_omitidos:", "  - {causa: 9103, motivo: \"prueba\"}")), 9200)
+  expect_identical(po$configuracion$suma$omitidas, list(list(cause_id = 9103L, motivo = "prueba")))
+  expect_true(any(grepl("^  suma de los subtipos 9101 \\+ 9102 \\(omitido: 9103\\)", capture.output(print(po)))))
+  # leída para otro año, como cualquier proyecto
+  expect_identical(.dl_anio_ajuste(dl_proyecto(d, 9200, anio = 2019)$configuracion), 2019L)
+  # no tiene insumos: dl_insumos() dice quién la suma
+  expect_error(dl_insumos(p), "la causa 9200 es una suma de subtipos .*no se ajusta.*dl_correr\\(\\) la suma",
+               class = "dl_error")
+  expect_error(dl_insumos(cfg), "la causa 9200 es una suma de subtipos")
+  # y sigue dando los problemas de sus tablas: una ubicación de la población que no está en ubicaciones
+  pob <- leer_texto(file.path(d, "poblacion.csv"))
+  pob$ubicacion[pob$ubicacion == "01"] <- "99"
+  escribir_texto(pob, d, "poblacion.csv")
+  e <- expect_error(dl_proyecto(d, 9200), "problema\\(s\\) entre tablas", class = "dl_error")
+  expect_match(e$problemas, "^poblacion: la\\(s\\) ubicación\\(es\\) 99 no est")
+})
+
+test_that("un proyecto de suma en su propia carpeta: solo config.yaml, ubicaciones.csv y poblacion.csv", {
+  d <- withr::local_tempdir()
+  writeLines(enc2utf8(c("causa: 9200", "nombre: Suma en su carpeta", "anio: 2023", "subtipos: [9101, 9102]",
+                        "suma_de_subtipos: sí")), file.path(d, "config.yaml"), useBytes = TRUE)
+  expect_error(dl_proyecto(d), "faltan tablas obligatorias del proyecto.*ubicaciones.*poblacion")
+  expect_no_match(tryCatch(dl_proyecto(d), error = conditionMessage), "ancla")
+  for (f in c("ubicaciones.csv", "poblacion.csv")) file.copy(dl_ejemplo(f), file.path(d, f))
+  p <- dl_proyecto(d)
+  expect_true(.dl_es_suma(p))
+  expect_identical(p$configuracion$cause_id, 9200L)
+  # con las tablas como argumentos, también; las que no son de una suma no se leen
+  m <- dl_proyecto(configuracion = list(causa = 9200L, nombre = "Suma", anio = 2023L, subtipos = 9101:9102,
+                                        suma_de_subtipos = TRUE),
+                   ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"),
+                   ancla = dl_ejemplo("ancla"))
+  expect_identical(names(m$tablas), c("ubicaciones", "poblacion"))
+})
+
+test_that("un subtipo en `subtipos` de dos configuraciones del proyecto es un error que nombra las dos causas", {
+  d <- copia_ejemplo(`config/9200.yaml` = c("causa: 9200", "nombre: Suma", "anio: 2023",
+                                            "subtipos: [9101, 9102, 9103]", "suma_de_subtipos: sí"))
+  patron <- "subtipos: la causa 9101 está en `subtipos` de las configuraciones de las causas 9100 y 9200"
+  expect_error(dl_proyecto(d, 9200), patron, class = "dl_error")
+  expect_error(dl_proyecto(d, 9101), patron, class = "dl_error")
+})
+
 test_that("las claves ancla.error_maximo, mortalidad_exceso.fraccion_aguda y sensibilidad.fraccion_aguda llegan a su destino", {
   proc <- .DL_PROCEDENCIA_SIMPLE
   base <- list(causa = 501L, anio = 2020L, edad_inicio = 40L)
@@ -371,7 +475,8 @@ test_that("sin las claves nuevas la configuración y los insumos de un proyecto 
   expect_null(cfg$emr_prior$fraccion_aguda)
   expect_null(cfg$sensibilidad$fraccion_aguda)
   expect_false(any(c("ancla.error_maximo", "mortalidad_exceso.fraccion_aguda", "sensibilidad.fraccion_aguda",
-                     "subtipo_de") %in% names(cfg$origen$por_defecto)))
+                     "subtipo_de", "suma_de_subtipos") %in% names(cfg$origen$por_defecto)))
+  expect_null(cfg$suma)
   # el hash de los insumos de la versión anterior a las claves
   hashes <- vapply(c(9100L, 9101L), function(ca) suppressMessages(dl_insumos(dl_proyecto(dl_ejemplo(), ca)))$hash, "")
   expect_identical(unname(hashes), c("ff1e50fe6b5f79a924d4b99476c9759de85a2c5ba9c775627de0ca2785069e49",

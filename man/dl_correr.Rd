@@ -23,11 +23,12 @@ proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}.}
 
 \item{causa}{Causa (\code{cause_id}); \code{NULL} si el proyecto tiene una sola (o si \code{proyecto} ya es un \code{dl_proyecto}).}
 
-\item{semilla}{Semilla (entero), obligatoria: el resultado es reproducible con la misma semilla.}
+\item{semilla}{Semilla (entero), obligatoria: el resultado es reproducible con la misma semilla. Una causa que es
+la suma de sus subtipos no se ajusta y no la usa.}
 
 \item{carpeta_salida}{Carpeta raíz de las corridas: la corrida se escribe en
 \verb{<carpeta_salida>/mod/dismod_lite/<AAAA-MM-DD>_causa-<causa>_v<n>/}. \code{NULL} (por defecto) es la carpeta
-\code{resultados} del proyecto.}
+\code{resultados} del proyecto. Una suma de subtipos busca ahí las corridas de sus subtipos.}
 
 \item{rapido}{\code{TRUE} para una corrida de prueba (ver Detalles); \code{FALSE} (por defecto), la de producción.}
 
@@ -111,7 +112,20 @@ una corrida completa, como la de un \code{dl_correr()} sin \code{anios}. Si un a
 error de ese año y dice qué años quedaron escritos; esas corridas siguen en su carpeta.
 
 La causa debe tener severidad (sus estados de salud en \code{severidad.csv} o desde \code{severidad.particion}): sin ella los
-AVD serían cero y la corrida no se escribe. \code{dl_correr()} lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
+AVD serían cero y la corrida no se escribe. \code{dl_correr()} lo comprueba antes de ajustar.
+
+Una causa que es la suma de sus subtipos (\code{suma_de_subtipos: sí} en su configuración; ver \code{\link[=dl_proyecto]{dl_proyecto()}}) no se
+ajusta: \code{dl_correr()} busca en \code{carpeta_salida} la corrida más reciente (la de mayor fecha y versión) de cada
+subtipo que entra en la suma, del año que se estima, y las suma simulación a simulación con \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, con
+el \code{nombre} y los \code{subtipos_omitidos} de la configuración. Las corridas se reconocen por su manifiesto (la causa y
+el año), así que valen las de cualquier proyecto escritas en esa carpeta. Con \code{rapido = TRUE} suma las corridas de
+prueba (las que terminan en \code{-prueba}) y la suma también es de prueba; con \code{rapido = FALSE}, las de producción,
+nunca las de prueba. Si falta la corrida de un subtipo, el error dice cuál, de qué año y dónde se buscó. Con
+\code{anios}, suma cada año con las corridas de ese año. \code{semilla}, \code{sensibilidad}, \code{opciones} y \code{forzar} no se usan:
+no hay ajuste. El nombre de la corrida sigue la misma regla (\verb{causa-<causa>}, con el año y \code{-prueba} si
+corresponde), y la corrida es la de \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}: celdas, simulaciones y manifiesto, sin diagnósticos.
+
+Los ajustes quedan en la caché de la sesión:
 \code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
 proyecto con las tablas del contrato, los mensajes de todos los pasos citan sus claves y sus tablas (como \code{\link[=dl_insumos]{dl_insumos()}}).
 }
@@ -146,12 +160,27 @@ unlink(salida, recursive = TRUE)
 # dl_correr("mi_proyecto", semilla = 1, forzar = TRUE)
 # y una corrida de producción por año
 # dl_correr("mi_proyecto", semilla = 1, anios = 2018:2023)
+
+# una causa que es la suma de sus subtipos: en una copia del ejemplo, la causa 9100, que declara
+# sus subtipos (9101, 9102 y 9103), deja de ajustarse con `suma_de_subtipos: sí`
+carpeta <- dl_ejemplo(copiar_en = file.path(tempdir(), "proyecto_con_suma"))
+con <- file(file.path(carpeta, "config", "9100.yaml"), open = "a", encoding = "UTF-8")
+writeLines("suma_de_subtipos: sí", con)
+close(con)
+dl_proyecto(carpeta, causa = 9100)
+# primero una corrida de cada subtipo (aquí, de prueba) y después la suma, que las busca en la
+# carpeta de las corridas (`resultados`, en la carpeta del proyecto)
+for (k in c(9101, 9102, 9103))
+  dl_correr(carpeta, causa = k, semilla = 1, rapido = TRUE, sensibilidad = FALSE)
+suma <- dl_correr(carpeta, causa = 9100, rapido = TRUE)
+vapply(suma$manifest$causa$hijas, `[[`, "", "run_id")
+unlink(carpeta, recursive = TRUE)
 }
 }
 \seealso{
 \code{\link[=dl_proyecto]{dl_proyecto()}}, \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} (antes de correr), \code{\link[=dl_opciones_mcmc]{dl_opciones_mcmc()}} (las cadenas),
-\code{\link[=dl_estimaciones]{dl_estimaciones()}} y \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} (el contenido de la carpeta de la corrida); para los subtipos de una
-causa, \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}.
+\code{\link[=dl_estimaciones]{dl_estimaciones()}} y \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} (el contenido de la carpeta de la corrida); para sumar a mano las
+corridas de los subtipos de una causa, \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}.
 
 Funciones del proyecto:
 \code{\link{dl_calibrar_proxies}()},

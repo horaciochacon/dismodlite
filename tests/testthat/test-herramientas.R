@@ -44,6 +44,10 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada y las plantil
   expect_true("# subtipos: [1011, 1012, 1013]" %in% lineas)
   # las claves de una causa que es un subtipo, de la fase aguda y del error del ancla, comentadas con su ejemplo
   expect_true("# subtipo_de: 1010" %in% lineas)
+  # las de una causa que es la suma de sus subtipos: la clave y la lista de los omitidos, como registros
+  expect_true("# suma_de_subtipos: sí" %in% lineas)
+  k <- match("# subtipos_omitidos:", lineas)
+  expect_identical(lineas[k + 1:2], c("#   - causa: 1013", "#     motivo: sin datos suficientes"))
   expect_true("#   error_maximo: 0.08" %in% lineas)
   expect_true("#   fraccion_aguda: 0.3" %in% lineas)
   expect_true("#   fraccion_aguda: [0, 0.3, 0.5]" %in% lineas)
@@ -459,6 +463,129 @@ test_that("dl_correr(anios = ) corre la causa una vez por año y devuelve una co
   expect_true(escrita %in% list.files(file.path(salida, "mod", "dismod_lite")))
   e0 <- expect_error(correr(d, anios = 2025), "la corrida del año 2025 falló")
   expect_match(conditionMessage(e0), "No quedó escrita ninguna corrida\\.")
+})
+
+# ---- Una causa que es la suma de sus subtipos ----
+
+test_that("dl_revisar_proyecto() de una suma: sus tablas, su configuración y sus subtipos, sin pasos de modelo", {
+  d <- copia_con_suma()
+  r <- revisar_callado(d, causa = 9200)
+  expect_identical(sum(r$estado == "error"), 0L)
+  expect_identical(sum(r$estado == "aviso"), 0L)
+  expect_identical(unique(r$paso), c("ubicaciones", "poblacion", "configuración", "proyecto"))
+  expect_match(r$detalle[nrow(r)], "^suma de los subtipos 9101 \\+ 9102 \\+ 9103: dl_correr\\(\\) suma las corridas")
+  # un proyecto ya leído se revisa igual
+  r2 <- revisar_callado(dl_proyecto(d, 9200))
+  expect_identical(r2$estado, rep("ok", nrow(r2)))
+  expect_false("insumos" %in% r2$paso)
+  # las demás causas del proyecto se siguen revisando enteras
+  r1 <- revisar_callado(d, causa = 9101)
+  expect_true("insumos" %in% r1$paso)
+  expect_identical(sum(r1$estado == "error"), 0L)
+  # un subtipo sin configuración en el proyecto: un aviso que lo nombra; las claves del modelo, otro
+  unlink(file.path(d, "config", "9102.yaml"))
+  cat("edad_inicio: 30\nancla:\n  peso: 0.5\n", file = file.path(d, "config", "9200.yaml"), append = TRUE)
+  r3 <- revisar_callado(d, causa = 9200)
+  expect_identical(sum(r3$estado == "error"), 0L)
+  avisos <- r3[r3$estado == "aviso", ]
+  expect_identical(avisos$paso, c("configuración", "proyecto"))
+  expect_match(avisos$detalle[1], "no se ajusta: no se usa\\(n\\) la\\(s\\) clave\\(s\\) edad_inicio, ancla$")
+  expect_match(avisos$detalle[2],
+               "^el/los subtipo\\(s\\) 9102 no tiene\\(n\\) configuración en el proyecto.*subtipo_de: 9200")
+  # una tabla de la suma que falta es un error en su paso; las que no son suyas no se piden
+  unlink(file.path(d, "poblacion.csv"))
+  unlink(file.path(d, "ancla"), recursive = TRUE)
+  r4 <- revisar_callado(d, causa = 9200)
+  expect_identical(r4$paso[r4$estado == "error"], "poblacion")
+})
+
+test_that("dl_correr() de una suma busca las corridas de sus subtipos y las suma, por año", {
+  d <- copia_con_suma()
+  salida <- file.path(withr::local_tempdir(), "resultados")
+  corridas <- file.path(salida, "mod", "dismod_lite")
+  # las corridas de prueba de los tres subtipos para 2019 y 2023, una sola vez
+  for (k in 9101:9103)
+    suppressMessages(dl_correr(d, k, semilla = 1, rapido = TRUE, sensibilidad = FALSE, carpeta_salida = salida,
+                               anios = c(2019, 2023)))
+  simulaciones <- function(dir, anio = 2023)
+    as.data.frame(.dl_leer_draws(dir, "prevalence", anio))
+  de_subtipo <- function(k, anio = 2023)
+    file.path(corridas, grep(sprintf("_causa-%d-%d-prueba_v1$", k, anio), list.files(corridas), value = TRUE))
+  mensajes <- character()
+  # sin `semilla`: una suma no la usa
+  run <- withCallingHandlers(dl_correr(d, 9200, carpeta_salida = salida, rapido = TRUE),
+                             message = function(m) {
+                               mensajes <<- c(mensajes, conditionMessage(m)); invokeRestart("muffleMessage")
+                             })
+  expect_s3_class(run, "dl_run")
+  expect_match(run$run_id, "_causa-9200-prueba_v1$")
+  expect_match(mensajes[1],
+               "causa 9200: suma de los subtipos 9101 \\+ 9102 \\+ 9103, con sus corridas de prueba de 2023")
+  expect_no_match(paste(mensajes, collapse = "\n"), "cadena")
+  man <- run$manifest
+  expect_identical(man$causa$agregacion, "suma_de_hijas")
+  expect_identical(man$causa$cause_name, "Suma sintética de subtipos")
+  expect_identical(vapply(man$causa$hijas, `[[`, 0L, "cause_id"), 9101:9103)
+  expect_identical(vapply(man$causa$hijas, `[[`, "", "run_id"), basename(vapply(9101:9103, de_subtipo, "")))
+  expect_identical(man$params$year, 2023L)
+  # la prevalencia de la suma es la suma, simulación a simulación, de las de los subtipos: con la misma población
+  # en cada celda, también en número de casos
+  suma <- simulaciones(run$dir)
+  partes <- lapply(9101:9103, function(k) simulaciones(de_subtipo(k)))
+  celda <- c("location_id", "sex_id", "age_group_id")
+  for (x in partes) expect_identical(x[celda], suma[celda])
+  cols <- setdiff(names(suma), celda)
+  expect_equal(suma[cols], Reduce(`+`, lapply(partes, `[`, cols)), tolerance = 1e-12)
+  expect_gt(sum(suma[suma$location_id == "123", cols]), 0)
+
+  # por año: cada suma con las corridas de su año, y el año en el nombre
+  r <- suppressMessages(dl_correr(d, 9200, carpeta_salida = salida, rapido = TRUE, anios = c(2019, 2023)))
+  expect_s3_class(r, "dl_corridas")
+  expect_identical(names(r), c("2019", "2023"))
+  expect_match(r[["2019"]]$run_id, "_causa-9200-2019-prueba_v1$")
+  for (a in c(2019L, 2023L)) {
+    expect_identical(r[[as.character(a)]]$manifest$params$year, a)
+    expect_identical(vapply(r[[as.character(a)]]$manifest$causa$hijas, `[[`, "", "run_id"),
+                     basename(vapply(9101:9103, de_subtipo, "", anio = a)))
+  }
+  expect_identical(simulaciones(r[["2023"]]$dir), suma)
+
+  # con un subtipo omitido: suma los otros dos y el manifiesto lo declara, con su motivo entre las limitaciones
+  cat("subtipos_omitidos:\n  - {causa: 9103, motivo: \"prueba\"}\n", file = file.path(d, "config", "9200.yaml"),
+      append = TRUE)
+  ro <- suppressMessages(dl_correr(d, 9200, carpeta_salida = salida, rapido = TRUE))
+  expect_identical(vapply(ro$manifest$causa$hijas, `[[`, 0L, "cause_id"), 9101:9102)
+  expect_identical(ro$manifest$causa$hijas_omitidas, list(list(cause_id = 9103L)))
+  expect_true(any(grepl("^hija 9103 omitida de la suma — prueba$", unlist(ro$manifest$limitaciones))))
+  expect_equal(simulaciones(ro$dir)[cols], Reduce(`+`, lapply(partes[1:2], `[`, cols)), tolerance = 1e-12)
+
+  # solo hay corridas de prueba: la suma de producción no las toma, y el error lo dice
+  n <- length(list.files(corridas))
+  e <- expect_error(suppressMessages(dl_correr(d, 9200, carpeta_salida = salida)), class = "dl_error")
+  expect_match(conditionMessage(e), "falta la corrida de producción de 2023 del/de los subtipo\\(s\\) 9101, 9102 en ")
+  expect_match(conditionMessage(e), "De 9101, 9102 solo hay corridas de prueba: para sumarlas, rapido = TRUE")
+  # falta la corrida de un subtipo: el error dice cuál, de qué año y dónde se buscó; con `anios`, el año que falló
+  unlink(de_subtipo(9102), recursive = TRUE)
+  e <- expect_error(suppressMessages(dl_correr(d, 9200, carpeta_salida = salida, rapido = TRUE)), class = "dl_error")
+  expect_match(conditionMessage(e), "falta la corrida de prueba de 2023 del/de los subtipo\\(s\\) 9102 en ")
+  expect_match(conditionMessage(e), .dl_dir_corrida(salida), fixed = TRUE)
+  expect_identical(e$faltan, 9102L)
+  e <- expect_error(suppressMessages(dl_correr(d, 9200, carpeta_salida = salida, rapido = TRUE, anios = c(2019, 2023))),
+                    "la corrida del año 2023 falló: falta la corrida de prueba de 2023", class = "dl_error")
+  expect_identical(e$escritas, 2019L)
+  expect_identical(length(list.files(corridas)), n)              # se borró una y quedó escrita la suma de 2019
+
+  # las corridas de un subtipo que declara otra causa padre no se suman: el error dice cómo declararla
+  otra <- withr::local_tempdir()
+  writeLines(enc2utf8(c("causa: 9300", "nombre: Otra suma", "anio: 2019", "subtipos: [9101, 9103]",
+                        "suma_de_subtipos: sí")), file.path(otra, "config.yaml"), useBytes = TRUE)
+  for (f in c("ubicaciones.csv", "poblacion.csv")) file.copy(dl_ejemplo(f), file.path(otra, f))
+  expect_error(suppressMessages(dl_correr(otra, carpeta_salida = salida, rapido = TRUE)),
+               paste0("_causa-9101-2019-prueba_v1, .*_causa-9103-2019-prueba_v1 \\(subtipo\\(s\\) 9101, 9103\\) no ",
+                      "declara\\(n\\) a la causa 9300 como su causa padre: .*subtipo_de: 9300"), class = "dl_error")
+
+  # un proyecto que se ajusta sigue exigiendo la semilla
+  expect_error(dl_correr(d, 9101, carpeta_salida = salida, rapido = TRUE), "^dl_correr\\(\\): falta `semilla`")
 })
 
 test_that("un año que el ancla no trae: la revisión no tiene errores y avisa de la proyección", {

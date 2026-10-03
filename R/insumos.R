@@ -498,6 +498,11 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
   # con un proyecto simple, los mensajes en sus palabras
   simple <- inherits(configuracion, "dl_proyecto") && identical(configuracion$formato, "simple")
   calibracion <- NULL
+  if (.dl_es_suma(configuracion))
+    .dl_stop(paste0("la causa %d es una suma de subtipos (suma_de_subtipos: s\u00ed): no se ajusta y no tiene ",
+                    "insumos; dl_correr() la suma con las corridas de sus subtipos"),
+             as.integer((if (inherits(configuracion, "dl_proyecto")) configuracion$configuracion
+                         else configuracion)$cause_id))
   if (inherits(configuracion, "dl_proyecto")) {
     if (simple && !file.exists(file.path(dirname(configuracion$rutas$poblacion), "listo")))
       .dl_stop(paste0("la traducci\u00f3n de este proyecto ya no est\u00e1 (cambi\u00f3 la configuraci\u00f3n o una ",

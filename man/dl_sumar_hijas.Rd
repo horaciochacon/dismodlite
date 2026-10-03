@@ -26,7 +26,8 @@ dl_sumar_hijas(
 
 \item{carpeta}{Carpeta raíz de las corridas.}
 
-\item{nombre_causa}{Nombre de la causa padre en las celdas (por defecto, el del ancla de prevalencia).}
+\item{nombre_causa}{Nombre de la causa padre en las celdas (por defecto, el del ancla de prevalencia; las rutas del
+proyecto de una causa con \code{suma_de_subtipos: sí} no traen ancla).}
 
 \item{nivel}{Nivel del intervalo de incertidumbre; debe ser 0.95, el que fija el contrato de las corridas.}
 
@@ -52,9 +53,15 @@ que declara \code{master_gbd.csv} del registro), y escribe una corrida nueva con
 manifiesto. El intervalo sale de los cuantiles de la suma de simulaciones.
 }
 \details{
+En un proyecto no hace falta llamarla: si la configuración de la causa padre dice \code{suma_de_subtipos: sí},
+\code{\link[=dl_correr]{dl_correr()}} de esa causa busca la corrida más reciente de cada subtipo y las suma con esta función (ver
+\code{\link[=dl_proyecto]{dl_proyecto()}}). \code{dl_sumar_hijas()} queda para sumar corridas elegidas a mano: las de otra carpeta de corridas,
+una corrida que no es la más reciente, una variante con otras hijas omitidas, o un proyecto del formato completo.
+
 En un proyecto, la causa padre declara sus hijas en \code{subtipos} (ver \code{\link[=dl_configuracion]{dl_configuracion()}}) y las rutas de su proyecto,
 \verb{dl_proyecto(carpeta, <padre>)$rutas}, traen ese registro (también las de una carpeta propia de la causa padre, con
-\code{subtipos}, \code{ubicaciones}, \code{poblacion} y su ancla: \code{\link[=dl_proyecto]{dl_proyecto()}} la lee aunque la causa no se ajuste). Cada hija se
+\code{subtipos}, \code{ubicaciones} y \code{poblacion}: con \code{suma_de_subtipos: sí} no necesita ancla, y entonces hay que dar
+\code{nombre_causa}). Cada hija se
 corre por separado (por ejemplo con \code{\link[=dl_correr]{dl_correr()}}) y su corrida debe declarar a la causa padre (\code{extraction_cause_id}
 en su manifiesto): lo hace sola si la hija se lee en el mismo proyecto que la configuración del padre; una hija en su
 propia carpeta lo declara con \verb{subtipo_de: <padre>} (ver \code{\link[=dl_configuracion]{dl_configuracion()}}).
@@ -81,8 +88,9 @@ unlink(salida, recursive = TRUE)
 }
 }
 \seealso{
-\code{\link[=dl_correr]{dl_correr()}} (las corridas de las hijas), \code{\link[=dl_configuracion]{dl_configuracion()}} (\code{subtipos}) y \code{\link[=dl_consolidar]{dl_consolidar()}} (que
-exige la suma para una causa con hijas).
+\code{\link[=dl_correr]{dl_correr()}} (las corridas de las hijas y, con \code{suma_de_subtipos: sí} en la configuración de la causa
+padre, la suma en una llamada), \code{\link[=dl_proyecto]{dl_proyecto()}} (la sección de los subtipos), \code{\link[=dl_configuracion]{dl_configuracion()}} (\code{subtipos},
+\code{suma_de_subtipos}, \code{subtipos_omitidos}) y \code{\link[=dl_consolidar]{dl_consolidar()}} (que exige la suma para una causa con hijas).
 
 Corridas:
 \code{\link{dl_exportar_corrida}()},

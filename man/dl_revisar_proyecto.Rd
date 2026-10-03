@@ -25,7 +25,7 @@ sugerida. No ajusta nada.
 }
 \details{
 La revisión usa los mismos lectores y validadores que \code{\link[=dl_proyecto]{dl_proyecto()}} y \code{\link[=dl_insumos]{dl_insumos()}}: lo que pasa la revisión es
-lo que ellos aceptan. Sus pasos, en orden:
+lo que ellos aceptan. Sus pasos, en orden (los de una causa que se ajusta; los de una suma de subtipos, más abajo):
 \enumerate{
 \item cada tabla (\code{ubicaciones}, \code{poblacion}, \code{ancla}, ...), leída por su lector y validada sola, como en \code{\link[=dl_tabla]{dl_tabla()}}:
 una columna que falta, un CSV guardado desde Excel con «;» o coma decimal, un sexo, una medida o un número que no
@@ -60,6 +60,12 @@ conteo, las filas de \code{datos} que quedan fuera).
 Cada problema lleva una sugerencia: \code{\link[=dl_configuracion]{dl_configuracion()}} si nombra una clave de la configuración, las columnas de
 su tabla (\link{dl_tablas}) o \code{\link[=dl_proyecto]{dl_proyecto()}}. Un paso que espera a que se corrija otro (\code{-}) no cuenta como error ni
 como aviso.
+
+De una causa que es la suma de sus subtipos (\code{suma_de_subtipos: sí}; ver \code{\link[=dl_proyecto]{dl_proyecto()}}) se revisan sus dos
+tablas (\code{ubicaciones} y \code{poblacion}), su configuración y, en \code{proyecto}, las reglas de esas tablas; no hay paso
+\code{insumos}, porque la causa no se ajusta. Avisa (\code{!}) de las claves de la configuración que una suma no usa y de
+los subtipos que entran en la suma y no tienen configuración en el proyecto: pueden estar en otra carpeta, y
+\code{\link[=dl_correr]{dl_correr()}} busca sus corridas al sumar.
 
 En un proyecto en el formato completo de la 0.2.2 se revisan la configuración, los insumos completos y la
 severidad.

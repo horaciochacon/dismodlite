@@ -136,6 +136,12 @@ test_that("las claves cortas ancla.error_maximo, fraccion_aguda y subtipo_de tie
   expect_true(all(t$destino[match(nuevas, t$clave)] %in% .DL_CLAVES_CONFIG))
   rd <- paste(.dl_rd_config_simple(), collapse = "\n")
   for (k in nuevas) expect_match(rd, sprintf("\\code{%s}", k), fixed = TRUE, info = k)
+  # las de una suma de subtipos: en la ayuda, y los omitidos con su destino en el formato completo (suma.omitidas)
+  suma <- c("suma_de_subtipos", "subtipos_omitidos[].causa", "subtipos_omitidos[].motivo")
+  expect_true(all(suma %in% t$clave))
+  for (k in suma) expect_match(rd, sprintf("\\code{%s}", k), fixed = TRUE, info = k)
+  expect_identical(t$destino[match(suma, t$clave)], c("", "suma.omitidas[].cause_id", "suma.omitidas[].motivo"))
+  expect_true("suma.omitidas" %in% .DL_CLAVES_CONFIG)
   base <- list(causa = 501L, anio = 2020L, edad_inicio = 40L)
   ctx <- list(ubicacion = "999", nombre = "x", subnacional = FALSE)
   cfg <- .dl_config_simple(c(base, list(avanzado = list(

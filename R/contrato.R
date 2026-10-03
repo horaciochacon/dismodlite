@@ -449,8 +449,12 @@ NULL
 # Problemas (list(problemas, avisos)) de las tablas de un proyecto para la causa de `cfg`. `n_causas`: cuántas causas
 # tienen configuración en el proyecto (con más de una, el ancla dice de qué causa es cada fila). `tablas` son las del
 # modelo (covariables con las filas calibradas de proxies_crudos, .dl_tablas_modelo); `originales`, las del proyecto
-# tal como vinieron, para la regla que compara covariables con proxies_crudos.
-.dl_problemas_proyecto <- function(tablas, cfg, n_causas = 1L, originales = tablas) list(
+# tal como vinieron, para la regla que compara covariables con proxies_crudos. Una causa que es la suma de sus
+# subtipos (.dl_es_suma) no se ajusta: solo le tocan las reglas de sus tablas, ubicaciones y poblacion.
+.dl_problemas_proyecto <- function(tablas, cfg, n_causas = 1L, originales = tablas) if (.dl_es_suma(cfg)) list(
+  problemas = c(.dl_regla_ubicaciones(tablas), .dl_regla_ubicaciones_conocidas(tablas),
+                .dl_regla_poblacion(tablas, cfg)),
+  avisos = character()) else list(
   problemas = c(.dl_regla_proxies_dos_tablas(originales),
                 .dl_regla_ubicaciones(tablas), .dl_regla_ubicaciones_conocidas(tablas),
                 .dl_regla_poblacion(tablas, cfg), .dl_regla_ancla(tablas, cfg, n_causas),
@@ -507,7 +511,8 @@ NULL
 }
 
 # poblacion: trae el año que se estima en los sexos del modelo; sus bandas (las del modelo) son las mismas en todas
-# las ubicaciones, años y sexos, van seguidas (sin huecos) y la primera empieza en edad_inicio o antes.
+# las ubicaciones, años y sexos, van seguidas (sin huecos) y la primera empieza en edad_inicio o antes (una suma de
+# subtipos no tiene edad_inicio).
 .dl_regla_poblacion <- function(tablas, cfg) {
   p <- tablas$poblacion
   anio <- .dl_anio_ajuste(cfg)
@@ -528,7 +533,7 @@ NULL
       sprintf(paste0("poblacion: las bandas de edad dejan un hueco: falta(n) %s; las bandas van seguidas, de la ",
                      "primera a la \u00faltima"),
               paste(.dl_nombre_banda(huecos$edad_inicio, huecos$edad_fin), collapse = ", ")),
-    if (inicio > as.numeric(cfg$edad_inicio))
+    if (isTRUE(inicio > as.numeric(cfg$edad_inicio)))
       sprintf(paste0("poblacion: la primera banda empieza a los %g a\u00f1os, despu\u00e9s de edad_inicio (%g) de la ",
                      "configuraci\u00f3n: agrega las edades desde %g o sube edad_inicio"), inicio,
               as.numeric(cfg$edad_inicio), as.numeric(cfg$edad_inicio)))

@@ -7,8 +7,8 @@
 # Campos de cada clave (los que no se dan están vacíos):
 #   clave        nombre en el YAML: ancla.peso es la clave `peso` del bloque `ancla`; a[].b, la clave `b` de
 #                cada registro de la lista `a`
-#   tipo         entero, número, texto, lógico (true o false), lista de números, lista de enteros, lista de textos,
-#                lista de registros o bloque: la revisión comprueba que el valor lo sea
+#   tipo         entero, número, texto, lógico (true o false), sí o no (también true o false), lista de números, lista
+#                de enteros, lista de textos, lista de registros o bloque: la revisión comprueba que el valor lo sea
 #   destino      dónde queda el valor en el formato completo: la clave de la configuración (la que citan los errores
 #                del validador completo) o, si no es una clave, el lugar; vacío si se deriva
 #   descripcion  qué es, en qué unidades y qué valores admite
@@ -67,7 +67,8 @@ claves:
     destino: edad_inicio
     defecto: obligatoria
     ejemplo: "30"
-    descripcion: Primera edad del modelo, en años; ahí la prevalencia es 0.
+    descripcion: >-
+      Primera edad del modelo, en años; ahí la prevalencia es 0. Una causa con `suma_de_subtipos: sí` no la necesita.
 
   - clave: ubicacion_gbd
     tipo: entero
@@ -300,9 +301,37 @@ claves:
     ejemplo: "[1011, 1012, 1013]"
     descripcion: >-
       Causas hijas cuya suma es esta causa (solo en la configuración de la causa padre): cada una tiene su
-      configuración en el mismo proyecto (config/<causa>.yaml), que la reconoce como subtipo (sin betas propias,
-      usa las de esta causa), y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su
-      argumento `omitidas` (ver ?dl_proyecto).
+      configuración (en el mismo proyecto, config/<causa>.yaml, que la reconoce como subtipo: sin betas propias, usa
+      las de esta causa; o en su propia carpeta, con `subtipo_de`). Un subtipo tiene una sola causa padre. Con
+      `suma_de_subtipos: sí`, dl_correr() suma sus corridas (ver ?dl_proyecto).
+
+  - clave: suma_de_subtipos
+    tipo: sí o no
+    defecto: "no"
+    ejemplo: sí
+    descripcion: >-
+      Con sí, la causa no se ajusta: es la suma, simulación a simulación, de las corridas de sus `subtipos`, y
+      dl_correr() la suma. Exige `subtipos` y `nombre`. El proyecto de una suma solo usa las tablas ubicaciones y
+      poblacion y las claves causa, nombre, anio, sexos, ubicacion_gbd, subtipos, subtipos_omitidos y notas: no
+      necesita edad_inicio, ancla, severidad ni betas.
+    error: debe ser sí o no
+
+  - clave: "subtipos_omitidos[].causa"
+    tipo: entero
+    destino: "suma.omitidas[].cause_id"
+    defecto: obligatoria
+    unico: true
+    ejemplo: "1013"
+    descripcion: >-
+      Un subtipo de `subtipos` que no se modela y no entra en la suma (solo con `suma_de_subtipos: sí`): la suma
+      queda por debajo de la causa en su parte y la corrida lo declara.
+
+  - clave: "subtipos_omitidos[].motivo"
+    tipo: texto
+    destino: "suma.omitidas[].motivo"
+    defecto: obligatoria
+    ejemplo: sin datos suficientes
+    descripcion: Por qué el subtipo no entra en la suma; queda entre las limitaciones de la corrida.
 
   - clave: subtipo_de
     tipo: entero
@@ -311,7 +340,7 @@ claves:
     descripcion: >-
       Causa padre de esta causa, para un subtipo que se lee en su propia carpeta, sin la configuración de su padre: si
       la tabla betas no trae filas de la causa, usa las de la causa padre, y la corrida declara a la causa padre, que
-      dl_sumar_hijas() exige para sumarla. Si la configuración del padre la declara en `subtipos`, la relación sale
+      la suma exige (dl_correr() de una causa con `suma_de_subtipos`, o dl_sumar_hijas()). Si la configuración del padre la declara en `subtipos`, la relación sale
       sola y las dos deben decir la misma causa (ver ?dl_proyecto).
     error: debe ser un entero, el cause_id de la causa padre (distinto de la propia causa)
 

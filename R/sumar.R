@@ -50,6 +50,51 @@
   invisible(TRUE)
 }
 
+# Las corridas escritas en `carpeta_salida` (<carpeta_salida>/mod/dismod_lite/<run_id>/, con su manifiesto), una fila
+# por corrida: dir, run_id, fecha y versión (las de su run_id), si es de prueba (su nombre termina en «-prueba», como
+# las de dl_correr(rapido = TRUE)), y la causa y el año de su manifiesto. Las carpetas sin manifiesto, o cuyo nombre
+# no es un run_id, no cuentan. Devuelve un data.frame.
+.dl_corridas_escritas <- function(carpeta_salida) {
+  dirs <- list.dirs(.dl_dir_corrida(carpeta_salida), recursive = FALSE)
+  dirs <- dirs[file.exists(file.path(dirs, "manifest.yaml"))]
+  filas <- lapply(dirs, function(d) {
+    partes <- .dl_partes_run_id(basename(d))
+    if (is.null(partes)) return(NULL)
+    man <- .dl_leer_manifest(d)
+    data.table::data.table(dir = d, run_id = basename(d), fecha = partes$fecha, v = partes$v,
+                           prueba = endsWith(partes$nombre, "-prueba"),
+                           causa = as.integer(man$causa$cause_id %||% NA_integer_),
+                           anio = as.integer(man$params$year %||% NA_integer_))
+  })
+  vacia <- data.table::data.table(dir = character(), run_id = character(), fecha = character(), v = integer(),
+                                  prueba = logical(), causa = integer(), anio = integer())
+  as.data.frame(data.table::rbindlist(c(list(vacia), filas)))
+}
+
+# La carpeta de la corrida más reciente (la de mayor fecha y, en ella, de mayor versión) de cada causa de `causas`
+# para el año `anio` en `carpeta_salida`: las de prueba (`prueba`) o las de producción. Un vector en el orden de
+# `causas`. Si falta la de alguna causa, un error que dice cuáles, de qué año y dónde se buscó, y si de esas causas y
+# ese año solo hay corridas de la otra clase.
+.dl_corridas_de_subtipos <- function(carpeta_salida, causas, anio, prueba) {
+  x <- .dl_corridas_escritas(carpeta_salida)
+  x <- x[x$causa %in% causas & x$anio %in% anio, ]
+  de <- x[x$prueba == prueba, ]
+  de <- de[order(de$fecha, de$v, file.mtime(de$dir), decreasing = TRUE), ]
+  faltan <- setdiff(causas, de$causa)
+  if (length(faltan)) {
+    clase <- function(p) if (p) "de prueba" else "de producci\u00f3n"
+    otras <- intersect(faltan, x$causa[x$prueba != prueba])
+    .dl_stop(paste0("falta la corrida %s de %d del/de los subtipo(s) %s en %s: c\u00f3rrelo(s) antes con dl_correr() ",
+                    "en esa carpeta de corridas (`carpeta_salida`)%s"),
+             clase(prueba), anio, paste(faltan, collapse = ", "), .dl_dir_corrida(carpeta_salida),
+             if (length(otras))
+               sprintf(". De %s solo hay corridas %s: para sumarlas, rapido = %s", paste(otras, collapse = ", "),
+                       clase(!prueba), if (prueba) "FALSE" else "TRUE")
+             else "", campos = list(faltan = faltan, anio = anio))
+  }
+  de$dir[match(causas, de$causa)]
+}
+
 # Fila del padre en master_gbd.csv: nombre en español e hijas declaradas (columna hijos, «a|b|c»).
 .dl_master_padre <- function(paths, id) {
   m <- .dl_master_leer(paths)
@@ -99,9 +144,15 @@
 #' manifiesto. El intervalo sale de los cuantiles de la suma de simulaciones.
 #'
 #' @details
+#' En un proyecto no hace falta llamarla: si la configuración de la causa padre dice `suma_de_subtipos: sí`,
+#' [dl_correr()] de esa causa busca la corrida más reciente de cada subtipo y las suma con esta función (ver
+#' [dl_proyecto()]). `dl_sumar_hijas()` queda para sumar corridas elegidas a mano: las de otra carpeta de corridas,
+#' una corrida que no es la más reciente, una variante con otras hijas omitidas, o un proyecto del formato completo.
+#'
 #' En un proyecto, la causa padre declara sus hijas en `subtipos` (ver [dl_configuracion()]) y las rutas de su proyecto,
 #' `dl_proyecto(carpeta, <padre>)$rutas`, traen ese registro (también las de una carpeta propia de la causa padre, con
-#' `subtipos`, `ubicaciones`, `poblacion` y su ancla: [dl_proyecto()] la lee aunque la causa no se ajuste). Cada hija se
+#' `subtipos`, `ubicaciones` y `poblacion`: con `suma_de_subtipos: sí` no necesita ancla, y entonces hay que dar
+#' `nombre_causa`). Cada hija se
 #' corre por separado (por ejemplo con [dl_correr()]) y su corrida debe declarar a la causa padre (`extraction_cause_id`
 #' en su manifiesto): lo hace sola si la hija se lee en el mismo proyecto que la configuración del padre; una hija en su
 #' propia carpeta lo declara con `subtipo_de: <padre>` (ver [dl_configuracion()]).
@@ -117,7 +168,8 @@
 #' @param corridas_hijas Carpetas de las corridas exportadas de las hijas.
 #' @param causa Identificador de la causa padre.
 #' @param nombre Nombre corto de la corrida nueva: minúsculas sin tildes, números y guiones.
-#' @param nombre_causa Nombre de la causa padre en las celdas (por defecto, el del ancla de prevalencia).
+#' @param nombre_causa Nombre de la causa padre en las celdas (por defecto, el del ancla de prevalencia; las rutas del
+#'   proyecto de una causa con `suma_de_subtipos: sí` no traen ancla).
 #' @param rutas Rutas de [dl_rutas()]; se usan el registro (la carpeta de tablas de referencia con
 #'   `master_gbd.csv`), los catálogos y el ancla. Hay que darlas (por ejemplo `dl_rutas_ejemplo(9100)` con los
 #'   datos de ejemplo).
@@ -125,8 +177,9 @@
 #'   de la causa padre en la parte de cada hija omitida, y el manifiesto lo declara con su motivo.
 #' @return Objeto de clase `dl_run` de la corrida de la suma, con `run_id`, `dir`, `manifest` y `files` (como en
 #'   [dl_exportar_corrida()]).
-#' @seealso [dl_correr()] (las corridas de las hijas), [dl_configuracion()] (`subtipos`) y [dl_consolidar()] (que
-#'   exige la suma para una causa con hijas).
+#' @seealso [dl_correr()] (las corridas de las hijas y, con `suma_de_subtipos: sí` en la configuración de la causa
+#'   padre, la suma en una llamada), [dl_proyecto()] (la sección de los subtipos), [dl_configuracion()] (`subtipos`,
+#'   `suma_de_subtipos`, `subtipos_omitidos`) y [dl_consolidar()] (que exige la suma para una causa con hijas).
 #' @family corrida
 #' @examples
 #' \donttest{

@@ -40,7 +40,10 @@
   x <- list()
   x$bandas <- .dl_bandas_proyecto(tablas)
   x$poblacion <- paso("poblacion", .dl_trad_poblacion(tablas, cfg, x$bandas))
-  if (!is.null(x$poblacion))
+  # una suma de subtipos no tiene ancla: su traducción son la población y los catálogos
+  if (.dl_es_suma(cfg)) x$ancla <- data.table::data.table(measure_id = character(), cause_id = character(),
+                                                          cause_name = character())
+  else if (!is.null(x$poblacion))
     x$ancla <- paso("ancla", .dl_trad_ancla(tablas, cfg, x$bandas))
   if (isTRUE(cfg$anchor$agrupar_bandas_finas) && !is.null(x$ancla))
     x$pesos_80 <- paso("poblacion", .dl_pesos_80_simple(x$poblacion$tabla, cfg, x$ancla))

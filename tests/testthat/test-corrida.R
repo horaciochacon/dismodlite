@@ -250,6 +250,49 @@ test_that("las limitaciones de una suma salen de lo que hizo la suma, sin texto 
                label = paste(c(lim, lim2), collapse = "\n"))
 })
 
+# Una carpeta de corridas con manifiestos mínimos: `x` es una lista de list(run_id, causa, anio).
+corridas_escritas <- function(x, env = parent.frame()) {
+  salida <- withr::local_tempdir(.local_envir = env)
+  for (r in x) {
+    dir <- .dl_dir_corrida(salida, r$run_id)
+    dir.create(dir, recursive = TRUE)
+    yaml::write_yaml(list(run_id = r$run_id, causa = list(cause_id = r$causa), params = list(year = r$anio)),
+                     file.path(dir, "manifest.yaml"))
+  }
+  salida
+}
+
+test_that("la suma busca la corrida más reciente de cada subtipo, de su año y de su clase (prueba o producción)", {
+  corrida <- function(run_id, causa, anio = 2023L) list(run_id = run_id, causa = causa, anio = anio)
+  salida <- corridas_escritas(list(
+    corrida("2026-01-10_causa-9101_v1", 9101L), corrida("2026-01-10_causa-9101_v2", 9101L),
+    corrida("2026-01-09_causa-9101_v7", 9101L),                      # de un día anterior, aunque de versión mayor
+    corrida("2026-01-11_causa-9101-prueba_v1", 9101L),               # de prueba, más reciente
+    corrida("2026-01-11_causa-9101-2019_v1", 9101L, 2019L),          # de otro año
+    corrida("2026-01-08_otro-nombre_v1", 9102L),                     # exportada a mano: es de producción
+    corrida("2026-01-12_causa-9102-2023-prueba_v3", 9102L),
+    corrida("2026-01-12_causa-9103-prueba_v1", 9103L)))
+  dir.create(.dl_dir_corrida(salida, "sin-manifiesto"))              # una carpeta que no es una corrida no cuenta
+  buscar <- function(...) basename(.dl_corridas_de_subtipos(salida, ...))
+  expect_identical(buscar(c(9102L, 9101L), 2023L, prueba = FALSE),
+                   c("2026-01-08_otro-nombre_v1", "2026-01-10_causa-9101_v2"))
+  expect_identical(buscar(9101:9103, 2023L, prueba = TRUE),
+                   c("2026-01-11_causa-9101-prueba_v1", "2026-01-12_causa-9102-2023-prueba_v3",
+                     "2026-01-12_causa-9103-prueba_v1"))
+  expect_identical(buscar(9101L, 2019L, prueba = FALSE), "2026-01-11_causa-9101-2019_v1")
+  # falta la de un subtipo: cuál, de qué año, dónde se buscó y, si solo hay de la otra clase, cómo sumarlas
+  e <- expect_error(.dl_corridas_de_subtipos(salida, 9101:9103, 2023L, prueba = FALSE), class = "dl_error")
+  expect_match(conditionMessage(e), "falta la corrida de producción de 2023 del/de los subtipo\\(s\\) 9103 en ")
+  expect_match(conditionMessage(e), .dl_dir_corrida(salida), fixed = TRUE)
+  expect_match(conditionMessage(e), "De 9103 solo hay corridas de prueba: para sumarlas, rapido = TRUE$")
+  e <- expect_error(.dl_corridas_de_subtipos(salida, c(9101L, 9104L), 2019L, prueba = TRUE), class = "dl_error")
+  expect_match(conditionMessage(e), "falta la corrida de prueba de 2019 del/de los subtipo\\(s\\) 9101, 9104 en ")
+  expect_match(conditionMessage(e), "De 9101 solo hay corridas de producción: para sumarlas, rapido = FALSE$")
+  # una carpeta de corridas que aún no existe: faltan todas
+  expect_error(.dl_corridas_de_subtipos(file.path(salida, "no-existe"), 9101L, 2023L, prueba = TRUE),
+               "falta la corrida de prueba de 2023 del/de los subtipo\\(s\\) 9101 en ")
+})
+
 test_that("la corrida congela las tablas del contrato y sirven para repetirla", {
   d <- withr::local_tempdir()
   # el ejemplo con sus proxies ya calibrados (sin proxies_crudos): la corrida de siempre
