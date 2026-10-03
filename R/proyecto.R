@@ -282,7 +282,9 @@
 
 # El año del ancla de un proyecto que estima `anio`: list(anio, proyectado). `declarado`: ancla.anio de la
 # configuración (o NULL); `anios_ancla`: los años con prevalencia de la causa en la tabla ancla (.dl_anios_ancla).
-#   - con ancla.anio, el menor de los dos: la misma configuración sirve para ese año y los anteriores;
+#   - con ancla.anio, el menor de los dos: la misma configuración sirve para ese año y los anteriores. El menor solo
+#     lo toma el argumento `anio` de dl_proyecto() (.dl_config_a_leer); el `anio` de la configuración no baja un
+#     ancla.anio posterior (.dl_anio_ancla_leido), que es un error del validador;
 #   - sin ella, `anio` si el ancla lo trae; si no, el último año anterior que trae (`proyectado`: se anuncia);
 #   - si no trae `anio` ni ninguno anterior, `anio`: las reglas entre tablas dicen qué falta.
 .dl_anio_ancla_proyecto <- function(anio, declarado, anios_ancla) {
@@ -291,6 +293,13 @@
   antes <- anios_ancla[anios_ancla < anio]
   if (anio %in% anios_ancla || !length(antes)) return(list(anio = anio, proyectado = FALSE))
   list(anio = as.integer(max(antes)), proyectado = TRUE)
+}
+
+# El año del ancla de una configuración ya leída (su `anio` y su ancla.anio, `declarado`, son los que valen):
+# list(anio, proyectado). ancla.anio va tal cual; sin ella, la regla de .dl_anio_ancla_proyecto.
+.dl_anio_ancla_leido <- function(anio, declarado, anios_ancla) {
+  if (!is.null(declarado)) return(list(anio = declarado, proyectado = FALSE))
+  .dl_anio_ancla_proyecto(anio, NULL, anios_ancla)
 }
 
 # La procedencia de years.ancla cuando el año del ancla se proyecta sin que la configuración lo declare.
@@ -313,7 +322,7 @@
 
 # La calibración de proxies_crudos (dl_calibrar_proxies) con la configuración `s` (de `archivo`) y los `cambios` del
 # formato completo (los de dl_configuracion()): el año que se estima (years.ajuste de `cambios` o anio), el del valor
-# nacional (years.ancla de `cambios` o, sin ella, el año del ancla del proyecto: .dl_anio_ancla_proyecto, con
+# nacional (years.ancla de `cambios` o, sin ella, el año del ancla del proyecto: .dl_anio_ancla_leido, con
 # ancla.anio y los años del ancla de `causa`) y las claves proxies.metodo, proxies.transformacion y proxies.excluir.
 # Los años salen de `s`, `cambios` y la tabla ancla, no de la configuración traducida, que necesita la calibración
 # para su contexto. Los avisos de la calibración siguen su curso y quedan también en su atributo `avisos`, para la
@@ -330,7 +339,7 @@
                         metodo = .dl_valor_en(s, "proxies.metodo") %||% "paseo_aleatorio",
                         transformacion = unlist(.dl_valor_en(s, "proxies.transformacion")),
                         excluir = if (length(ex)) data.table::rbindlist(ex, fill = TRUE),
-                        anio_nacional = as.integer(cambios$years$ancla$valor %||% .dl_anio_ancla_proyecto(
+                        anio_nacional = as.integer(cambios$years$ancla$valor %||% .dl_anio_ancla_leido(
                           anio, .dl_valor_en(s, "ancla.anio"), .dl_anios_ancla(tablas, causa))$anio)),
     warning = function(w) avisos <<- c(avisos, w$detalle %||% conditionMessage(w)))
   if (length(avisos)) data.table::setattr(cal, "avisos", avisos)
@@ -490,8 +499,10 @@
 # Rutas del proyecto traducido para `cfg` (`tablas`: las del contrato; `causas`: .dl_causas_config), en la carpeta
 # temporal <proyecto>_<causa>_<clave>. <clave> resume lo que se traduce: la versión del paquete, la configuración
 # traducida, las causas y el contenido de las tablas, sin su origen (las dos puertas comparten la traducción). `donde`
-# identifica el proyecto (.dl_proyecto_contrato): su carpeta, el archivo de su configuración o un resumen de la lista. Una traducción nueva borra las anteriores del
-# mismo proyecto y causa, y sus lecturas memorizadas.
+# identifica el proyecto (.dl_proyecto_contrato): su carpeta, el archivo de su configuración o un resumen de la
+# lista. Una traducción nueva borra las anteriores del mismo proyecto, causa y año que se estima, y sus lecturas
+# memorizadas: las de otros años del mismo proyecto (dl_proyecto(anio = )) conviven. El nombre de la carpeta lleva el
+# año después de la clave (<proyecto>_<causa>_<clave>_<año>), y las anteriores se buscan por los dos extremos.
 .dl_traducir_proyecto <- function(donde, cfg, tablas, causas) {
   traducida <- cfg
   traducida$origen[c("archivo", "betas")] <- NULL   # la ruta de la configuración; las betas van en las tablas
@@ -500,9 +511,10 @@
   if (dir.exists(donde)) donde <- normalizePath(donde, winslash = "/")
   prefijo <- sprintf("%s_%d_", digest::digest(donde, algo = "xxhash64"), cfg$cause_id)
   raiz <- file.path(tempdir(), "dismodlite_proyectos")
-  destino <- file.path(raiz, paste0(prefijo, clave))
+  sufijo <- sprintf("_%d", .dl_anio_ajuste(cfg))
+  destino <- file.path(raiz, paste0(prefijo, clave, sufijo))
   if (!file.exists(file.path(destino, "listo"))) {
-    for (v in list.files(raiz, paste0("^", prefijo), full.names = TRUE)) {
+    for (v in list.files(raiz, paste0("^", prefijo, "[^_]*", sufijo, "$"), full.names = TRUE)) {
       k <- ls(.dl_memo_env)
       rm(list = k[startsWith(k, normalizePath(v, winslash = "/"))], envir = .dl_memo_env)
       unlink(v, recursive = TRUE)
@@ -564,14 +576,16 @@
 #' valor por defecto.
 #'
 #' `anio` lee el proyecto para otro año que el de su configuración, sin editarla: es como escribir ese `anio` en el
-#' archivo (los proxies de `proxies_crudos` se calibran para ese año). El año del ancla, el de la estimación de
-#' referencia que se usa, sale de una sola regla, venga el año de la configuración o del argumento:
+#' archivo (los proxies de `proxies_crudos` se calibran para ese año). Las lecturas de años distintos del mismo
+#' proyecto conviven en la sesión. El año del ancla, el de la estimación de referencia que se usa, sale de una sola
+#' regla:
 #' - sin `ancla.anio` en la configuración, es el año que se estima si la tabla `ancla` trae la prevalencia de la causa
 #'   en ese año; si no la trae, el último año anterior que trae, y un mensaje lo anuncia («el ancla no trae 2024: se
 #'   proyecta desde 2023»). La proyección queda en la procedencia del año del ancla (`years.ancla`) y en las
 #'   limitaciones del manifiesto de la corrida, y [dl_revisar_proyecto()] la muestra como aviso;
-#' - con `ancla.anio`, el menor entre ese año y el que se estima: una configuración con `ancla: {anio: 2023}` sirve
-#'   para 2024 (proyectado desde 2023) y para 2023 y los años anteriores (cada uno con su ancla);
+#' - con `ancla.anio`, ese año, que no puede ser posterior al `anio` de la configuración. Con el argumento `anio`
+#'   es el menor entre los dos: una configuración con `anio: 2024` y `ancla: {anio: 2023}` sirve para 2024
+#'   (proyectado desde 2023) y, con `anio = 2023` o un año anterior, para ese año con su propia ancla;
 #' - el ancla es, a lo sumo, de un año antes del que se estima: mantiene el nivel nacional, no lo extrapola. Si el
 #'   ancla no trae el año ni ninguno anterior, las reglas entre tablas dicen qué falta.
 #'
@@ -648,7 +662,7 @@
 #'     `origen$por_defecto`: las claves tomadas por defecto, con su valor.
 #'   - `rutas`: las rutas de los insumos, de clase `dl_paths`, como las de [dl_rutas()]. Apuntan a la traducción, en
 #'     la carpeta temporal de la sesión: en otra sesión, o después de cambiar la configuración o una tabla (la
-#'     traducción anterior se borra), vuelve a llamar a `dl_proyecto()`.
+#'     traducción anterior del mismo año se borra), vuelve a llamar a `dl_proyecto()`.
 #'   - `carpeta`: la carpeta del proyecto (`NULL` sin carpeta).
 #'   - `formato`: `"simple"` (un proyecto con las tablas del contrato) o `"completo"` (el formato de la 0.2.2).
 #'   - `tablas`: las tablas del contrato, una lista nombrada de [dl_tabla()] (`NULL` en el formato completo), tal
@@ -711,10 +725,14 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL,
 # La configuración que lee dl_proyecto(): list(s, archivo, causa, simple, origen: la lista dada o NULL). Sin `configuracion`, la de `causa` en la
 # carpeta (.dl_configs_proyecto y .dl_elegir_configs); con ella, su archivo o la lista misma. La causa es la pedida o,
 # sin ella, la que declara la configuración. Con `anio`, una configuración simple se lee con ese año en su clave
-# `anio`, como si el archivo lo trajera (la del formato completo lo recibe después, como un cambio de years.ajuste).
+# `anio`, como si el archivo lo trajera (la del formato completo lo recibe después, como un cambio de years.ajuste),
+# y un ancla.anio posterior baja a ese año (.dl_anio_ancla_proyecto): la configuración sirve para los años anteriores.
 .dl_config_a_leer <- function(carpeta, causa, configuracion, anio = NULL) {
   con_anio <- function(cf) {
-    if (!is.null(anio) && cf$simple && is.list(cf$s)) cf$s[["anio"]] <- anio
+    if (is.null(anio) || !cf$simple || !is.list(cf$s)) return(cf)
+    cf$s[["anio"]] <- anio
+    declarado <- .dl_valor_en(cf$s, "ancla.anio")
+    if (.dl_es_entero1(declarado)) cf$s$ancla$anio <- .dl_anio_ancla_proyecto(anio, declarado, integer())$anio
     cf
   }
   if (is.null(configuracion)) {

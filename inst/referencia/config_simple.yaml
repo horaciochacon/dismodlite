@@ -103,8 +103,9 @@ claves:
     ejemplo: "2023"
     descripcion: >-
       Año de la estimación de referencia cuando no es `anio`: a lo sumo un año antes, para proyectar el último año
-      publicado (por ejemplo 2023 con anio 2024). Con un `anio` anterior al declarado, el ancla es la de `anio`: la
-      misma configuración sirve para ese año y los anteriores. Sin esta clave, si la tabla ancla no trae la
+      publicado (por ejemplo 2023 con anio 2024). Si el proyecto se lee para un año anterior al declarado
+      (`dl_proyecto(anio = )`), el ancla es la de ese año: la misma configuración sirve para los años anteriores.
+      Sin esta clave, si la tabla ancla no trae la
       prevalencia de la causa en `anio`, se proyecta desde el último año anterior que trae, con un mensaje.
 
   - clave: nudos

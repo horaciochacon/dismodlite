@@ -685,14 +685,15 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
 
     .dl_message("ajuste nacional: %d cadena(s) de %d iteraciones por sexo (motor %s)", o$chains, o$iter, o$engine)
     f <- dl_ajustar(b, o, semilla = semilla)
-    convergencia <- .dl_compuerta_convergencia(f, forzar = forzar || rapido, remedio = paste0(
+    ess_minimo <- formals(.dl_compuerta_convergencia)$ess_minimo
+    convergencia <- .dl_compuerta_convergencia(f, forzar = forzar || rapido, ess_minimo = ess_minimo, remedio = paste0(
       "Aumenta las iteraciones y el calentamiento con opciones = dl_opciones_mcmc(iteraciones = ..., ",
       "calentamiento = ...); para una prueba, rapido = TRUE; forzar = TRUE la escribe igual y lo declara en el ",
       "manifiesto"))
-    if (forzar && !.dl_cadenas_convergieron(convergencia))
+    if (forzar && !.dl_cadenas_convergieron(convergencia, ess_minimo))
       .dl_message(paste0("forzar = TRUE: las cadenas no convergieron (R-hat m\u00e1ximo %.4f, debe ser < 1.01; ESS ",
-                         "m\u00ednimo %.0f, debe ser >= 400) y la corrida se escribe igual; el manifiesto lo declara ",
-                         "(validacion.gates.force)"), convergencia$rhat_max, convergencia$ess_min)
+                         "m\u00ednimo %.0f, debe ser >= %s) y la corrida se escribe igual; el manifiesto lo declara ",
+                         "(validacion.gates.force)"), convergencia$rhat_max, convergencia$ess_min, format(ess_minimo))
     f0 <- dl_ajustar_solo_prior(b, o, semilla = semilla, ajuste = f)
     casc <- NULL
     if (nrow(b$cov_proxy) > 0L || identical(b$cfg$cascada$modo$valor, "plana")) {

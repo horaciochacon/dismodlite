@@ -194,6 +194,13 @@ test_that("la limitación de una proyección nombra la población del año, y lo
   expect_false(grepl("proxies", dismodlite:::.dl_limitacion_ancla(cfg, b, list(modo = "plana"))))
   expect_false(grepl("INEI|ENDES|GBD", sin_casc))
   expect_null(dismodlite:::.dl_limitacion_ancla(dl_configuracion_ejemplo(9100L, formato = "completo"), b))
+  # la que el paquete hace sola porque el ancla no trae el a\u00f1o: no se llama declarada, y dice por qu\u00e9 una vez
+  cfg$years$ancla$procedencia <- dismodlite:::.dl_procedencia_proyeccion(2024L, 2023L)
+  sola <- dismodlite:::.dl_limitacion_ancla(cfg, b)
+  expect_match(sola, "^proyecci\u00f3n autom\u00e1tica \u2014 ancla .* de 2023 reetiquetada a 2024")
+  expect_match(sola, paste0("\u2014 la tabla ancla no trae la prevalencia de la causa en 2024; se proyecta desde 2023, ",
+                            "el \u00faltimo a\u00f1o anterior que trae$"))
+  expect_identical(lengths(regmatches(sola, gregexpr("proyecci\u00f3n", sola))), 1L)
 })
 
 test_that("la limitación de la mortalidad de validación de otro año dice qué hizo la corrida con ella", {

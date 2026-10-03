@@ -35,7 +35,7 @@ Objeto de clase \code{dl_proyecto}: una lista con
 \code{origen$por_defecto}: las claves tomadas por defecto, con su valor.
 \item \code{rutas}: las rutas de los insumos, de clase \code{dl_paths}, como las de \code{\link[=dl_rutas]{dl_rutas()}}. Apuntan a la traducción, en
 la carpeta temporal de la sesión: en otra sesión, o después de cambiar la configuración o una tabla (la
-traducción anterior se borra), vuelve a llamar a \code{dl_proyecto()}.
+traducción anterior del mismo año se borra), vuelve a llamar a \code{dl_proyecto()}.
 \item \code{carpeta}: la carpeta del proyecto (\code{NULL} sin carpeta).
 \item \code{formato}: \code{"simple"} (un proyecto con las tablas del contrato) o \code{"completo"} (el formato de la 0.2.2).
 \item \code{tablas}: las tablas del contrato, una lista nombrada de \code{\link[=dl_tabla]{dl_tabla()}} (\code{NULL} en el formato completo), tal
@@ -81,15 +81,17 @@ bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina)
 valor por defecto.
 
 \code{anio} lee el proyecto para otro año que el de su configuración, sin editarla: es como escribir ese \code{anio} en el
-archivo (los proxies de \code{proxies_crudos} se calibran para ese año). El año del ancla, el de la estimación de
-referencia que se usa, sale de una sola regla, venga el año de la configuración o del argumento:
+archivo (los proxies de \code{proxies_crudos} se calibran para ese año). Las lecturas de años distintos del mismo
+proyecto conviven en la sesión. El año del ancla, el de la estimación de referencia que se usa, sale de una sola
+regla:
 \itemize{
 \item sin \code{ancla.anio} en la configuración, es el año que se estima si la tabla \code{ancla} trae la prevalencia de la causa
 en ese año; si no la trae, el último año anterior que trae, y un mensaje lo anuncia («el ancla no trae 2024: se
 proyecta desde 2023»). La proyección queda en la procedencia del año del ancla (\code{years.ancla}) y en las
 limitaciones del manifiesto de la corrida, y \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} la muestra como aviso;
-\item con \code{ancla.anio}, el menor entre ese año y el que se estima: una configuración con \code{ancla: {anio: 2023}} sirve
-para 2024 (proyectado desde 2023) y para 2023 y los años anteriores (cada uno con su ancla);
+\item con \code{ancla.anio}, ese año, que no puede ser posterior al \code{anio} de la configuración. Con el argumento \code{anio}
+es el menor entre los dos: una configuración con \code{anio: 2024} y \code{ancla: {anio: 2023}} sirve para 2024
+(proyectado desde 2023) y, con \code{anio = 2023} o un año anterior, para ese año con su propia ancla;
 \item el ancla es, a lo sumo, de un año antes del que se estima: mantiene el nivel nacional, no lo extrapola. Si el
 ancla no trae el año ni ninguno anterior, las reglas entre tablas dicen qué falta.
 }

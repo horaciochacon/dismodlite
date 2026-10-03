@@ -324,9 +324,10 @@ test_that("dl_correr(rapido = TRUE) sobre el ejemplo simple escribe la carpeta d
                                            "\\(ver \\?dl_configuracion\\); ni rapido = TRUE ni forzar = TRUE la saltan"))
   # sin los nombres internos de las comprobaciones
   expect_no_match(paste(c(conditionMessage(e), mensajes), collapse = "\n"), "anchor_identity|amplitud_csmr")
-  # forzar = TRUE tampoco la salta
-  expect_error(suppressMessages(dl_correr(d, causa = 9100, semilla = 3, rapido = TRUE, sensibilidad = FALSE,
-                                          forzar = TRUE)), "se aleja del ancla \\(error relativo mediano")
+  # forzar = TRUE tampoco la salta (sin rapido: cadenas cortas dadas en `opciones`)
+  expect_error(suppressMessages(dl_correr(d, causa = 9100, semilla = 3, sensibilidad = FALSE, forzar = TRUE,
+                                          opciones = do.call(dl_opciones_mcmc, .DL_OPCIONES_PRUEBA))),
+               "se aleja del ancla \\(error relativo mediano")
   expect_identical(length(list.files(file.path(d, "resultados", "mod", "dismod_lite"))), 1L)
 })
 

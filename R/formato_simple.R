@@ -313,7 +313,7 @@
 
 # Configuración completa (sin validar) desde la simple `s` de `archivo` y lo que se toma del proyecto (`contexto`):
 #   ubicacion (el código nacional), nombre, betas (la tabla betas de la causa, ya resuelta para un subtipo),
-#   anios_ancla (los años con prevalencia de la causa en el ancla: de ellos sale years.ancla, .dl_anio_ancla_proyecto),
+#   anios_ancla (los años con prevalencia de la causa en el ancla: de ellos sale years.ancla, .dl_anio_ancla_leido),
 #   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es) e
 #   ids_covariable (covariable -> covariate_id, para valor_nacional_de).
 # `origen`: formato, archivo, nombre, modo subnacional, betas y claves tomadas por defecto (con su valor); y las
@@ -351,7 +351,7 @@
   reglas <- c(nombre = contexto$nombre, ubicacion_gbd = paste(contexto$ubicacion_gbd, collapse = ", "),
               subnacional.modo = modo, nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
   # el año del ancla: el de ancla.anio o el que se estima y, si el ancla no lo trae, el último anterior
-  ancla <- .dl_anio_ancla_proyecto(s[["anio"]], dado("ancla.anio"), contexto$anios_ancla)
+  ancla <- .dl_anio_ancla_leido(s[["anio"]], dado("ancla.anio"), contexto$anios_ancla)
   if (ancla$proyectado && as.integer(s[["anio"]]) - ancla$anio > 1L)
     .dl_stop_config_simple(archivo, sprintf(paste0(
       "anio: la tabla ancla no trae la prevalencia de la causa en %d y el \u00faltimo a\u00f1o anterior que trae es ",

@@ -1008,6 +1008,40 @@ test_that("con ancla.anio, el año del ancla es el menor entre ese y el que se e
   expect_identical(.dl_anio_ancla(dl_proyecto(d, 9101)$configuracion), 2023L)
 })
 
+test_that("un ancla.anio posterior al `anio` de la configuración es un error; solo el argumento `anio` lo baja", {
+  d <- config_con_anio(copia_ejemplo(), 9101, ancla = 2025)
+  expect_identical(.dl_anio_ancla(dl_proyecto(d, 9101, anio = 2019)$configuracion), 2019L)
+  # con proxies_crudos, el error llega antes, de su calibración (no hay valor nacional de 2025); sin ellos, del validador
+  expect_error(dl_proyecto(d, 9101), "no tiene valor nacional en 2025")
+  unlink(file.path(d, "proxies_crudos.csv"))
+  expect_error(dl_proyecto(d, 9101), "ancla.anio .*: debe ser un entero igual al año de ajuste o un año antes")
+  # con la configuración como lista y las tablas como argumentos, lo mismo
+  minimo <- function(...) dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30,
+                                                           ancla = list(anio = 2025L)), ...,
+                                      ubicaciones = dl_ejemplo("ubicaciones.csv"),
+                                      poblacion = dl_ejemplo("poblacion.csv"), ancla = dl_ejemplo("ancla"))
+  expect_error(minimo(), "ancla.anio .*: debe ser un entero igual al año de ajuste o un año antes")
+  expect_identical(minimo(anio = 2019)$configuracion$years$ancla,
+                   list(valor = 2019L, procedencia = .DL_PROCEDENCIA_SIMPLE))
+})
+
+test_that("las traducciones de dos años del mismo proyecto conviven; la del mismo año se reemplaza", {
+  d <- copia_ejemplo()
+  p19 <- dl_proyecto(d, 9101, anio = 2019)
+  p23 <- dl_proyecto(d, 9101)
+  expect_identical(unique(suppressMessages(dl_insumos(p19))$prior_gbd$year), 2019L)
+  expect_identical(unique(suppressMessages(dl_insumos(p23))$prior_gbd$year), 2023L)
+  # cambia una tabla: la traducción nueva de 2023 borra la anterior de 2023 y deja la de 2019
+  pob <- leer_texto(file.path(d, "poblacion.csv"))
+  pob$poblacion[pob$anio == "2023"][1] <- "999999"
+  escribir_texto(pob, d, "poblacion.csv")
+  q23 <- dl_proyecto(d, 9101)
+  expect_false(identical(q23$rutas$poblacion, p23$rutas$poblacion))
+  expect_false(file.exists(p23$rutas$poblacion))
+  expect_true(file.exists(p19$rutas$poblacion))
+  expect_error(dl_insumos(p23), "la traducción de este proyecto ya no está")
+})
+
 test_that("un año anterior a todos los del ancla: el error de las reglas, que no hay de dónde proyectar", {
   minimo <- function(anio) dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30), anio = anio,
                                        ubicaciones = dl_ejemplo("ubicaciones.csv"),

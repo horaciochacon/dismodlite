@@ -56,20 +56,24 @@
           anio_h, anio, motivo, procedencia)
 }
 
-# Proyección declarada (years.ancla): el nivel nacional y su incertidumbre son los del año ancla; del año de ajuste
-# son solo la población (con su acquisition_id) y, con una cascada por proxies, los proxies subnacionales.
+# Proyección (years.ancla): el nivel nacional y su incertidumbre son los del año ancla; del año de ajuste son solo
+# la población (con su acquisition_id) y, con una cascada por proxies, los proxies subnacionales. Es «declarada» si
+# la configuración da el año del ancla y «automática» si salió de la tabla ancla (.dl_proyeccion_anunciada); cierra
+# con la procedencia de years.ancla (la de la automática, sin su «proyección: » inicial).
 .dl_limitacion_ancla <- function(cfg, b, casc = NULL) {
   anio <- .dl_anio_ajuste(cfg); anio_a <- .dl_anio_ancla(cfg)
   if (identical(anio_a, anio)) return(NULL)
   acq <- unique(b$poblacion$acquisition_id[b$poblacion$year == anio])
   if (!length(acq)) acq <- unique(b$poblacion$acquisition_id)
   con_proxies <- !is.null(casc) && !identical(casc$modo, "plana")
-  sprintf(paste("proyecci\u00f3n declarada \u2014 ancla (prevalencia, csmr, covariables) de %d reetiquetada a %d",
+  sola <- !is.null(.dl_proyeccion_anunciada(cfg))
+  sprintf(paste("proyecci\u00f3n %s \u2014 ancla (prevalencia, csmr, covariables) de %d reetiquetada a %d",
                 "\u2014 el nivel nacional y su incertidumbre son los de %d; del %d son solo la poblaci\u00f3n (%s)%s",
                 "\u2014 %s"),
-          anio_a, anio, anio_a, anio, paste(acq, collapse = ", "),
+          if (sola) "autom\u00e1tica" else "declarada", anio_a, anio, anio_a, anio, paste(acq, collapse = ", "),
           if (con_proxies) " y los proxies subnacionales de la cascada" else "",
-          .dl_texto_yaml(cfg$years$ancla$procedencia))
+          .dl_texto_yaml(if (sola) sub("^proyecci\u00f3n: ", "", cfg$years$ancla$procedencia)
+                         else cfg$years$ancla$procedencia))
 }
 
 # Todas las limitaciones de una corrida, en el orden del manifiesto.
@@ -450,7 +454,7 @@
 
 # Las cadenas convergieron: R-hat máximo < 1.01 y ESS mínimo >= ess_minimo (`convergencia`: lo que devuelve
 # .dl_compuerta_convergencia).
-.dl_cadenas_convergieron <- function(convergencia, ess_minimo = 400)
+.dl_cadenas_convergieron <- function(convergencia, ess_minimo)
   convergencia$rhat_max < 1.01 && convergencia$ess_min >= ess_minimo
 
 # Compuerta del error del ancla de la validación `validacion` (anchor_identity: error relativo mediano de la
