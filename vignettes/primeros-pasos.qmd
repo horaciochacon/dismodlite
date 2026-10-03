@@ -128,6 +128,24 @@ explica cómo acortarlo). Solo escribe la corrida si pasa
 que las cadenas hayan convergido y que la prevalencia ajustada se parezca a la del ancla (la prueba solo exige la
 segunda). Si no, se detiene y dice qué cambiar.
 
+Dos argumentos más de `dl_correr()`, para cuando el proyecto sea el tuyo:
+
+- `anios` corre la causa para varios años sin editar la configuración, y devuelve una corrida por año:
+  `dl_correr("mi_proyecto", semilla = 1, anios = 2018:2023)`.
+- `forzar = TRUE` escribe la corrida aunque las cadenas no hayan convergido (el manifiesto lo declara), para
+  mirarla mientras se afinan las cadenas; no salta la compuerta del ancla.
+
+Y para correr todas las causas de un proyecto, un bucle sobre sus configuraciones:
+
+```r
+causas <- as.integer(sub("[.]yaml$", "", list.files(file.path("mi_proyecto", "config"))))
+for (causa in causas) dl_correr("mi_proyecto", causa = causa, semilla = 1)
+```
+
+La guía
+[Corridas, versiones y tablas consolidadas](https://horaciochacon.github.io/dismodlite/articles/corridas-y-consolidado.html#anios)
+desarrolla los tres.
+
 ### La carpeta de la corrida
 
 La corrida queda en `<carpeta_salida>/mod/dismod_lite/<run_id>/`, con `run_id` el nombre de la corrida (la fecha, un

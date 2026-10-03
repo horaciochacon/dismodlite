@@ -2,7 +2,8 @@
 title: "Corridas, versiones y tablas consolidadas"
 description: >
   Qué hace dl_correr() y qué deja en la carpeta de una corrida, las versiones, volver a resumir sin ajustar,
-  otro año y proyección (ancla.anio), el registro de corridas y las tablas consolidadas.
+  varios años (anios), la proyección de un año sin estimación de referencia, todas las causas de un proyecto, el
+  registro de corridas y las tablas consolidadas.
 knitr:
   opts_chunk:
     collapse: true
@@ -16,7 +17,9 @@ knitr:
 - Qué hace `dl_correr()` y qué deja en la carpeta de una corrida.
 - Cómo se nombran las corridas y cómo conviven sus versiones.
 - Cómo volver a resumir una corrida desde sus simulaciones, sin volver a ajustar.
-- Cómo estimar otro año y cómo proyectar un año que todavía no tiene estimación de referencia (`ancla.anio`).
+- Cómo estimar otro año o varios (`anios`) sin editar la configuración, y cómo se proyecta un año que todavía no
+  tiene estimación de referencia.
+- Cómo correr todas las causas de un proyecto.
 - Qué es el registro de corridas y cómo se arman las tablas consolidadas con un perfil de columnas.
 
 Todo el recorrido usa el proyecto de ejemplo, con datos sintéticos, y corridas de prueba (`rapido = TRUE`) que
@@ -58,6 +61,14 @@ Usa las cadenas de producción (1000 simulaciones, 4 cadenas de 50 000 iteracion
 ejemplo tarda unos 5 minutos. Antes de escribir nada comprueba que las cadenas convergieron y que la prevalencia
 ajustada reproduce la del ancla, [las dos compuertas](diagnostico-y-sensibilidad.html#compuertas) de una corrida;
 la corrida de prueba salta la primera y lo declara en el manifiesto.
+
+Para mirar una corrida de producción cuyas cadenas todavía no convergen, `forzar = TRUE` la escribe igual: salta
+solo la compuerta de la convergencia (la del ancla, nunca), un mensaje da el R-hat y el ESS de las cadenas y el
+manifiesto lo declara (`validacion.gates.force`). Sus números no sirven para publicar.
+
+```r
+corrida <- dl_correr(proyecto, causa = 9100, semilla = 1, forzar = TRUE)
+```
 
 ## La carpeta de la corrida {#carpeta}
 
@@ -191,43 +202,71 @@ all.equal(nuevas[, c("val", "lower", "upper")], celdas[, c("val", "lower", "uppe
 La corrida tiene que haber guardado sus simulaciones (`dl_correr()` siempre las guarda; en
 `dl_exportar_corrida()`, `guardar_simulaciones = TRUE`, el valor por defecto).
 
-## Otro año
+## Otro año y varios años {#anios}
 
-El año que se estima es `anio` en la configuración: para estimar otro año, basta con cambiarlo. El proyecto necesita
-las filas de ese año en las descargas del ancla (`ancla/`), en `poblacion.csv` y, para la estimación subnacional con
-covariables, en la tabla `covariables` (los valores subnacionales y las descargas del GHDx); `dl_revisar_proyecto()`
-dice qué falta. El ejemplo trae 2019 y 2023.
+El año que se estima es `anio` en la configuración, y para estimar otros no hace falta editarla. `dl_correr()` con
+`anios` corre la causa una vez por año, en orden, y vuelve a leer el proyecto para cada uno. El ejemplo trae 2019 y
+2023:
 
-## Proyectar un año sin estimación de referencia
-
-Cuando el año que se quiere estimar todavía no tiene estimación de referencia publicada, se puede proyectar desde la
-del año anterior: `anio` es el año nuevo y `ancla.anio` el de la estimación de referencia, a lo sumo un año antes.
-En el ejemplo, 2024 con el ancla de 2023; la configuración de la copia, `config/9100.yaml`, es la del ejemplo con
-esas dos claves (sin `sensibilidad`, `subtipos` ni `notas`, que aquí no intervienen; las betas siguen en
-`betas.csv`):
-
-```{cat}
-#| engine.opts: !expr list(file = file.path(proyecto, "config", "9100.yaml"), lang = "yaml")
-causa: 9100
-anio: 2024
-edad_inicio: 30
-
-ancla:
-  anio: 2023   # la estimación de referencia más reciente
-
-mortalidad_exceso:
-  techo: 0.25
-
-subnacional:
-  anio_validacion: 2019
+```{r}
+#| label: anios
+#| message: false
+corridas <- dl_correr(proyecto, causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                      anios = c(2019, 2023))
+corridas
+corridas[["2019"]]$manifest$params$year
 ```
+
+Devuelve una corrida por año, con los años como nombres, y el nombre de cada corrida lleva el año
+(`causa-<causa>-<año>`). Cada una es una corrida completa, como la de un `dl_correr()` sin `anios`. Si un año falla,
+`dl_correr()` se detiene ahí con el error de ese año y dice qué años quedaron escritos, que siguen en su carpeta.
+
+El proyecto necesita las filas de cada año en las descargas del ancla (`ancla/`), en `poblacion.csv` y, para la
+estimación subnacional con covariables, en la tabla `covariables` (los valores nacionales del GHDx y los valores
+subnacionales, que con `proxies_crudos` se calibran para cada año); `dl_revisar_proyecto()` dice qué falta.
+
+Para leer el proyecto de otro año sin correrlo (mirar sus insumos, ir paso a paso), `dl_proyecto()` tiene el
+argumento `anio`, que vale como escribir ese año en la configuración:
+
+```{r}
+#| label: otro-anio
+dl_proyecto(proyecto, causa = 9100, anio = 2019)$configuracion$years$ajuste
+```
+
+## Proyectar un año sin estimación de referencia {#proyeccion}
+
+Cuando el año que se quiere estimar todavía no tiene estimación de referencia publicada, el nivel nacional se
+proyecta desde la del año anterior. No hay que declararlo: si la tabla `ancla` no trae la prevalencia de la causa en
+el año que se estima y sí la del año anterior, el año del ancla es ese, y un mensaje lo anuncia. El ejemplo trae la
+población de 2024 y el ancla hasta 2023:
 
 ```{r}
 #| label: proyeccion
-corrida_2024 <- dl_correr(proyecto, causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE)
+proyecto_2024 <- dl_proyecto(proyecto, causa = 9100, anio = 2024)
+corrida_2024 <- dl_correr(proyecto_2024, semilla = 1, rapido = TRUE, sensibilidad = FALSE)
 str(corrida_2024$manifest$params[c("year", "anio_ancla")])
 grep("proyecci", unlist(corrida_2024$manifest$limitaciones), value = TRUE)
 ```
+
+La regla del año del ancla es una sola, venga el año de la configuración, de `dl_proyecto(anio = )` o de
+`dl_correr(anios = )`:
+
+- **Sin `ancla.anio`**: el año que se estima, si el ancla lo trae; si no, el último año anterior que trae, **a lo
+  sumo un año antes** (la proyección mantiene el nivel nacional, no lo extrapola: con el ancla hasta 2023 se puede
+  estimar 2024, no 2025). La proyección se anuncia con un mensaje, `dl_revisar_proyecto()` la muestra como aviso y
+  queda en el manifiesto de la corrida, en la procedencia del año del ancla y entre las limitaciones.
+- **Con `ancla.anio`**: ese año, declarado de forma explícita (y sin anuncio), que no puede ser posterior a `anio`:
+
+  ```yaml
+  anio: 2024
+  ancla:
+    anio: 2023   # la estimación de referencia más reciente
+  ```
+
+  Con `anios` o con `dl_proyecto(anio = )`, el año del ancla es el menor entre `ancla.anio` y el año que se estima:
+  esa misma configuración sirve para 2024 (proyectado desde 2023) y para 2023 y los años anteriores, cada uno con su
+  propia ancla.
+- Si el ancla no trae el año que se estima ni el anterior, `dl_proyecto()` se detiene y dice qué años trae.
 
 Una proyección tiene un alcance preciso, y el manifiesto lo declara: el nivel nacional y su incertidumbre son los del
 año del ancla, con el año nuevo en las tablas; del año nuevo son solo la población (que cambia los conteos y los
@@ -243,8 +282,27 @@ Las corridas de la causa 9100 quedan así, una carpeta por corrida:
 list.files(file.path(proyecto, "resultados", "mod", "dismod_lite"))
 ```
 
-El nombre no dice el año: lo dice el manifiesto (`params$year`). Por eso las corridas de años distintos no compiten
-entre sí cuando se consolidan (abajo): se elige la más reciente de cada causa y año.
+El nombre solo dice el año en las corridas de `anios`; el año de toda corrida está en su manifiesto
+(`params$year`). Por eso las corridas de años distintos no compiten entre sí cuando se consolidan (abajo): se elige
+la más reciente de cada causa y año.
+
+## Todas las causas de un proyecto {#todas}
+
+`dl_correr()` corre una causa. Para correr todas las de un proyecto basta un bucle sobre sus configuraciones
+(`config/<causa>.yaml`); aquí, de prueba:
+
+```{r}
+#| label: todas
+#| message: false
+causas <- as.integer(sub("[.]yaml$", "", list.files(file.path(proyecto, "config"))))
+todas <- lapply(causas, function(causa)
+  dl_correr(proyecto, causa = causa, semilla = 1, rapido = TRUE, sensibilidad = FALSE))
+vapply(todas, function(corrida) corrida$run_id, "")
+```
+
+Con `anios` en esa llamada, cada causa se corre para todos los años. Si una causa es la suma de sus subtipos
+(`suma_de_subtipos: sí`), va después de ellos, porque `dl_correr()` la suma con las corridas que encuentra: basta
+ordenar `causas` con los subtipos primero (ver [Subtipos y suma](subtipos-y-suma.html)).
 
 ## El registro de corridas y las tablas consolidadas
 
