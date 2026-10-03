@@ -12,7 +12,8 @@ dl_correr(
   rapido = FALSE,
   sensibilidad = TRUE,
   opciones = NULL,
-  registro = NULL
+  registro = NULL,
+  forzar = FALSE
 )
 }
 \arguments{
@@ -38,6 +39,10 @@ corrida sigue siendo una prueba.}
 
 \item{registro}{Archivo YAML del registro de corridas, que ya existe (uno nuevo es un archivo con la línea
 \verb{datasets: []}): la corrida se agrega al final. Se comprueba antes de ajustar. \code{NULL} (por defecto) no registra.}
+
+\item{forzar}{\code{TRUE} escribe la corrida aunque las cadenas no hayan convergido (queda declarado en el manifiesto;
+ver Detalles); no salta la compuerta del ancla. \code{FALSE} (por defecto) exige la convergencia, salvo con
+\code{rapido = TRUE}, que la salta siempre.}
 }
 \value{
 Objeto de clase \code{dl_run}, como el de \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}, una lista con \code{run_id} (el identificador de
@@ -75,8 +80,15 @@ iteraciones con 10 000 de calentamiento, motor \code{"mh"}; la sensibilidad usa 
 La corrida no se escribe en dos casos, que \code{dl_correr()} comprueba en cuanto puede, con las mismas compuertas que
 \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}. Si las cadenas no convergieron (R-hat < 1.01 y ESS >= 400), justo después del ajuste:
 aumenta \code{iteraciones} y \code{calentamiento} con \code{opciones}. Y si la prevalencia ajustada se aleja de la del ancla
-(error relativo mediano mayor que 0.05), justo después de la validación, también con \code{rapido = TRUE}: revisa el
-ajuste y los datos o, con su procedencia, declara un máximo mayor en la configuración, en \verb{avanzado: \{anchor: \{gate_err_mediano: \{valor, procedencia\}\}\}} (en el formato completo, sin \code{avanzado}; ver \code{\link[=dl_configuracion]{dl_configuracion()}}).
+(error relativo mediano mayor que 0.05), justo después de la validación, también con \code{rapido = TRUE} o
+\code{forzar = TRUE}: revisa el ajuste y los datos o, con su procedencia, declara un máximo mayor en la configuración,
+en \verb{avanzado: \{anchor: \{gate_err_mediano: \{valor, procedencia\}\}\}} (en el formato completo, sin \code{avanzado}; ver
+\code{\link[=dl_configuracion]{dl_configuracion()}}).
+
+\code{forzar = TRUE} salta la primera compuerta, la de la convergencia, y solo esa: la corrida se escribe con las
+cadenas que se pidieron aunque no hayan convergido, un mensaje da su R-hat y su ESS y el manifiesto lo declara
+(\code{validacion.gates.force}), como en \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}. El nombre de la corrida no cambia. Sirve para mirar
+una corrida que aún no converge; sus números no sirven para publicar.
 
 \code{rapido = TRUE} es una prueba, para ver que el proyecto corre de principio a fin: cadenas cortas (100
 simulaciones, 2 cadenas de 2000 iteraciones), las mismas en la sensibilidad, etiquetas solo con la
@@ -108,6 +120,8 @@ unlink(salida, recursive = TRUE)
 # 4 cadenas de 50 000 iteraciones) o las mismas con el motor en C++, más rápido
 # dl_correr("mi_proyecto", semilla = 1)
 # dl_correr("mi_proyecto", semilla = 1, opciones = dl_opciones_mcmc(motor = "rcpp"))
+# y, para mirar una corrida cuyas cadenas aún no convergen, sin la compuerta de la convergencia
+# dl_correr("mi_proyecto", semilla = 1, forzar = TRUE)
 }
 }
 \seealso{

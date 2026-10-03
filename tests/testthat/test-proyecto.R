@@ -917,3 +917,106 @@ test_that("ediciones repetidas en proxies.excluir o en `excluir` son un problema
   expect_error(dismodlite:::.dl_validar_excluir(data.frame(anio = c(2021, 2021), motivo = c("a", "b"))),
                "`excluir` repite la\\(s\\) edición\\(es\\) 2021")
 })
+
+# ---- El año que se estima (`anio`) y el año del ancla ----
+
+# Cambia el `anio` de la configuración de `causa` en la copia `d` del ejemplo y, con `ancla`, declara ancla.anio.
+config_con_anio <- function(d, causa, anio = NULL, ancla = NULL) {
+  f <- file.path(d, "config", sprintf("%d.yaml", causa))
+  l <- readLines(f, encoding = "UTF-8")
+  if (!is.null(anio)) l <- sub("^anio: [0-9]+$", sprintf("anio: %d", anio), l)
+  if (!is.null(ancla)) l <- c(l, "", "ancla:", sprintf("  anio: %d", ancla))
+  writeLines(enc2utf8(l), f, useBytes = TRUE)
+  d
+}
+
+# dl_proyecto(...) con sus mensajes aparte: list(p, mensajes).
+proyecto_y_mensajes <- function(...) {
+  mensajes <- character()
+  p <- withCallingHandlers(dl_proyecto(...), message = function(m) {
+    mensajes <<- c(mensajes, conditionMessage(m)); invokeRestart("muffleMessage")
+  })
+  list(p = p, mensajes = mensajes)
+}
+
+test_that("dl_proyecto(anio = ) lee el proyecto para otro año, como si la configuración lo trajera", {
+  p <- dl_proyecto(copia_ejemplo(), 9101, anio = 2019)
+  expect_identical(p$configuracion$years$ajuste, 2019L)
+  expect_identical(unique(p$calibracion$anio), 2019L)
+  q <- dl_proyecto(config_con_anio(copia_ejemplo(), 9101, anio = 2019), 9101)
+  sin_rutas <- function(cfg) { cfg$origen[c("archivo", "betas")] <- NULL; cfg }      # las de cada copia
+  expect_identical(sin_rutas(p$configuracion), sin_rutas(q$configuracion))
+  expect_identical(suppressMessages(dl_insumos(p))$hash, suppressMessages(dl_insumos(q))$hash)
+  # con las tablas como argumentos y en el formato completo
+  r <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30), anio = 2019,
+                   ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"),
+                   ancla = dl_ejemplo("ancla"))
+  expect_identical(r$configuracion$years$ajuste, 2019L)
+  expect_identical(.dl_anio_ajuste(dl_proyecto(ejemplo_completo(), 9100, anio = 2019)$configuracion), 2019L)
+  expect_identical(.dl_anio_ajuste(dl_proyecto(ejemplo_completo(), 9100)$configuracion), 2023L)
+})
+
+test_that("`anio` es un solo número entero", {
+  for (mal in list("2019", c(2019, 2023), 2019.5, NA, TRUE))
+    expect_error(dl_proyecto(dl_ejemplo(), 9101, anio = mal), "`anio` debe ser un año, un solo número entero")
+})
+
+test_that(".dl_anio_ancla_proyecto(): el año, el menor con ancla.anio o el último anterior que trae el ancla", {
+  expect_identical(.dl_anio_ancla_proyecto(2024, NULL, 2018:2023), list(anio = 2023L, proyectado = TRUE))
+  expect_identical(.dl_anio_ancla_proyecto(2021, NULL, 2018:2023), list(anio = 2021L, proyectado = FALSE))
+  expect_identical(.dl_anio_ancla_proyecto(2019, 2023, 2018:2023), list(anio = 2019L, proyectado = FALSE))
+  expect_identical(.dl_anio_ancla_proyecto(2024, 2023, 2018:2023), list(anio = 2023L, proyectado = FALSE))
+  expect_identical(.dl_anio_ancla_proyecto(2017, NULL, 2018:2023), list(anio = 2017L, proyectado = FALSE))
+  expect_identical(.dl_anio_ancla_proyecto(2024, NULL, c(2019L, 2023L, 2025L)), list(anio = 2023L, proyectado = TRUE))
+  expect_identical(.dl_anio_ancla_proyecto(2024, NULL, integer()), list(anio = 2024L, proyectado = FALSE))
+})
+
+test_that("sin ancla.anio, un año que el ancla no trae se proyecta desde el último anterior y se anuncia", {
+  # el ejemplo trae el ancla y las covariables nacionales hasta 2023 y la población hasta 2024
+  x <- proyecto_y_mensajes(copia_ejemplo(), 9101, anio = 2024)
+  cfg <- x$p$configuracion
+  expect_identical(cfg$years$ajuste, 2024L)
+  expect_identical(cfg$years$ancla$valor, 2023L)
+  expect_match(cfg$years$ancla$procedencia, "^proyección: la tabla ancla no trae .* 2024; se proyecta desde 2023")
+  expect_length(x$mensajes, 1L)
+  expect_match(x$mensajes, "^dl_proyecto\\(\\): el ancla no trae 2024: se proyecta desde 2023")
+  expect_identical(cfg$origen$por_defecto[["ancla.anio"]], "2023")
+  expect_identical(unique(x$p$calibracion$anio), 2024L)       # los proxies, del año que se estima
+  b <- suppressMessages(dl_insumos(x$p))
+  expect_identical(unique(b$prior_gbd$year), 2024L)           # el ancla de 2023, con la etiqueta de 2024
+  # lo mismo con el año escrito en la configuración
+  y <- proyecto_y_mensajes(config_con_anio(copia_ejemplo(), 9101, anio = 2024), 9101)
+  expect_identical(y$p$configuracion$years, cfg$years)
+  expect_identical(y$mensajes, x$mensajes)
+  expect_identical(suppressMessages(dl_insumos(y$p))$hash, b$hash)
+  # y es la proyección que se declara con ancla.anio: los mismos números, otra procedencia y sin anuncio
+  z <- proyecto_y_mensajes(config_con_anio(copia_ejemplo(), 9101, ancla = 2023), 9101, anio = 2024)
+  expect_identical(z$p$configuracion$years$ancla, list(valor = 2023L, procedencia = .DL_PROCEDENCIA_SIMPLE))
+  expect_identical(z$mensajes, character())
+  bz <- suppressMessages(dl_insumos(z$p))
+  expect_identical(bz$prior_gbd, b$prior_gbd)
+  expect_identical(bz$cov_proxy, b$cov_proxy)
+})
+
+test_that("con ancla.anio, el año del ancla es el menor entre ese y el que se estima", {
+  d <- config_con_anio(copia_ejemplo(), 9101, ancla = 2023)
+  x <- proyecto_y_mensajes(d, 9101, anio = 2019)
+  expect_identical(.dl_anio_ancla(x$p$configuracion), 2019L)
+  expect_identical(x$mensajes, character())
+  expect_identical(suppressMessages(dl_insumos(x$p))$prior_gbd,
+                   suppressMessages(dl_insumos(dl_proyecto(copia_ejemplo(), 9101, anio = 2019)))$prior_gbd)
+  expect_identical(.dl_anio_ancla(dl_proyecto(d, 9101)$configuracion), 2023L)
+})
+
+test_that("un año anterior a todos los del ancla: el error de las reglas, que no hay de dónde proyectar", {
+  minimo <- function(anio) dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30), anio = anio,
+                                       ubicaciones = dl_ejemplo("ubicaciones.csv"),
+                                       poblacion = dl_ejemplo("poblacion.csv"), ancla = dl_ejemplo("ancla"))
+  e <- expect_error(minimo(2018), class = "dl_error")
+  expect_match(e$problemas, paste0("^ancla: no trae la prevalencia de la causa 9101 de hombres y mujeres de 2018 ",
+                                   "\\(años que trae: 2019, 2023\\); solo se proyecta desde un año anterior, y el ",
+                                   "ancla no trae ninguno$"), all = FALSE)
+  # más de un año atrás no es mantener el nivel: no se proyecta
+  expect_error(minimo(2021), paste0("anio: la tabla ancla no trae la prevalencia de la causa en 2021 y el último año ",
+                                    "anterior que trae es 2019: el ancla se proyecta a lo sumo un año"))
+})

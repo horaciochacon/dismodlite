@@ -536,6 +536,9 @@ NULL
 
 # ancla: trae la prevalencia de la causa en el año del ancla y en cada sexo del modelo y, si la usa el prior de la
 # mortalidad en exceso (.dl_prior_usa_csmr), la mortalidad. Con más de una causa en el proyecto, trae la columna causa.
+# El año del ancla ya es el del proyecto (.dl_anio_ancla_proyecto): si el ancla no trae la prevalencia del año que se
+# estima, el último anterior. Lo que falta aquí es una medida o un sexo de ese año (la pista: declarar ancla.anio con
+# el año anterior, que sí los trae) o un año sin ninguno anterior desde el que proyectar.
 .dl_regla_ancla <- function(tablas, cfg, n_causas = 1L) {
   sin_causa <- if (n_causas > 1L && !"causa" %in% names(tablas$ancla))
     sprintf(paste0("ancla: falta la columna causa: el proyecto tiene %d causas con configuraci\u00f3n y cada fila del ",
@@ -555,7 +558,9 @@ NULL
             else sprintf("de %s de %d (a\u00f1os que trae: %s)", paste(falta, collapse = " y "), anio, .dl_lista(hay)),
             if ((anio - 1L) %in% hay && is.null(cfg$years$ancla))
               sprintf("; si %d a\u00fan no tiene estimaci\u00f3n de GBD, proyecta desde %d con ancla: {anio: %d}", anio,
-                      anio - 1L, anio - 1L) else "", pista[[m]])
+                      anio - 1L, anio - 1L)
+            else if (m == "prevalencia" && length(hay) && all(hay > anio))
+              "; solo se proyecta desde un a\u00f1o anterior, y el ancla no trae ninguno" else "", pista[[m]])
   })))
 }
 

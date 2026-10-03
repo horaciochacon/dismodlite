@@ -313,6 +313,7 @@
 
 # Configuración completa (sin validar) desde la simple `s` de `archivo` y lo que se toma del proyecto (`contexto`):
 #   ubicacion (el código nacional), nombre, betas (la tabla betas de la causa, ya resuelta para un subtipo),
+#   anios_ancla (los años con prevalencia de la causa en el ancla: de ellos sale years.ancla, .dl_anio_ancla_proyecto),
 #   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es) e
 #   ids_covariable (covariable -> covariate_id, para valor_nacional_de).
 # `origen`: formato, archivo, nombre, modo subnacional, betas y claves tomadas por defecto (con su valor); y las
@@ -349,6 +350,14 @@
   pd <- pd[!startsWith(pd$clave, "proxies."), ]
   reglas <- c(nombre = contexto$nombre, ubicacion_gbd = paste(contexto$ubicacion_gbd, collapse = ", "),
               subnacional.modo = modo, nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
+  # el año del ancla: el de ancla.anio o el que se estima y, si el ancla no lo trae, el último anterior
+  ancla <- .dl_anio_ancla_proyecto(s[["anio"]], dado("ancla.anio"), contexto$anios_ancla)
+  if (ancla$proyectado && as.integer(s[["anio"]]) - ancla$anio > 1L)
+    .dl_stop_config_simple(archivo, sprintf(paste0(
+      "anio: la tabla ancla no trae la prevalencia de la causa en %d y el \u00faltimo a\u00f1o anterior que trae es ",
+      "%d: el ancla se proyecta a lo sumo un a\u00f1o (el nivel nacional se mantiene, no se extrapola)"),
+      as.integer(s[["anio"]]), ancla$anio))
+  reglas <- c(reglas, ancla.anio = format(ancla$anio))
   por_defecto <- stats::setNames(ifelse(pd$clave %in% names(reglas), reglas[pd$clave],
                                         ifelse(pd$defecto == "anio", format(s[["anio"]]), pd$defecto)), pd$clave)
   prior <- val("mortalidad_exceso.prior")
@@ -357,7 +366,10 @@
   cfg <- list(
     schema = "dismod_lite/v1", cause_id = as.integer(s[["causa"]]),
     years = c(list(ajuste = s[["anio"]]),
-              if (!is.null(dado("ancla.anio"))) list(ancla = list(valor = dado("ancla.anio"), procedencia = proc))),
+              if (!is.null(dado("ancla.anio"))) list(ancla = list(valor = ancla$anio, procedencia = proc))
+              else if (ancla$proyectado)
+                list(ancla = list(valor = ancla$anio,
+                                  procedencia = .dl_procedencia_proyeccion(as.integer(s[["anio"]]), ancla$anio)))),
     # los sexos son un conjunto: en su orden (el de las simulaciones de la cascada y de los AVD) no en el escrito
     sexos = sort(unique(.dl_codigos_sexo(val("sexos")))), edad_inicio = s[["edad_inicio"]], edad_inicio_fuente = proc,
     remision = list(valor = val("remision"), fuente = proc),

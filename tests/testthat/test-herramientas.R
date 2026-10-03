@@ -321,10 +321,13 @@ test_that("dl_correr(rapido = TRUE) sobre el ejemplo simple escribe la carpeta d
                     class = "dl_error")
   expect_match(conditionMessage(e), paste0("se aleja del ancla \\(error relativo mediano .*avanzado: \\{anchor: ",
                                            "\\{gate_err_mediano: \\{valor: \\.\\.\\., procedencia: \\.\\.\\.\\}\\}\\} ",
-                                           "\\(ver \\?dl_configuracion\\); rapido = TRUE no la salta"))
-  # sin los nombres internos de las comprobaciones ni `forzar`, que dl_correr() no tiene
+                                           "\\(ver \\?dl_configuracion\\); ni rapido = TRUE ni forzar = TRUE la saltan"))
+  # sin los nombres internos de las comprobaciones
   expect_no_match(paste(c(conditionMessage(e), mensajes), collapse = "\n"), "anchor_identity|amplitud_csmr")
-  expect_no_match(conditionMessage(e), "forzar")
+  # forzar = TRUE tampoco la salta
+  expect_error(suppressMessages(dl_correr(d, causa = 9100, semilla = 3, rapido = TRUE, sensibilidad = FALSE,
+                                          forzar = TRUE)), "se aleja del ancla \\(error relativo mediano")
+  expect_identical(length(list.files(file.path(d, "resultados", "mod", "dismod_lite"))), 1L)
 })
 
 test_that("dl_correr() se detiene antes de ajustar sin semilla, sin severidad o sin dónde escribir", {
@@ -351,9 +354,46 @@ test_that("dl_correr() comprueba la convergencia justo después del ajuste nacio
   mensajes <- character()
   expect_error(withCallingHandlers(dl_correr(d, 9101, semilla = 1, opciones = o), message = function(m) {
     mensajes <<- c(mensajes, conditionMessage(m)); invokeRestart("muffleMessage")
-  }), "^dl_correr\\(\\): las cadenas no convergieron")
+  }), "^dl_correr\\(\\): las cadenas no convergieron.*forzar = TRUE la escribe igual")
   expect_match(mensajes[length(mensajes)], "ajuste nacional")
   expect_false(dir.exists(file.path(d, "resultados")))
+})
+
+test_that("dl_correr(forzar = TRUE) escribe la corrida aunque las cadenas no converjan y lo dice una vez", {
+  d <- copia_ejemplo()
+  o <- dl_opciones_mcmc(simulaciones = 100L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L,
+                        adelgazamiento = 1L)
+  mensajes <- character()
+  run <- withCallingHandlers(dl_correr(d, 9101, semilla = 1, opciones = o, sensibilidad = FALSE, forzar = TRUE),
+                             message = function(m) {
+                               mensajes <<- c(mensajes, conditionMessage(m)); invokeRestart("muffleMessage")
+                             })
+  expect_s3_class(run, "dl_run")
+  expect_match(run$run_id, "_causa-9101_v1$")                       # el nombre de la corrida no cambia
+  expect_true(run$manifest$validacion$gates$force)
+  forzada <- grep("forzar", mensajes, value = TRUE)
+  expect_length(forzada, 1L)
+  expect_match(forzada, "forzar = TRUE: las cadenas no convergieron \\(R-hat máximo [0-9.]+.*ESS mínimo [0-9]+")
+  expect_no_match(mensajes[1], "corrida de prueba")
+  for (mal in list("TRUE", NA, c(TRUE, FALSE), 1))
+    expect_error(dl_correr(d, 9101, semilla = 1, forzar = mal), "`forzar` debe ser TRUE o FALSE")
+})
+
+test_that("un año que el ancla no trae: la revisión no tiene errores y avisa de la proyección", {
+  d <- copia_ejemplo()
+  r <- revisar_callado(suppressMessages(dl_proyecto(d, 9101, anio = 2024)))
+  expect_false(any(r$estado == "error"))
+  aviso <- r$detalle[r$paso == "proyecto" & r$estado == "aviso"]
+  expect_match(aviso, "^el ancla no trae 2024: se proyecta desde 2023", all = FALSE)
+  # lo mismo en la revisión de la carpeta, con el año en la configuración
+  f <- file.path(d, "config", "9101.yaml")
+  writeLines(sub("^anio: 2023$", "anio: 2024", readLines(f, encoding = "UTF-8")), f, useBytes = TRUE)
+  r2 <- revisar_callado(d, causa = 9101)
+  expect_false(any(r2$estado == "error"))
+  expect_identical(r2$detalle[r2$paso == "proyecto" & r2$estado == "aviso"], aviso)
+  # un proyecto que no proyecta no trae el aviso
+  r3 <- revisar_callado(copia_ejemplo(), causa = 9101)
+  expect_no_match(paste(r3$detalle, collapse = "\n"), "se proyecta desde")
 })
 
 test_that("dl_revisar_proyecto() ubica en su tabla lo que antes llegaba con palabras del formato completo", {
@@ -515,6 +555,9 @@ test_that("reglas del ancla: la prevalencia del año y los sexos, la mortalidad 
                                                "\\(años que trae: 2019\\)$"))
   x$tablas$ancla <- data.table::copy(a)[anio == 2019][, anio := 2022L]          # el año anterior: la pista
   expect_match(problemas(x)$problemas[1], "; si 2023 aún no tiene estimación de GBD, proyecta desde 2022 con ancla: \\{anio: 2022\\}$")
+  x$tablas$ancla <- data.table::copy(a)[anio == 2019][, anio := 2025L]          # ningún año anterior
+  expect_match(problemas(x)$problemas[1], paste0("de hombres y mujeres de 2023 \\(años que trae: 2025\\); solo se ",
+                                                  "proyecta desde un año anterior, y el ancla no trae ninguno$"))
   x$tablas$ancla <- a[medida != "mortalidad"]
   expect_match(problemas(x)$problemas, "^ancla: no trae la mortalidad de la causa 9100 \\(medidas que trae")
   # con el prior plano y su techo, la mortalidad no hace falta

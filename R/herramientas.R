@@ -290,11 +290,12 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
           if (length(attr(t, "lectores"))) sprintf(" (%s)", paste(attr(t, "lectores"), collapse = ", ")) else "")
 }
 
-# Las reglas entre tablas de `pre` (list(tablas, tablas_modelo, cfg, causas)) en el paso «proyecto».
+# Las reglas entre tablas de `pre` (list(tablas, tablas_modelo, cfg, causas)) en el paso «proyecto»; un año del
+# ancla proyectado sin declararlo (.dl_proyeccion_anunciada) es un aviso.
 .dl_revisar_reglas <- function(pre, anotar) {
   pr <- .dl_problemas_proyecto(pre$tablas_modelo %||% pre$tablas, pre$cfg, max(1L, nrow(pre$causas)),
                                originales = pre$tablas)
-  for (a in pr$avisos) anotar("proyecto", "aviso", a)
+  for (a in c(.dl_proyeccion_anunciada(pre$cfg), pr$avisos)) anotar("proyecto", "aviso", a)
   for (e in pr$problemas) anotar("proyecto", "error", e)
   if (!length(pr$problemas)) anotar("proyecto", "ok", "las reglas entre tablas se cumplen")
 }
@@ -316,7 +317,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 # sus avisos y sus errores, cuando las tablas de las que toma algo se leyeron (`fallidas`: las que no). Devuelve
 # list(ok, calibracion): `ok` es FALSE si la calibración falló o espera a una tabla; sin proxies_crudos, la
 # calibración es NULL y no hay paso, salvo un aviso si la configuración trae claves proxies.* (no se usan).
-.dl_revisar_proxies <- function(s, archivo, tablas, fallidas, revisar, anotar) {
+.dl_revisar_proxies <- function(s, archivo, tablas, fallidas, revisar, anotar, causa = s[["causa"]]) {
   if (is.null(tablas$proxies_crudos)) {
     .dl_avisar_proxies_sin_crudos(s, anotar)
     return(list(ok = TRUE, calibracion = NULL))
@@ -326,7 +327,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     anotar("proxies", "omitido", sprintf("la calibraci\u00f3n espera a la tabla %s", espera[1L]))
     return(list(ok = FALSE))
   }
-  cal <- revisar("proxies", .dl_calibracion_proyecto(s, archivo, tablas), .dl_linea_proxies)
+  cal <- revisar("proxies", .dl_calibracion_proyecto(s, archivo, tablas, causa = causa), .dl_linea_proxies)
   list(ok = !is.null(cal), calibracion = cal)
 }
 
@@ -392,7 +393,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     anotar("configuraci\u00f3n", "omitido", sprintf("su traducci\u00f3n espera a la tabla %s", espera[1L]))
     return(omitir())
   }
-  px <- .dl_revisar_proxies(s, cf$archivo, tablas, fallidas, revisar, anotar)
+  px <- .dl_revisar_proxies(s, cf$archivo, tablas, fallidas, revisar, anotar, cf$causa)
   if (!px$ok) {
     anotar("configuraci\u00f3n", "omitido", "su traducci\u00f3n espera a la calibraci\u00f3n de proxies_crudos")
     return(omitir())
@@ -576,9 +577,15 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' La corrida no se escribe en dos casos, que `dl_correr()` comprueba en cuanto puede, con las mismas compuertas que
 #' [dl_exportar_corrida()]. Si las cadenas no convergieron (R-hat < 1.01 y ESS >= 400), justo después del ajuste:
 #' aumenta `iteraciones` y `calentamiento` con `opciones`. Y si la prevalencia ajustada se aleja de la del ancla
-#' (error relativo mediano mayor que 0.05), justo después de la validación, también con `rapido = TRUE`: revisa el
-#' ajuste y los datos o, con su procedencia, declara un máximo mayor en la configuración, en `avanzado: {anchor:
-#' {gate_err_mediano: {valor, procedencia}}}` (en el formato completo, sin `avanzado`; ver [dl_configuracion()]).
+#' (error relativo mediano mayor que 0.05), justo después de la validación, también con `rapido = TRUE` o
+#' `forzar = TRUE`: revisa el ajuste y los datos o, con su procedencia, declara un máximo mayor en la configuración,
+#' en `avanzado: {anchor: {gate_err_mediano: {valor, procedencia}}}` (en el formato completo, sin `avanzado`; ver
+#' [dl_configuracion()]).
+#'
+#' `forzar = TRUE` salta la primera compuerta, la de la convergencia, y solo esa: la corrida se escribe con las
+#' cadenas que se pidieron aunque no hayan convergido, un mensaje da su R-hat y su ESS y el manifiesto lo declara
+#' (`validacion.gates.force`), como en [dl_exportar_corrida()]. El nombre de la corrida no cambia. Sirve para mirar
+#' una corrida que aún no converge; sus números no sirven para publicar.
 #'
 #' `rapido = TRUE` es una prueba, para ver que el proyecto corre de principio a fin: cadenas cortas (100
 #' simulaciones, 2 cadenas de 2000 iteraciones), las mismas en la sensibilidad, etiquetas solo con la
@@ -605,6 +612,9 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #'   corrida sigue siendo una prueba.
 #' @param registro Archivo YAML del registro de corridas, que ya existe (uno nuevo es un archivo con la línea
 #'   `datasets: []`): la corrida se agrega al final. Se comprueba antes de ajustar. `NULL` (por defecto) no registra.
+#' @param forzar `TRUE` escribe la corrida aunque las cadenas no hayan convergido (queda declarado en el manifiesto;
+#'   ver Detalles); no salta la compuerta del ancla. `FALSE` (por defecto) exige la convergencia, salvo con
+#'   `rapido = TRUE`, que la salta siempre.
 #' @return Objeto de clase `dl_run`, como el de [dl_exportar_corrida()], una lista con `run_id` (el identificador de
 #'   la corrida, `<AAAA-MM-DD>_causa-<causa>_v<n>`, o `..._causa-<causa>-prueba_v<n>` con `rapido = TRUE`), `dir`
 #'   (su carpeta), `manifest` (el contenido de su `manifest.yaml`, como lista) y `files` (las tablas de celdas
@@ -634,14 +644,17 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' # 4 cadenas de 50 000 iteraciones) o las mismas con el motor en C++, más rápido
 #' # dl_correr("mi_proyecto", semilla = 1)
 #' # dl_correr("mi_proyecto", semilla = 1, opciones = dl_opciones_mcmc(motor = "rcpp"))
+#' # y, para mirar una corrida cuyas cadenas aún no convergen, sin la compuerta de la convergencia
+#' # dl_correr("mi_proyecto", semilla = 1, forzar = TRUE)
 #' }
 #' @export
 dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, rapido = FALSE, sensibilidad = TRUE,
-                      opciones = NULL, registro = NULL) {
+                      opciones = NULL, registro = NULL, forzar = FALSE) {
   if (missing(proyecto)) .dl_stop("falta `proyecto` (la carpeta del proyecto o un proyecto de dl_proyecto())")
   .dl_exigir_semilla(semilla)
   .dl_exigir_si_no(rapido, "rapido")
   .dl_exigir_si_no(sensibilidad, "sensibilidad")
+  .dl_exigir_si_no(forzar, "forzar")
   if (!is.null(opciones)) .dl_exigir_clase(opciones, "dl_mcmc_opts", "opciones", "dl_opciones_mcmc()")
   if (!is.null(carpeta_salida)) .dl_exigir_carpeta(carpeta_salida, argumento = "carpeta_salida")
   .dl_exigir_registro(!is.null(registro), registro)
@@ -672,9 +685,14 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
 
     .dl_message("ajuste nacional: %d cadena(s) de %d iteraciones por sexo (motor %s)", o$chains, o$iter, o$engine)
     f <- dl_ajustar(b, o, semilla = semilla)
-    .dl_compuerta_convergencia(f, forzar = rapido, remedio = paste0(
+    convergencia <- .dl_compuerta_convergencia(f, forzar = forzar || rapido, remedio = paste0(
       "Aumenta las iteraciones y el calentamiento con opciones = dl_opciones_mcmc(iteraciones = ..., ",
-      "calentamiento = ...); para una prueba, rapido = TRUE"))
+      "calentamiento = ...); para una prueba, rapido = TRUE; forzar = TRUE la escribe igual y lo declara en el ",
+      "manifiesto"))
+    if (forzar && !.dl_cadenas_convergieron(convergencia))
+      .dl_message(paste0("forzar = TRUE: las cadenas no convergieron (R-hat m\u00e1ximo %.4f, debe ser < 1.01; ESS ",
+                         "m\u00ednimo %.0f, debe ser >= 400) y la corrida se escribe igual; el manifiesto lo declara ",
+                         "(validacion.gates.force)"), convergencia$rhat_max, convergencia$ess_min)
     f0 <- dl_ajustar_solo_prior(b, o, semilla = semilla, ajuste = f)
     casc <- NULL
     if (nrow(b$cov_proxy) > 0L || identical(b$cfg$cascada$modo$valor, "plana")) {
@@ -695,7 +713,8 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
     ruta <- "anchor: {gate_err_mediano: {valor: ..., procedencia: ...}}"
     .dl_compuerta_ancla(b$cfg, validacion, remedio = sprintf(paste0(
       "declara un m\u00e1ximo mayor en la configuraci\u00f3n, con su procedencia: %s (ver ?dl_configuracion); ",
-      "rapido = TRUE no la salta"), if (.dl_es_simple(cfg)) sprintf("avanzado: {%s}", ruta) else ruta))
+      "ni rapido = TRUE ni forzar = TRUE la saltan"),
+      if (.dl_es_simple(cfg)) sprintf("avanzado: {%s}", ruta) else ruta))
     comorbilidad <- if (!is.null(b$rutas$std_yld)) dl_factor_comorbilidad(b)
     if (is.null(comorbilidad))
       .dl_message("el ancla no trae AVD: los AVD no se corrigen por comorbilidad (el manifiesto lo declara)")
@@ -715,7 +734,7 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
     run <- dl_exportar_corrida(list(resumen = resumen, fit = ajuste, yld = avd, bundle = b),
                                nombre = sprintf("causa-%d%s", cfg$cause_id, if (rapido) "-prueba" else ""),
                                carpeta = carpeta_salida, etiquetas = etiquetas, validacion = validacion,
-                               sensibilidad = sens, forzar = rapido, registro = registro)
+                               sensibilidad = sens, forzar = forzar || rapido, registro = registro)
     .dl_message("corrida escrita en %s%s", run$dir, if (rapido) " (prueba: no sirve para publicar)" else "")
     run
   })

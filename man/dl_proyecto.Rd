@@ -4,7 +4,13 @@
 \alias{dl_proyecto}
 \title{Proyecto de una causa}
 \usage{
-dl_proyecto(carpeta = NULL, causa = NULL, ..., configuracion = NULL)
+dl_proyecto(
+  carpeta = NULL,
+  causa = NULL,
+  ...,
+  configuracion = NULL,
+  anio = NULL
+)
 }
 \arguments{
 \item{carpeta}{Carpeta del proyecto: la que tiene \code{config.yaml} o \verb{config/} (opcional si se dan \code{configuracion} y
@@ -18,6 +24,9 @@ de un CSV o de una carpeta. Reemplazan a las de la carpeta.}
 
 \item{configuracion}{Ruta del YAML de la configuración o una lista con sus claves (opcional; por defecto, la de la
 carpeta).}
+
+\item{anio}{Año que se estima (un entero), en lugar del \code{anio} de la configuración; \code{NULL} (por defecto) deja el
+de la configuración. Ver Detalles para el año del ancla.}
 }
 \value{
 Objeto de clase \code{dl_proyecto}: una lista con
@@ -70,6 +79,20 @@ bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina)
 \code{print()} muestra la causa, el año, las tablas que encontró, el modo subnacional, la calibración de
 \code{proxies_crudos} (por covariable: el método, q y las ediciones) y las claves de la configuración que tomaron su
 valor por defecto.
+
+\code{anio} lee el proyecto para otro año que el de su configuración, sin editarla: es como escribir ese \code{anio} en el
+archivo (los proxies de \code{proxies_crudos} se calibran para ese año). El año del ancla, el de la estimación de
+referencia que se usa, sale de una sola regla, venga el año de la configuración o del argumento:
+\itemize{
+\item sin \code{ancla.anio} en la configuración, es el año que se estima si la tabla \code{ancla} trae la prevalencia de la causa
+en ese año; si no la trae, el último año anterior que trae, y un mensaje lo anuncia («el ancla no trae 2024: se
+proyecta desde 2023»). La proyección queda en la procedencia del año del ancla (\code{years.ancla}) y en las
+limitaciones del manifiesto de la corrida, y \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} la muestra como aviso;
+\item con \code{ancla.anio}, el menor entre ese año y el que se estima: una configuración con \code{ancla: {anio: 2023}} sirve
+para 2024 (proyectado desde 2023) y para 2023 y los años anteriores (cada uno con su ancla);
+\item el ancla es, a lo sumo, de un año antes del que se estima: mantiene el nivel nacional, no lo extrapola. Si el
+ancla no trae el año ni ninguno anterior, las reglas entre tablas dicen qué falta.
+}
 
 Sin carpeta, las rutas relativas de la configuración (\code{severidad.particion}) se resuelven contra el directorio de
 trabajo; con carpeta, contra la carpeta del proyecto. Las secuelas y los estados de salud de una partición de
@@ -140,6 +163,9 @@ p <- dl_proyecto(dl_ejemplo(), causa = 9100)
 p
 p$configuracion$origen$por_defecto
 p$tablas$poblacion
+
+# el mismo proyecto leído para otro año, sin editar la configuración
+dl_proyecto(dl_ejemplo(), 9101, anio = 2019)
 
 # un proyecto mínimo sin carpeta: la configuración y las tablas obligatorias como argumentos
 p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),

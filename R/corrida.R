@@ -442,11 +442,16 @@
   "Aumenta `iteraciones` y `calentamiento` en dl_opciones_mcmc(); forzar = TRUE exporta igual (solo para pruebas) ",
   "y lo declara en el manifiesto")) {
   convergencia <- list(rhat_max = max(f$mcmc$rhat), ess_min = min(f$mcmc$ess), force = forzar)
-  if (!(convergencia$rhat_max < 1.01 && convergencia$ess_min >= ess_minimo) && !forzar)
+  if (!.dl_cadenas_convergieron(convergencia, ess_minimo) && !forzar)
     .dl_stop(paste0("las cadenas no convergieron: R-hat m\u00e1ximo %.4f (debe ser < 1.01) y ESS m\u00ednimo %.0f ",
                     "(debe ser >= %s). %s"), convergencia$rhat_max, convergencia$ess_min, format(ess_minimo), remedio)
   convergencia
 }
+
+# Las cadenas convergieron: R-hat máximo < 1.01 y ESS mínimo >= ess_minimo (`convergencia`: lo que devuelve
+# .dl_compuerta_convergencia).
+.dl_cadenas_convergieron <- function(convergencia, ess_minimo = 400)
+  convergencia$rhat_max < 1.01 && convergencia$ess_min >= ess_minimo
 
 # Compuerta del error del ancla de la validación `validacion` (anchor_identity: error relativo mediano de la
 # prevalencia por banda): un error si pasa el máximo, que devuelve. forzar no la salta: el máximo solo se relaja en la
