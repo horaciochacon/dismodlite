@@ -166,6 +166,12 @@ test_that("series desbalanceadas: una ubicación sin una edición se interpola, 
   expect_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob, 2021, transformacion = c(haqi = "diferencia"),
                                             anio_nacional = 2023), "faltan: A en 2021.*B, C")
   expect_setequal(cal$ubicacion, c("A", "B", "C"))
+  # con edicion no se interpola: el aviso dice que se usa la edición más cercana de la ubicación
+  expect_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob, 2021, metodo = "edicion",
+                                            transformacion = c(haqi = "diferencia"), anio_nacional = 2023),
+                 "faltan: A en 2021.*edici\u00f3n m\u00e1s cercana")
+  s <- attr(cal, "series")
+  expect_identical(s$anio[s$usada & s$ubicacion == "A"], 2019L)
 })
 
 # Gradientes verdaderos constantes, sin ruido: falte o no la ubicación más grande en 2021, los valores calibrados

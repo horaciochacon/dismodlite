@@ -118,7 +118,7 @@ banda o de todas las edades; gana la que coincide en más.
 \strong{Aproximaciones declaradas.} El error de X_d no incluye la incertidumbre de la normalización ni la del valor
 nacional; se/p es la aproximación delta; la población de cada edición (y la del cierre) es la del año más cercano
 de \code{poblacion}, también fuera de sus años (\code{calibracion$anios_poblacion} dice cuál se usó). Una ubicación que falta
-en una edición se interpola con sus otras ediciones.
+en una edición se interpola con sus otras ediciones (con \code{edicion}, se usa su edición más cercana).
 }
 \examples{
 pob <- data.frame(ubicacion = rep(c("R01", "R02", "R03"), each = 2),

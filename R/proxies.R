@@ -308,20 +308,20 @@
 .DL_COLS_SERIE <- c("covariable", "ubicacion", "sexo", "edad_inicio", "edad_fin")
 
 # g y se_g de cada fila de los crudos, por covariable, sexo y banda (.dl_gradientes_banda), con N del año de la
-# población más cercano a la edición (`anio_poblacion`).
-.dl_gradientes <- function(cr, pob, tr) {
+# población más cercano a la edición (`anio_poblacion`). `metodo`: el temporal, para el aviso de un panel desbalanceado.
+.dl_gradientes <- function(cr, pob, tr, metodo) {
   cr <- data.table::copy(cr)
   data.table::set(cr, j = "anio_poblacion", value = .dl_anio_mas_cercano(cr$anio, pob$anio))
   partes <- lapply(split(cr, by = c("covariable", "sexo", "edad_inicio", "edad_fin")), function(x)
-    .dl_gradientes_banda(x, pob, tr[[x$covariable[1L]]]))
+    .dl_gradientes_banda(x, pob, tr[[x$covariable[1L]]], metodo))
   data.table::rbindlist(partes)
 }
 
 # Los gradientes de una covariable, sexo y banda (`x`): p̄_t sobre las ubicaciones comunes C (cabecera), con los
 # pesos de la población de cada edición; g para toda ubicación presente. Avisa qué falta si las ediciones no traen las
 # mismas ubicaciones; error si C tiene menos de dos.
-.dl_gradientes_banda <- function(x, pob, transformacion) {
-  comunes <- .dl_ubicaciones_comunes(x)
+.dl_gradientes_banda <- function(x, pob, transformacion, metodo) {
+  comunes <- .dl_ubicaciones_comunes(x, metodo)
   partes <- lapply(split(x, by = "anio"), function(y) {
     N <- .dl_poblacion_banda(pob, y$ubicacion, y$sexo[1L], y$edad_inicio[1L], y$edad_fin[1L], y$anio_poblacion[1L])
     gr <- .dl_gradiente_edicion(y$valor, y$error_estandar, N, transformacion, ref = y$ubicacion %in% comunes)
@@ -331,8 +331,8 @@
 }
 
 # C: las ubicaciones de `x` (una covariable, sexo y banda) presentes en todas sus ediciones. Avisa con los pares
-# (ubicación, edición) que faltan; error si quedan menos de dos.
-.dl_ubicaciones_comunes <- function(x) {
+# (ubicación, edición) que faltan y qué se hace con ellos según el `metodo` temporal; error si quedan menos de dos.
+.dl_ubicaciones_comunes <- function(x, metodo) {
   ediciones <- sort(unique(x$anio)); ubicaciones <- sort(unique(x$ubicacion))
   presentes <- table(factor(x$ubicacion, ubicaciones))
   comunes <- names(presentes)[presentes == length(ediciones)]
@@ -345,10 +345,11 @@
   if (length(comunes) < length(ubicaciones)) {
     todos <- expand.grid(ubicacion = ubicaciones, anio = ediciones, stringsAsFactors = FALSE)
     faltan <- todos[!paste(todos$ubicacion, todos$anio) %in% paste(x$ubicacion, x$anio), ]
+    con_faltan <- if (metodo == "edicion") "donde falta una ubicaci\u00f3n se usa su edici\u00f3n m\u00e1s cercana"
+                   else "las que faltan se interpolan con sus otras ediciones"
     .dl_warn(paste0("las ediciones de la %s no traen las mismas ubicaciones (faltan: %s); el promedio de referencia ",
-                    "de cada edici\u00f3n usa solo las que est\u00e1n en todas (%s), y las que faltan se interpolan ",
-                    "con sus otras ediciones"), que, .dl_donde_crudos(faltan, seq_len(nrow(faltan))),
-             paste(comunes, collapse = ", "))
+                    "de cada edici\u00f3n usa solo las que est\u00e1n en todas (%s), y %s"), que,
+             .dl_donde_crudos(faltan, seq_len(nrow(faltan))), paste(comunes, collapse = ", "), con_faltan)
   }
   comunes
 }
@@ -548,7 +549,7 @@
 #' **Aproximaciones declaradas.** El error de X_d no incluye la incertidumbre de la normalización ni la del valor
 #' nacional; se/p es la aproximación delta; la población de cada edición (y la del cierre) es la del año más cercano
 #' de `poblacion`, también fuera de sus años (`calibracion$anios_poblacion` dice cuál se usó). Una ubicación que falta
-#' en una edición se interpola con sus otras ediciones.
+#' en una edición se interpola con sus otras ediciones (con `edicion`, se usa su edición más cercana).
 #'
 #' @param crudos Tabla `proxies_crudos` (ver [dl_tablas]): `data.frame` o ruta de un CSV o una carpeta.
 #' @param covariables Tabla `covariables`, con el valor nacional de cada covariable de los crudos.
@@ -617,7 +618,7 @@ dl_calibrar_proxies <- function(crudos, covariables, poblacion, anio, metodo = c
   e <- .dl_leer_entradas_proxies(crudos, covariables, poblacion, excluir, ubicacion_gbd)
   tr <- .dl_validar_crudos(e, transformacion)
   .dl_validar_nacionales(e, anio_nacional)
-  gr <- .dl_gradientes(e$crudos, e$poblacion, tr)
+  gr <- .dl_gradientes(e$crudos, e$poblacion, tr, metodo)
   partes <- lapply(split(gr, by = "covariable"), function(g)
     .dl_calibrar_covariable(g, e, tr[[g$covariable[1L]]], anio, anio_nacional, metodo))
   filas <- data.table::rbindlist(lapply(partes, `[[`, "filas"))
