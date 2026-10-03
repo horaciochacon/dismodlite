@@ -12,7 +12,9 @@ dl_correr(
   rapido = FALSE,
   sensibilidad = TRUE,
   opciones = NULL,
-  registro = NULL
+  registro = NULL,
+  forzar = FALSE,
+  anios = NULL
 )
 }
 \arguments{
@@ -21,11 +23,12 @@ proyecto de \code{\link[=dl_proyecto]{dl_proyecto()}}.}
 
 \item{causa}{Causa (\code{cause_id}); \code{NULL} si el proyecto tiene una sola (o si \code{proyecto} ya es un \code{dl_proyecto}).}
 
-\item{semilla}{Semilla (entero), obligatoria: el resultado es reproducible con la misma semilla.}
+\item{semilla}{Semilla (entero), obligatoria: el resultado es reproducible con la misma semilla. Una causa que es
+la suma de sus subtipos no se ajusta y no la usa.}
 
 \item{carpeta_salida}{Carpeta raíz de las corridas: la corrida se escribe en
 \verb{<carpeta_salida>/mod/dismod_lite/<AAAA-MM-DD>_causa-<causa>_v<n>/}. \code{NULL} (por defecto) es la carpeta
-\code{resultados} del proyecto.}
+\code{resultados} del proyecto. Una suma de subtipos busca ahí las corridas de sus subtipos.}
 
 \item{rapido}{\code{TRUE} para una corrida de prueba (ver Detalles); \code{FALSE} (por defecto), la de producción.}
 
@@ -38,13 +41,25 @@ corrida sigue siendo una prueba.}
 
 \item{registro}{Archivo YAML del registro de corridas, que ya existe (uno nuevo es un archivo con la línea
 \verb{datasets: []}): la corrida se agrega al final. Se comprueba antes de ajustar. \code{NULL} (por defecto) no registra.}
+
+\item{forzar}{\code{TRUE} escribe la corrida aunque las cadenas no hayan convergido (queda declarado en el manifiesto;
+ver Detalles); no salta la compuerta del ancla. \code{FALSE} (por defecto) exige la convergencia, salvo con
+\code{rapido = TRUE}, que la salta siempre.}
+
+\item{anios}{Vector de años enteros, sin \code{NA} ni repetidos (por ejemplo \code{2019:2023}): corre la causa una vez por
+año, en orden, con el proyecto leído para cada uno (ver Detalles). \code{NULL} (por defecto) corre una sola vez, el
+año de la configuración del proyecto.}
 }
 \value{
-Objeto de clase \code{dl_run}, como el de \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}, una lista con \code{run_id} (el identificador de
-la corrida, \verb{<AAAA-MM-DD>_causa-<causa>_v<n>}, o \verb{..._causa-<causa>-prueba_v<n>} con \code{rapido = TRUE}), \code{dir}
-(su carpeta), \code{manifest} (el contenido de su \code{manifest.yaml}, como lista) y \code{files} (las tablas de celdas
-escritas, una por medida, con su ruta, su sha256 y su número de filas). Los mensajes dicen qué paso corre y, al
-final, dónde quedó la corrida.
+Sin \code{anios}, un objeto de clase \code{dl_run}, como el de \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}, una lista con \code{run_id} (el
+identificador de la corrida, \verb{<AAAA-MM-DD>_causa-<causa>_v<n>}, o \verb{..._causa-<causa>-prueba_v<n>} con
+\code{rapido = TRUE}), \code{dir} (su carpeta), \code{manifest} (el contenido de su \code{manifest.yaml}, como lista) y \code{files} (las
+tablas de celdas escritas, una por medida, con su ruta, su sha256 y su número de filas). Los mensajes dicen qué
+paso corre y, al final, dónde quedó la corrida.
+
+Con \code{anios}, una lista de clase \code{dl_corridas} con un \code{dl_run} por año, con los años como nombres
+(\code{corridas[["2023"]]}); su identificador es \verb{<AAAA-MM-DD>_causa-<causa>-<año>_v<n>}
+(\verb{..._causa-<causa>-<año>-prueba_v<n>} con \code{rapido = TRUE}). \code{print()} muestra una línea por año.
 }
 \description{
 El recorrido estándar de una corrida en una sola llamada: lee el proyecto, arma los insumos, ajusta, lleva el
@@ -75,18 +90,54 @@ iteraciones con 10 000 de calentamiento, motor \code{"mh"}; la sensibilidad usa 
 La corrida no se escribe en dos casos, que \code{dl_correr()} comprueba en cuanto puede, con las mismas compuertas que
 \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}. Si las cadenas no convergieron (R-hat < 1.01 y ESS >= 400), justo después del ajuste:
 aumenta \code{iteraciones} y \code{calentamiento} con \code{opciones}. Y si la prevalencia ajustada se aleja de la del ancla
-(error relativo mediano mayor que 0.05), justo después de la validación, también con \code{rapido = TRUE}: revisa el
-ajuste y los datos o, con su procedencia, declara un máximo mayor en la configuración, en \verb{avanzado: \{anchor: \{gate_err_mediano: \{valor, procedencia\}\}\}} (en el formato completo, sin \code{avanzado}; ver \code{\link[=dl_configuracion]{dl_configuracion()}}).
+(error relativo mediano mayor que 0.05), justo después de la validación, también con \code{rapido = TRUE} o
+\code{forzar = TRUE}: revisa el ajuste y los datos o declara un máximo mayor en la configuración, \code{ancla: {error_maximo: ...}} en un proyecto (en el formato completo, \verb{anchor: \{gate_err_mediano: \{valor, procedencia\}\}}; ver
+\code{\link[=dl_configuracion]{dl_configuracion()}}).
+
+\code{forzar = TRUE} salta la primera compuerta, la de la convergencia, y solo esa: la corrida se escribe con las
+cadenas que se pidieron aunque no hayan convergido, un mensaje da su R-hat y su ESS y el manifiesto lo declara
+(\code{validacion.gates.force}), como en \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}. El nombre de la corrida no cambia. Sirve para mirar
+una corrida que aún no converge; sus números no sirven para publicar.
 
 \code{rapido = TRUE} es una prueba, para ver que el proyecto corre de principio a fin: cadenas cortas (100
 simulaciones, 2 cadenas de 2000 iteraciones), las mismas en la sensibilidad, etiquetas solo con la
 \code{ancla.correlacion_edad} de la configuración y la corrida escrita con \code{forzar = TRUE}, sin exigir la convergencia
 (el manifiesto lo declara). Su nombre termina en \code{-prueba} y sus números no sirven para publicar.
 
+Con \code{anios}, la causa se corre una vez por año, en orden, y el proyecto se vuelve a leer para cada uno
+(\code{dl_proyecto(anio = )}, con la regla del año del ancla de \code{\link[=dl_proyecto]{dl_proyecto()}}): un proyecto sirve para varios años sin
+editar su configuración. Las comprobaciones de los argumentos se hacen una vez, antes del primer año; el nombre de
+cada corrida lleva el año (\verb{causa-<causa>-<año>}, y \code{-prueba} con \code{rapido = TRUE}), y cada corrida es de por sí
+una corrida completa, como la de un \code{dl_correr()} sin \code{anios}. El proyecto de todos los años se lee antes de correr
+el primero: si el de alguno no se puede leer (el ancla no trae ese año ni el anterior, falta su población...),
+\code{dl_correr()} se detiene ahí, con el año y el problema, sin haber escrito ninguna corrida. Si un año falla al
+correr, se detiene con el error de ese año y dice qué años quedaron escritos; esas corridas siguen en su carpeta.
+
 La causa debe tener severidad (sus estados de salud en \code{severidad.csv} o desde \code{severidad.particion}): sin ella los
-AVD serían cero y la corrida no se escribe. \code{dl_correr()} lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
-\code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
-proyecto con las tablas del contrato, los mensajes de todos los pasos citan sus claves y sus tablas (como \code{\link[=dl_insumos]{dl_insumos()}}).
+AVD serían cero y la corrida no se escribe. \code{dl_correr()} lo comprueba antes de ajustar.
+
+Una causa que es la suma de sus subtipos (\code{suma_de_subtipos: sí} en su configuración; ver \code{\link[=dl_proyecto]{dl_proyecto()}}) no se
+ajusta: \code{dl_correr()} busca en \code{carpeta_salida} la corrida más reciente de cada subtipo que entra en la suma, del
+año que se estima, y las suma simulación a simulación con \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, con el \code{nombre} y los
+\code{subtipos_omitidos} de la configuración. Las corridas se reconocen por su manifiesto (la causa y el año), así que
+valen las de cualquier proyecto escritas en esa carpeta. Con \code{rapido = TRUE} suma las corridas de prueba (las que
+terminan en \code{-prueba}) y la suma también es de prueba; con \code{rapido = FALSE}, las de producción, nunca las de
+prueba. Si falta la corrida de un subtipo, el error dice cuál, de qué año y dónde se buscó. Con \code{anios}, suma cada
+año con las corridas de ese año. \code{semilla}, \code{sensibilidad}, \code{opciones} y \code{forzar} no se usan: no hay ajuste. El
+nombre de la corrida sigue la misma regla (\verb{causa-<causa>}, con el año y \code{-prueba} si corresponde), y la corrida es
+la de \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}: celdas, simulaciones y manifiesto, sin diagnósticos.
+
+La corrida más reciente de un subtipo es la del último día (la fecha de su nombre) y, en ese día, la de mayor
+versión. Si ese día hay corridas del subtipo con nombres distintos (por ejemplo \verb{causa-<causa>} y
+\verb{causa-<causa>-<año>}), gana la que se escribió última, por la fecha de modificación de su \code{manifest.yaml}: copiar
+la carpeta de las corridas sin conservar las fechas de los archivos puede cambiar ese desempate. Los mensajes dicen
+qué corrida se tomó de cada subtipo y cuáles se escribieron con \code{forzar = TRUE}, que en una suma de producción
+quedan también entre las limitaciones de su manifiesto; para elegirlas a mano, \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}. Los subtipos de
+una suma son causas que se ajustan: una suma no puede ser subtipo de otra suma.
+
+Los ajustes quedan en la caché de la sesión: \code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el
+de la corrida sin volver a muestrear. Con un proyecto con las tablas del contrato, los mensajes de todos los pasos
+citan sus claves y sus tablas (como \code{\link[=dl_insumos]{dl_insumos()}}).
 }
 \examples{
 \donttest{
@@ -104,16 +155,42 @@ head(prev[, c("location_name", "sex_name", "age_group_name", "val", "lower", "up
 run$manifest$configuracion$por_defecto
 unlink(salida, recursive = TRUE)
 
+# la misma causa para dos años: una corrida por año, que el proyecto relee para cada uno
+corridas <- dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                      carpeta_salida = salida, anios = c(2019, 2023))
+corridas
+corridas[["2023"]]$run_id
+unlink(salida, recursive = TRUE)
+
 # la corrida de producción de un proyecto propio: las cadenas por defecto (1000 simulaciones,
 # 4 cadenas de 50 000 iteraciones) o las mismas con el motor en C++, más rápido
 # dl_correr("mi_proyecto", semilla = 1)
 # dl_correr("mi_proyecto", semilla = 1, opciones = dl_opciones_mcmc(motor = "rcpp"))
+# y, para mirar una corrida cuyas cadenas aún no convergen, sin la compuerta de la convergencia
+# dl_correr("mi_proyecto", semilla = 1, forzar = TRUE)
+# y una corrida de producción por año
+# dl_correr("mi_proyecto", semilla = 1, anios = 2018:2023)
+
+# una causa que es la suma de sus subtipos: en una copia del ejemplo, la causa 9100, que declara
+# sus subtipos (9101, 9102 y 9103), deja de ajustarse con `suma_de_subtipos: sí`
+carpeta <- dl_ejemplo(copiar_en = file.path(tempdir(), "proyecto_con_suma"))
+con <- file(file.path(carpeta, "config", "9100.yaml"), open = "a", encoding = "UTF-8")
+writeLines("suma_de_subtipos: sí", con)
+close(con)
+dl_proyecto(carpeta, causa = 9100)
+# primero una corrida de cada subtipo (aquí, de prueba) y después la suma, que las busca en la
+# carpeta de las corridas (`resultados`, en la carpeta del proyecto)
+for (k in c(9101, 9102, 9103))
+  dl_correr(carpeta, causa = k, semilla = 1, rapido = TRUE, sensibilidad = FALSE)
+suma <- dl_correr(carpeta, causa = 9100, rapido = TRUE)
+vapply(suma$manifest$causa$hijas, `[[`, "", "run_id")
+unlink(carpeta, recursive = TRUE)
 }
 }
 \seealso{
 \code{\link[=dl_proyecto]{dl_proyecto()}}, \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} (antes de correr), \code{\link[=dl_opciones_mcmc]{dl_opciones_mcmc()}} (las cadenas),
-\code{\link[=dl_estimaciones]{dl_estimaciones()}} y \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} (el contenido de la carpeta de la corrida); para los subtipos de una
-causa, \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}.
+\code{\link[=dl_estimaciones]{dl_estimaciones()}} y \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} (el contenido de la carpeta de la corrida); para sumar a mano las
+corridas de los subtipos de una causa, \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}.
 
 Funciones del proyecto:
 \code{\link{dl_calibrar_proxies}()},

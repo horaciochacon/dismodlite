@@ -1,3 +1,139 @@
+# dismodlite 2.2.0
+
+Un proyecto se corre como se corre de verdad sin recetas propias: varios años con una sola configuración, el año que
+todavía no tiene estimación de referencia, la causa que es la suma de sus subtipos, y como claves de la configuración
+lo que antes pedía `avanzado`.
+
+## Varios años con una configuración
+
+* `dl_correr(..., anios = 2018:2023)` corre la causa una vez por año, en orden, y vuelve a leer el proyecto para cada
+  uno. Devuelve una lista de corridas (clase `dl_corridas`, con los años como nombres: `corridas[["2023"]]`) y el
+  nombre de cada corrida lleva el año (`causa-<causa>-<año>`). El proyecto de todos los años se lee antes de correr el
+  primero: un año que no se puede leer (el ancla no lo trae ni trae el anterior, falta su población...) detiene
+  `dl_correr()` con el año y el problema, sin haber escrito ninguna corrida. Si un año falla al correr, se detiene
+  ahí con el error de ese año y dice qué años quedaron escritos. Los dos errores conservan la clase y los campos del
+  original (como `problemas`) y llevan además `anio` y `escritas`. Un proyecto leído con tablas dadas como argumentos se vuelve a leer con esas mismas tablas,
+  tenga carpeta o no. Sin `anios`, todo como antes.
+* `dl_proyecto(..., anio = 2021)` lee el proyecto para otro año que el de su configuración, sin editarla (los
+  proxies de `proxies_crudos` se calibran para ese año). Las lecturas de años distintos del mismo proyecto conviven
+  en la sesión.
+* El año del ancla sale de una sola regla. Sin `ancla.anio`, es el año que se estima si la tabla `ancla` lo trae; si
+  no, el año anterior, y el nivel nacional se proyecta desde él: un mensaje lo anuncia («el ancla no trae 2024: se
+  proyecta desde 2023»), `dl_revisar_proyecto()` lo muestra como aviso y queda en el manifiesto (la procedencia del
+  año del ancla y las limitaciones). La proyección es de un año a lo sumo. Con `ancla.anio` declarado y un año pedido
+  con `anio` o `anios`, el año del ancla es el menor de los dos: una configuración con `anio: 2024` y
+  `ancla: {anio: 2023}` sirve para 2024 y para los años anteriores, cada uno con su propia ancla (y la procedencia
+  del año del ancla lo dice).
+
+## Escribir una corrida que aún no converge
+
+* `dl_correr(..., forzar = TRUE)` escribe la corrida aunque las cadenas no pasen la compuerta de la convergencia: un
+  mensaje da su R-hat y su ESS y el manifiesto lo declara (`validacion.gates.force`), como en
+  `dl_exportar_corrida()`. No salta la compuerta del ancla. Sirve para mirar una corrida mientras se afinan las
+  cadenas; sus números no sirven para publicar.
+
+## Claves nuevas de la configuración
+
+Cuatro claves que antes solo se podían declarar bajo `avanzado`, con los nombres del formato completo:
+
+* `ancla.error_maximo` (un número entre 0 y 1; por defecto, 0.05): el error relativo mediano máximo entre la
+  prevalencia ajustada y la del ancla con que la corrida se escribe. Los mensajes de la compuerta del ancla la
+  nombran.
+* `mortalidad_exceso.fraccion_aguda` (de 0 a menos de 1): la parte de las muertes de la causa que ocurre en la fase
+  aguda y no entra al compartimento crónico.
+* `sensibilidad.fraccion_aguda`: los valores de la anterior que recorre el análisis de sensibilidad.
+* `subtipo_de`: la causa padre de un subtipo que vive en su propia carpeta. Sin betas propias, usa las de esa causa,
+  y su corrida declara a la causa padre, que es lo que pide la suma. Si la configuración del padre, en el mismo
+  proyecto, también lo declara en `subtipos`, las dos deben decir la misma causa.
+
+```yaml
+ancla:
+  error_maximo: 0.08
+mortalidad_exceso:
+  fraccion_aguda: 0.3
+subtipo_de: 1010
+```
+
+Una clave ausente no cambia nada: los proyectos de la versión 2.1.0 dan la misma configuración. Siguen en `avanzado`
+`emr_prior.factor_techo`, `nsub` y `emr_prior.fraccion_aguda.cfr_30d`.
+
+## Una causa que es la suma de sus subtipos
+
+* Claves nuevas `suma_de_subtipos` y `subtipos_omitidos`: la causa padre no se ajusta, se reporta como la suma de las
+  corridas de sus subtipos.
+
+  ```yaml
+  causa: 1010
+  nombre: Enfermedad de ejemplo
+  anio: 2023
+  subtipos: [1011, 1012, 1013]
+  suma_de_subtipos: sí
+  subtipos_omitidos:                 # opcional: los que no se modelan, con su motivo
+    - {causa: 1013, motivo: sin datos suficientes}
+  ```
+
+* El proyecto de una suma solo necesita `ubicaciones` y `poblacion`: no pide `edad_inicio`, ancla, severidad ni
+  betas. `print()` dice qué suma, `dl_revisar_proyecto()` revisa su configuración, sus dos tablas y qué subtipos
+  tienen configuración en el proyecto, y `dl_insumos()` la rechaza con un mensaje claro (no hay nada que ajustar).
+* `dl_correr()` de esa causa busca en la carpeta de las corridas la más reciente de cada subtipo que entra, del año
+  que se estima (las de prueba con `rapido = TRUE`, las de producción sin él), y las suma simulación a simulación.
+  No pide `semilla`. Los mensajes dicen qué corrida tomó de cada subtipo y cuáles se escribieron con
+  `forzar = TRUE`, que en una suma de producción quedan también entre las limitaciones de su manifiesto; si falta
+  la de un subtipo, el error dice cuál, de qué año y dónde se buscó. Con `anios`, suma cada año con las corridas de
+  ese año.
+
+  ```r
+  for (causa in c(1011, 1012)) dl_correr("mi_proyecto", causa = causa, semilla = 1)
+  dl_correr("mi_proyecto", causa = 1010)
+  ```
+
+* Límites: una suma no puede ser subtipo de otra suma; y entre corridas de un subtipo escritas el mismo día con
+  nombres distintos, la más reciente es la que se escribió última (por la fecha de su `manifest.yaml`: copiar la
+  carpeta de las corridas sin conservar las fechas cambia ese desempate).
+* `dl_sumar_hijas()` no cambia: queda para sumar corridas elegidas a mano.
+
+## Covariables y ancla
+
+* `valor_nacional_de` (tabla `betas`): la beta que lo declara ya no necesita la fila nacional de su propia
+  covariable, copiada con otro nombre; basta la de la covariable que nombra. La exención vale para una covariable
+  con valores subnacionales (en `covariables` o en `proxies_crudos`). Con `proxies_crudos`, la calibración cierra en
+  el valor nacional de la covariable nombrada: `dl_proyecto()` lo toma de `betas`, `dl_calibrar_proxies()` tiene el
+  argumento `valor_nacional_de`, y el manifiesto lo registra en `params.proxies`, solo en la covariable que toma
+  su valor nacional de otra. Un proyecto que trae la fila copiada sigue dando lo mismo.
+* Las filas de ambos sexos del ancla, que el modelo no usa, ya no piden `poblacion_detalle` de `ambos` cuando el
+  ancla trae bandas más finas que la población: sin ese detalle, se dejan fuera.
+
+## Cambios de comportamiento
+
+* Un ancla que no trae el año que se estima ya no es un error si trae el año anterior: se proyecta desde él y se
+  anuncia (arriba). Antes había que declarar `ancla: {anio: ...}`. Si no trae el año ni el anterior, sigue siendo
+  un error, que dice qué años trae.
+* Un subtipo declarado en `subtipos` por dos configuraciones del mismo proyecto es ahora un error: un subtipo tiene
+  una sola causa padre.
+
+## Revisión del proyecto
+
+* `dl_revisar_proyecto()` avisa (`!`), en el paso de la configuración, cuando una clave y su equivalente del formato
+  completo bajo `avanzado` están las dos declaradas con valores distintos (por ejemplo `ancla: {error_maximo: 0.1}`
+  y `avanzado: {anchor: {gate_err_mediano: {valor: 0.2, ...}}}`): nombra las dos y dice que rige la de `avanzado`.
+  Vale para las claves de números (`ancla.error_maximo`, `mortalidad_exceso.fraccion_aguda`,
+  `sensibilidad.fraccion_aguda`, `subtipo_de`, `ancla.peso`, `remision`...). La lectura no cambia.
+
+## Compatibilidad
+
+* Un proyecto que corría con la versión 2.1.0 da los mismos insumos, las mismas salidas y los mismos manifiestos. El
+  arnés de compatibilidad sigue reproduciendo la versión 0.2.2 bit a bit.
+* Los argumentos nuevos (`anio`, `anios`, `forzar`, `valor_nacional_de`) van al final de las firmas.
+
+## Guías
+
+* «Corridas, versiones y tablas consolidadas»: varios años con `anios`, la regla del año del ancla y la proyección,
+  `forzar` y cómo correr todas las causas de un proyecto, con las que son la suma de sus subtipos al final.
+* «Subtipos y suma»: el flujo con `dl_correr()` para los subtipos y para la suma (`suma_de_subtipos`,
+  `subtipos_omitidos`), con `dl_sumar_hijas()` como la forma manual.
+* «Preparar tus datos»: las claves nuevas, la configuración de una suma, `valor_nacional_de` sin fila copiada y las
+  filas de ambos sexos del ancla.
+
 # dismodlite 2.1.0
 
 Los valores subnacionales de una covariable pueden venir de una encuesta: el paquete los calibra al leer el proyecto.

@@ -228,7 +228,7 @@ sd_{log} = \sqrt{\sigma_{log,p}^2 + \sigma_{log,\text{csmr}}^2},
 $$
 
 con la incertidumbre de las dos medidas del ancla. La fracción aguda (las muertes de la fase aguda de la enfermedad,
-que no son del modelo crónico) es 0 salvo que se declare en `avanzado` (`emr_prior.fraccion_aguda`), y
+que no son del modelo crónico) es 0 salvo que se declare (`mortalidad_exceso.fraccion_aguda`), y
 `emr_prior.factor_sd` puede ensanchar $sd_{log}$. Cada nudo toma el prior de la banda que lo contiene (un nudo fuera
 de las bandas del ancla toma la más cercana, con el doble de desviación estándar), y
 

@@ -50,6 +50,81 @@
   invisible(TRUE)
 }
 
+# Las corridas escritas en `carpeta_salida` (<carpeta_salida>/mod/dismod_lite/<run_id>/, con su manifiesto), una fila
+# por corrida: dir, run_id, fecha, nombre y versión (las de su run_id), si es de prueba (su nombre termina en
+# «-prueba», como las de dl_correr(rapido = TRUE)), la causa y el año de su manifiesto y `escrita`, la hora en que se
+# escribió (la fecha de modificación de manifest.yaml, lo último que se escribe de una corrida: el manifiesto solo
+# guarda el día). Las carpetas sin manifiesto, o cuyo nombre no es un run_id, no cuentan; una con un manifiesto que no
+# se puede leer se salta con un aviso. Devuelve un data.frame.
+.dl_corridas_escritas <- function(carpeta_salida) {
+  dirs <- list.dirs(.dl_dir_corrida(carpeta_salida), recursive = FALSE)
+  dirs <- dirs[file.exists(file.path(dirs, "manifest.yaml"))]
+  filas <- lapply(dirs, function(d) {
+    partes <- .dl_partes_run_id(basename(d))
+    if (is.null(partes)) return(NULL)
+    man <- .dl_manifest_o_aviso(d)
+    if (is.null(man)) return(NULL)
+    data.table::data.table(dir = d, run_id = basename(d), fecha = partes$fecha, nombre = partes$nombre, v = partes$v,
+                           prueba = endsWith(partes$nombre, "-prueba"),
+                           causa = as.integer(man$causa$cause_id %||% NA_integer_),
+                           anio = as.integer(man$params$year %||% NA_integer_),
+                           escrita = as.numeric(file.mtime(file.path(d, "manifest.yaml"))))
+  })
+  vacia <- data.table::data.table(dir = character(), run_id = character(), fecha = character(), nombre = character(),
+                                  v = integer(), prueba = logical(), causa = integer(), anio = integer(),
+                                  escrita = numeric())
+  as.data.frame(data.table::rbindlist(c(list(vacia), filas)))
+}
+
+# El manifiesto de la corrida de la carpeta `dir_run`; si no se puede leer (no es un YAML válido, o no es una lista de
+# claves), NULL y un aviso que nombra el archivo.
+.dl_manifest_o_aviso <- function(dir_run) {
+  man <- tryCatch(.dl_leer_manifest(dir_run), error = function(e) e)
+  if (is.list(man) && !inherits(man, "condition")) return(man)
+  .dl_warn("no se puede leer el manifiesto de una corrida y no se cuenta: %s%s", file.path(dir_run, "manifest.yaml"),
+           if (inherits(man, "condition")) sprintf("\n  %s", .dl_detalle(man)) else "")
+  NULL
+}
+
+# Las corridas de `x` (filas de .dl_corridas_escritas) con la más reciente de cada causa primero: la del último día;
+# en ese día, de cada nombre la de mayor versión (la versión se cuenta por nombre y día: no se compara entre
+# nombres) y, entre nombres distintos, la última que se escribió.
+.dl_recientes_primero <- function(x) {
+  if (!nrow(x)) return(x)
+  x <- x[x$fecha == stats::ave(x$fecha, x$causa, FUN = max), ]
+  x <- x[x$v == stats::ave(x$v, x$causa, x$nombre, FUN = max), ]
+  x[order(x$escrita, decreasing = TRUE), ]
+}
+
+# La carpeta de la corrida más reciente (.dl_recientes_primero) de cada causa de `causas` para el año `anio` en
+# `carpeta_salida`: las de prueba (`prueba`) o las de producción. Un vector en el orden de `causas`. Si falta la de
+# alguna causa, un error que dice cuáles, de qué año y dónde se buscó, de qué otros años hay corridas de esa clase
+# de esas causas, y si de ese año solo las hay de la otra clase.
+.dl_corridas_de_subtipos <- function(carpeta_salida, causas, anio, prueba) {
+  todas <- .dl_corridas_escritas(carpeta_salida)
+  x <- todas[todas$causa %in% causas & todas$anio %in% anio, ]
+  de <- .dl_recientes_primero(x[x$prueba == prueba, ])
+  faltan <- setdiff(causas, de$causa)
+  if (length(faltan)) {
+    clase <- function(p) if (p) "de prueba" else "de producci\u00f3n"
+    otras <- intersect(faltan, x$causa[x$prueba != prueba])
+    otros <- todas[todas$causa %in% faltan & todas$prueba == prueba & !is.na(todas$anio), ]
+    anios <- vapply(split(otros$anio, otros$causa), function(a) paste(sort(unique(a)), collapse = ", "), "")
+    .dl_stop(paste0("falta la corrida %s de %d del/de los subtipo(s) %s en %s: c\u00f3rrelo(s) antes con dl_correr() ",
+                    "en esa carpeta de corridas (`carpeta_salida`)%s%s"),
+             clase(prueba), anio, paste(faltan, collapse = ", "), .dl_dir_corrida(carpeta_salida),
+             if (length(anios))
+               sprintf(". Corridas %s de otros a\u00f1os: %s. Para sumar las de un a\u00f1o, dl_correr(anios = )",
+                       clase(prueba), paste(sprintf("%s (%s)", names(anios), anios), collapse = "; "))
+             else "",
+             if (length(otras))
+               sprintf(". De %s solo hay corridas %s: para sumarlas, rapido = %s", paste(otras, collapse = ", "),
+                       clase(!prueba), if (prueba) "FALSE" else "TRUE")
+             else "", campos = list(faltan = faltan, anio = anio))
+  }
+  de$dir[match(causas, de$causa)]
+}
+
 # Fila del padre en master_gbd.csv: nombre en español e hijas declaradas (columna hijos, «a|b|c»).
 .dl_master_padre <- function(paths, id) {
   m <- .dl_master_leer(paths)
@@ -71,9 +146,10 @@
 }
 
 # Limitaciones del manifiesto de una suma, armadas con lo que hizo la suma (hijas sumadas y omitidas, año del ancla,
-# hijas con la fase aguda descontada). Cada condición aporta siempre el mismo número de limitaciones. Los textos no
-# llevan «: » (el manifiesto los emite sin comillas).
-.dl_limitaciones_suma <- function(ids_hijas, omitidas, anio, anio_ancla, fraccion_aguda) {
+# hijas con la fase aguda descontada, hijas `forzadas`: las de una suma de producción de dl_correr() escritas con
+# forzar = TRUE). Cada condición aporta siempre el mismo número de limitaciones. Los textos no llevan «: » (el
+# manifiesto los emite sin comillas).
+.dl_limitaciones_suma <- function(ids_hijas, omitidas, anio, anio_ancla, fraccion_aguda, forzadas = integer()) {
   c(list(
     sprintf(paste0("suma simulaci\u00f3n a simulaci\u00f3n de %d causas hijas (%s) \u2014 ",
                    .DL_LIMITACION_CORRELACION_HIJAS, " (cada hija viene de su propio ajuste)"),
@@ -89,7 +165,11 @@
       list(sprintf(paste0("fase aguda descontada del csmr en la(s) hija(s) %s \u2014 su incidencia es ",
                           .DL_LIMITACION_INCIDENCIA_AGUDA, " del ancla, y as\u00ed entra en la suma (ver ",
                           "causa.hijas[].csmr_fraccion_aguda)"),
-                   paste(ids_hijas[fraccion_aguda > 0], collapse = ", "))))
+                   paste(ids_hijas[fraccion_aguda > 0], collapse = ", "))),
+    if (length(forzadas))
+      list(sprintf(paste0("corrida(s) de la(s) hija(s) %s escrita(s) con forzar = TRUE \u2014 sus cadenas no pasaron ",
+                          "la compuerta de convergencia y la suma las toma igual (ver validacion.gates en el ",
+                          "manifiesto de cada una)"), paste(forzadas, collapse = ", "))))
 }
 
 #' Sumar las corridas de las causas hijas
@@ -99,12 +179,18 @@
 #' manifiesto. El intervalo sale de los cuantiles de la suma de simulaciones.
 #'
 #' @details
+#' En un proyecto no hace falta llamarla: si la configuración de la causa padre dice `suma_de_subtipos: sí`,
+#' [dl_correr()] de esa causa busca la corrida más reciente de cada subtipo y las suma con esta función (ver
+#' [dl_proyecto()]). `dl_sumar_hijas()` queda para sumar corridas elegidas a mano: las de otra carpeta de corridas,
+#' una corrida que no es la más reciente, una variante con otras hijas omitidas, o un proyecto del formato completo.
+#'
 #' En un proyecto, la causa padre declara sus hijas en `subtipos` (ver [dl_configuracion()]) y las rutas de su proyecto,
 #' `dl_proyecto(carpeta, <padre>)$rutas`, traen ese registro (también las de una carpeta propia de la causa padre, con
-#' `subtipos`, `ubicaciones`, `poblacion` y su ancla: [dl_proyecto()] la lee aunque la causa no se ajuste). Cada hija se
+#' `subtipos`, `ubicaciones` y `poblacion`: con `suma_de_subtipos: sí` no necesita ancla, y entonces hay que dar
+#' `nombre_causa`). Cada hija se
 #' corre por separado (por ejemplo con [dl_correr()]) y su corrida debe declarar a la causa padre (`extraction_cause_id`
 #' en su manifiesto): lo hace sola si la hija se lee en el mismo proyecto que la configuración del padre; una hija en su
-#' propia carpeta lo declara con `avanzado: {extraction: {cause_id: <padre>, motivo: ...}}` (ver [dl_configuracion()]).
+#' propia carpeta lo declara con `subtipo_de: <padre>` (ver [dl_configuracion()]).
 #' Antes de sumar se comprueba que las corridas sean de esas hijas, con el mismo año, año del ancla, ronda de GBD,
 #' número de simulaciones y celdas (ubicaciones, sexos y bandas). La simulación k de la suma es la suma de las
 #' simulaciones k de las hijas; la correlación entre hijas no se modela (cada una viene de su propio ajuste). Una hija
@@ -117,7 +203,8 @@
 #' @param corridas_hijas Carpetas de las corridas exportadas de las hijas.
 #' @param causa Identificador de la causa padre.
 #' @param nombre Nombre corto de la corrida nueva: minúsculas sin tildes, números y guiones.
-#' @param nombre_causa Nombre de la causa padre en las celdas (por defecto, el del ancla de prevalencia).
+#' @param nombre_causa Nombre de la causa padre en las celdas (por defecto, el del ancla de prevalencia; las rutas del
+#'   proyecto de una causa con `suma_de_subtipos: sí` no traen ancla).
 #' @param rutas Rutas de [dl_rutas()]; se usan el registro (la carpeta de tablas de referencia con
 #'   `master_gbd.csv`), los catálogos y el ancla. Hay que darlas (por ejemplo `dl_rutas_ejemplo(9100)` con los
 #'   datos de ejemplo).
@@ -125,8 +212,9 @@
 #'   de la causa padre en la parte de cada hija omitida, y el manifiesto lo declara con su motivo.
 #' @return Objeto de clase `dl_run` de la corrida de la suma, con `run_id`, `dir`, `manifest` y `files` (como en
 #'   [dl_exportar_corrida()]).
-#' @seealso [dl_correr()] (las corridas de las hijas), [dl_configuracion()] (`subtipos`) y [dl_consolidar()] (que
-#'   exige la suma para una causa con hijas).
+#' @seealso [dl_correr()] (las corridas de las hijas y, con `suma_de_subtipos: sí` en la configuración de la causa
+#'   padre, la suma en una llamada), [dl_proyecto()] (la sección de los subtipos), [dl_configuracion()] (`subtipos`,
+#'   `suma_de_subtipos`, `subtipos_omitidos`) y [dl_consolidar()] (que exige la suma para una causa con hijas).
 #' @family corrida
 #' @examples
 #' \donttest{
@@ -146,6 +234,15 @@
 dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("DATA_ROOT"), nombre_causa = NULL,
                            nivel = 0.95, registrar = !is.null(registro), registro = NULL, rutas = dl_rutas(),
                            omitidas = NULL) {
+  .dl_sumar_corridas(corridas_hijas, causa, nombre, carpeta, nombre_causa, nivel, registrar, registro, rutas, omitidas)
+}
+
+# La suma de dl_sumar_hijas(), con sus argumentos, y `forzadas`: las hijas cuya corrida se escribió con forzar = TRUE
+# y que el manifiesto declara entre sus limitaciones (las que da dl_correr() de una suma de producción;
+# dl_sumar_hijas() no da ninguna). Un `nombre` que falta en dl_sumar_hijas() falta también aquí.
+.dl_sumar_corridas <- function(corridas_hijas, causa, nombre, carpeta, nombre_causa = NULL, nivel = 0.95,
+                               registrar = !is.null(registro), registro = NULL, rutas = dl_rutas(), omitidas = NULL,
+                               forzadas = integer()) {
   .dl_exigir_registro(registrar, registro)
   .dl_exigir_nivel(nivel, exportable = TRUE)
   if (missing(nombre)) .dl_stop("falta `nombre` (nombre corto de la corrida de la suma, p. ej. \"acs-suma\")")
@@ -207,7 +304,7 @@ dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("
                   estadistico_puntual = .DL_ESTADISTICO_PUNTUAL, version_paquete = dl_version()),
     inputs = list(runs_hijas = lapply(hijas, function(h) h$run_id)),
     files = archivos,
-    limitaciones = .dl_limitaciones_suma(ids_hijas, omitidas, anio, anio_ancla, fraccion_aguda)))
+    limitaciones = .dl_limitaciones_suma(ids_hijas, omitidas, anio, anio_ancla, fraccion_aguda, forzadas)))
   .dl_escribir_manifest(man, dir_run)
   .dl_corrida_escrita(man, dir_run, if (registrar) registro)
 }

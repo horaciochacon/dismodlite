@@ -4,7 +4,13 @@
 \alias{dl_proyecto}
 \title{Proyecto de una causa}
 \usage{
-dl_proyecto(carpeta = NULL, causa = NULL, ..., configuracion = NULL)
+dl_proyecto(
+  carpeta = NULL,
+  causa = NULL,
+  ...,
+  configuracion = NULL,
+  anio = NULL
+)
 }
 \arguments{
 \item{carpeta}{Carpeta del proyecto: la que tiene \code{config.yaml} o \verb{config/} (opcional si se dan \code{configuracion} y
@@ -18,6 +24,9 @@ de un CSV o de una carpeta. Reemplazan a las de la carpeta.}
 
 \item{configuracion}{Ruta del YAML de la configuración o una lista con sus claves (opcional; por defecto, la de la
 carpeta).}
+
+\item{anio}{Año que se estima (un entero), en lugar del \code{anio} de la configuración; \code{NULL} (por defecto) deja el
+de la configuración. Ver Detalles para el año del ancla.}
 }
 \value{
 Objeto de clase \code{dl_proyecto}: una lista con
@@ -26,13 +35,17 @@ Objeto de clase \code{dl_proyecto}: una lista con
 \code{origen$por_defecto}: las claves tomadas por defecto, con su valor.
 \item \code{rutas}: las rutas de los insumos, de clase \code{dl_paths}, como las de \code{\link[=dl_rutas]{dl_rutas()}}. Apuntan a la traducción, en
 la carpeta temporal de la sesión: en otra sesión, o después de cambiar la configuración o una tabla (la
-traducción anterior se borra), vuelve a llamar a \code{dl_proyecto()}.
+traducción anterior del mismo año se borra), vuelve a llamar a \code{dl_proyecto()}.
 \item \code{carpeta}: la carpeta del proyecto (\code{NULL} sin carpeta).
 \item \code{formato}: \code{"simple"} (un proyecto con las tablas del contrato) o \code{"completo"} (el formato de la 0.2.2).
 \item \code{tablas}: las tablas del contrato, una lista nombrada de \code{\link[=dl_tabla]{dl_tabla()}} (\code{NULL} en el formato completo), tal
-como vinieron (\code{covariables} sin las filas calibradas).
+como vinieron (\code{covariables} sin las filas calibradas). De una suma de subtipos, solo \code{ubicaciones} y
+\code{poblacion}.
 \item \code{calibracion}: solo si el proyecto trae \code{proxies_crudos}, el resultado de \code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}} (las filas
 calibradas, con los atributos \code{calibracion}, \code{series} y \code{excluidas}).
+\item \code{configuracion_dada}: solo si \code{configuracion} se dio como lista, esa lista tal como se dio.
+\item \code{tablas_dadas}: solo si se dieron tablas en \code{...}, esas tablas tal como se dieron (un \code{data.frame} o una
+ruta). Con las dos, \code{\link[=dl_correr]{dl_correr()}} vuelve a leer el mismo proyecto para cada año de \code{anios}.
 }
 }
 \description{
@@ -65,11 +78,30 @@ subnacionales, los proxies cierran en el valor nacional, los datos tienen valore
 El proyecto se traduce al formato completo de la versión 0.2.2, el que usa el resto del paquete: la configuración y
 las tablas a una carpeta temporal de la sesión, que se reutiliza mientras no cambien. Los números leídos pasan tal
 cual; solo se calcula lo que sale de la población (el total nacional, si no viene) y la agrupación del ancla en las
-bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina).
+bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina; sus filas de ambos sexos, que el modelo no
+usa, no piden ese detalle y se dejan fuera si no lo traen).
 
 \code{print()} muestra la causa, el año, las tablas que encontró, el modo subnacional, la calibración de
 \code{proxies_crudos} (por covariable: el método, q y las ediciones) y las claves de la configuración que tomaron su
 valor por defecto.
+
+\code{anio} lee el proyecto para otro año que el de su configuración, sin editarla: es como escribir ese \code{anio} en el
+archivo (los proxies de \code{proxies_crudos} se calibran para ese año). Las lecturas de años distintos del mismo
+proyecto conviven en la sesión. El año del ancla, el de la estimación de referencia que se usa, sale de una sola
+regla:
+\itemize{
+\item sin \code{ancla.anio} en la configuración, es el año que se estima si la tabla \code{ancla} trae la prevalencia de la causa
+en ese año; si no la trae, el último año anterior que trae, y un mensaje lo anuncia («el ancla no trae 2024: se
+proyecta desde 2023»). La proyección queda en la procedencia del año del ancla (\code{years.ancla}) y en las
+limitaciones del manifiesto de la corrida, y \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} la muestra como aviso;
+\item con \code{ancla.anio}, ese año, que no puede ser posterior al \code{anio} de la configuración. Con el argumento \code{anio}
+es el menor entre los dos: una configuración con \code{anio: 2024} y \code{ancla: {anio: 2023}} sirve para 2024
+(proyectado desde 2023) y, con \code{anio = 2023} o un año anterior, para ese año con su propia ancla. El argumento
+\code{anio} solo baja el año del ancla declarado con \code{ancla.anio}: uno declarado en \code{avanzado} (o en \code{years.ancla}
+del formato completo) no se ajusta solo, y para un año anterior hay que cambiarlo en la configuración;
+\item el ancla es, a lo sumo, de un año antes del que se estima: mantiene el nivel nacional, no lo extrapola. Si el
+ancla no trae el año ni ninguno anterior, las reglas entre tablas dicen qué falta.
+}
 
 Sin carpeta, las rutas relativas de la configuración (\code{severidad.particion}) se resuelven contra el directorio de
 trabajo; con carpeta, contra la carpeta del proyecto. Las secuelas y los estados de salud de una partición de
@@ -97,10 +129,12 @@ puede leer en un proyecto (sí en el formato completo, con sus catálogos).
 Cada tabla es \verb{<tabla>.csv} o una carpeta \verb{<tabla>/} cuyos CSV se juntan (cada uno pasa por su lector), como
 \verb{poblacion_detalle/} con un CSV por fuente. Las rutas no se declaran, salvo la de la partición de severidad
 (\code{severidad.particion}, relativa a la carpeta). Los demás archivos de la carpeta (un \code{LEEME.md}, la carpeta
-\verb{resultados/} que escribe \code{\link[=dl_correr]{dl_correr()}}) no se leen. Una tabla opcional ausente, o con solo el encabezado, no existe (así quedan las plantillas de
-\code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}}). Las obligatorias son \code{ubicaciones}, \code{poblacion} y \code{ancla}: con ellas se estima la causa en
-el país y, si hay ubicaciones subnacionales, en cada una con las tasas nacionales. \code{\link[=dl_correr]{dl_correr()}}, que calcula los
-años vividos con discapacidad (AVD), necesita también \code{severidad} (o \code{severidad.particion} en la configuración).
+\verb{resultados/} que escribe \code{\link[=dl_correr]{dl_correr()}}) no se leen. Una tabla opcional ausente, o con solo el encabezado, no
+existe (así quedan las plantillas de \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}}). Las obligatorias son \code{ubicaciones}, \code{poblacion} y
+\code{ancla} (una causa que es la suma de sus subtipos solo usa las dos primeras: ver «Subtipos y la causa que es su
+suma»): con ellas se estima la causa en el país y, si hay ubicaciones subnacionales, en cada una con las tasas
+nacionales. \code{\link[=dl_correr]{dl_correr()}}, que calcula los años vividos con discapacidad (AVD), necesita también \code{severidad} (o
+\code{severidad.particion} en la configuración).
 \code{covariables} y \code{betas} agregan las diferencias entre ubicaciones subnacionales y \code{datos}, los datos locales. Las
 columnas de cada tabla, sus unidades y sus valores están en \link{dl_tablas}. Con \code{proxies_crudos}, \code{dl_proyecto()}
 calibra los valores subnacionales de sus covariables para el año que se estima (\code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}, con las
@@ -108,19 +142,44 @@ claves \verb{proxies.*} de la configuración) y los agrega a \code{covariables};
 las dos tablas.
 
 Con varias causas, cada una tiene su configuración en \verb{config/<causa>.yaml} y comparten las tablas, que traen las
-filas de todas en la columna \code{causa} (sin ella, una fila vale para todas). Una causa que es la suma de otras las
-declara en \code{subtipos}; un subtipo sin betas propias usa las de su causa padre. El subtipo encuentra a su padre por
-esa clave, en otra configuración del mismo proyecto; leído solo (en su propia carpeta), lo declara con
-\verb{avanzado: \{extraction: \{cause_id: <padre>, motivo: ...\}\}} y, sin betas propias, usa las de esa causa (ver
-\code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}). La causa padre se lee con \code{dl_proyecto()} aunque solo se sume: necesita su prevalencia en el
-ancla (y su mortalidad, con el prior por defecto de la mortalidad en exceso). Cada subtipo se corre por separado y
-sus corridas se suman con \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, con las rutas del proyecto de la causa padre:
+filas de todas en la columna \code{causa} (sin ella, una fila vale para todas).
+}
 
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{corridas <- vapply(c(1011, 1012), function(k) dl_correr(carpeta, k, semilla = 1)$dir, "")
-dl_sumar_hijas(corridas, causa = 1010, nombre = "suma", carpeta = file.path(carpeta, "resultados"),
-               rutas = dl_proyecto(carpeta, 1010)$rutas,
-               omitidas = list(list(cause_id = 1013, motivo = "sin datos suficientes")))
+\section{Subtipos y la causa que es su suma}{
+
+Una causa que es la suma de otras las declara en \code{subtipos}; un subtipo sin betas propias usa las de su causa padre.
+El subtipo encuentra a su padre por esa clave, en otra configuración del mismo proyecto; leído solo (en su propia
+carpeta), lo declara con \verb{subtipo_de: <padre>} y, sin betas propias, usa las de esa causa; si las dos
+configuraciones dicen su padre, deben decir la misma causa. Un subtipo tiene una sola causa padre: que dos
+configuraciones del proyecto lo declaren en \code{subtipos} es un error.
+
+Si la causa padre no se ajusta, sino que se reporta como la suma de las corridas de sus subtipos, su configuración
+lo dice con \code{suma_de_subtipos: sí}:
+
+\if{html}{\out{<div class="sourceCode yaml">}}\preformatted{causa: 1010
+nombre: Enfermedad de ejemplo
+anio: 2023
+subtipos: [1011, 1012, 1013]
+suma_de_subtipos: sí
+subtipos_omitidos:                 # opcional: los subtipos que no se modelan, con su motivo
+  - \{causa: 1013, motivo: sin datos suficientes\}
 }\if{html}{\out{</div>}}
+
+El proyecto de una suma solo usa las tablas \code{ubicaciones} y \code{poblacion} (dan los catálogos de su corrida), que son
+sus dos tablas obligatorias: no necesita \code{edad_inicio}, ancla, severidad ni betas, y las demás tablas de la carpeta,
+que son de las otras causas, no se leen. Exige \code{nombre} (el de la causa en las tablas de su corrida). Puede ser una
+configuración más de un proyecto con varias causas o vivir en su propia carpeta. \code{print()} dice qué suma («suma de
+los subtipos 1011 + 1012 (omitido: 1013)»), \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} revisa sus dos tablas, su configuración y qué
+subtipos tienen configuración en el proyecto, y \code{\link[=dl_insumos]{dl_insumos()}} la rechaza: no hay nada que ajustar. Cada subtipo
+se corre por separado y \code{\link[=dl_correr]{dl_correr()}} de la causa las suma, con las corridas que encuentra en la carpeta de las
+corridas:
+
+\if{html}{\out{<div class="sourceCode r">}}\preformatted{for (k in c(1011, 1012)) dl_correr(carpeta, k, semilla = 1)
+dl_correr(carpeta, 1010)
+}\if{html}{\out{</div>}}
+
+Una causa padre con \code{subtipos} y sin \code{suma_de_subtipos} se ajusta como cualquier otra, con su ancla. Para sumar
+corridas elegidas a mano (de otras carpetas, o que no son las más recientes), \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}.
 }
 
 \section{Formato completo}{
@@ -141,10 +200,20 @@ p
 p$configuracion$origen$por_defecto
 p$tablas$poblacion
 
+# el mismo proyecto leído para otro año, sin editar la configuración
+dl_proyecto(dl_ejemplo(), 9101, anio = 2019)
+
 # un proyecto mínimo sin carpeta: la configuración y las tablas obligatorias como argumentos
 p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30),
                  ubicaciones = dl_ejemplo("ubicaciones.csv"),
                  poblacion = dl_ejemplo("poblacion.csv"), ancla = dl_ejemplo("ancla"))
+
+# una causa que es la suma de sus subtipos: solo su configuración, las ubicaciones y la población
+suma <- dl_proyecto(configuracion = list(causa = 9200, nombre = "Suma de ejemplo", anio = 2023,
+                                         subtipos = c(9101, 9102, 9103), suma_de_subtipos = "sí"),
+                    ubicaciones = dl_ejemplo("ubicaciones.csv"),
+                    poblacion = dl_ejemplo("poblacion.csv"))
+suma
 \donttest{
 # el paso siguiente: los insumos
 b <- dl_insumos(p)

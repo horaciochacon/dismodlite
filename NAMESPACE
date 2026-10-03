@@ -3,6 +3,7 @@
 S3method(print,dl_bundle)
 S3method(print,dl_cascade)
 S3method(print,dl_config)
+S3method(print,dl_corridas)
 S3method(print,dl_fit)
 S3method(print,dl_mcmc_opts)
 S3method(print,dl_paths)

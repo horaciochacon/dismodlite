@@ -127,6 +127,31 @@ test_that("emr_prior.factor_sd: valor >= 1 con procedencia", {
   expect_error(dl_configuracion(9100L, d), "emr_prior[.]factor_sd[.]procedencia")
 })
 
+# Las claves cortas del error del ancla, la fase aguda y el subtipo: su destino es una clave del formato completo y
+# salen en la tabla de ?dl_configuracion; las que siguen solo en `avanzado` se aceptan tal cual.
+test_that("las claves cortas ancla.error_maximo, fraccion_aguda y subtipo_de tienen destino y están en la ayuda", {
+  t <- .dl_claves_simple()
+  nuevas <- c("ancla.error_maximo", "mortalidad_exceso.fraccion_aguda", "sensibilidad.fraccion_aguda", "subtipo_de")
+  expect_true(all(nuevas %in% t$clave))
+  expect_true(all(t$destino[match(nuevas, t$clave)] %in% .DL_CLAVES_CONFIG))
+  rd <- paste(.dl_rd_config_simple(), collapse = "\n")
+  for (k in nuevas) expect_match(rd, sprintf("\\code{%s}", k), fixed = TRUE, info = k)
+  # las de una suma de subtipos: en la ayuda, y los omitidos con su destino en el formato completo (suma.omitidas)
+  suma <- c("suma_de_subtipos", "subtipos_omitidos[].causa", "subtipos_omitidos[].motivo")
+  expect_true(all(suma %in% t$clave))
+  for (k in suma) expect_match(rd, sprintf("\\code{%s}", k), fixed = TRUE, info = k)
+  expect_identical(t$destino[match(suma, t$clave)], c("", "suma.omitidas[].cause_id", "suma.omitidas[].motivo"))
+  expect_true("suma.omitidas" %in% .DL_CLAVES_CONFIG)
+  base <- list(causa = 501L, anio = 2020L, edad_inicio = 40L)
+  ctx <- list(ubicacion = "999", nombre = "x", subnacional = FALSE)
+  cfg <- .dl_config_simple(c(base, list(avanzado = list(
+    emr_prior = list(factor_techo = 4, fraccion_aguda = list(valor = 0.3, procedencia = "x", cfr_30d = 0.1)),
+    nsub = 10))), "config.yaml", 501L, ctx)
+  expect_identical(cfg$emr_prior$factor_techo, 4)
+  expect_identical(cfg$emr_prior$fraccion_aguda$cfr_30d, 0.1)
+  expect_identical(cfg$nsub, 10)
+})
+
 # Umbral de anchor_identity (error relativo mediano; 0.05 por defecto). Relajarlo exige procedencia.
 test_that("anchor.gate_err_mediano: en (0, 1) con procedencia; sin el campo, 0.05", {
   expect_equal(dl_configuracion(9100L, carpeta_config = config_dir_ejemplo())$anchor$gate_err_mediano$valor, 0.05)

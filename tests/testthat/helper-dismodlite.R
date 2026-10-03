@@ -46,6 +46,20 @@ copia_ejemplo <- function(..., env = parent.frame()) {
   d
 }
 
+# Una copia del proyecto de ejemplo con una causa que es la suma de sus subtipos: config/9200.yaml (la suma de 9101,
+# 9102 y 9103, más las líneas `extra`). Un subtipo tiene una sola causa padre: en la copia, 9100 deja de declararlos
+# en `subtipos`, y la tabla betas trae para 9200 las betas de 9100, que usan los subtipos sin betas propias.
+copia_con_suma <- function(extra = character(), env = parent.frame()) {
+  d <- copia_ejemplo(`config/9200.yaml` = c("causa: 9200", "nombre: Suma sintética de subtipos", "anio: 2023",
+                                            "subtipos: [9101, 9102, 9103]", "suma_de_subtipos: sí", extra),
+                     env = env)
+  cfg <- readLines(file.path(d, "config", "9100.yaml"), encoding = "UTF-8")
+  writeLines(enc2utf8(cfg[!startsWith(cfg, "subtipos:")]), file.path(d, "config", "9100.yaml"), useBytes = TRUE)
+  betas <- leer_texto(file.path(d, "betas.csv"))
+  escribir_texto(rbind(betas, data.table::copy(betas)[, causa := "9200"]), d, "betas.csv")
+  d
+}
+
 # Una tabla de un proyecto como texto (todas las columnas character, vacíos como ""), y su escritura en file.path(...).
 leer_texto <- function(f) data.table::fread(f, colClasses = "character", na.strings = NULL, encoding = "UTF-8")
 escribir_texto <- function(x, ...) data.table::fwrite(x, file.path(...), eol = "\n")

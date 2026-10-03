@@ -14,6 +14,10 @@ personas. Las bandas de edad son \verb{[edad_inicio, edad_fin)} en años enteros
 \details{
 Cada tabla es un CSV (o una carpeta de CSV) de la carpeta del proyecto con su nombre, o un \code{data.frame} que se pasa
 a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten solas.
+
+El ancla puede traer filas de ambos sexos, pero el modelo no las usa: si son más finas que la población y
+\code{poblacion_detalle} no trae \code{ambos}, se dejan fuera en vez de pedir ese detalle (el de hombres y mujeres sí hace
+falta); con detalle de \code{ambos}, se agrupan como las de cada sexo.
 }
 \section{Tabla \code{ubicaciones}}{
 
@@ -64,7 +68,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \strong{columna} \tab \strong{tipo} \tab \strong{exige} \tab \strong{qué es}\cr
 \code{causa} \tab entero \tab no \tab Causa\cr
 \code{anio} \tab entero \tab sí \tab Año\cr
-\code{sexo} \tab texto \tab sí \tab hombres, mujeres o ambos\cr
+\code{sexo} \tab texto \tab sí \tab hombres, mujeres o ambos (el modelo no usa las filas de ambos sexos: no hacen falta)\cr
 \code{edad_inicio} \tab número \tab sí \tab Primera edad de la banda (años)\cr
 \code{edad_fin} \tab número \tab sí \tab Fin de la banda (excluido); vacío en la banda abierta (años)\cr
 \code{medida} \tab texto \tab sí \tab Qué mide la fila\cr
@@ -77,7 +81,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \describe{
 \item{\code{causa}}{Causa. Entero, opcional.}
 \item{\code{anio}}{Año. Entero, obligatoria.}
-\item{\code{sexo}}{hombres, mujeres o ambos. Texto, obligatoria.}
+\item{\code{sexo}}{hombres, mujeres o ambos (el modelo no usa las filas de ambos sexos: no hacen falta). Texto, obligatoria.}
 \item{\code{edad_inicio}}{Primera edad de la banda (años). Número, obligatoria.}
 \item{\code{edad_fin}}{Fin de la banda (excluido); vacío en la banda abierta (años). Número, obligatoria.}
 \item{\code{medida}}{Qué mide la fila. Texto, obligatoria.}
@@ -138,7 +142,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \code{beta} \tab número \tab sí \tab Coeficiente publicado\cr
 \code{inferior} \tab número \tab no \tab Límite inferior del 95 \% (vacío: beta fija)\cr
 \code{superior} \tab número \tab no \tab Límite superior del 95 \% (vacío: beta fija)\cr
-\code{valor_nacional_de} \tab texto \tab no \tab Otra covariable cuyo valor nacional ancla a esta\cr
+\code{valor_nacional_de} \tab texto \tab no \tab Otra covariable cuyo valor nacional ancla a esta (con valores subnacionales de esta, su fila nacional propia no hace falta)\cr
 \code{escala_confirmada} \tab lógico \tab no \tab true confirma una beta lineal grande con escala 1\cr
 \code{fuente} \tab texto \tab no \tab De dónde sale la beta\cr
 }
@@ -152,7 +156,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \item{\code{beta}}{Coeficiente publicado. Número, obligatoria.}
 \item{\code{inferior}}{Límite inferior del 95 \% (vacío: beta fija). Número, opcional.}
 \item{\code{superior}}{Límite superior del 95 \% (vacío: beta fija). Número, opcional.}
-\item{\code{valor_nacional_de}}{Otra covariable cuyo valor nacional ancla a esta. Texto, opcional.}
+\item{\code{valor_nacional_de}}{Otra covariable cuyo valor nacional ancla a esta (con valores subnacionales de esta, su fila nacional propia no hace falta). Texto, opcional.}
 \item{\code{escala_confirmada}}{true confirma una beta lineal grande con escala 1. Lógico, opcional.}
 \item{\code{fuente}}{De dónde sale la beta. Texto, opcional.}
 }
@@ -269,7 +273,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \tabular{llll}{
 \strong{columna} \tab \strong{tipo} \tab \strong{exige} \tab \strong{qué es}\cr
 \code{anio} \tab entero \tab sí \tab Año\cr
-\code{sexo} \tab texto \tab sí \tab hombres, mujeres o ambos\cr
+\code{sexo} \tab texto \tab sí \tab hombres, mujeres o ambos (ambos solo si se quieren agrupar las filas de ambos sexos del ancla)\cr
 \code{edad_inicio} \tab número \tab sí \tab Primera edad de la banda (años)\cr
 \code{edad_fin} \tab número \tab sí \tab Fin de la banda (excluido) (años)\cr
 \code{poblacion} \tab número \tab sí \tab Población nacional con más detalle de edad (personas)\cr
@@ -277,7 +281,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 }{
 \describe{
 \item{\code{anio}}{Año. Entero, obligatoria.}
-\item{\code{sexo}}{hombres, mujeres o ambos. Texto, obligatoria.}
+\item{\code{sexo}}{hombres, mujeres o ambos (ambos solo si se quieren agrupar las filas de ambos sexos del ancla). Texto, obligatoria.}
 \item{\code{edad_inicio}}{Primera edad de la banda (años). Número, obligatoria.}
 \item{\code{edad_fin}}{Fin de la banda (excluido) (años). Número, obligatoria.}
 \item{\code{poblacion}}{Población nacional con más detalle de edad (personas). Número, obligatoria.}

@@ -14,7 +14,8 @@
 #   σ̄²         mediana de se_g² sobre las observaciones (serie, edición) de la covariable con se_g > 0: escala de q
 #   ĝ_d, S_d   gradiente suavizado en el año a y su varianza
 #   w_d        población de d en el año a, normalizada en el sexo y la banda
-#   X          valor nacional de la covariable; X_d el valor calibrado de d
+#   X          valor nacional de la covariable, o el de otra covariable si `valor_nacional_de` la nombra; X_d el valor
+#              calibrado de d
 #
 # Modelo temporal (nivel local), una serie a la vez:
 #   g_t = g_{t-1} + η_t,  η_t ~ N(0, q Δt)          obs_t ~ N(g_t, se_g,t^2)
@@ -432,7 +433,8 @@
 # X: el valor nacional de `covariable` en `anio_nacional` para el sexo `s` y la banda [a0, a1). Son nacionales las
 # filas sin ubicacion o con una que no es subnacional de los crudos (`subnacionales`); sirven las del mismo sexo o de
 # ambos y de la misma banda o de todas las edades, y gana la que coincide en más. Error si falta o si empatan varias.
-.dl_valor_nacional <- function(cv, covariable, anio_nacional, s, a0, a1, subnacionales) {
+# `de`: la covariable de los crudos que cierra en ese valor, si es otra (valor_nacional_de); solo para los mensajes.
+.dl_valor_nacional <- function(cv, covariable, anio_nacional, s, a0, a1, subnacionales, de = covariable) {
   col <- function(nombre, defecto) if (nombre %in% names(cv)) cv[[nombre]] else rep(defecto, nrow(cv))
   ubi <- col("ubicacion", NA_character_); an <- col("anio", NA_integer_); sx <- col("sexo", "ambos")
   e0 <- col("edad_inicio", NA_real_); e1 <- col("edad_fin", NA_real_)
@@ -443,33 +445,61 @@
   coincide <- (sx == s) + banda_igual
   k <- which(sirve & coincide == max(-1L, coincide[sirve]))
   que <- sprintf("en %d (sexo %s, %s)", anio_nacional, s, .dl_texto_banda_crudos(a0, a1))
+  cual <- if (identical(de, covariable)) covariable else sprintf("%s (valor_nacional_de de %s)", covariable, de)
   if (!length(k))
     .dl_stop(paste0("la covariable %s no tiene valor nacional %s: agr\u00e9galo a covariables en una fila sin ",
-                    "ubicacion, del mismo sexo o de ambos y de la misma banda o de todas las edades"), covariable, que)
+                    "ubicacion, del mismo sexo o de ambos y de la misma banda o de todas las edades"), cual, que)
   if (length(k) > 1L)
     .dl_stop("la covariable %s tiene %d filas que sirven igual como valor nacional %s (ubicacion: %s): deja una",
-             covariable, length(k), que, paste(ifelse(is.na(ubi[k]), "vac\u00eda", ubi[k]), collapse = ", "))
+             cual, length(k), que, paste(ifelse(is.na(ubi[k]), "vac\u00eda", ubi[k]), collapse = ", "))
   cv$valor[k]
 }
 
+# La covariable que da el valor nacional de cada covariable de los crudos (vector con nombres, covariable de los
+# crudos -> covariable de `covariables`): la de `valor_nacional_de` (vector o lista con nombres) o ella misma. Error
+# si no tiene un nombre por valor, si repite una covariable, si nombra una que no está en los crudos o si el valor
+# nacional es de una covariable que no está en `covariables`.
+.dl_nacional_de <- function(valor_nacional_de, e) {
+  de <- stats::setNames(e$covs, e$covs)
+  if (!length(valor_nacional_de)) return(de)
+  if (is.list(valor_nacional_de)) valor_nacional_de <- unlist(valor_nacional_de)
+  nombres <- names(valor_nacional_de)
+  if (!is.character(valor_nacional_de) || is.null(nombres) || any(!nzchar(nombres)) || anyNA(valor_nacional_de))
+    .dl_stop(paste0("`valor_nacional_de` debe tener un nombre por valor: covariable de proxies_crudos = la ",
+                    "covariable de `covariables` que da su valor nacional"))
+  if (anyDuplicated(nombres))
+    .dl_stop("`valor_nacional_de` repite la covariable %s: un solo valor nacional por covariable",
+             paste(unique(nombres[duplicated(nombres)]), collapse = ", "))
+  fuera <- setdiff(nombres, e$covs)
+  if (length(fuera))
+    .dl_stop("`valor_nacional_de` nombra covariables que no est\u00e1n en proxies_crudos: %s (las de los crudos: %s)",
+             paste(fuera, collapse = ", "), paste(e$covs, collapse = ", "))
+  sin <- which(!valor_nacional_de %in% e$covariables$covariable)
+  if (length(sin))
+    .dl_stop("`valor_nacional_de` dice que el valor nacional de %s es el de %s, que no est\u00e1 en covariables",
+             nombres[sin[1L]], valor_nacional_de[[sin[1L]]])
+  de[nombres] <- valor_nacional_de
+  de
+}
+
 # Error, antes de calcular nada, si a una covariable, sexo y banda de los crudos le falta su valor nacional (o tiene
-# más de uno que sirve igual): .dl_valor_nacional() en cada una.
+# más de uno que sirve igual): .dl_valor_nacional() en cada una, con la covariable que lo da (e$nacional_de).
 .dl_validar_nacionales <- function(e, anio_nacional) {
   b <- unique(e$crudos[, c("covariable", "sexo", "edad_inicio", "edad_fin"), with = FALSE])
   for (i in seq_len(nrow(b)))
-    .dl_valor_nacional(e$covariables, b$covariable[i], anio_nacional, b$sexo[i], b$edad_inicio[i], b$edad_fin[i],
-                       e$ubicaciones)
+    .dl_valor_nacional(e$covariables, e$nacional_de[[b$covariable[i]]], anio_nacional, b$sexo[i], b$edad_inicio[i],
+                       b$edad_fin[i], e$ubicaciones, de = b$covariable[i])
   invisible()
 }
 
-# Filas calibradas de una covariable desde `est` (.dl_gradiente_del_anio()$estimado): por sexo y banda, X, los pesos
-# w (población del año de `poblacion` más cercano a `anio`) y .dl_cerrar_proxies(). `fuente`: el texto delante de
-# las ediciones de cada serie.
+# Filas calibradas de una covariable desde `est` (.dl_gradiente_del_anio()$estimado): por sexo y banda, X (el valor
+# nacional de la covariable que lo da, e$nacional_de), los pesos w (población del año de `poblacion` más cercano a
+# `anio`) y .dl_cerrar_proxies(). `fuente`: el texto delante de las ediciones de cada serie.
 .dl_filas_calibradas <- function(est, e, tr, anio, anio_nacional, fuente) {
   anio_w <- .dl_anio_mas_cercano(anio, e$poblacion$anio)
   data.table::rbindlist(lapply(split(est, by = c("sexo", "edad_inicio", "edad_fin")), function(x) {
-    X <- .dl_valor_nacional(e$covariables, x$covariable[1L], anio_nacional, x$sexo[1L], x$edad_inicio[1L],
-                            x$edad_fin[1L], e$ubicaciones)
+    X <- .dl_valor_nacional(e$covariables, e$nacional_de[[x$covariable[1L]]], anio_nacional, x$sexo[1L],
+                            x$edad_inicio[1L], x$edad_fin[1L], e$ubicaciones, de = x$covariable[1L])
     w <- .dl_poblacion_banda(e$poblacion, x$ubicacion, x$sexo[1L], x$edad_inicio[1L], x$edad_fin[1L], anio_w)
     cl <- .dl_cerrar_proxies(x$g, x$S, w, X, tr)
     data.table::data.table(ubicacion = x$ubicacion, anio = as.integer(anio), sexo = x$sexo,
@@ -479,8 +509,8 @@
   }))
 }
 
-# Una covariable de principio a fin: gradiente del año, filas cerradas y su fila de `calibracion`. `gr`: sus
-# gradientes (.dl_gradientes()).
+# Una covariable de principio a fin: gradiente del año, filas cerradas y su fila de `calibracion` (valor_nacional_de:
+# la covariable que dio el valor nacional, si es otra). `gr`: sus gradientes (.dl_gradientes()).
 .dl_calibrar_covariable <- function(gr, e, tr, anio, anio_nacional, metodo) {
   cov <- gr$covariable[1L]
   r <- .dl_gradiente_del_anio(gr, anio, metodo)
@@ -497,7 +527,8 @@
     excluidas = paste(sprintf("%d (%s)", exc$anio, exc$motivo), collapse = "; "),
     anios_poblacion = sprintf("ediciones: %s; cierre: %d \u2192 %d",
                               paste(sprintf("%d \u2192 %d", ed$anio, ed$anio_poblacion), collapse = ", "),
-                              as.integer(anio), .dl_anio_mas_cercano(anio, e$poblacion$anio)))
+                              as.integer(anio), .dl_anio_mas_cercano(anio, e$poblacion$anio)),
+    valor_nacional_de = if (identical(e$nacional_de[[cov]], cov)) NA_character_ else e$nacional_de[[cov]])
   list(filas = .dl_filas_calibradas(r$estimado, e, tr, anio, anio_nacional, fuente),
        series = r$series[, c(.DL_COLS_SERIE, "anio", "g", "se_g", "g_suavizado", "S", "usada"), with = FALSE],
        calibracion = calibracion)
@@ -560,13 +591,23 @@
 #' `ubicacion` (o con una que no está en los crudos), del año `anio_nacional`, del mismo sexo o de ambos y de la misma
 #' banda o de todas las edades; gana la que coincide en más.
 #'
+#' **El valor nacional de otra covariable.** A veces el valor nacional con que se compara una covariable es el de
+#' otra: una beta estimada por edad cuyos valores subnacionales se comparan con la versión estandarizada por edad de
+#' la misma covariable. `valor_nacional_de` lo dice, covariable de los crudos = covariable de `covariables`: X es
+#' entonces el valor nacional de la covariable nombrada, que se busca con las mismas reglas, y la propia no necesita
+#' fila nacional. Las filas que salen llevan el nombre de la covariable de los crudos. En un proyecto es la columna
+#' `valor_nacional_de` de la tabla `betas` ([dl_tablas]), y [dl_proyecto()] la pasa a la calibración (en un proyecto,
+#' la beta queda eximida de su fila nacional solo si su covariable tiene valores subnacionales, en `covariables` o en
+#' `proxies_crudos`).
+#'
 #' **Aproximaciones declaradas.** El error de X_d no incluye la incertidumbre de la normalización ni la del valor
 #' nacional; se/p es la aproximación delta; la población de cada edición (y la del cierre) es la del año más cercano
 #' de `poblacion`, también fuera de sus años (`calibracion$anios_poblacion` dice cuál se usó). Una ubicación que falta
 #' en una edición se interpola con sus otras ediciones (con `edicion`, se usa su edición más cercana).
 #'
 #' @param crudos Tabla `proxies_crudos` (ver [dl_tablas]): `data.frame` o ruta de un CSV o una carpeta.
-#' @param covariables Tabla `covariables`, con el valor nacional de cada covariable de los crudos.
+#' @param covariables Tabla `covariables`, con el valor nacional de cada covariable de los crudos (o de la que
+#'   nombra `valor_nacional_de`).
 #' @param poblacion Tabla `poblacion` de las ubicaciones de los crudos; sus bandas de edad (y sus sexos, para «ambos»)
 #'   deben poder sumarse en las de los crudos. Una fila de los crudos sin edades (o sin las columnas de edad, o con
 #'   la banda de 0 y más) es de todas las edades: su población es la de todas las bandas de `poblacion`, empiecen
@@ -580,14 +621,16 @@
 #' @param ubicacion_gbd `location_id` de GBD del país, para leer `covariables` cuando es una carpeta (o un CSV) de
 #'   descargas del GHDx con varias ubicaciones, como la carpeta `covariables/` de un proyecto (ver [dl_tabla()]).
 #'   No hace falta si `covariables` ya es una tabla leída.
+#' @param valor_nacional_de Vector (o lista) con nombres, covariable de los crudos = la covariable de `covariables`
+#'   cuyo valor nacional cierra sus filas. Las covariables que no nombra cierran en su propio valor nacional.
 #' @return Una [dl_tabla()] `covariables` con las filas subnacionales del año: `ubicacion`, `anio`, `sexo`, las
 #'   edades (si los crudos las traen; vacías en las de todas las edades), `covariable`, `valor`, `error_estandar` y
 #'   `fuente` (el indicador, el método, q y las ediciones de la serie). Tres atributos:
 #'   - `calibracion`: un `data.table` por covariable con `metodo`, `transformacion`, `q`, `q_en_borde` (el borde de su
 #'     intervalo de búsqueda en que quedó q, `"inferior"` o `"superior"`; `NA` si no quedó en ninguno o no hay q),
 #'     `ediciones` (las usadas: con el paseo aleatorio, todas las no excluidas; con `edicion`, las elegidas en alguna
-#'     serie), `excluidas` (en texto, con su motivo) y `anios_poblacion` (el año de la población de cada edición y del
-#'     cierre).
+#'     serie), `excluidas` (en texto, con su motivo), `anios_poblacion` (el año de la población de cada edición y del
+#'     cierre) y `valor_nacional_de` (la covariable que dio el valor nacional, si es otra; si no, vacío).
 #'   - `series`: un `data.table` por serie y edición con `g`, `se_g`, `g_suavizado` y `S` (el gradiente suavizado y
 #'     su varianza en el año de la edición; con `edicion`, g y se_g²) y `usada` (la edición que tomó `edicion`;
 #'     con el paseo aleatorio entran todas). Sin edades en los crudos, la banda es 0-125 (todas las edades).
@@ -614,6 +657,14 @@
 #' plot(g ~ anio, s, col = factor(ubicacion), pch = 19, ylab = "gradiente")
 #' for (u in unique(s$ubicacion)) lines(g_suavizado ~ anio, s[s$ubicacion == u, ])
 #'
+#' # el valor nacional de otra covariable: las filas de haqi cierran en el de haqi_estandarizado
+#' otra <- data.frame(anio = 2023, covariable = "haqi_estandarizado", valor = 54.1)
+#' cal2 <- dl_calibrar_proxies(crudos, otra, pob, anio = 2023,
+#'                             transformacion = c(haqi = "diferencia"),
+#'                             valor_nacional_de = c(haqi = "haqi_estandarizado"))
+#' weighted.mean(cal2$valor, c(110, 290, 210))   # 54.1
+#' attr(cal2, "calibracion")$valor_nacional_de
+#'
 #' # el proyecto de ejemplo trae una encuesta de tres ediciones: dl_proyecto() la calibra
 #' p <- dl_proyecto(dl_ejemplo(), causa = 9100)
 #' attr(p$calibracion, "calibracion")[, c("covariable", "transformacion", "q", "ediciones")]
@@ -624,13 +675,15 @@
 #' head(cal19)
 #' @export
 dl_calibrar_proxies <- function(crudos, covariables, poblacion, anio, metodo = c("paseo_aleatorio", "edicion"),
-                                transformacion = NULL, excluir = NULL, anio_nacional = anio, ubicacion_gbd = NULL) {
+                                transformacion = NULL, excluir = NULL, anio_nacional = anio, ubicacion_gbd = NULL,
+                                valor_nacional_de = NULL) {
   metodo <- match.arg(metodo)
   if (!.dl_es_entero1(anio)) .dl_stop("`anio` debe ser un a\u00f1o (un entero); es %s", .dl_describir_objeto(anio))
   if (!.dl_es_entero1(anio_nacional))
     .dl_stop("`anio_nacional` debe ser un a\u00f1o (un entero); es %s", .dl_describir_objeto(anio_nacional))
   e <- .dl_leer_entradas_proxies(crudos, covariables, poblacion, excluir, ubicacion_gbd)
   tr <- .dl_validar_crudos(e, transformacion)
+  e$nacional_de <- .dl_nacional_de(valor_nacional_de, e)
   .dl_validar_nacionales(e, anio_nacional)
   gr <- .dl_gradientes(e$crudos, e$poblacion, tr, metodo)
   partes <- lapply(split(gr, by = "covariable"), function(g)

@@ -321,6 +321,10 @@ dl_plantilla <- function(tabla, archivo = NULL) {
 #' Cada tabla es un CSV (o una carpeta de CSV) de la carpeta del proyecto con su nombre, o un `data.frame` que se pasa
 #' a [dl_proyecto()]. Las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten solas.
 #'
+#' El ancla puede traer filas de ambos sexos, pero el modelo no las usa: si son más finas que la población y
+#' `poblacion_detalle` no trae `ambos`, se dejan fuera en vez de pedir ese detalle (el de hombres y mujeres sí hace
+#' falta); con detalle de `ambos`, se agrupan como las de cada sexo.
+#'
 #' @seealso [dl_tabla()], [dl_plantilla()], [dl_proyecto()].
 #' @family proyecto
 #' @name dl_tablas
@@ -449,8 +453,12 @@ NULL
 # Problemas (list(problemas, avisos)) de las tablas de un proyecto para la causa de `cfg`. `n_causas`: cuántas causas
 # tienen configuración en el proyecto (con más de una, el ancla dice de qué causa es cada fila). `tablas` son las del
 # modelo (covariables con las filas calibradas de proxies_crudos, .dl_tablas_modelo); `originales`, las del proyecto
-# tal como vinieron, para la regla que compara covariables con proxies_crudos.
-.dl_problemas_proyecto <- function(tablas, cfg, n_causas = 1L, originales = tablas) list(
+# tal como vinieron, para la regla que compara covariables con proxies_crudos. Una causa que es la suma de sus
+# subtipos (.dl_es_suma) no se ajusta: solo le tocan las reglas de sus tablas, ubicaciones y poblacion.
+.dl_problemas_proyecto <- function(tablas, cfg, n_causas = 1L, originales = tablas) if (.dl_es_suma(cfg)) list(
+  problemas = c(.dl_regla_ubicaciones(tablas), .dl_regla_ubicaciones_conocidas(tablas),
+                .dl_regla_poblacion(tablas, cfg)),
+  avisos = character()) else list(
   problemas = c(.dl_regla_proxies_dos_tablas(originales),
                 .dl_regla_ubicaciones(tablas), .dl_regla_ubicaciones_conocidas(tablas),
                 .dl_regla_poblacion(tablas, cfg), .dl_regla_ancla(tablas, cfg, n_causas),
@@ -507,7 +515,8 @@ NULL
 }
 
 # poblacion: trae el año que se estima en los sexos del modelo; sus bandas (las del modelo) son las mismas en todas
-# las ubicaciones, años y sexos, van seguidas (sin huecos) y la primera empieza en edad_inicio o antes.
+# las ubicaciones, años y sexos, van seguidas (sin huecos) y la primera empieza en edad_inicio o antes (una suma de
+# subtipos no tiene edad_inicio).
 .dl_regla_poblacion <- function(tablas, cfg) {
   p <- tablas$poblacion
   anio <- .dl_anio_ajuste(cfg)
@@ -528,7 +537,7 @@ NULL
       sprintf(paste0("poblacion: las bandas de edad dejan un hueco: falta(n) %s; las bandas van seguidas, de la ",
                      "primera a la \u00faltima"),
               paste(.dl_nombre_banda(huecos$edad_inicio, huecos$edad_fin), collapse = ", ")),
-    if (inicio > as.numeric(cfg$edad_inicio))
+    if (isTRUE(inicio > as.numeric(cfg$edad_inicio)))
       sprintf(paste0("poblacion: la primera banda empieza a los %g a\u00f1os, despu\u00e9s de edad_inicio (%g) de la ",
                      "configuraci\u00f3n: agrega las edades desde %g o sube edad_inicio"), inicio,
               as.numeric(cfg$edad_inicio), as.numeric(cfg$edad_inicio)))
@@ -536,6 +545,9 @@ NULL
 
 # ancla: trae la prevalencia de la causa en el año del ancla y en cada sexo del modelo y, si la usa el prior de la
 # mortalidad en exceso (.dl_prior_usa_csmr), la mortalidad. Con más de una causa en el proyecto, trae la columna causa.
+# El año del ancla ya es el del proyecto (.dl_anio_ancla_proyecto): si el ancla no trae la prevalencia del año que se
+# estima, el último anterior. Lo que falta aquí es una medida o un sexo de ese año (la pista: declarar ancla.anio con
+# el año anterior, que sí los trae) o un año sin ninguno anterior desde el que proyectar.
 .dl_regla_ancla <- function(tablas, cfg, n_causas = 1L) {
   sin_causa <- if (n_causas > 1L && !"causa" %in% names(tablas$ancla))
     sprintf(paste0("ancla: falta la columna causa: el proyecto tiene %d causas con configuraci\u00f3n y cada fila del ",
@@ -555,7 +567,9 @@ NULL
             else sprintf("de %s de %d (a\u00f1os que trae: %s)", paste(falta, collapse = " y "), anio, .dl_lista(hay)),
             if ((anio - 1L) %in% hay && is.null(cfg$years$ancla))
               sprintf("; si %d a\u00fan no tiene estimaci\u00f3n de GBD, proyecta desde %d con ancla: {anio: %d}", anio,
-                      anio - 1L, anio - 1L) else "", pista[[m]])
+                      anio - 1L, anio - 1L)
+            else if (m == "prevalencia" && length(hay) && all(hay > anio))
+              "; solo se proyecta desde un a\u00f1o anterior, y el ancla no trae ninguno" else "", pista[[m]])
   })))
 }
 
@@ -581,8 +595,25 @@ NULL
   unique(cov$covariable[.dl_es_nacional(cov, .dl_ubicacion_nacional(tablas)) & (is.na(a) | a == anio)])
 }
 
-# betas (las de la causa): cada covariable y cada valor_nacional_de tiene valor nacional en el año del ancla; escala
-# solo con la transformación lineal (con log o logit, vacía o 1).
+# Covariables con valores subnacionales: filas subnacionales en covariables o filas en proxies_crudos.
+.dl_covariables_subnacionales <- function(tablas) {
+  cov <- tablas$covariables
+  unique(c(if (!is.null(cov)) cov$covariable[!.dl_es_nacional(cov, .dl_ubicacion_nacional(tablas))],
+           tablas$proxies_crudos$covariable))
+}
+
+# Las covariables de las betas `b` que necesitan su propia fila nacional: las de una beta sin valor_nacional_de y las
+# de una que lo declara si la covariable no tiene valores subnacionales (sin ellos no hay proxy que anclar en el valor
+# nacional de la otra, y el modelo usa el suyo).
+.dl_betas_con_fila_propia <- function(tablas, b) {
+  vn <- .dl_col(b, "valor_nacional_de", NA_character_)
+  unique(b$covariable[is.na(vn) | !b$covariable %in% .dl_covariables_subnacionales(tablas)])
+}
+
+# betas (las de la causa): cada covariable tiene valor nacional en el año del ancla, el suyo o, si la fila declara
+# valor_nacional_de y la covariable tiene valores subnacionales, el de la covariable que nombra (la fila nacional
+# propia no hace falta: .dl_betas_con_fila_propia); escala solo con la transformación lineal (con log o logit, vacía
+# o 1).
 .dl_regla_betas <- function(tablas, cfg) {
   b <- .dl_betas_de_causa(tablas$betas, cfg$cause_id, cfg$extraction$cause_id)
   if (is.null(b) || !nrow(b)) return(character())
@@ -590,8 +621,8 @@ NULL
   nac <- .dl_covariables_nacionales(tablas, anio)
   donde <- sprintf("de %d (el a\u00f1o del ancla) en la tabla covariables%s", anio,
                    if (is.null(tablas$covariables)) ", que no est\u00e1" else "")
-  sin <- setdiff(b$covariable, nac)
   vn <- .dl_col(b, "valor_nacional_de", NA_character_)
+  sin <- setdiff(.dl_betas_con_fila_propia(tablas, b), nac)
   vn_sin <- setdiff(vn[!is.na(vn)], nac)
   escala <- .dl_col(b, "escala", NA_real_)
   mal <- b$transformacion %in% c("log", "logit") & !is.na(escala) & escala != 1

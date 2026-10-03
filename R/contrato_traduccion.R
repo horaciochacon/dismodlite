@@ -40,7 +40,10 @@
   x <- list()
   x$bandas <- .dl_bandas_proyecto(tablas)
   x$poblacion <- paso("poblacion", .dl_trad_poblacion(tablas, cfg, x$bandas))
-  if (!is.null(x$poblacion))
+  # una suma de subtipos no tiene ancla: su traducción son la población y los catálogos
+  if (.dl_es_suma(cfg)) x$ancla <- data.table::data.table(measure_id = character(), cause_id = character(),
+                                                          cause_name = character())
+  else if (!is.null(x$poblacion))
     x$ancla <- paso("ancla", .dl_trad_ancla(tablas, cfg, x$bandas))
   if (isTRUE(cfg$anchor$agrupar_bandas_finas) && !is.null(x$ancla))
     x$pesos_80 <- paso("poblacion", .dl_pesos_80_simple(x$poblacion$tabla, cfg, x$ancla))
@@ -259,7 +262,8 @@
 #   val_B  = sum_b w_b val_b,   lower_B = sum_b w_b lower_b,   upper_B = sum_b w_b upper_b
 # que se calcula como sum_b(val_b N_b) / sum_b N_b. Promediar los límites en escala natural es la aproximación
 # declarada de .dl_agregar_finas (R/insumos.R). Una banda del ancla que es la unión de varias de la población queda
-# tal cual. Error si una banda del ancla sale de las edades de la población o cruza el límite de una de sus bandas, o
+# tal cual. Las filas de ambos sexos, si son más finas y poblacion_detalle no trae ambos, se dejan fuera (el modelo no
+# las usa). Error si una banda del ancla sale de las edades de la población o cruza el límite de una de sus bandas, o
 # si hace falta poblacion_detalle y no la hay.
 .dl_agrupar_ancla <- function(a, bandas_pob, detalle, anio_ancla) {
   fuera <- a$edad_inicio < min(bandas_pob$edad_inicio) | a$edad_fin > max(bandas_pob$edad_fin)
@@ -277,6 +281,15 @@
   B1 <- ifelse(B > 0L, bandas_pob$edad_fin[pmax(B, 1L)], a$edad_fin)
   fina <- a$edad_inicio != B0 | a$edad_fin != B1
   if (!any(fina)) return(a)
+  # El modelo no usa las filas de ambos sexos: si son más finas y el detalle no trae ambos, se dejan fuera.
+  if (any(fina & a$sexo == "ambos") && !"ambos" %in% detalle$sexo) {
+    sigue <- a$sexo != "ambos"
+    a <- a[sigue]
+    B0 <- B0[sigue]
+    B1 <- B1[sigue]
+    fina <- fina[sigue]
+    if (!any(fina)) return(a)
+  }
   finas <- a[fina][, `:=`(B0 = B0[fina], B1 = B1[fina])]
   if (is.null(detalle))
     .dl_stop(paste0("la poblaci\u00f3n trae %s y el ancla %s: agrega poblacion_detalle (poblaci\u00f3n nacional por ",
@@ -373,6 +386,9 @@
 
 # covariables y betas -> ids (covariable -> covariate_id), nacional (los valores nacionales en el formato de la descarga
 # del GHDx, para la carpeta covariables/ de la traducción) y betas (las de la causa). NULL si la causa no tiene betas.
+# El valor nacional se exige de cada covariable que necesita su propia fila (.dl_betas_con_fila_propia: la de una beta
+# sin valor_nacional_de, o con él y sin valores subnacionales) y de cada covariable que valor_nacional_de nombra; el
+# de las demás entra si la tabla lo trae.
 .dl_trad_covariables <- function(tablas, cfg, bandas) {
   betas <- .dl_betas_de_causa(tablas$betas, cfg$cause_id, cfg$extraction$cause_id)
   if (is.null(betas) || !nrow(betas)) return(NULL)
@@ -383,7 +399,8 @@
   nacional <- .dl_loc_ancla(cfg)
   cov <- tablas$covariables
   d <- cov[.dl_es_nacional(cov, nacional) & cov$covariable %in% names(ids)]
-  faltan <- setdiff(names(ids), d$covariable)
+  vn <- .dl_col(betas, "valor_nacional_de", NA_character_)
+  faltan <- setdiff(unique(c(.dl_betas_con_fila_propia(tablas, betas), vn[!is.na(vn)])), d$covariable)
   if (length(faltan))
     .dl_stop("la tabla covariables no trae el valor nacional (ubicaci\u00f3n %s) de %s, que usa la tabla betas",
              nacional, paste(faltan, collapse = ", "))

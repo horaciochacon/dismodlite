@@ -13,13 +13,15 @@ dl_calibrar_proxies(
   transformacion = NULL,
   excluir = NULL,
   anio_nacional = anio,
-  ubicacion_gbd = NULL
+  ubicacion_gbd = NULL,
+  valor_nacional_de = NULL
 )
 }
 \arguments{
 \item{crudos}{Tabla \code{proxies_crudos} (ver \link{dl_tablas}): \code{data.frame} o ruta de un CSV o una carpeta.}
 
-\item{covariables}{Tabla \code{covariables}, con el valor nacional de cada covariable de los crudos.}
+\item{covariables}{Tabla \code{covariables}, con el valor nacional de cada covariable de los crudos (o de la que
+nombra \code{valor_nacional_de}).}
 
 \item{poblacion}{Tabla \code{poblacion} de las ubicaciones de los crudos; sus bandas de edad (y sus sexos, para «ambos»)
 deben poder sumarse en las de los crudos. Una fila de los crudos sin edades (o sin las columnas de edad, o con
@@ -40,6 +42,9 @@ no nombra usan \code{"cociente"}.}
 \item{ubicacion_gbd}{\code{location_id} de GBD del país, para leer \code{covariables} cuando es una carpeta (o un CSV) de
 descargas del GHDx con varias ubicaciones, como la carpeta \verb{covariables/} de un proyecto (ver \code{\link[=dl_tabla]{dl_tabla()}}).
 No hace falta si \code{covariables} ya es una tabla leída.}
+
+\item{valor_nacional_de}{Vector (o lista) con nombres, covariable de los crudos = la covariable de \code{covariables}
+cuyo valor nacional cierra sus filas. Las covariables que no nombra cierran en su propio valor nacional.}
 }
 \value{
 Una \code{\link[=dl_tabla]{dl_tabla()}} \code{covariables} con las filas subnacionales del año: \code{ubicacion}, \code{anio}, \code{sexo}, las
@@ -49,8 +54,8 @@ edades (si los crudos las traen; vacías en las de todas las edades), \code{cova
 \item \code{calibracion}: un \code{data.table} por covariable con \code{metodo}, \code{transformacion}, \code{q}, \code{q_en_borde} (el borde de su
 intervalo de búsqueda en que quedó q, \code{"inferior"} o \code{"superior"}; \code{NA} si no quedó en ninguno o no hay q),
 \code{ediciones} (las usadas: con el paseo aleatorio, todas las no excluidas; con \code{edicion}, las elegidas en alguna
-serie), \code{excluidas} (en texto, con su motivo) y \code{anios_poblacion} (el año de la población de cada edición y del
-cierre).
+serie), \code{excluidas} (en texto, con su motivo), \code{anios_poblacion} (el año de la población de cada edición y del
+cierre) y \code{valor_nacional_de} (la covariable que dio el valor nacional, si es otra; si no, vacío).
 \item \code{series}: un \code{data.table} por serie y edición con \code{g}, \code{se_g}, \code{g_suavizado} y \code{S} (el gradiente suavizado y
 su varianza en el año de la edición; con \code{edicion}, g y se_g²) y \code{usada} (la edición que tomó \code{edicion};
 con el paseo aleatorio entran todas). Sin edades en los crudos, la banda es 0-125 (todas las edades).
@@ -118,6 +123,15 @@ y X el valor nacional:
 \code{ubicacion} (o con una que no está en los crudos), del año \code{anio_nacional}, del mismo sexo o de ambos y de la misma
 banda o de todas las edades; gana la que coincide en más.
 
+\strong{El valor nacional de otra covariable.} A veces el valor nacional con que se compara una covariable es el de
+otra: una beta estimada por edad cuyos valores subnacionales se comparan con la versión estandarizada por edad de
+la misma covariable. \code{valor_nacional_de} lo dice, covariable de los crudos = covariable de \code{covariables}: X es
+entonces el valor nacional de la covariable nombrada, que se busca con las mismas reglas, y la propia no necesita
+fila nacional. Las filas que salen llevan el nombre de la covariable de los crudos. En un proyecto es la columna
+\code{valor_nacional_de} de la tabla \code{betas} (\link{dl_tablas}), y \code{\link[=dl_proyecto]{dl_proyecto()}} la pasa a la calibración (en un proyecto,
+la beta queda eximida de su fila nacional solo si su covariable tiene valores subnacionales, en \code{covariables} o en
+\code{proxies_crudos}).
+
 \strong{Aproximaciones declaradas.} El error de X_d no incluye la incertidumbre de la normalización ni la del valor
 nacional; se/p es la aproximación delta; la población de cada edición (y la del cierre) es la del año más cercano
 de \code{poblacion}, también fuera de sus años (\code{calibracion$anios_poblacion} dice cuál se usó). Una ubicación que falta
@@ -141,6 +155,14 @@ attr(cal, "calibracion")
 s <- attr(cal, "series")
 plot(g ~ anio, s, col = factor(ubicacion), pch = 19, ylab = "gradiente")
 for (u in unique(s$ubicacion)) lines(g_suavizado ~ anio, s[s$ubicacion == u, ])
+
+# el valor nacional de otra covariable: las filas de haqi cierran en el de haqi_estandarizado
+otra <- data.frame(anio = 2023, covariable = "haqi_estandarizado", valor = 54.1)
+cal2 <- dl_calibrar_proxies(crudos, otra, pob, anio = 2023,
+                            transformacion = c(haqi = "diferencia"),
+                            valor_nacional_de = c(haqi = "haqi_estandarizado"))
+weighted.mean(cal2$valor, c(110, 290, 210))   # 54.1
+attr(cal2, "calibracion")$valor_nacional_de
 
 # el proyecto de ejemplo trae una encuesta de tres ediciones: dl_proyecto() la calibra
 p <- dl_proyecto(dl_ejemplo(), causa = 9100)

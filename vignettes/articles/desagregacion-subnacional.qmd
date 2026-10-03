@@ -233,8 +233,9 @@ cuál es el país (como en `dl_tabla()`).
 el método, q y las ediciones. Cada corrida de `dl_correr()` guarda la tabla `proxies_crudos` tal como vino en
 `inputs/contrato/` (y `covariables` sin las filas calibradas, así que repetir la corrida desde ahí vuelve a calibrar
 igual), las series observadas y suavizadas de cada ubicación en `diagnostics/proxies_series.csv` y, en el manifiesto,
-`params.proxies`: por covariable, el método, la transformación, q, si quedó en un borde, las ediciones usadas y las
-excluidas con su motivo.
+`params.proxies`: por covariable, el método, la transformación, q, si quedó en un borde, las ediciones usadas, las
+excluidas con su motivo y, si el valor nacional en que cierra es el de otra covariable, cuál (`valor_nacional_de`;
+[más abajo](#valor-nacional-de)).
 
 Los proxies calibrados del ejemplo, el SEV por sexo y grupo de edad (de 40 a 44 años hasta 80 y más; aquí, el primer
 grupo) y el LDI y el HAQ para ambos sexos y todas las edades:
@@ -513,6 +514,33 @@ subnacional:
 
 `dl_correr()` omite entonces la cascada y lo dice en un mensaje. (Las comillas en `"no"` son opcionales: el paquete
 lee `no` como texto, pero así el archivo se lee igual en cualquier lector de YAML.)
+
+## El valor nacional de otra covariable {#valor-nacional-de}
+
+La diferencia $dX$ compara el valor de cada ubicación con el valor nacional de la misma covariable. A veces los dos no
+existen con el mismo nombre: la β se publicó para una covariable por edad y los valores subnacionales que hay se
+comparan con su versión estandarizada por edad, que en el GHDx es otra covariable. La columna `valor_nacional_de` de
+`betas` lo declara en la fila de la β:
+
+```
+covariable,efecto_sobre,transformacion,beta,inferior,superior,valor_nacional_de
+sev_por_edad,prevalencia,log,0.62,0.55,0.70,sev_estandarizado
+```
+
+Con ella:
+
+- el valor nacional que se resta en $dX$, y en el que deben cerrar los proxies de `sev_por_edad`, es el de
+  `sev_estandarizado` en el año del ancla;
+- `covariables` trae la fila nacional de `sev_estandarizado` (con su intervalo) y las filas subnacionales de
+  `sev_por_edad`; la fila nacional de `sev_por_edad` no hace falta. La exención es para una covariable con valores
+  subnacionales (en `covariables` o en `proxies_crudos`): sin ellos no hay proxy que anclar, y la β sigue pidiendo
+  la fila nacional de su propia covariable;
+- si los valores subnacionales vienen de `proxies_crudos`, la calibración cierra en el valor nacional de
+  `sev_estandarizado` (`dl_proyecto()` lo toma de `betas`; a mano, el argumento `valor_nacional_de` de
+  `dl_calibrar_proxies()`), y la calibración lo declara: en el paso «proxies» de la revisión y en `params.proxies`
+  del manifiesto.
+
+La corrida lo deja escrito en el manifiesto (`cascada.sustituciones`) y en sus limitaciones.
 
 ## La escala de una covariable {#escala}
 

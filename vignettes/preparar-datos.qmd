@@ -240,8 +240,7 @@ head(cal[cal$ubicacion == "01" & cal$covariable == "LDI_pc"], 3)
 El efecto de cada covariable: el coeficiente $\beta$ publicado, que es el cambio del logaritmo de la tasa por unidad
 de la covariable transformada. Una fuente habitual es el apéndice metodológico del modelo de GBD de la causa. Sin
 `causa`, la beta vale para todas las causas; un subtipo sin filas propias usa las de su causa padre: la que lo
-declara en `subtipos` en el mismo proyecto o, en su propia carpeta, la de `avanzado: extraction` (sección 7). La
-estimación
+declara en `subtipos` en el mismo proyecto o, en su propia carpeta, la de `subtipo_de` (sección 7). La estimación
 subnacional usa las betas cuya covariable tiene filas subnacionales en `covariables`.
 
 - `efecto_sobre`: `prevalencia` o `incidencia` (las dos mueven el logaritmo de la incidencia) o `mortalidad_exceso`.
@@ -251,8 +250,14 @@ subnacional usa las betas cuya covariable tiene filas subnacionales en `covariab
   la covariable en 0-1 y la descarga viene en 0-100. La guía
   [Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html#escala)
   lo explica con un ejemplo.
-- `valor_nacional_de`: otra covariable cuyo valor nacional ancla a esta (por ejemplo, un proxy subnacional de otra
-  fuente que se compara con la covariable de GBD).
+- `valor_nacional_de`: otra covariable cuyo valor nacional ancla a esta. Por ejemplo, una beta estimada por edad
+  cuyos valores subnacionales se comparan con la versión estandarizada por edad de la misma covariable. La
+  covariable de la beta, que trae sus valores subnacionales, no necesita entonces su fila nacional en `covariables`:
+  basta la de la covariable nombrada (sin valores subnacionales no hay nada que anclar, y la fila nacional propia se
+  sigue pidiendo). Si los valores subnacionales vienen de `proxies_crudos`, la calibración cierra en ese mismo valor
+  nacional. La guía
+  [Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html#valor-nacional-de)
+  lo explica.
 
 ```{r}
 #| label: col-betas
@@ -637,6 +642,9 @@ Las bandas de la población son las bandas del modelo. Las del ancla se comparan
   a los menores de 5 en una sola banda (0-4), las del ancla que caben en ella ($[0, 1)$ y las de 1 a 4 años) se
   agrupan como las de 80 y más, con `poblacion_detalle`. Si no hay población de menores de 5 con detalle, una
   aproximación es repartir la de 0-4 por el ancho de cada banda (población uniforme); conviene dejarla en `notas`.
+- **Las filas de ambos sexos del ancla** (las descargas de GBD Results suelen traerlas) no entran al modelo, que
+  ajusta cada sexo por separado: `poblacion_detalle` no tiene que traer `ambos`. Si no lo trae, esas filas se dejan
+  fuera al agrupar; si lo trae, se agrupan como las demás.
 
 Por ejemplo, una población subnacional que solo tiene 80 años y más:
 
@@ -776,16 +784,28 @@ una_causa/
   pueden pasar de 1 (son los de la partición divididos por su cuota) y se aceptan con un aviso, como en la versión
   0.2.2.
 - **`poblacion_detalle`** hace falta solo si una banda del ancla cabe dentro de una banda de la población (sección 5).
+- **El año** que se estima es `anio`, y la carpeta sirve para los demás sin editarla: `dl_proyecto(carpeta, anio =
+  2021)` la lee para otro año y `dl_correr(carpeta, semilla = 1, anios = 2018:2023)` escribe una corrida por año.
+  Las tablas traen las filas de cada año (la población, el ancla, las covariables). Si el ancla no trae la
+  prevalencia del año que se estima y sí la del año anterior, el nivel nacional se proyecta desde ese año (uno a lo
+  sumo) y un mensaje lo anuncia; `ancla.anio` lo declara de forma explícita. La guía
+  [Corridas, versiones y tablas consolidadas](https://horaciochacon.github.io/dismodlite/articles/corridas-y-consolidado.html#anios)
+  lo desarrolla.
+- **`ancla.error_maximo`** y **`mortalidad_exceso.fraccion_aguda`** son claves de la configuración: el error
+  relativo mediano máximo entre la prevalencia ajustada y la del ancla con que se escribe la corrida (0.05 por
+  defecto) y la parte de las muertes que ocurre en la fase aguda, que se descuenta del csmr del ancla (nada por
+  defecto). `sensibilidad.fraccion_aguda` es la lista de valores de esta última que recorre la sensibilidad.
 - **`avanzado`** lleva, tal cual, las claves del formato completo que la configuración no tiene, cada una con su
-  procedencia. Las más usadas: `anchor.gate_err_mediano` (el error máximo del ancla con que se escribe la corrida),
-  `emr_prior.fraccion_aguda` (la parte de las muertes que ocurre en la fase aguda), `emr_prior.factor_techo` (el
-  factor del techo de la mortalidad en exceso, 3 por defecto), `nsub`, `offset_lognormal` y `extraction` (abajo).
-  La lista completa está en `?dl_configuracion`.
+  procedencia. Las más usadas: `emr_prior.factor_techo` (el factor del techo de la mortalidad en exceso, 3 por
+  defecto), `nsub`, `offset_lognormal` y `emr_prior.fraccion_aguda.cfr_30d`. La lista completa está en
+  `?dl_configuracion`.
 
 ```yaml
+ancla:
+  error_maximo: 0.08
+mortalidad_exceso:
+  fraccion_aguda: 0.3
 avanzado:
-  anchor:
-    gate_err_mediano: {valor: 0.08, procedencia: el ancla tiene pocas bandas de edad}
   emr_prior:
     factor_techo: 6
 ```
@@ -800,7 +820,8 @@ Hay dos formas de organizar varias causas:
 1. **Un proyecto con varias causas**: cada causa tiene su `config/<causa>.yaml` y comparten las tablas, cuyas filas
    dicen de qué causa son en la columna `causa` (una fila sin `causa` vale para todas). Es la forma natural de los
    subtipos: la causa padre los declara en `subtipos`, y cada subtipo encuentra ahí a su padre, usa sus betas si no
-   tiene filas propias y su corrida lo declara, que es lo que pide `dl_sumar_hijas()`. Así está el ejemplo:
+   tiene filas propias y su corrida lo declara, que es lo que pide la suma. Un subtipo tiene una sola causa padre: que
+   dos configuraciones del proyecto lo declaren en `subtipos` es un error. Así está el ejemplo:
 
    ```{r}
    #| label: varias-causas
@@ -812,15 +833,14 @@ Hay dos formas de organizar varias causas:
 
 2. **Una carpeta por causa**: cada carpeta es un proyecto de una causa, con su `config.yaml` y sus tablas. Es cómodo
    cuando cada causa tiene fuentes propias, pero un subtipo leído solo **no conoce a su causa padre**: lo declara con
-   `avanzado: {extraction: {cause_id, motivo}}`, para que su corrida se pueda sumar. Sin filas propias en `betas`,
+   `subtipo_de: <causa padre>`, para que su corrida se pueda sumar. Sin filas propias en `betas`,
    usa las de esa causa, así que la tabla `betas` del padre sirve tal cual; con filas propias, las suyas:
 
    ```{r}
    #| label: subtipo-solo
    betas_padre <- read.csv(dl_ejemplo("betas.csv"), encoding = "UTF-8")
    unique(betas_padre$causa)                                # solo las del padre
-   config_subtipo <- list(causa = 9101, anio = 2023, edad_inicio = 30,
-                          avanzado = list(extraction = list(cause_id = 9100, motivo = "subtipo de la causa 9100")))
+   config_subtipo <- list(causa = 9101, anio = 2023, edad_inicio = 30, subtipo_de = 9100)
    p <- dl_proyecto(configuracion = config_subtipo, ubicaciones = ubicaciones, poblacion = poblacion,
                     ancla = dl_ejemplo("ancla"), covariables = dl_ejemplo("covariables"), betas = betas_padre,
                     severidad = severidad[severidad$causa == 9101, ])
@@ -828,24 +848,55 @@ Hay dos formas de organizar varias causas:
    p$configuracion$origen$betas$covariable                  # las betas del padre
    ```
 
-   La causa que solo es la suma de sus subtipos no se ajusta, pero `dl_sumar_hijas()` necesita las rutas de su
-   proyecto (el registro de sus hijas y sus nombres): su carpeta trae un `config.yaml` con `subtipos`, `ubicaciones`,
-   `poblacion` y el ancla de la causa (la prevalencia y, con el prior por defecto, la mortalidad), que
-   `dl_proyecto()` exige aunque no ajuste nada. `dl_revisar_proyecto()` la marca con un error por no tener severidad,
-   que en una causa que no se corre no importa.
+**La causa que es la suma de sus subtipos.** Una causa padre con `subtipos` se ajusta como cualquier otra, con su
+ancla. Si no se ajusta, sino que se reporta como la suma de las corridas de sus subtipos, su configuración lo dice
+con `suma_de_subtipos: sí`; los subtipos que no se modelan van en `subtipos_omitidos`, cada uno con su motivo:
 
-La suma es la misma en las dos formas: cada subtipo se corre con `dl_correr()` y sus corridas se suman con las rutas
-del proyecto de la causa padre, `dl_sumar_hijas(corridas, causa = <padre>, ..., rutas = dl_proyecto(<carpeta del
-padre>)$rutas)`. La guía
-[Subtipos y suma](https://horaciochacon.github.io/dismodlite/articles/subtipos-y-suma.html) lo desarrolla, con
-`omitidas` para un subtipo que no se estima.
+```yaml
+causa: 1010
+nombre: Enfermedad de ejemplo
+anio: 2023
+subtipos: [1011, 1012, 1013]
+suma_de_subtipos: sí
+subtipos_omitidos:
+  - {causa: 1013, motivo: sin datos suficientes}
+```
+
+Esa configuración lleva `nombre` y no lleva claves del modelo (`edad_inicio`, `ancla`, `mortalidad_exceso`...): no
+hay nada que ajustar. De las tablas solo usa `ubicaciones` y `poblacion`, así que puede ser una configuración más de
+un proyecto con varias causas o vivir en su propia carpeta, con esas dos tablas. `print()` dice qué suma, y
+`dl_revisar_proyecto()` revisa su configuración, sus dos tablas y qué subtipos tienen configuración en el proyecto:
+
+```{r}
+#| label: suma
+suma <- dl_proyecto(configuracion = list(causa = 9200, nombre = "Suma de ejemplo", anio = 2023,
+                                         subtipos = c(9101, 9102, 9103), suma_de_subtipos = "sí",
+                                         subtipos_omitidos = list(list(causa = 9103, motivo = "sin datos"))),
+                    ubicaciones = ubicaciones, poblacion = poblacion)
+suma
+```
+
+La suma es la misma en las dos formas de organizar las causas: cada subtipo se corre con `dl_correr()` y después
+`dl_correr()` de la causa padre busca, en la carpeta de las corridas, la más reciente de cada subtipo y las suma
+(sin `semilla`: no hay ajuste):
+
+```r
+for (causa in c(1011, 1012)) dl_correr("mi_proyecto", causa = causa, semilla = 1)
+dl_correr("mi_proyecto", causa = 1010)
+```
+
+Con una carpeta por causa, las corridas de los subtipos y la de la suma van a la misma carpeta de corridas
+(`carpeta_salida`). La guía
+[Subtipos y suma](https://horaciochacon.github.io/dismodlite/articles/subtipos-y-suma.html) lo desarrolla con el
+ejemplo, y deja `dl_sumar_hijas()` para sumar corridas elegidas a mano.
 
 ### Repetir una corrida
 
 Cada corrida congela en `inputs/contrato/` las tablas que usó y la configuración tal como se leyó, y esa carpeta es
 la de un proyecto: se lee y se corre igual. Las betas quedan bajo la causa de la corrida; la de un subtipo con las
-betas de su padre lleva además `avanzado: extraction`, así que el subtipo se repite solo. Una corrida de prueba del
-subtipo 9101 del ejemplo:
+betas de su padre lleva además la causa padre: la clave `subtipo_de` cuando la configuración la declara y, cuando la
+relación salía de `subtipos` en la configuración del padre (que no se congela), `avanzado: extraction`. Así el subtipo
+se repite solo. Una corrida de prueba del subtipo 9101 del ejemplo:
 
 ```{r}
 #| label: repetir
@@ -875,8 +926,8 @@ Antes de correr:
       subnacionales, con las mismas bandas en todas, seguidas y sin huecos.
 - [ ] `ancla/` tiene la descarga sin editar, con todas las medidas en *Rate*, de los dos sexos y del año que se
       estima; si sus bandas son más finas que las de la población (80 y más, menores de 5), hay `poblacion_detalle`.
-- [ ] Cada beta de `betas` tiene su covariable en `covariables`, con su valor nacional; los proxies subnacionales
-      cierran en el valor nacional.
+- [ ] Cada beta de `betas` tiene su covariable en `covariables`, con su valor nacional (o, con `valor_nacional_de`,
+      el de la covariable que nombra); los proxies subnacionales cierran en ese valor nacional.
 - [ ] `datos` tiene la prevalencia como proporción y las tasas por persona-año, una fila por sexo; los datos
       excluidos tienen `motivo`; `datos_en_ajuste` lista las medidas que deben entrar, y `ancla.peso` y `notas`
       reflejan un posible doble conteo.

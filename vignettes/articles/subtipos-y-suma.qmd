@@ -1,9 +1,9 @@
 ---
 title: "Subtipos y suma"
 description: >
-  Varias causas en un proyecto, una causa que es la suma de sus subtipos, dl_sumar_hijas() (con subtipos
-  omitidos), la comparación con el ajuste directo de la causa padre, los componentes y la severidad desde una
-  partición.
+  Varias causas en un proyecto, una causa que es la suma de sus subtipos (suma_de_subtipos y dl_correr(), con
+  subtipos omitidos), dl_sumar_hijas() para sumar a mano, la comparación con el ajuste directo de la causa padre,
+  los componentes y la severidad desde una partición.
 knitr:
   opts_chunk:
     collapse: true
@@ -16,8 +16,9 @@ knitr:
 
 - Cómo se organiza un proyecto con varias causas: una configuración por causa y las tablas compartidas.
 - Cómo se declara que una causa es la suma de otras (`subtipos`) y qué heredan los subtipos de su causa padre.
-- Cómo se suman las corridas de los subtipos con `dl_sumar_hijas()`, también dejando un subtipo fuera
-  (`omitidas`).
+- Cómo se declara que la causa padre no se ajusta, sino que es la suma de las corridas de sus subtipos
+  (`suma_de_subtipos`), y cómo la suma `dl_correr()`, también dejando un subtipo fuera (`subtipos_omitidos`).
+- Cómo sumar corridas elegidas a mano con `dl_sumar_hijas()`.
 - En qué se parece y en qué no la suma al ajuste directo de la causa padre.
 - Dos temas avanzados: modelar un componente de una causa y derivar la severidad de una partición.
 
@@ -79,84 +80,173 @@ Tres reglas:
   suyas.
 - `subtipos` va solo en la causa padre; con ella el paquete arma el registro de padres e hijos que usa la suma, y
   cada subtipo encuentra a su padre. Por eso las configuraciones van en el mismo proyecto: un subtipo leído solo, en
-  su propia carpeta, no conoce a su padre: lo declara en `avanzado: extraction` y, sin filas propias en `betas`, usa
+  su propia carpeta, no conoce a su padre: lo declara con `subtipo_de` y, sin filas propias en `betas`, usa
   las de esa causa (ver la sección 7 de [Preparar tus datos](preparar-datos.html)).
+- Un subtipo tiene una sola causa padre: que dos configuraciones del proyecto lo declaren en `subtipos` es un error.
+
+Una causa padre con `subtipos` se ajusta como cualquier otra, con su propia ancla: así está la 9100 del ejemplo.
+
+## `suma_de_subtipos`: la causa padre no se ajusta, se suma
+
+Cuando se publican los subtipos, la causa padre se reporta como su suma, para que las tablas sumen. Su configuración
+lo dice con `suma_de_subtipos: sí`. Aquí, en una copia del ejemplo, se lo agregamos a la causa 9100:
+
+```{r}
+#| label: declarar-suma
+proyecto <- dl_ejemplo(copiar_en = file.path(tempdir(), "proyecto_con_suma"))
+con <- file(file.path(proyecto, "config", "9100.yaml"), open = "a", encoding = "UTF-8")
+writeLines("suma_de_subtipos: sí", con)
+close(con)
+dl_proyecto(proyecto, causa = 9100)
+```
+
+La causa ya no se ajusta: de las tablas solo usa `ubicaciones` y `poblacion`, y las claves del modelo de su
+configuración (`edad_inicio`, `mortalidad_exceso`, `subnacional`...) no se usan; `nombre` es obligatoria. En un
+proyecto nuevo, la configuración de una suma es así de corta:
+
+```yaml
+causa: 1010
+nombre: Enfermedad de ejemplo
+anio: 2023
+subtipos: [1011, 1012, 1013]
+suma_de_subtipos: sí
+```
+
+Puede ser una configuración más de un proyecto con varias causas o vivir en su propia carpeta, con `ubicaciones` y
+`poblacion`. `dl_revisar_proyecto()` la entiende: revisa su configuración, sus dos tablas y que los subtipos que
+entran tengan configuración en el proyecto (si no la tienen, avisa: pueden vivir en otra carpeta), sin pasos de
+modelo. Aquí avisa de las claves del modelo que quedaron en la configuración de la 9100 y que ya no se usan:
+
+```{r}
+#| label: revisar-suma
+revision_suma <- dl_revisar_proyecto(proyecto, causa = 9100)
+```
 
 ## Correr cada subtipo
 
 Cada subtipo es una corrida completa. Aquí, corridas de prueba (`rapido = TRUE`, con cadenas algo más largas que las
-de prueba y en paralelo con `nucleos = 4`) en una carpeta temporal; para publicar, `rapido = FALSE`:
+de prueba y en paralelo con `nucleos = 4`), que quedan en la carpeta `resultados/` del proyecto; para publicar,
+`rapido = FALSE`:
 
 ```{r}
 #| label: subtipos
 #| message: false
-salida <- file.path(tempdir(), "resultados")
 opciones <- dl_opciones_mcmc(simulaciones = 200, cadenas = 2, iteraciones = 6000, calentamiento = 2000,
                              nucleos = 4)
-corridas <- vapply(c(9101, 9102, 9103), function(causa) {
-  dl_correr(dl_ejemplo(), causa = causa, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
-            opciones = opciones, carpeta_salida = salida)$dir
-}, "")
+de_subtipos <- lapply(c(9101, 9102, 9103), function(causa)
+  dl_correr(proyecto, causa = causa, semilla = 1, rapido = TRUE, sensibilidad = FALSE, opciones = opciones))
+corridas <- vapply(de_subtipos, function(corrida) corrida$dir, "")
 basename(corridas)
 ```
 
 Cada corrida tiene la estimación nacional y la de las ubicaciones subnacionales (las tres usan las betas de la causa
 padre), con sus simulaciones guardadas en `draws/`.
 
-## Sumar: `dl_sumar_hijas()`
+## Sumar: `dl_correr()` de la causa padre
 
-`dl_sumar_hijas()` escribe una corrida nueva para la causa padre: en cada celda (ubicación, sexo y grupo de edad) y
-cada medida (prevalencia, incidencia y AVD), suma las simulaciones de los subtipos una a una, y el intervalo sale de
-los cuantiles de esa suma, nunca de sumar los límites. Necesita las rutas del proyecto de la causa padre (el registro
-de subtipos y los nombres de las ubicaciones), y que la corrida de cada subtipo declare a esa causa padre, lo que
-hace sola cuando el subtipo está en el mismo proyecto que la configuración del padre:
+`dl_correr()` de una causa con `suma_de_subtipos: sí` no ajusta nada (no pide `semilla`): busca en la carpeta de las
+corridas la más reciente de cada subtipo, del año que se estima, y escribe una corrida nueva para la causa padre. En
+cada celda (ubicación, sexo y grupo de edad) y cada medida (prevalencia, incidencia y AVD), suma las simulaciones de
+los subtipos una a una, y el intervalo sale de los cuantiles de esa suma, nunca de sumar los límites. Con
+`rapido = TRUE` suma las corridas de prueba, y la suma también es de prueba; sin él, las de producción:
 
 ```{r}
 #| label: suma
-rutas_padre <- dl_proyecto(dl_ejemplo(), causa = 9100)$rutas
-suma <- dl_sumar_hijas(corridas, causa = 9100, nombre = "suma-subtipos", carpeta = salida, rutas = rutas_padre)
+suma <- dl_correr(proyecto, causa = 9100, rapido = TRUE)
 suma
 suma$manifest$causa$agregacion
-vapply(suma$manifest$causa$hijas, function(h) h$cause_id, 0L)
+vapply(suma$manifest$causa$hijas, function(h) h$run_id, "")
 ```
 
-Antes de escribir nada comprueba que las corridas sean exactamente los subtipos declarados y que coincidan en año,
-año del ancla, ronda de GBD, número de simulaciones y celdas. La corrida de la suma no tiene diagnósticos ni
-etiquetas propios: están en las de los subtipos, que su manifiesto cita. Sus limitaciones lo dicen:
+Los mensajes dicen qué corrida tomó de cada subtipo. Antes de escribir nada comprueba que las corridas sean
+exactamente los subtipos declarados, que cada una declare a la causa como su causa padre y que coincidan en año, año
+del ancla, ronda de GBD, número de simulaciones y celdas. Si falta la corrida de un subtipo, el error dice cuál, de
+qué año y dónde se buscó. La corrida de la suma no tiene diagnósticos ni etiquetas propios: están en las de los
+subtipos, que su manifiesto cita. Sus limitaciones lo dicen:
 
 ```{r}
 #| label: limitaciones
 unlist(suma$manifest$limitaciones)
 ```
 
+Si la suma es de producción y la corrida de algún subtipo se escribió con `forzar = TRUE` (sin exigir la
+convergencia de sus cadenas), la suma la toma igual, lo dice en un mensaje y lo declara en una limitación más, que
+nombra esos subtipos.
+
 La correlación entre subtipos no se modela: la simulación *k* de la suma es la suma de las simulaciones *k* de cada
 subtipo, que vienen de ajustes independientes.
 
-### Dejar un subtipo fuera: `omitidas`
+Qué conviene saber de la búsqueda:
 
-Si un subtipo no se puede estimar (por ejemplo, no hay datos suficientes), la suma se hace con los demás y el que
-falta se declara en `omitidas`, con su motivo. La suma queda por debajo de la causa padre en la parte de ese subtipo,
-y el manifiesto lo registra:
+- **Dónde busca.** En `carpeta_salida` (por defecto, `resultados/` en la carpeta del proyecto). Las corridas se
+  reconocen por su manifiesto (la causa y el año), así que valen las de un subtipo que vive en otra carpeta, si se
+  escribieron en la misma carpeta de corridas y declaran a la causa padre (`subtipo_de`).
+- **Cuál es la más reciente.** La del último día y, en ese día, la de mayor versión. Si ese día hay corridas del
+  subtipo con nombres distintos (`causa-9101` y `causa-9101-2023`, por ejemplo), gana la que se escribió última, por
+  la fecha de modificación de su `manifest.yaml`: copiar la carpeta de las corridas sin conservar las fechas de los
+  archivos puede cambiar ese desempate. Para no depender de él, `dl_sumar_hijas()` (abajo) recibe las corridas una
+  por una.
+- **Varios años.** Con `anios`, los subtipos y la suma se corren igual, y cada año se suma con las corridas de ese
+  año:
+
+  ```r
+  for (causa in c(9101, 9102, 9103)) dl_correr(proyecto, causa = causa, semilla = 1, anios = 2019:2023)
+  dl_correr(proyecto, causa = 9100, anios = 2019:2023)
+  ```
+
+- **Una suma no es subtipo de otra suma.** Los subtipos que entran en una suma son causas que se ajustan.
+
+### Dejar un subtipo fuera: `subtipos_omitidos`
+
+Si un subtipo no se puede estimar (por ejemplo, no hay datos suficientes), la configuración de la suma lo declara en
+`subtipos_omitidos`, con su motivo. La suma se hace con los demás, queda por debajo de la causa padre en la parte de
+ese subtipo, y el manifiesto lo registra entre sus limitaciones:
 
 ```{r}
-#| label: omitidas
-suma2 <- dl_sumar_hijas(corridas[1:2], causa = 9100, nombre = "suma-sin-renovascular", carpeta = salida,
-                        rutas = rutas_padre,
-                        omitidas = list(list(cause_id = 9103, motivo = "subtipo sin datos suficientes (ejemplo)")))
-unlist(suma2$manifest$limitaciones)
+#| label: omitidos
+con <- file(file.path(proyecto, "config", "9100.yaml"), open = "a", encoding = "UTF-8")
+writeLines(c("subtipos_omitidos:", "  - {causa: 9103, motivo: subtipo sin datos suficientes (ejemplo)}"), con)
+close(con)
+dl_proyecto(proyecto, causa = 9100)
+suma_sin_9103 <- dl_correr(proyecto, causa = 9100, rapido = TRUE)
+unlist(suma_sin_9103$manifest$limitaciones)
 ```
 
-Sin `omitidas`, pasar solo dos corridas es un error: la suma no deja fuera un subtipo sin decirlo.
+Cada omitido debe estar en `subtipos`. Sin `subtipos_omitidos`, que falte la corrida de un subtipo es un error: la
+suma no deja fuera un subtipo sin decirlo.
+
+## Sumar a mano: `dl_sumar_hijas()`
+
+`dl_correr()` suma lo más reciente de la carpeta de las corridas. Para sumar corridas elegidas a mano (las de otra
+carpeta, una que no es la más reciente, una variante con otros subtipos omitidos) está `dl_sumar_hijas()`, que es la
+que hace la suma por dentro. Recibe las carpetas de las corridas, la causa padre, el nombre de la corrida nueva y las
+rutas del proyecto de la causa padre (el registro de subtipos y los nombres de las ubicaciones); los subtipos que no
+entran van en `omitidas`:
+
+```{r}
+#| label: suma-a-mano
+rutas_padre <- dl_proyecto(proyecto, causa = 9100)$rutas
+suma2 <- dl_sumar_hijas(corridas[1:2], causa = 9100, nombre = "suma-sin-renovascular",
+                        carpeta = file.path(proyecto, "resultados"), rutas = rutas_padre,
+                        nombre_causa = "Arteriopatía crónica sintética",
+                        omitidas = list(list(cause_id = 9103, motivo = "subtipo sin datos suficientes (ejemplo)")))
+suma2
+```
+
+Hace las mismas comprobaciones y, sin `omitidas`, pasar solo dos corridas es un error. `nombre_causa` es el nombre de
+la causa padre en las tablas: hay que darlo cuando las rutas son las de una causa con `suma_de_subtipos: sí`, que no
+trae ancla de donde tomarlo.
 
 ## La suma frente al ajuste directo de la causa padre
 
-La causa padre también se puede ajustar directamente, con su propia ancla:
+La causa padre también se puede ajustar directamente, con su propia ancla. Es lo que hace el ejemplo tal como
+viene, sin `suma_de_subtipos`; la corrida va a otra carpeta, para no mezclarla con la suma:
 
 ```{r}
 #| label: padre
 #| message: false
 directa <- dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
-                     opciones = opciones, carpeta_salida = salida)
+                     opciones = opciones, carpeta_salida = file.path(tempdir(), "ajuste_directo"))
 ```
 
 Las celdas de cada corrida están en `cause/<medida>/`; la prevalencia va como proporción:

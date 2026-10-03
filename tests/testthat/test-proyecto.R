@@ -251,11 +251,13 @@ test_that("un subtipo sin betas propias usa las de su causa padre (subtipos en l
 })
 
 # Un subtipo (502) en su propia carpeta, sin la configuración de su padre (501): declara la causa de sus betas en
-# avanzado.extraction; la tabla betas trae una beta de la causa `causa_betas`. `config`: líneas que se agregan.
-subtipo_en_su_carpeta <- function(causa_betas, config = character(), env = parent.frame()) {
+# avanzado.extraction (o en subtipo_de, con `clave_corta`); la tabla betas trae una beta de la causa `causa_betas`.
+# `config`: líneas que se agregan.
+subtipo_en_su_carpeta <- function(causa_betas, config = character(), env = parent.frame(), clave_corta = FALSE) {
+  padre <- if (clave_corta) "subtipo_de: 501"
+           else c("avanzado:", "  extraction:", "    cause_id: 501", "    motivo: subtipo de la causa 501")
   d <- escribir_pais_ficticio(file.path(withr::local_tempdir(.local_envir = env), "subtipo"), 502L, 2020L,
-                              c("causa: 502", "anio: 2020", "edad_inicio: 40", config, "avanzado:", "  extraction:",
-                                "    cause_id: 501", "    motivo: subtipo de la causa 501"))
+                              c("causa: 502", "anio: 2020", "edad_inicio: 40", config, padre))
   data.table::fwrite(data.table::data.table(causa = causa_betas, covariable = "indice", efecto_sobre = "prevalencia",
                                             transformacion = "log", beta = 0.5), file.path(d, "betas.csv"))
   data.table::fwrite(data.table::data.table(ubicacion = c("999", "A", "B", "C"), covariable = "indice",
@@ -280,7 +282,273 @@ test_that("un subtipo en su propia carpeta usa las betas de la causa de avanzado
 test_that("un subtipo sin betas propias ni de la causa de avanzado.extraction: el error dice qué hacer", {
   d <- subtipo_en_su_carpeta(777L, c("subnacional:", "  modo: covariables"))
   expect_error(dl_proyecto(d), paste0("la tabla betas no trae filas de la causa 502 ni de la causa 501, de la que ",
-                                      "toma las betas \\(trae las de 777\\).*avanzado: extraction: cause_id"))
+                                      "toma las betas \\(trae las de 777\\).*declárala en subtipo_de"))
+})
+
+test_that("subtipo_de: un subtipo en su propia carpeta o dado en memoria usa las betas de su causa padre", {
+  d <- subtipo_en_su_carpeta(501L, clave_corta = TRUE)
+  hija <- dl_proyecto(d)
+  expect_identical(hija$configuracion$extraction$cause_id, 501L)
+  expect_identical(hija$configuracion$extraction$motivo, "subtipo de la causa 501")
+  b <- suppressMessages(dl_insumos(hija))
+  expect_identical(b$betas$covariate_name_short, "indice")
+  # lo mismo que declararlo bajo avanzado
+  expect_identical(b$hash, suppressMessages(dl_insumos(dl_proyecto(subtipo_en_su_carpeta(501L))))$hash)
+  # sin carpeta, con las tablas en memoria, también las encuentra
+  mem <- dl_proyecto(configuracion = list(causa = 502, anio = 2020, edad_inicio = 40, subtipo_de = 501),
+                     ubicaciones = tablas_de(d, "ubicaciones")$ubicaciones, poblacion = tablas_de(d, "poblacion")$poblacion,
+                     ancla = file.path(d, "ancla"), betas = tablas_de(d, "betas")$betas,
+                     covariables = tablas_de(d, "covariables")$covariables)
+  expect_identical(mem$configuracion$origen$betas$covariable, "indice")
+  expect_identical(suppressMessages(dl_insumos(mem))$betas$covariate_name_short, "indice")
+  # sin las betas de la causa ni las de la padre, el error nombra subtipo_de
+  expect_error(dl_proyecto(subtipo_en_su_carpeta(777L, c("subnacional:", "  modo: covariables"), clave_corta = TRUE)),
+               "ni de la causa 501, de la que toma las betas.*declárala en subtipo_de")
+})
+
+test_that("subtipo_de y avanzado.extraction a la vez: manda avanzado", {
+  d <- subtipo_en_su_carpeta(501L, c("subtipo_de: 777"))
+  expect_identical(dl_proyecto(d)$configuracion$extraction$cause_id, 501L)
+})
+
+test_that("subtipo_de y el subtipos de la configuración del padre: la misma causa, o un error que nombra las dos", {
+  copia <- function(subtipo_de, env = parent.frame()) {
+    s <- readLines(dl_ejemplo("config", "9101.yaml"), encoding = "UTF-8")
+    copia_ejemplo(`config/9101.yaml` = c(s, sprintf("subtipo_de: %d", subtipo_de)), env = env)
+  }
+  p <- dl_proyecto(copia(9100L), 9101)
+  expect_identical(p$configuracion$extraction$cause_id, 9100L)
+  e <- expect_error(dl_proyecto(copia(9102L), 9101), class = "dl_error")
+  expect_match(conditionMessage(e),
+               "subtipo_de: es 9102 y la configuración de la causa 9100 declara a la causa 9101 en su clave `subtipos`")
+  # la revisión lo dice en el paso de la configuración
+  r <- suppressMessages(utils::capture.output(rev <- dl_revisar_proyecto(copia(9102L), causa = 9101)))
+  expect_match(rev$detalle[rev$paso == "configuración"], "subtipo_de: es 9102 y la configuración de la causa 9100")
+  # la propia causa no es su padre
+  expect_match(dismodlite:::.dl_problemas_config_simple(list(causa = 9101L, anio = 2023L, edad_inicio = 30,
+                                                             subtipo_de = 9101L)),
+               "^subtipo_de: es la propia causa \\(9101\\)")
+  # y ese es el error también cuando la configuración del padre ya la declara en `subtipos`
+  e <- expect_error(dl_proyecto(copia(9101L), 9101), class = "dl_error")
+  expect_match(conditionMessage(e), "subtipo_de: es la propia causa \\(9101\\): debe ser la causa padre")
+  expect_no_match(conditionMessage(e), "los dos deben decir la misma causa padre")
+})
+
+# ---- Una causa que es la suma de sus subtipos (suma_de_subtipos) ----
+
+test_that("sí o no se reconoce igual en cualquier configuración regional", {
+  formas <- list("sí", "Sí", "SÍ", "sÍ", "si", "Si", "SI", " sí ", "no", "No", "NO", TRUE, FALSE,
+                 "quizá", "s", "", 1L, NULL)
+  esperado <- c(as.list(rep(c(TRUE, FALSE, TRUE, FALSE), c(8L, 3L, 1L, 1L))), list(NULL, NULL, NULL, NULL, NULL))
+  expect_identical(lapply(formas, .dl_si_no), esperado)
+  # en una sesión en C, tolower() no pasa «Í» a minúscula
+  withr::with_locale(c(LC_CTYPE = "C"), expect_identical(lapply(formas, .dl_si_no), esperado))
+  expect_identical(.dl_si_no("S\u00cd"), TRUE)
+})
+
+test_that("suma_de_subtipos y subtipos_omitidos: la forma, con errores que nombran la clave", {
+  base <- list(causa = 9200L, nombre = "Suma", anio = 2023L)
+  forma <- function(...) .dl_problemas_config_simple(c(base, list(...)))
+  # una suma no necesita edad_inicio ni las claves del modelo; sí o no, también con true y false
+  for (v in list("sí", "si", "SÍ", TRUE)) expect_length(forma(subtipos = 9101:9102, suma_de_subtipos = v), 0L)
+  for (v in list("no", FALSE))
+    expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = v), "^edad_inicio: falta \\(obligatoria\\)")
+  # un valor que no es sí ni no: solo ese problema, sin exigir las claves del modelo
+  expect_identical(forma(subtipos = 9101:9102, suma_de_subtipos = "quizá"), "suma_de_subtipos: debe ser sí o no")
+  expect_setequal(sub(":.*$", "", .dl_problemas_config_simple(list(subtipos = 9101:9102, suma_de_subtipos = "quizá"))),
+                  c("suma_de_subtipos", "causa", "anio"))
+  expect_match(forma(suma_de_subtipos = "sí"), "^suma_de_subtipos: exige `subtipos`")
+  sin_nombre <- .dl_problemas_config_simple(list(causa = 9200L, anio = 2023L, subtipos = 9101:9102,
+                                                 suma_de_subtipos = "sí"))
+  expect_match(sin_nombre, "^suma_de_subtipos: exige `nombre`")
+  omitido <- list(list(causa = 9102L, motivo = "sin modelo"))
+  expect_length(forma(subtipos = 9101:9102, suma_de_subtipos = "sí", subtipos_omitidos = omitido), 0L)
+  expect_match(forma(edad_inicio = 30, subtipos = 9101:9102, subtipos_omitidos = omitido),
+               "^subtipos_omitidos: exige suma_de_subtipos: sí")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí",
+                     subtipos_omitidos = list(list(causa = 9999L, motivo = "x"))),
+               "^subtipos_omitidos\\[1\\].causa: la causa 9999 no está en `subtipos` \\(9101, 9102\\)")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí", subtipos_omitidos = list(list(causa = 9102L))),
+               "^subtipos_omitidos\\[1\\].motivo: falta \\(obligatoria\\)")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí",
+                     subtipos_omitidos = list(list(causa = "x", motivo = "m"))),
+               "^subtipos_omitidos\\[1\\].causa: debe ser un entero")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí",
+                     subtipos_omitidos = list(list(causa = 9101L, motivo = "a"), list(causa = 9101L, motivo = "b"))),
+               "^subtipos_omitidos: causa repetido: 9101")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí",
+                     subtipos_omitidos = list(list(causa = 9101L, motivo = "a"), list(causa = 9102L, motivo = "b"))),
+               "^subtipos_omitidos: omite todos los `subtipos`")
+  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "sí", subtipos_omitidos = "9102"),
+               "^subtipos_omitidos: es una lista de registros, cada uno con las claves causa, motivo")
+})
+
+test_that("dl_proyecto() de una suma solo lee ubicaciones y poblacion, y su print() dice qué suma", {
+  d <- copia_con_suma()
+  p <- dl_proyecto(d, 9200)
+  expect_s3_class(p, "dl_proyecto")
+  expect_true(.dl_es_suma(p))
+  expect_true(.dl_es_suma(p$configuracion))
+  expect_false(.dl_es_suma(dl_proyecto(d, 9101)))
+  expect_identical(names(p$tablas), c("ubicaciones", "poblacion"))
+  cfg <- p$configuracion
+  expect_s3_class(cfg, "dl_config")
+  expect_identical(cfg$cause_id, 9200L)
+  expect_identical(.dl_anio_ajuste(cfg), 2023L)
+  expect_null(cfg$suma)
+  expect_identical(cfg$origen$nombre, "Suma sintética de subtipos")
+  # las rutas: la población, los catálogos y el registro, con la causa y sus subtipos
+  expect_setequal(names(Filter(Negate(is.null), unclass(p$rutas))), c("poblacion", "registry", "catalogos"))
+  maestro <- leer_texto(file.path(p$rutas$registry, "master_gbd.csv"))
+  expect_identical(maestro$hijos[maestro$cause_id == "9200"], "9101|9102|9103")
+  salida <- capture.output(print(p))
+  expect_match(salida[1], "^<dl_proyecto> Suma sintética de subtipos, causa 9200 \\| año 2023")
+  expect_true(any(grepl("^  suma de los subtipos 9101 \\+ 9102 \\+ 9103: no se ajusta", salida)))
+  expect_false(any(grepl("ancla|severidad|betas|subnacional|por defecto", salida)))
+  expect_match(capture.output(print(cfg)), "causa 9200 \\| año: 2023 \\| suma de los subtipos 9101 \\+ 9102 \\+ 9103")
+  # con un subtipo omitido: suma.omitidas del formato completo, y el print() lo dice
+  po <- dl_proyecto(copia_con_suma(c("subtipos_omitidos:", "  - {causa: 9103, motivo: \"prueba\"}")), 9200)
+  expect_identical(po$configuracion$suma$omitidas, list(list(cause_id = 9103L, motivo = "prueba")))
+  expect_true(any(grepl("^  suma de los subtipos 9101 \\+ 9102 \\(omitido: 9103\\)", capture.output(print(po)))))
+  # leída para otro año, como cualquier proyecto
+  expect_identical(.dl_anio_ajuste(dl_proyecto(d, 9200, anio = 2019)$configuracion), 2019L)
+  # no tiene insumos: dl_insumos() dice quién la suma
+  expect_error(dl_insumos(p), "la causa 9200 es una suma de subtipos .*no se ajusta.*dl_correr\\(\\) la suma",
+               class = "dl_error")
+  expect_error(dl_insumos(cfg), "la causa 9200 es una suma de subtipos")
+  # y sigue dando los problemas de sus tablas: una ubicación de la población que no está en ubicaciones
+  pob <- leer_texto(file.path(d, "poblacion.csv"))
+  pob$ubicacion[pob$ubicacion == "01"] <- "99"
+  escribir_texto(pob, d, "poblacion.csv")
+  e <- expect_error(dl_proyecto(d, 9200), "problema\\(s\\) entre tablas", class = "dl_error")
+  expect_match(e$problemas, "^poblacion: la\\(s\\) ubicación\\(es\\) 99 no est")
+})
+
+test_that("un proyecto de suma en su propia carpeta: solo config.yaml, ubicaciones.csv y poblacion.csv", {
+  d <- withr::local_tempdir()
+  writeLines(enc2utf8(c("causa: 9200", "nombre: Suma en su carpeta", "anio: 2023", "subtipos: [9101, 9102]",
+                        "suma_de_subtipos: sí")), file.path(d, "config.yaml"), useBytes = TRUE)
+  expect_error(dl_proyecto(d), "faltan tablas obligatorias del proyecto.*ubicaciones.*poblacion")
+  expect_no_match(tryCatch(dl_proyecto(d), error = conditionMessage), "ancla")
+  for (f in c("ubicaciones.csv", "poblacion.csv")) file.copy(dl_ejemplo(f), file.path(d, f))
+  p <- dl_proyecto(d)
+  expect_true(.dl_es_suma(p))
+  expect_identical(p$configuracion$cause_id, 9200L)
+  # con las tablas como argumentos, también; las que no son de una suma no se leen
+  m <- dl_proyecto(configuracion = list(causa = 9200L, nombre = "Suma", anio = 2023L, subtipos = 9101:9102,
+                                        suma_de_subtipos = TRUE),
+                   ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"),
+                   ancla = dl_ejemplo("ancla"))
+  expect_identical(names(m$tablas), c("ubicaciones", "poblacion"))
+})
+
+test_that("un subtipo en `subtipos` de dos configuraciones del proyecto es un error que nombra las dos causas", {
+  d <- copia_ejemplo(`config/9200.yaml` = c("causa: 9200", "nombre: Suma", "anio: 2023",
+                                            "subtipos: [9101, 9102, 9103]", "suma_de_subtipos: sí"))
+  patron <- "subtipos: la causa 9101 está en `subtipos` de las configuraciones de las causas 9100 y 9200"
+  expect_error(dl_proyecto(d, 9200), patron, class = "dl_error")
+  expect_error(dl_proyecto(d, 9101), patron, class = "dl_error")
+})
+
+test_that("las claves ancla.error_maximo, mortalidad_exceso.fraccion_aguda y sensibilidad.fraccion_aguda llegan a su destino", {
+  proc <- .DL_PROCEDENCIA_SIMPLE
+  base <- list(causa = 501L, anio = 2020L, edad_inicio = 40L)
+  ctx <- list(ubicacion = "999", nombre = "x", subnacional = FALSE)
+  cfg <- .dl_config_simple(c(base, list(ancla = list(error_maximo = 0.1),
+                                        mortalidad_exceso = list(fraccion_aguda = 0.5),
+                                        sensibilidad = list(fraccion_aguda = c(0.4, 0.5)))), "config.yaml", 501L, ctx)
+  expect_identical(cfg$anchor$gate_err_mediano, list(valor = 0.1, procedencia = proc))
+  expect_identical(cfg$emr_prior$fraccion_aguda, list(valor = 0.5, procedencia = proc))
+  expect_identical(cfg$sensibilidad$fraccion_aguda, c(0.4, 0.5))
+  # la misma configuración que las claves del formato completo bajo avanzado, con la procedencia de la traducción
+  larga <- .dl_config_simple(c(base, list(avanzado = list(
+    anchor = list(gate_err_mediano = list(valor = 0.1, procedencia = proc)),
+    emr_prior = list(fraccion_aguda = list(valor = 0.5, procedencia = proc)),
+    sensibilidad = list(fraccion_aguda = list(0.4, 0.5))))), "config.yaml", 501L, ctx)
+  sin_origen <- function(x) x[setdiff(names(x), "origen")]
+  expect_identical(sin_origen(cfg), sin_origen(larga))
+  # un valor entero, una sola fracción en la sensibilidad
+  uno <- .dl_config_simple(c(base, list(mortalidad_exceso = list(fraccion_aguda = 0L),
+                                        sensibilidad = list(fraccion_aguda = 0.3))), "config.yaml", 501L, ctx)
+  expect_identical(uno$emr_prior$fraccion_aguda$valor, 0)
+  expect_identical(uno$sensibilidad$fraccion_aguda, 0.3)
+  # `avanzado` manda sobre la clave corta, y completa su bloque (cfr_30d no tiene clave corta)
+  avanzado <- .dl_config_simple(c(base, list(ancla = list(error_maximo = 0.1),
+                                             mortalidad_exceso = list(fraccion_aguda = 0.5),
+                                             avanzado = list(anchor = list(gate_err_mediano = list(valor = 0.2,
+                                                                                                   procedencia = "x")),
+                                                             emr_prior = list(fraccion_aguda = list(cfr_30d = 0.1))))),
+                                "config.yaml", 501L, ctx)
+  expect_identical(avanzado$anchor$gate_err_mediano, list(valor = 0.2, procedencia = "x"))
+  expect_identical(avanzado$emr_prior$fraccion_aguda,
+                   list(valor = 0.5, procedencia = proc, cfr_30d = 0.1))
+})
+
+test_that("sin las claves nuevas la configuración y los insumos de un proyecto de hoy no cambian", {
+  # sin la clave la configuración completa no declara el umbral, la fracción aguda ni la de la sensibilidad
+  cfg <- dl_configuracion_ejemplo(9101L)
+  expect_identical(cfg$anchor$gate_err_mediano, list(valor = 0.05))
+  expect_null(cfg$emr_prior$fraccion_aguda)
+  expect_null(cfg$sensibilidad$fraccion_aguda)
+  expect_false(any(c("ancla.error_maximo", "mortalidad_exceso.fraccion_aguda", "sensibilidad.fraccion_aguda",
+                     "subtipo_de", "suma_de_subtipos") %in% names(cfg$origen$por_defecto)))
+  expect_null(cfg$suma)
+  # el hash de los insumos de la versión anterior a las claves; los insumos dependen en el último bit de la
+  # plataforma, así que la constante solo se compara en la que se tomó
+  generada <- readLines(test_path("_referencia", "plataforma.txt"), warn = FALSE)[1]
+  skip_if_not(identical(generada, plataforma_actual()), sprintf("hash tomado en %s", generada))
+  hashes <- vapply(c(9100L, 9101L), function(ca) suppressMessages(dl_insumos(dl_proyecto(dl_ejemplo(), ca)))$hash, "")
+  expect_identical(unname(hashes), c("ff1e50fe6b5f79a924d4b99476c9759de85a2c5ba9c775627de0ca2785069e49",
+                                     "0e21efee8666d99ad26034bea8f3951ea636d58a8321e78e474a464c98822535"))
+})
+
+test_that("las claves nuevas fuera de rango o de otro tipo son un error que nombra la clave corta", {
+  base <- list(causa = 501L, anio = 2020L, edad_inicio = 40L)
+  ctx <- list(ubicacion = "999", nombre = "x", subnacional = FALSE)
+  forma <- function(...) .dl_problemas_config_simple(c(base, list(...)))
+  expect_match(forma(ancla = list(error_maximo = "poco")), "^ancla.error_maximo: debe ser un número en \\(0, 1\\)")
+  expect_match(forma(mortalidad_exceso = list(fraccion_aguda = "mucha")),
+               "^mortalidad_exceso.fraccion_aguda: debe ser un número en \\[0, 1\\)")
+  expect_match(forma(sensibilidad = list(fraccion_aguda = "a")),
+               "^sensibilidad.fraccion_aguda: debe ser una lista de números")
+  expect_match(forma(subtipo_de = 9.5), "^subtipo_de: debe ser un entero positivo, el cause_id de la causa padre")
+  expect_match(forma(subtipo_de = "x"), "^subtipo_de: debe ser un entero")
+  expect_match(forma(subtipo_de = 501L), "^subtipo_de: es la propia causa \\(501\\)")
+  expect_match(forma(subtipo_de = 0L), "^subtipo_de: debe ser un entero positivo")
+  expect_match(forma(subtipo_de = -3L), "^subtipo_de: debe ser un entero positivo")
+  for (v in list(1.5, -1, 1, c(0, 1.5)))
+    expect_match(forma(sensibilidad = list(fraccion_aguda = v)),
+                 "^sensibilidad.fraccion_aguda: cada valor debe estar en \\[0, 1\\)", info = v)
+  expect_length(forma(sensibilidad = list(fraccion_aguda = c(0, 0.3, 0.99))), 0L)
+  expect_match(forma(ancla = list(error_maximo = 0.1, tope = 1)), "ancla.tope: clave desconocida")
+  # los dominios, el validador completo, citado por la clave corta
+  fuera <- function(...) tryCatch(.dl_config_simple(c(base, list(...)), "config.yaml", 501L, ctx),
+                                  dl_error = function(e) conditionMessage(e))
+  for (v in list(0, 1, -0.1, 2))
+    expect_match(fuera(ancla = list(error_maximo = v)), "ancla.error_maximo \\(anchor.gate_err_mediano.valor\\): valor debe estar en \\(0, 1\\)",
+                 info = v)
+  for (v in list(1, -0.1))
+    expect_match(fuera(mortalidad_exceso = list(fraccion_aguda = v)),
+                 "mortalidad_exceso.fraccion_aguda \\(emr_prior.fraccion_aguda.valor\\): valor debe ser un número en \\[0, 1\\)",
+                 info = v)
+})
+
+test_that("sensibilidad.fraccion_aguda fuera de [0, 1) y subtipo_de no positivo se atrapan al leer el proyecto", {
+  copia <- function(sensibilidad = "peso: [0.1, 0.5, 1.0]", subtipo_de = NULL, env = parent.frame()) {
+    s <- readLines(dl_ejemplo("config", "9101.yaml"), encoding = "UTF-8")
+    s[s == "  peso: [0.1, 0.5, 1.0]"] <- paste0("  ", sensibilidad)
+    copia_ejemplo(`config/9101.yaml` = c(s, subtipo_de), env = env)
+  }
+  casos <- list(list("fraccion_aguda: [0, 1.5]", NULL, "sensibilidad.fraccion_aguda"),
+                list("fraccion_aguda: [-1]", NULL, "sensibilidad.fraccion_aguda"),
+                list("peso: [0.5]", "subtipo_de: 0", "subtipo_de"))
+  for (k in casos) {
+    d <- copia(k[[1L]], k[[2L]])
+    e <- expect_error(dl_proyecto(d, 9101), class = "dl_error")
+    expect_match(conditionMessage(e), paste0(k[[3L]], ": (cada valor debe estar en \\[0, 1\\)|debe ser un entero positivo)"))
+    rev <- suppressMessages(dl_revisar_proyecto(d, 9101))
+    expect_match(rev$detalle[rev$paso == "configuración"], k[[3L]], fixed = TRUE)
+  }
 })
 
 test_that("proxies en bandas que no son de GBD ni de la población (uniones de sus bandas) llevan su id y cierran", {
@@ -916,4 +1184,287 @@ test_that("ediciones repetidas en proxies.excluir o en `excluir` son un problema
                all = FALSE)
   expect_error(dismodlite:::.dl_validar_excluir(data.frame(anio = c(2021, 2021), motivo = c("a", "b"))),
                "`excluir` repite la\\(s\\) edición\\(es\\) 2021")
+})
+
+# ---- El año que se estima (`anio`) y el año del ancla ----
+
+# Cambia el `anio` de la configuración de `causa` en la copia `d` del ejemplo y, con `ancla`, declara ancla.anio.
+config_con_anio <- function(d, causa, anio = NULL, ancla = NULL) {
+  f <- file.path(d, "config", sprintf("%d.yaml", causa))
+  l <- readLines(f, encoding = "UTF-8")
+  if (!is.null(anio)) l <- sub("^anio: [0-9]+$", sprintf("anio: %d", anio), l)
+  if (!is.null(ancla)) l <- c(l, "", "ancla:", sprintf("  anio: %d", ancla))
+  writeLines(enc2utf8(l), f, useBytes = TRUE)
+  d
+}
+
+# dl_proyecto(...) con sus mensajes aparte: list(p, mensajes).
+proyecto_y_mensajes <- function(...) {
+  mensajes <- character()
+  p <- withCallingHandlers(dl_proyecto(...), message = function(m) {
+    mensajes <<- c(mensajes, conditionMessage(m)); invokeRestart("muffleMessage")
+  })
+  list(p = p, mensajes = mensajes)
+}
+
+test_that("dl_proyecto(anio = ) lee el proyecto para otro año, como si la configuración lo trajera", {
+  p <- dl_proyecto(copia_ejemplo(), 9101, anio = 2019)
+  expect_identical(p$configuracion$years$ajuste, 2019L)
+  expect_identical(unique(p$calibracion$anio), 2019L)
+  q <- dl_proyecto(config_con_anio(copia_ejemplo(), 9101, anio = 2019), 9101)
+  sin_rutas <- function(cfg) { cfg$origen[c("archivo", "betas")] <- NULL; cfg }      # las de cada copia
+  expect_identical(sin_rutas(p$configuracion), sin_rutas(q$configuracion))
+  expect_identical(suppressMessages(dl_insumos(p))$hash, suppressMessages(dl_insumos(q))$hash)
+  # con las tablas como argumentos y en el formato completo
+  r <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30), anio = 2019,
+                   ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"),
+                   ancla = dl_ejemplo("ancla"))
+  expect_identical(r$configuracion$years$ajuste, 2019L)
+  expect_identical(.dl_anio_ajuste(dl_proyecto(ejemplo_completo(), 9100, anio = 2019)$configuracion), 2019L)
+  expect_identical(.dl_anio_ajuste(dl_proyecto(ejemplo_completo(), 9100)$configuracion), 2023L)
+})
+
+test_that("`anio` es un solo número entero", {
+  for (mal in list("2019", c(2019, 2023), 2019.5, NA, TRUE))
+    expect_error(dl_proyecto(dl_ejemplo(), 9101, anio = mal), "`anio` debe ser un año, un solo número entero")
+})
+
+test_that(".dl_anio_ancla_proyecto(): el año, el menor con ancla.anio o el último anterior que trae el ancla", {
+  expect_identical(.dl_anio_ancla_proyecto(2024, NULL, 2018:2023), list(anio = 2023L, proyectado = TRUE))
+  expect_identical(.dl_anio_ancla_proyecto(2021, NULL, 2018:2023), list(anio = 2021L, proyectado = FALSE))
+  expect_identical(.dl_anio_ancla_proyecto(2019, 2023, 2018:2023), list(anio = 2019L, proyectado = FALSE))
+  expect_identical(.dl_anio_ancla_proyecto(2024, 2023, 2018:2023), list(anio = 2023L, proyectado = FALSE))
+  expect_identical(.dl_anio_ancla_proyecto(2017, NULL, 2018:2023), list(anio = 2017L, proyectado = FALSE))
+  expect_identical(.dl_anio_ancla_proyecto(2024, NULL, c(2019L, 2023L, 2025L)), list(anio = 2023L, proyectado = TRUE))
+  expect_identical(.dl_anio_ancla_proyecto(2024, NULL, integer()), list(anio = 2024L, proyectado = FALSE))
+})
+
+test_that("sin ancla.anio, un año que el ancla no trae se proyecta desde el último anterior y se anuncia", {
+  # el ejemplo trae el ancla y las covariables nacionales hasta 2023 y la población hasta 2024
+  x <- proyecto_y_mensajes(copia_ejemplo(), 9101, anio = 2024)
+  cfg <- x$p$configuracion
+  expect_identical(cfg$years$ajuste, 2024L)
+  expect_identical(cfg$years$ancla$valor, 2023L)
+  expect_match(cfg$years$ancla$procedencia, "^proyección: la tabla ancla no trae .* 2024; se proyecta desde 2023")
+  expect_length(x$mensajes, 1L)
+  expect_match(x$mensajes, "^dl_proyecto\\(\\): el ancla no trae 2024: se proyecta desde 2023")
+  expect_identical(cfg$origen$por_defecto[["ancla.anio"]], "2023")
+  expect_identical(unique(x$p$calibracion$anio), 2024L)       # los proxies, del año que se estima
+  b <- suppressMessages(dl_insumos(x$p))
+  expect_identical(unique(b$prior_gbd$year), 2024L)           # el ancla de 2023, con la etiqueta de 2024
+  # lo mismo con el año escrito en la configuración
+  y <- proyecto_y_mensajes(config_con_anio(copia_ejemplo(), 9101, anio = 2024), 9101)
+  expect_identical(y$p$configuracion$years, cfg$years)
+  expect_identical(y$mensajes, x$mensajes)
+  expect_identical(suppressMessages(dl_insumos(y$p))$hash, b$hash)
+  # y es la proyección que se declara con ancla.anio: los mismos números, otra procedencia y sin anuncio
+  z <- proyecto_y_mensajes(config_con_anio(copia_ejemplo(), 9101, ancla = 2023), 9101, anio = 2024)
+  expect_identical(z$p$configuracion$years$ancla, list(valor = 2023L, procedencia = .DL_PROCEDENCIA_SIMPLE))
+  expect_identical(z$mensajes, character())
+  bz <- suppressMessages(dl_insumos(z$p))
+  expect_identical(bz$prior_gbd, b$prior_gbd)
+  expect_identical(bz$cov_proxy, b$cov_proxy)
+})
+
+test_that("con ancla.anio, el año del ancla es el menor entre ese y el que se estima", {
+  d <- config_con_anio(copia_ejemplo(), 9101, ancla = 2023)
+  x <- proyecto_y_mensajes(d, 9101, anio = 2019)
+  expect_identical(.dl_anio_ancla(x$p$configuracion), 2019L)
+  expect_identical(x$mensajes, character())
+  # la procedencia dice lo que pasó: el ancla.anio declarado es posterior y el año del ancla es el que se estima
+  expect_identical(x$p$configuracion$years$ancla, list(valor = 2019L, procedencia = paste0(
+    "el año del ancla es el que se estima (2019): el ancla.anio declarado en la configuración del proyecto (2023) ",
+    "es posterior")))
+  # sin el argumento, o con un año que no baja el ancla.anio declarado, la de siempre
+  expect_identical(dl_proyecto(d, 9101)$configuracion$years$ancla,
+                   list(valor = 2023L, procedencia = .DL_PROCEDENCIA_SIMPLE))
+  expect_identical(suppressMessages(dl_proyecto(d, 9101, anio = 2024))$configuracion$years$ancla,
+                   list(valor = 2023L, procedencia = .DL_PROCEDENCIA_SIMPLE))
+  expect_identical(dl_proyecto(d, 9101, anio = 2023)$configuracion$years$ancla,
+                   list(valor = 2023L, procedencia = .DL_PROCEDENCIA_SIMPLE))
+  expect_identical(suppressMessages(dl_insumos(x$p))$prior_gbd,
+                   suppressMessages(dl_insumos(dl_proyecto(copia_ejemplo(), 9101, anio = 2019)))$prior_gbd)
+  expect_identical(.dl_anio_ancla(dl_proyecto(d, 9101)$configuracion), 2023L)
+})
+
+test_that("un ancla.anio posterior al `anio` de la configuración es un error; solo el argumento `anio` lo baja", {
+  d <- config_con_anio(copia_ejemplo(), 9101, ancla = 2025)
+  expect_identical(.dl_anio_ancla(dl_proyecto(d, 9101, anio = 2019)$configuracion), 2019L)
+  # con proxies_crudos, el error llega antes, de su calibración (no hay valor nacional de 2025); sin ellos, del validador
+  expect_error(dl_proyecto(d, 9101), "no tiene valor nacional en 2025")
+  unlink(file.path(d, "proxies_crudos.csv"))
+  expect_error(dl_proyecto(d, 9101), "ancla.anio .*: debe ser un entero igual al año de ajuste o un año antes")
+  # con la configuración como lista y las tablas como argumentos, lo mismo
+  minimo <- function(...) dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30,
+                                                           ancla = list(anio = 2025L)), ...,
+                                      ubicaciones = dl_ejemplo("ubicaciones.csv"),
+                                      poblacion = dl_ejemplo("poblacion.csv"), ancla = dl_ejemplo("ancla"))
+  expect_error(minimo(), "ancla.anio .*: debe ser un entero igual al año de ajuste o un año antes")
+  expect_identical(minimo(anio = 2019)$configuracion$years$ancla,
+                   list(valor = 2019L, procedencia = .dl_procedencia_ancla_anterior(2019L, 2025L)))
+})
+
+test_that("las traducciones de dos años del mismo proyecto conviven; la del mismo año se reemplaza", {
+  d <- copia_ejemplo()
+  p19 <- dl_proyecto(d, 9101, anio = 2019)
+  p23 <- dl_proyecto(d, 9101)
+  expect_identical(unique(suppressMessages(dl_insumos(p19))$prior_gbd$year), 2019L)
+  expect_identical(unique(suppressMessages(dl_insumos(p23))$prior_gbd$year), 2023L)
+  # cambia una tabla: la traducción nueva de 2023 borra la anterior de 2023 y deja la de 2019
+  pob <- leer_texto(file.path(d, "poblacion.csv"))
+  pob$poblacion[pob$anio == "2023"][1] <- "999999"
+  escribir_texto(pob, d, "poblacion.csv")
+  q23 <- dl_proyecto(d, 9101)
+  expect_false(identical(q23$rutas$poblacion, p23$rutas$poblacion))
+  expect_false(file.exists(p23$rutas$poblacion))
+  expect_true(file.exists(p19$rutas$poblacion))
+  expect_error(dl_insumos(p23), "la traducción de este proyecto ya no está")
+})
+
+test_that("un año anterior a todos los del ancla: el error de las reglas, que no hay de dónde proyectar", {
+  minimo <- function(anio) dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 30), anio = anio,
+                                       ubicaciones = dl_ejemplo("ubicaciones.csv"),
+                                       poblacion = dl_ejemplo("poblacion.csv"), ancla = dl_ejemplo("ancla"))
+  e <- expect_error(minimo(2018), class = "dl_error")
+  expect_match(e$problemas, paste0("^ancla: no trae la prevalencia de la causa 9101 de hombres y mujeres de 2018 ",
+                                   "\\(años que trae: 2019, 2023\\); solo se proyecta desde un año anterior, y el ",
+                                   "ancla no trae ninguno$"), all = FALSE)
+  # más de un año atrás no es mantener el nivel: no se proyecta
+  expect_error(minimo(2021), paste0("anio: la tabla ancla no trae la prevalencia de la causa en 2021 y el último año ",
+                                    "anterior que trae es 2019: el ancla se proyecta a lo sumo un año"))
+})
+
+# ---- Las tablas dadas como argumentos, al leer otro año ----
+
+test_that("un proyecto con carpeta y una tabla dada se relee para otro año con esa tabla, no con la de la carpeta", {
+  d <- copia_ejemplo()
+  mi_pob <- as.data.frame(leer_texto(file.path(d, "poblacion.csv")))
+  mi_pob$poblacion <- as.numeric(mi_pob$poblacion) * 2
+  p <- suppressMessages(dl_proyecto(d, 9101, poblacion = mi_pob))
+  expect_identical(p$tablas_dadas, list(poblacion = mi_pob))
+  de_2019 <- function(q) { x <- as.data.frame(q$tablas$poblacion); x[x$anio == 2019, ] }
+  p19 <- suppressMessages(.dl_proyecto_de_anio(p, 2019L))
+  expect_identical(.dl_anio_ajuste(p19$configuracion), 2019L)
+  expect_identical(p19$carpeta, p$carpeta)
+  expect_identical(p19$tablas_dadas, p$tablas_dadas)
+  expect_identical(de_2019(p19), de_2019(p))
+  hash19 <- suppressMessages(dl_insumos(p19))$hash
+  # el mismo año leído solo de la carpeta (su traducción reemplaza a la anterior de ese año) trae otra población
+  carpeta19 <- suppressMessages(dl_proyecto(d, 9101, anio = 2019))
+  expect_identical(de_2019(p19)$poblacion, de_2019(carpeta19)$poblacion * 2)
+  expect_false(identical(hash19, suppressMessages(dl_insumos(carpeta19))$hash))
+  # las demás tablas siguen siendo las de la carpeta
+  expect_identical(p19$tablas$ancla, carpeta19$tablas$ancla)
+  # una tabla vacía dada como argumento deja fuera la de la carpeta, también al releer
+  sin <- suppressMessages(dl_proyecto(d, 9101, datos = data.frame()))
+  expect_null(sin$tablas$datos)
+  expect_false(is.null(carpeta19$tablas$datos))
+  expect_null(suppressMessages(.dl_proyecto_de_anio(sin, 2019L))$tablas$datos)
+  # sin tablas dadas, el objeto no lleva el campo
+  expect_false("tablas_dadas" %in% names(suppressMessages(dl_proyecto(d, 9101))))
+  # dl_correr(anios = ) corre cada año con la tabla dada: la población congelada de la corrida es la dada
+  r <- suppressMessages(dl_correr(p, semilla = 1, rapido = TRUE, sensibilidad = FALSE, anios = 2019,
+                                  carpeta_salida = withr::local_tempdir()))
+  cong <- data.table::fread(file.path(r[["2019"]]$dir, "inputs", "contrato", "poblacion.csv"))
+  expect_equal(cong$poblacion, mi_pob$poblacion)
+})
+
+# ---- valor_nacional_de ----
+
+# Las tablas del proyecto de la carpeta `d` (el ejemplo, causa 9100) con la beta de haqi anclada en otra covariable,
+# haqi_estandarizado: covariables gana las filas nacionales de haqi con ese nombre (su valor, más `mas`) y, sin
+# `copia`, pierde las de haqi. Devuelve el proyecto leído con esas tablas.
+proyecto_valor_nacional_de <- function(d, copia, mas = 0, nombre = "haqi_estandarizado") {
+  t <- suppressMessages(dl_proyecto(d, 9100))$tablas
+  cv <- t$covariables
+  nac <- cv$covariable == "haqi" & (if ("ubicacion" %in% names(cv)) is.na(cv$ubicacion) else TRUE)
+  std <- data.table::copy(cv[nac])[, `:=`(covariable = "haqi_estandarizado", covariable_id = 1098L,
+                                         valor = valor + mas, inferior = inferior + mas, superior = superior + mas)]
+  t$covariables <- rbind(if (copia) cv else cv[!nac], std)
+  t$betas <- data.table::copy(t$betas)[, valor_nacional_de := ifelse(covariable == "haqi", nombre, NA_character_)]
+  do.call(dl_proyecto, c(list(causa = 9100, configuracion = file.path(d, "config", "9100.yaml")),
+                         lapply(t, as.data.frame)))
+}
+
+test_that("valor_nacional_de: la beta no necesita la fila nacional de su propia covariable", {
+  d <- ejemplo_calibrado()
+  con <- suppressMessages(dl_insumos(proyecto_valor_nacional_de(d, copia = TRUE)))
+  p <- proyecto_valor_nacional_de(d, copia = FALSE)
+  expect_false(any(p$tablas$covariables$covariable == "haqi" & is.na(p$tablas$covariables$ubicacion)))
+  sin <- suppressMessages(dl_insumos(p))
+  # lo que entra a la estimación subnacional no cambia: los proxies y el valor nacional que se les resta
+  expect_identical(sin$cov_proxy, con$cov_proxy)
+  expect_identical(sin$cov_valores, con$cov_valores[covariate_name_short != "haqi"])
+  # sin su fila nacional, la covariable de la beta no tiene el identificador del GHDx: toma su posición en betas
+  expect_identical(sin$betas[, !"covariate_id"], con$betas[, !"covariate_id"])
+  dX <- function(b) dismodlite:::.dl_dX(b, dismodlite:::.dl_proxies(b), n = 20L, semilla = 1L)
+  expect_identical(dX(sin), dX(con))
+  expect_identical(sin$cfg$covariables, con$cfg$covariables)
+  expect_identical(unique(sin$cov_proxy[covariate_id_gbd == 1098L]$ancla_ghdx), 50.9)
+  # y la cascada corre, con el valor nacional de la sustituta
+  r <- suppressMessages(dl_correr(p, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                  carpeta_salida = withr::local_tempdir()))
+  su <- r$manifest$cascada$sustituciones[[1]]
+  expect_identical(su[c("covariate_name_short", "covariate_id_nacional")],
+                   list(covariate_name_short = "haqi", covariate_id_nacional = 1098L))
+})
+
+test_that("valor_nacional_de: sin el valor nacional de la covariable nombrada, el error la nombra", {
+  e <- expect_error(proyecto_valor_nacional_de(ejemplo_calibrado(), copia = TRUE, nombre = "haqi_otro"),
+                    class = "dl_error")
+  expect_match(e$problemas, paste0("^betas: valor_nacional_de nombra haqi_otro, sin valor nacional de 2023 \\(el año ",
+                                   "del ancla\\) en la tabla covariables$"), all = FALSE)
+})
+
+test_that("valor_nacional_de sin valores subnacionales de la covariable: la beta sigue pidiendo su fila nacional", {
+  # el ejemplo sin proxies (ni calibrados ni crudos): la estimación subnacional es plana y no hay proxy que anclar
+  t <- suppressMessages(dl_proyecto(dl_ejemplo(), 9100))$tablas
+  t$proxies_crudos <- NULL
+  cv <- t$covariables
+  std <- data.table::copy(cv[covariable == "haqi"])[, `:=`(covariable = "haqi_estandarizado", covariable_id = 1098L)]
+  t$betas <- data.table::copy(t$betas)[, valor_nacional_de := ifelse(covariable == "haqi", "haqi_estandarizado",
+                                                                     NA_character_)]
+  leer <- function(covariables)
+    suppressWarnings(suppressMessages(do.call(dl_proyecto, c(
+      list(causa = 9100, configuracion = list(causa = 9100, anio = 2023, edad_inicio = 30)),
+      lapply(replace(t, "covariables", list(covariables)), as.data.frame)))))
+  e <- expect_error(leer(rbind(cv[covariable != "haqi"], std)), class = "dl_error")
+  expect_match(e$problemas, paste0("^betas: haqi no tiene\\(n\\) valor nacional de 2023 \\(el año del ancla\\) en la ",
+                                   "tabla covariables: agrega su fila nacional$"), all = FALSE)
+  # con su fila nacional, el proyecto se lee y sus insumos se arman
+  expect_s3_class(suppressWarnings(suppressMessages(dl_insumos(leer(rbind(cv, std))))), "dl_bundle")
+})
+
+test_that("valor_nacional_de con proxies_crudos: la calibración cierra en la covariable nombrada", {
+  d <- dl_ejemplo()
+  for (copia in c(FALSE, TRUE)) {
+    p <- proyecto_valor_nacional_de(d, copia = copia, mas = 3)
+    k <- attr(p$calibracion, "calibracion")
+    expect_identical(k$valor_nacional_de, c(NA, NA, "haqi_estandarizado"))
+    b <- suppressMessages(dl_insumos(p))                  # las reglas pasan: los proxies cierran en su ancla
+    # el manifiesto de la corrida declara la covariable que dio el valor nacional, y solo de la que lo toma de otra
+    if (!copia) {
+      r <- suppressMessages(dl_correr(p, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                      carpeta_salida = withr::local_tempdir()))
+      expect_identical(r$manifest$params$proxies$haqi$valor_nacional_de, "haqi_estandarizado")
+      expect_false("valor_nacional_de" %in% names(r$manifest$params$proxies$LDI_pc))
+      expect_length(grep("valor_nacional_de", readLines(file.path(r$dir, "manifest.yaml"), encoding = "UTF-8")), 1L)
+    }
+    px <- b$cov_proxy[covariate_id_gbd == 1098L]
+    expect_identical(unique(px$ancla_ghdx), 50.9 + 3)
+    pob <- p$tablas$poblacion[anio == 2023, list(w = sum(poblacion)), by = ubicacion]
+    expect_equal(sum(px$valor_calibrado * pob$w[match(px$location_id, pob$ubicacion)]) /
+                   sum(pob$w[match(px$location_id, pob$ubicacion)]), 53.9, tolerance = 1e-12)
+  }
+  # la revisión de la carpeta calibra igual
+  d2 <- copia_ejemplo()
+  cv <- proyecto_valor_nacional_de(d, copia = FALSE, mas = 3)$tablas
+  unlink(file.path(d2, "covariables"), recursive = TRUE)
+  data.table::fwrite(cv$covariables, file.path(d2, "covariables.csv"))
+  data.table::fwrite(cv$betas, file.path(d2, "betas.csv"))
+  utils::capture.output(rev <- suppressMessages(dl_revisar_proyecto(d2, 9100)))
+  expect_false(any(rev$estado == "error"))
+  expect_identical(rev$estado[rev$paso == "proxies"], "ok")
+  expect_identical(attr(dl_proyecto(d2, 9100)$calibracion, "calibracion")$valor_nacional_de,
+                   c(NA, NA, "haqi_estandarizado"))
 })

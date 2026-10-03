@@ -25,7 +25,7 @@ sugerida. No ajusta nada.
 }
 \details{
 La revisión usa los mismos lectores y validadores que \code{\link[=dl_proyecto]{dl_proyecto()}} y \code{\link[=dl_insumos]{dl_insumos()}}: lo que pasa la revisión es
-lo que ellos aceptan. Sus pasos, en orden:
+lo que ellos aceptan. Sus pasos, en orden (los de una causa que se ajusta; los de una suma de subtipos, más abajo):
 \enumerate{
 \item cada tabla (\code{ubicaciones}, \code{poblacion}, \code{ancla}, ...), leída por su lector y validada sola, como en \code{\link[=dl_tabla]{dl_tabla()}}:
 una columna que falta, un CSV guardado desde Excel con «;» o coma decimal, un sexo, una medida o un número que no
@@ -34,20 +34,23 @@ se reconoce, bandas de edad que se solapan... La línea en orden dice cuántas f
 (o que solo trae el encabezado) es un error;
 \item \code{configuración}: sus claves y valores, como los lee \code{\link[=dl_configuracion]{dl_configuracion()}}. Su traducción toma cosas de las
 tablas (la ubicación nacional, las betas): si \code{ubicaciones}, \code{betas} o \code{covariables} tienen un error, espera
-(\code{-});
+(\code{-}). Avisa (\code{!}) de una clave que el bloque \code{avanzado} también declara, en su clave del formato completo, con
+otro valor (por ejemplo \code{ancla.error_maximo} y \code{avanzado: anchor.gate_err_mediano}): rige el de \code{avanzado}, y
+\code{\link[=dl_proyecto]{dl_proyecto()}} no lo dice;
 \item \code{proyecto}: las reglas que cruzan tablas, cada problema con su tabla delante: que toda ubicación esté en
 \code{ubicaciones} (sin códigos repetidos, una sola sin \code{padre}, la nacional; las subnacionales con la nacional de
 padre); que la población traiga el año que se estima y los sexos del modelo, con las mismas bandas de edad en
 todas las ubicaciones, años y sexos, seguidas (sin huecos) y desde \code{edad_inicio}; que el ancla traiga la
 prevalencia de la causa (y la mortalidad, si la usa el prior de la mortalidad en exceso) en el año del ancla y en
 cada sexo, y la columna \code{causa} si el proyecto tiene varias; que cada banda del ancla sea una unión de bandas de
-la población o se pueda agrupar con \code{poblacion_detalle}; que cada covariable de \code{betas} (y cada
-\code{valor_nacional_de}) tenga su valor nacional en el año del ancla y que \code{escala} vaya solo con la transformación
-lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
-que se anclan traiga su intervalo (\code{inferior} y \code{superior}); que las proporciones de \code{severidad} sumen 1. Avisa
-(\code{!}) de una covariable con proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera
-de la estimación subnacional) y de valores de mortalidad de \code{datos} que parecen tasas por 100 000 en vez de por
-persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+la población o se pueda agrupar con \code{poblacion_detalle}; que cada covariable de \code{betas} tenga su valor nacional
+en el año del ancla (el suyo o, con \code{valor_nacional_de} y valores subnacionales de la covariable, el de la
+covariable que nombra) y que \code{escala} vaya solo con la transformación lineal; que cada ubicación subnacional
+con proxies los traiga de todas las covariables y que el valor nacional en que se anclan traiga su intervalo
+(\code{inferior} y \code{superior}); que las proporciones de \code{severidad} sumen 1. Avisa (\code{!}) de una covariable con
+proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
+subnacional) y de valores de mortalidad de \code{datos} que parecen tasas por 100 000 en vez de por persona-año
+(mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
 \item \code{insumos}: si nada falló, los insumos completos (\code{\link[=dl_insumos]{dl_insumos()}}), con las reglas que necesitan todo armado: que
 la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
 población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la
@@ -60,6 +63,12 @@ conteo, las filas de \code{datos} que quedan fuera).
 Cada problema lleva una sugerencia: \code{\link[=dl_configuracion]{dl_configuracion()}} si nombra una clave de la configuración, las columnas de
 su tabla (\link{dl_tablas}) o \code{\link[=dl_proyecto]{dl_proyecto()}}. Un paso que espera a que se corrija otro (\code{-}) no cuenta como error ni
 como aviso.
+
+De una causa que es la suma de sus subtipos (\code{suma_de_subtipos: sí}; ver \code{\link[=dl_proyecto]{dl_proyecto()}}) se revisan sus dos
+tablas (\code{ubicaciones} y \code{poblacion}), su configuración y, en \code{proyecto}, las reglas de esas tablas; no hay paso
+\code{insumos}, porque la causa no se ajusta. Avisa (\code{!}) de las claves de la configuración que una suma no usa y de
+los subtipos que entran en la suma y no tienen configuración en el proyecto: pueden estar en otra carpeta, y
+\code{\link[=dl_correr]{dl_correr()}} busca sus corridas al sumar.
 
 En un proyecto en el formato completo de la 0.2.2 se revisan la configuración, los insumos completos y la
 severidad.

@@ -7,8 +7,8 @@
 # Campos de cada clave (los que no se dan están vacíos):
 #   clave        nombre en el YAML: ancla.peso es la clave `peso` del bloque `ancla`; a[].b, la clave `b` de
 #                cada registro de la lista `a`
-#   tipo         entero, número, texto, lógico (true o false), lista de números, lista de enteros, lista de textos,
-#                lista de registros o bloque: la revisión comprueba que el valor lo sea
+#   tipo         entero, número, texto, lógico (true o false), sí o no (también true o false), lista de números, lista
+#                de enteros, lista de textos, lista de registros o bloque: la revisión comprueba que el valor lo sea
 #   destino      dónde queda el valor en el formato completo: la clave de la configuración (la que citan los errores
 #                del validador completo) o, si no es una clave, el lugar; vacío si se deriva
 #   descripcion  qué es, en qué unidades y qué valores admite
@@ -67,7 +67,8 @@ claves:
     destino: edad_inicio
     defecto: obligatoria
     ejemplo: "30"
-    descripcion: Primera edad del modelo, en años; ahí la prevalencia es 0.
+    descripcion: >-
+      Primera edad del modelo, en años; ahí la prevalencia es 0. Una causa con `suma_de_subtipos: sí` no la necesita.
 
   - clave: ubicacion_gbd
     tipo: entero
@@ -103,7 +104,22 @@ claves:
     ejemplo: "2023"
     descripcion: >-
       Año de la estimación de referencia cuando no es `anio`: a lo sumo un año antes, para proyectar el último año
-      publicado (por ejemplo 2023 con anio 2024).
+      publicado (por ejemplo 2023 con anio 2024). Si el proyecto se lee para un año anterior al declarado
+      (`dl_proyecto(anio = )`), el ancla es la de ese año: la misma configuración sirve para los años anteriores.
+      Sin esta clave, si la tabla ancla no trae la
+      prevalencia de la causa en `anio`, se proyecta desde el último año anterior que trae, con un mensaje.
+
+  - clave: ancla.error_maximo
+    tipo: número
+    destino: anchor.gate_err_mediano
+    defecto: "0.05"
+    ejemplo: "0.08"
+    descripcion: >-
+      Error relativo mediano máximo, en (0, 1), entre la prevalencia ajustada y la del ancla con que se escribe la
+      corrida: la compuerta del ancla, que ni `rapido` ni `forzar` saltan. Se sube solo con una razón (los datos
+      locales son mejores que el ancla, el ancla tiene pocas bandas de edad; anótala en `notas`): la corrida declara
+      el umbral entre sus limitaciones.
+    error: debe ser un número en (0, 1) (sin la clave, 0.05)
 
   - clave: nudos
     tipo: lista de números
@@ -141,6 +157,17 @@ claves:
     ejemplo: "0.25"
     descripcion: Techo de la EMR, un número > 0, por persona-año.
     error: debe ser un número > 0, por persona-año (sin la clave, 3 veces la EMR máxima del ancla)
+
+  - clave: mortalidad_exceso.fraccion_aguda
+    tipo: número
+    destino: emr_prior.fraccion_aguda
+    ejemplo: "0.3"
+    descripcion: >-
+      Fracción de las muertes de la causa que ocurre en su fase aguda, en [0, 1): GBD reparte las muertes de algunas
+      causas entre una fase aguda (los primeros 28 días, con su propio modelo) y la crónica, que es la que modela
+      dismodlite, con una razón que no publica. Esa fracción se descuenta del csmr del ancla en el prior y el techo
+      de la EMR; sin la clave no se descuenta nada. Anota en `notas` de dónde sale.
+    error: debe ser un número en [0, 1) (sin la clave, no se descuenta nada del csmr)
 
   - clave: remision
     tipo: número
@@ -261,14 +288,61 @@ claves:
     ejemplo: "[1]"
     descripcion: Valores de subnacional.kappa del análisis de sensibilidad.
 
+  - clave: sensibilidad.fraccion_aguda
+    tipo: lista de números
+    destino: sensibilidad.fraccion_aguda
+    ejemplo: "[0, 0.3, 0.5]"
+    descripcion: >-
+      Valores de mortalidad_exceso.fraccion_aguda del análisis de sensibilidad, cada uno en [0, 1); sin la clave, la
+      sensibilidad no varía la fracción aguda.
+
   - clave: subtipos
     tipo: lista de enteros
     ejemplo: "[1011, 1012, 1013]"
     descripcion: >-
       Causas hijas cuya suma es esta causa (solo en la configuración de la causa padre): cada una tiene su
-      configuración en el mismo proyecto (config/<causa>.yaml), que la reconoce como subtipo (sin betas propias,
-      usa las de esta causa), y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su
-      argumento `omitidas` (ver ?dl_proyecto).
+      configuración (en el mismo proyecto, config/<causa>.yaml, que la reconoce como subtipo: sin betas propias, usa
+      las de esta causa; o en su propia carpeta, con `subtipo_de`). Un subtipo tiene una sola causa padre. Con
+      `suma_de_subtipos: sí`, dl_correr() suma sus corridas (ver ?dl_proyecto).
+
+  - clave: suma_de_subtipos
+    tipo: sí o no
+    defecto: "no"
+    ejemplo: sí
+    descripcion: >-
+      Con sí, la causa no se ajusta: es la suma, simulación a simulación, de las corridas de sus `subtipos`, y
+      dl_correr() la suma. Exige `subtipos` y `nombre`. El proyecto de una suma solo usa las tablas ubicaciones y
+      poblacion y las claves causa, nombre, anio, sexos, ubicacion_gbd, subtipos, subtipos_omitidos y notas: no
+      necesita edad_inicio, ancla, severidad ni betas.
+    error: debe ser sí o no
+
+  - clave: "subtipos_omitidos[].causa"
+    tipo: entero
+    destino: "suma.omitidas[].cause_id"
+    defecto: obligatoria
+    unico: true
+    ejemplo: "1013"
+    descripcion: >-
+      Un subtipo de `subtipos` que no se modela y no entra en la suma (solo con `suma_de_subtipos: sí`): la suma
+      queda por debajo de la causa en su parte y la corrida lo declara.
+
+  - clave: "subtipos_omitidos[].motivo"
+    tipo: texto
+    destino: "suma.omitidas[].motivo"
+    defecto: obligatoria
+    ejemplo: sin datos suficientes
+    descripcion: Por qué el subtipo no entra en la suma; queda entre las limitaciones de la corrida.
+
+  - clave: subtipo_de
+    tipo: entero
+    destino: extraction.cause_id
+    ejemplo: "1010"
+    descripcion: >-
+      Causa padre de esta causa, para un subtipo que se lee en su propia carpeta, sin la configuración de su padre: si
+      la tabla betas no trae filas de la causa, usa las de la causa padre, y la corrida declara a la causa padre, que
+      la suma exige (dl_correr() de una causa con `suma_de_subtipos`, o dl_sumar_hijas()). Si la configuración del
+      padre la declara en `subtipos`, la relación sale sola y las dos deben decir la misma causa (ver ?dl_proyecto).
+    error: debe ser un entero positivo, el cause_id de la causa padre (distinto de la propia causa)
 
   - clave: notas
     tipo: lista de textos

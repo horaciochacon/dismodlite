@@ -408,3 +408,48 @@ test_that("proxies de otro año que el que se estima: error temprano que pide vo
   expect_error(suppressMessages(dl_insumos(p)), "proxies.*2023.*2019.*dl_proyecto\\(\\).*anio: 2019")
   expect_error(suppressMessages(dl_insumos(p$configuracion, p$rutas)), "proxies.*2023.*2019")
 })
+
+# ---- valor_nacional_de: el cierre en el valor nacional de otra covariable ----
+
+test_that("valor_nacional_de: cierra en el valor nacional de la covariable nombrada y lo declara", {
+  nac <- nac_toy(47); nac$covariable <- "haqi_estandarizado"
+  cal <- dl_calibrar_proxies(crudos_toy(), nac, pob_toy(), anio = 2023, transformacion = c(haqi = "diferencia"),
+                             valor_nacional_de = c(haqi = "haqi_estandarizado"))
+  w <- c(A = 110, B = 290)[cal$ubicacion]
+  expect_equal(sum(w * cal$valor) / sum(w), 47, tolerance = 1e-12)
+  expect_identical(unique(cal$covariable), "haqi")
+  expect_identical(attr(cal, "calibracion")$valor_nacional_de, "haqi_estandarizado")
+  # con las dos filas nacionales, manda la nombrada; en cociente, también cierra
+  dos <- rbind(nac_toy(50), nac)
+  cal2 <- dl_calibrar_proxies(crudos_toy(), dos, pob_toy(), anio = 2023,
+                              valor_nacional_de = list(haqi = "haqi_estandarizado"))
+  expect_equal(sum(w * cal2$valor) / sum(w), 47, tolerance = 1e-12)
+  # sin el argumento, todo como antes: la propia covariable, y la columna queda vacía
+  base <- dl_calibrar_proxies(crudos_toy(), dos, pob_toy(), anio = 2023)
+  expect_equal(sum(w * base$valor) / sum(w), 50, tolerance = 1e-12)
+  expect_identical(attr(base, "calibracion")$valor_nacional_de, NA_character_)
+  # el manifiesto de una corrida solo trae la clave en la covariable que toma su valor nacional de otra
+  expect_identical(dismodlite:::.dl_params_proxies(cal)$proxies$haqi$valor_nacional_de, "haqi_estandarizado")
+  expect_false("valor_nacional_de" %in% names(dismodlite:::.dl_params_proxies(base)$proxies$haqi))
+  # solo cambia el valor nacional del cierre: el gradiente y q son los mismos
+  expect_identical(attr(cal2, "series"), attr(base, "series"))
+  expect_identical(attr(cal2, "calibracion")$q, attr(base, "calibracion")$q)
+})
+
+test_that("valor_nacional_de: errores que nombran lo que no está", {
+  nac <- nac_toy(47); nac$covariable <- "haqi_estandarizado"
+  cal <- function(vn, cv = nac) dl_calibrar_proxies(crudos_toy(), cv, pob_toy(), anio = 2023, valor_nacional_de = vn)
+  expect_error(cal(c(sdi = "haqi_estandarizado")),
+               "`valor_nacional_de` nombra covariables que no están en proxies_crudos: sdi \\(las de los crudos: haqi\\)")
+  expect_error(cal(c(haqi = "haqi_std")),
+               "`valor_nacional_de` dice que el valor nacional de haqi es el de haqi_std, que no está en covariables")
+  expect_error(cal("haqi_estandarizado"), "`valor_nacional_de` debe tener un nombre por valor")
+  expect_error(cal(c(haqi = 3)), "`valor_nacional_de` debe tener un nombre por valor")
+  expect_error(cal(c(haqi = "haqi_estandarizado", haqi = "haqi")), "`valor_nacional_de` repite la covariable haqi")
+  # la covariable nombrada está, pero sin valor nacional del año: el error la nombra
+  otro <- nac; otro$anio <- 2019L
+  expect_error(cal(c(haqi = "haqi_estandarizado"), otro),
+               "la covariable haqi_estandarizado \\(valor_nacional_de de haqi\\) no tiene valor nacional en 2023")
+  # sin el argumento, falta el de la propia covariable
+  expect_error(cal(NULL), "la covariable haqi no tiene valor nacional en 2023")
+})

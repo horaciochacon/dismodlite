@@ -72,9 +72,48 @@
   lista <- is.atomic(v) && length(v) > 0L && !anyNA(v) && all(lengths(x) == 1L)
   switch(tipo, "entero" = .dl_es_entero1(x), "n\u00famero" = .dl_es_numero1(x),
          "texto" = .dl_es_texto1(x) && nzchar(trimws(x)), "l\u00f3gico" = isTRUE(x) || isFALSE(x),
+         "s\u00ed o no" = !is.null(.dl_si_no(x)),
          "bloque" = is.list(x) && !is.null(names(x)),
          "lista de n\u00fameros" = lista && is.numeric(v),
          "lista de enteros" = lista && is.numeric(v) && all(v == round(v)), "lista de textos" = lista, TRUE)
+}
+
+# Un valor de tipo «sí o no» como lógico: sí (o si) y no, sin distinguir mayúsculas, o true y false; NULL si no es
+# ninguno. Se compara con las formas escritas una a una: pasar «Í» a minúscula depende de la configuración regional.
+.DL_SI <- c("s\u00ed", "S\u00ed", "s\u00cd", "S\u00cd", "si", "Si", "sI", "SI")
+.DL_NO <- c("no", "No", "nO", "NO")
+
+.dl_si_no <- function(x) {
+  if (isTRUE(x) || isFALSE(x)) return(x)
+  if (!.dl_es_texto1(x)) return(NULL)
+  x <- enc2utf8(trimws(x))
+  if (x %in% .DL_SI) TRUE else if (x %in% .DL_NO) FALSE
+}
+
+# TRUE si la causa es la suma de sus subtipos (suma_de_subtipos: sí) y no se ajusta. `x`: la configuración de un
+# proyecto tal como se lee, su traducción (que la lleva en origen$configuracion) o un proyecto de dl_proyecto().
+.dl_es_suma <- function(x) {
+  if (inherits(x, "dl_proyecto")) x <- x$configuracion
+  if (!is.list(x)) return(FALSE)
+  if (is.list(x$origen)) x <- x$origen$configuracion
+  is.list(x) && isTRUE(.dl_si_no(x[["suma_de_subtipos"]]))
+}
+
+# Las claves que usa la configuración de una suma de subtipos: las demás (las del modelo) no se usan ni se exigen.
+.DL_CLAVES_SUMA <- c("causa", "nombre", "anio", "sexos", "ubicacion_gbd", "subtipos", "suma_de_subtipos",
+                     "subtipos_omitidos", "notas")
+
+# Los subtipos de la suma de la configuración `s` de un proyecto: list(entran, omitidos), enteros.
+.dl_subtipos_suma <- function(s) {
+  omitidos <- as.integer(unlist(lapply(s[["subtipos_omitidos"]], `[[`, "causa")))
+  list(entran = setdiff(as.integer(unlist(s[["subtipos"]])), omitidos), omitidos = omitidos)
+}
+
+# «suma de los subtipos 942 + 944 (omitido: 938)», de la configuración `s` de un proyecto.
+.dl_texto_suma <- function(s) {
+  h <- .dl_subtipos_suma(s)
+  sprintf("suma de los subtipos %s%s", paste(h$entran, collapse = " + "),
+          if (length(h$omitidos)) sprintf(" (omitido: %s)", paste(h$omitidos, collapse = ", ")) else "")
 }
 
 # El valor en la ruta `ruta` de la lista `x` (ancla.peso, transformaciones[1].escala), o NULL.
@@ -149,9 +188,52 @@
       }
     } else revisar(k, x, k)
   }
-  for (k in t$clave[t$defecto == "obligatoria" & !grepl("[.[]", t$clave)])
+  obligatorias <- t$clave[t$defecto == "obligatoria" & !grepl("[.[]", t$clave)]
+  # con un suma_de_subtipos que no es sí ni no, basta ese problema: no se sabe si las claves del modelo hacen falta
+  suma <- s[["suma_de_subtipos"]]
+  if (.dl_es_suma(s) || (!is.null(suma) && is.null(.dl_si_no(suma))))
+    obligatorias <- intersect(obligatorias, .DL_CLAVES_SUMA)
+  for (k in obligatorias)
     if (is.null(s[[k]])) p(k, sprintf("falta (obligatoria): %s", t$descripcion[t$clave == k]))
-  c(probs, .dl_problemas_particion(s), .dl_problemas_proxies(s))
+  c(probs, .dl_problemas_particion(s), .dl_problemas_subtipo(s), .dl_problemas_suma(s), .dl_problemas_proxies(s))
+}
+
+# suma_de_subtipos y subtipos_omitidos (solo lo que cruza claves: la forma la revisa .dl_problemas_config_simple): una
+# suma exige `subtipos` y `nombre` (el de la causa en las tablas de su corrida: no hay ancla de donde tomarlo); los
+# omitidos solo van en una suma, son de `subtipos` y dejan al menos un subtipo que sumar.
+.dl_problemas_suma <- function(s) {
+  omitidos <- s[["subtipos_omitidos"]]
+  if (!.dl_es_suma(s))
+    return(if (length(omitidos))
+      paste0("subtipos_omitidos: exige suma_de_subtipos: s\u00ed (los subtipos que no entran en la suma de la causa); ",
+             "para sumar corridas elegidas a mano, el argumento `omitidas` de dl_sumar_hijas()"))
+  subtipos <- suppressWarnings(as.integer(unlist(s[["subtipos"]])))
+  if (!length(subtipos))
+    return(paste0("suma_de_subtipos: exige `subtipos` (las causas cuyas corridas se suman), por ejemplo ",
+                  "subtipos: [1011, 1012]"))
+  causas <- if (is.list(omitidos)) lapply(omitidos, function(o) if (is.list(o)) o[["causa"]])
+  fuera <- which(vapply(causas, function(k) .dl_es_entero1(k) && !as.integer(k) %in% subtipos, NA))
+  c(if (!.dl_es_texto1(s[["nombre"]]))
+      "suma_de_subtipos: exige `nombre` (el nombre de la causa en las tablas de la corrida de la suma)",
+    sprintf("subtipos_omitidos[%d].causa: la causa %d no est\u00e1 en `subtipos` (%s)", fuera,
+            as.integer(unlist(causas[fuera])), paste(subtipos, collapse = ", ")),
+    if (!length(fuera) && !length(setdiff(subtipos, as.integer(unlist(Filter(.dl_es_entero1, causas))))))
+      "subtipos_omitidos: omite todos los `subtipos`: no queda ninguno que sumar")
+}
+
+# Dominios y cruces de claves que la forma no ve (solo si los valores tienen la forma que toca: la forma la revisa
+# .dl_problemas_config_simple): subtipo_de es un entero positivo y no la propia causa; sensibilidad.fraccion_aguda, de
+# valores en [0, 1).
+.dl_problemas_subtipo <- function(s) {
+  padre <- .dl_valor_en(s, "subtipo_de")
+  fa <- .dl_valor_en(s, "sensibilidad.fraccion_aguda")
+  c(if (.dl_es_entero1(padre) && padre < 1)
+      "subtipo_de: debe ser un entero positivo, el cause_id de la causa padre",
+    if (.dl_es_entero1(padre) && .dl_es_entero1(s[["causa"]]) && as.integer(padre) == as.integer(s[["causa"]]))
+      sprintf("subtipo_de: es la propia causa (%d): debe ser la causa padre", as.integer(padre)),
+    if (.dl_es_tipo_simple(fa, "lista de n\u00fameros") && any(unlist(fa) < 0 | unlist(fa) >= 1))
+      sprintf("sensibilidad.fraccion_aguda: cada valor debe estar en [0, 1) (recibido: %s)",
+              paste(unlist(fa), collapse = ", ")))
 }
 
 # severidad.padre y componente.secuelas se leen de la corrida de partición: sin severidad.particion no tienen de
@@ -306,15 +388,17 @@
 .dl_betas_de_otras_causas <- function(contexto, causa) {
   if (!is.null(contexto$betas) || !length(contexto$causas_betas)) return("")
   sprintf(paste0("; la tabla betas no trae filas de la causa %s%s (trae las de %s): agrega las de la causa o, si es ",
-                 "un subtipo que usa las de otra causa, decl\u00e1rala en avanzado: extraction: cause_id"),
+                 "un subtipo que usa las de otra causa, decl\u00e1rala en subtipo_de"),
           causa, if (!is.null(contexto$padre)) sprintf(" ni de la causa %d, de la que toma las betas", contexto$padre)
                  else "", paste(contexto$causas_betas, collapse = ", "))
 }
 
 # Configuración completa (sin validar) desde la simple `s` de `archivo` y lo que se toma del proyecto (`contexto`):
 #   ubicacion (el código nacional), nombre, betas (la tabla betas de la causa, ya resuelta para un subtipo),
+#   anios_ancla (los años con prevalencia de la causa en el ancla: de ellos sale years.ancla, .dl_anio_ancla_leido),
 #   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es) e
-#   ids_covariable (covariable -> covariate_id, para valor_nacional_de).
+#   ids_covariable (covariable -> covariate_id, para valor_nacional_de); y ancla_declarado (el ancla.anio del archivo
+#   cuando el argumento `anio` de dl_proyecto() lo bajó al año que se estima: la procedencia de years.ancla lo dice).
 # `origen`: formato, archivo, nombre, modo subnacional, betas y claves tomadas por defecto (con su valor); y las
 # unidades: «contrato», las de las tablas del proyecto (proporción o por persona-año, sin conversión; .dl_metrica_std).
 .dl_traducir_config_simple <- function(s, archivo, contexto) {
@@ -347,23 +431,43 @@
   if (!length(contexto$ubicacion_gbd)) pd <- pd[pd$clave != "ubicacion_gbd", ]
   # proxies.*: sin destino en el formato completo; su valor por defecto lo informa la calibracion de los proxies
   pd <- pd[!startsWith(pd$clave, "proxies."), ]
+  # ancla.error_maximo: sin la clave, la configuracion completa no declara el umbral (rige el del paquete);
+  # suma_de_subtipos: una causa que se ajusta no es una suma, y no lo informa
+  pd <- pd[!pd$clave %in% c("ancla.error_maximo", "suma_de_subtipos"), ]
   reglas <- c(nombre = contexto$nombre, ubicacion_gbd = paste(contexto$ubicacion_gbd, collapse = ", "),
               subnacional.modo = modo, nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
+  # el año del ancla: el de ancla.anio o el que se estima y, si el ancla no lo trae, el último anterior
+  ancla <- .dl_anio_ancla_leido(s[["anio"]], dado("ancla.anio"), contexto$anios_ancla)
+  if (ancla$proyectado && as.integer(s[["anio"]]) - ancla$anio > 1L)
+    .dl_stop_config_simple(archivo, sprintf(paste0(
+      "anio: la tabla ancla no trae la prevalencia de la causa en %d y el \u00faltimo a\u00f1o anterior que trae es ",
+      "%d: el ancla se proyecta a lo sumo un a\u00f1o (el nivel nacional se mantiene, no se extrapola)"),
+      as.integer(s[["anio"]]), ancla$anio))
+  reglas <- c(reglas, ancla.anio = format(ancla$anio))
   por_defecto <- stats::setNames(ifelse(pd$clave %in% names(reglas), reglas[pd$clave],
                                         ifelse(pd$defecto == "anio", format(s[["anio"]]), pd$defecto)), pd$clave)
   prior <- val("mortalidad_exceso.prior")
   techo <- dado("mortalidad_exceso.techo")
+  fa <- dado("mortalidad_exceso.fraccion_aguda")
   proc <- .DL_PROCEDENCIA_SIMPLE
   cfg <- list(
     schema = "dismod_lite/v1", cause_id = as.integer(s[["causa"]]),
     years = c(list(ajuste = s[["anio"]]),
-              if (!is.null(dado("ancla.anio"))) list(ancla = list(valor = dado("ancla.anio"), procedencia = proc))),
+              if (!is.null(dado("ancla.anio")))
+                list(ancla = list(valor = ancla$anio,
+                                  procedencia = if (is.null(contexto$ancla_declarado)) proc
+                                                else .dl_procedencia_ancla_anterior(ancla$anio,
+                                                                                    contexto$ancla_declarado)))
+              else if (ancla$proyectado)
+                list(ancla = list(valor = ancla$anio,
+                                  procedencia = .dl_procedencia_proyeccion(as.integer(s[["anio"]]), ancla$anio)))),
     # los sexos son un conjunto: en su orden (el de las simulaciones de la cascada y de los AVD) no en el escrito
     sexos = sort(unique(.dl_codigos_sexo(val("sexos")))), edad_inicio = s[["edad_inicio"]], edad_inicio_fuente = proc,
     remision = list(valor = val("remision"), fuente = proc),
     emr_prior = c(list(tipo = voc("mortalidad_exceso.prior", prior)),
                   if (prior == "plano") list(tipo_procedencia = proc),
-                  if (!is.null(techo)) list(cota = c(0, num(techo)), fuente_cota = proc)),
+                  if (!is.null(techo)) list(cota = c(0, num(techo)), fuente_cota = proc),
+                  if (!is.null(fa)) list(fraccion_aguda = list(valor = num(fa), procedencia = proc))),
     nudos_incidencia = nudos, sigma_suavidad = num(val("incidencia.suavidad")),
     # agrupar_bandas_finas: un proyecto trae las bandas como son (las finas de 80 a\u00f1os y m\u00e1s no se agrupan)
     anchor = c(list(location_id = ubicacion, lambda = num(val("ancla.peso")),
@@ -371,7 +475,9 @@
                     agrupar_bandas_finas = FALSE),
                if (length(dado("componente.secuelas")))
                  list(componente = list(sequela_ids = as.integer(unlist(dado("componente.secuelas"))),
-                                        motivo = proc))),
+                                        motivo = proc)),
+               if (!is.null(dado("ancla.error_maximo")))
+                 list(gate_err_mediano = list(valor = num(dado("ancla.error_maximo")), procedencia = proc))),
     medidas_entrada = if (length(s[["datos_en_ajuste"]])) voc("datos_en_ajuste", s[["datos_en_ajuste"]]) else list(),
     # escala y cota_warning: los valores de la cascada del formato completo, sin clave simple
     cascada = c(list(kappa = num(val("subnacional.kappa")), escala = "natural", cota_warning = 0.5),
@@ -397,8 +503,10 @@
                   c(list(fuente = "mod", run_id = basename(dado("severidad.particion")), procedencia = proc),
                     if (!is.null(dado("severidad.padre"))) list(padre = as.integer(dado("severidad.padre"))))
                 else list(fuente = "tabla", procedencia = proc),
-    sensibilidad = list(lambda = num(val("sensibilidad.peso")), rho = num(val("sensibilidad.correlacion_edad")),
-                        kappa = num(val("sensibilidad.kappa"))),
+    sensibilidad = c(list(lambda = num(val("sensibilidad.peso")), rho = num(val("sensibilidad.correlacion_edad")),
+                          kappa = num(val("sensibilidad.kappa"))),
+                     if (!is.null(dado("sensibilidad.fraccion_aguda")))
+                       list(fraccion_aguda = num(dado("sensibilidad.fraccion_aguda")))),
     decisiones = if (length(s[["notas"]])) as.character(unlist(s[["notas"]])),
     # `configuracion`: la configuración del proyecto tal como se leyó, con los nombres de clave de ahora (la corrida
     # la congela en inputs/contrato/config.yaml, para repetirla)
@@ -429,6 +537,7 @@
 # `cambios` (claves del formato completo) van después de `avanzado`.
 .dl_config_simple <- function(s, archivo, causa, contexto, cambios = NULL) {
   s <- .dl_claves_config_simple(s, archivo)
+  if (.dl_es_suma(s)) return(.dl_config_suma(s, archivo, causa, contexto, cambios))
   cfg <- .dl_traducir_config_simple(s, archivo, contexto)
   cfg <- tryCatch(.dl_fundir_cambios(cfg, s[["avanzado"]]),
                   dl_error = function(e) .dl_stop_config_simple(archivo, paste("avanzado:", .dl_detalle(e))))
@@ -437,4 +546,28 @@
   if (length(v$problemas))
     .dl_stop_config_simple(archivo, .dl_problema_en_simple(v$campos, v$mensajes, s))
   v$cfg
+}
+
+# La configuración de una causa que es la suma de sus subtipos (suma_de_subtipos: sí), desde la simple `s` ya revisada
+# (.dl_claves_config_simple): no se ajusta, así que solo lleva lo que la suma usa: la causa, el año, los sexos (los
+# que la población debe traer), la ubicación nacional (`contexto$ubicacion`, para los catálogos), los subtipos
+# omitidos (suma.omitidas) y las notas; los subtipos quedan en origen$configuracion. No pasa por el validador del
+# formato completo, que exige los parámetros de un ajuste, ni admite `cambios` ni `avanzado` (no se usan).
+.dl_config_suma <- function(s, archivo, causa, contexto, cambios = NULL) {
+  if (!is.null(cambios))
+    .dl_stop_config_simple(archivo, paste0("suma_de_subtipos: la causa es una suma de subtipos y no se ajusta: no ",
+                                           "admite `cambios`"))
+  if (as.integer(s[["causa"]]) != causa)
+    .dl_stop_config_simple(archivo, sprintf(paste0("causa: es %d y se pidi\u00f3 la causa %d (el nombre del archivo o ",
+                                                   "el argumento `causa`)"), as.integer(s[["causa"]]), causa))
+  sexos <- s[["sexos"]] %||% .dl_claves_simple()$valor[[match("sexos", .dl_claves_simple()$clave)]]
+  omitidas <- lapply(s[["subtipos_omitidos"]], function(o) list(cause_id = as.integer(o$causa), motivo = o$motivo))
+  cfg <- list(
+    schema = "dismod_lite/v1", cause_id = as.integer(s[["causa"]]), years = list(ajuste = s[["anio"]]),
+    sexos = sort(unique(.dl_codigos_sexo(sexos))), anchor = list(location_id = contexto$ubicacion),
+    suma = if (length(omitidas)) list(omitidas = omitidas),
+    decisiones = if (length(s[["notas"]])) as.character(unlist(s[["notas"]])),
+    origen = list(formato = "simple", archivo = archivo, nombre = s[["nombre"]], unidades = "contrato",
+                  configuracion = s))
+  structure(Filter(Negate(is.null), cfg), class = "dl_config")
 }

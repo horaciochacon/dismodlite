@@ -241,20 +241,22 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 .dl_revisar_causa <- function(carpeta, cf) {
   rel <- if (basename(dirname(cf$archivo)) == "config") file.path("config", basename(cf$archivo))
          else basename(cf$archivo)
+  suma <- cf$simple && is.na(cf$error) && .dl_es_suma(.dl_leer_config(cf$archivo))
   .dl_revisar_pasos(cf$causa, cf$simple, function(revisar, anotar, errores) {
     if (cf$simple) return(.dl_revisar_contrato(carpeta, cf, rel, revisar, anotar, errores))
     cfg <- revisar("configuraci\u00f3n", dl_configuracion(cf$causa, cf$archivo),
                    function(cfg) sprintf("%s: formato completo", rel))
     if (!is.null(cfg)) function() .dl_proyecto_de(carpeta, cfg)
-  })
+  }, insumos = !suma)
 }
 
 # Las filas de la revisión de la causa `causa`: los pasos de `pasos(revisar, anotar, errores)`, que devuelve la
 # función que arma el proyecto (NULL si algo falló), y al final los insumos y la severidad. `revisar(paso, expr, ok)`
 # evalúa `expr` en el paso `paso` y anota sus avisos, sus problemas y, si no falló, la línea en orden `ok(valor)`
 # (NULL: ninguna); devuelve el valor (NULL si falló). En un proyecto con las tablas del contrato (`simple`), un
-# problema que lleva su tabla va al paso de esa tabla, sin la tabla delante.
-.dl_revisar_pasos <- function(causa, simple, pasos) {
+# problema que lleva su tabla va al paso de esa tabla, sin la tabla delante. Sin `insumos` (una suma de subtipos, que
+# no se ajusta), la revisión termina con los pasos.
+.dl_revisar_pasos <- function(causa, simple, pasos, insumos = TRUE) {
   filas <- list()
   anotar <- function(paso, estado, detalle)
     filas[[length(filas) + 1L]] <<- .dl_fila_revision(causa, paso, estado, detalle)
@@ -272,6 +274,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   }
   errores <- function() any(vapply(filas, function(f) f$estado == "error", NA))
   p <- pasos(revisar, anotar, errores)
+  if (!insumos) return(do.call(rbind, filas))
   if (errores() || is.null(p)) {
     anotar("insumos", "omitido", "no se armaron: primero corrige los errores de arriba")
   } else {
@@ -290,17 +293,19 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
           if (length(attr(t, "lectores"))) sprintf(" (%s)", paste(attr(t, "lectores"), collapse = ", ")) else "")
 }
 
-# Las reglas entre tablas de `pre` (list(tablas, tablas_modelo, cfg, causas)) en el paso «proyecto».
+# Las reglas entre tablas de `pre` (list(tablas, tablas_modelo, cfg, causas)) en el paso «proyecto»; un año del
+# ancla proyectado sin declararlo (.dl_proyeccion_anunciada) es un aviso.
 .dl_revisar_reglas <- function(pre, anotar) {
   pr <- .dl_problemas_proyecto(pre$tablas_modelo %||% pre$tablas, pre$cfg, max(1L, nrow(pre$causas)),
                                originales = pre$tablas)
-  for (a in pr$avisos) anotar("proyecto", "aviso", a)
+  for (a in c(.dl_proyeccion_anunciada(pre$cfg), pr$avisos)) anotar("proyecto", "aviso", a)
   for (e in pr$problemas) anotar("proyecto", "error", e)
   if (!length(pr$problemas)) anotar("proyecto", "ok", "las reglas entre tablas se cumplen")
 }
 
 # La línea en orden del paso «proxies»: por covariable de la calibración `cal` (dl_calibrar_proxies), el método, q
-# (con 3 cifras; si quedó en un borde de su intervalo, cuál), las ediciones usadas y las excluidas.
+# (con 3 cifras; si quedó en un borde de su intervalo, cuál), las ediciones usadas, las excluidas y, si cierra en el
+# valor nacional de otra covariable (valor_nacional_de), cuál.
 .dl_linea_proxies <- function(cal) {
   k <- attr(cal, "calibracion")
   borde <- c(inferior = " (en el borde inferior: el gradiente es pr\u00e1cticamente constante)",
@@ -308,15 +313,18 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   borde[is.na(borde)] <- ""
   q <- ifelse(is.na(k$q), "no se estima (una sola edici\u00f3n por serie)",
               vapply(k$q, function(x) format(signif(x, 3L)), ""))
-  paste(sprintf("%s: %s, q = %s%s, ediciones %s%s", k$covariable, k$metodo, q, borde, k$ediciones,
-                ifelse(nzchar(k$excluidas), paste0("; excluidas: ", k$excluidas), "")), collapse = "\n")
+  paste(sprintf("%s: %s, q = %s%s, ediciones %s%s%s", k$covariable, k$metodo, q, borde, k$ediciones,
+                ifelse(nzchar(k$excluidas), paste0("; excluidas: ", k$excluidas), ""),
+                ifelse(is.na(k$valor_nacional_de), "", paste0("; cierra en el valor nacional de ", k$valor_nacional_de))),
+        collapse = "\n")
 }
 
 # El paso «proxies» de la revisión de una carpeta: la calibración de proxies_crudos (.dl_calibracion_proyecto), con
 # sus avisos y sus errores, cuando las tablas de las que toma algo se leyeron (`fallidas`: las que no). Devuelve
 # list(ok, calibracion): `ok` es FALSE si la calibración falló o espera a una tabla; sin proxies_crudos, la
-# calibración es NULL y no hay paso, salvo un aviso si la configuración trae claves proxies.* (no se usan).
-.dl_revisar_proxies <- function(s, archivo, tablas, fallidas, revisar, anotar) {
+# calibración es NULL y no hay paso, salvo un aviso si la configuración trae claves proxies.* (no se usan). `padre`:
+# la causa que declara a `causa` en `subtipos` (solo se evalúa al calibrar, dentro del paso).
+.dl_revisar_proxies <- function(s, archivo, tablas, fallidas, revisar, anotar, causa = s[["causa"]], padre = NULL) {
   if (is.null(tablas$proxies_crudos)) {
     .dl_avisar_proxies_sin_crudos(s, anotar)
     return(list(ok = TRUE, calibracion = NULL))
@@ -326,8 +334,55 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     anotar("proxies", "omitido", sprintf("la calibraci\u00f3n espera a la tabla %s", espera[1L]))
     return(list(ok = FALSE))
   }
-  cal <- revisar("proxies", .dl_calibracion_proyecto(s, archivo, tablas), .dl_linea_proxies)
+  cal <- revisar("proxies", .dl_calibracion_proyecto(s, archivo, tablas, causa = causa, padre = padre),
+                 .dl_linea_proxies)
   list(ok = !is.null(cal), calibracion = cal)
+}
+
+# Lo propio de una suma de subtipos (.dl_es_suma) en la revisión, con su configuración `s`. En «configuración», un
+# aviso con las claves que no se usan (las del modelo: la causa no se ajusta).
+.dl_avisar_claves_suma <- function(s, anotar) {
+  fuera <- setdiff(names(s), .DL_CLAVES_SUMA)
+  if (length(fuera))
+    anotar("configuraci\u00f3n", "aviso", sprintf(paste0(
+      "la causa es una suma de subtipos (suma_de_subtipos: s\u00ed) y no se ajusta: no se usa(n) la(s) clave(s) %s"),
+      paste(fuera, collapse = ", ")))
+}
+
+# En «configuración», un aviso por cada clave corta de la configuración `s` que el bloque `avanzado` también declara,
+# en la clave del formato completo a la que se traduce (su `destino` en la tabla de claves), con otro valor: rige el
+# de `avanzado`, que se aplica sobre la traducción. Se comparan las claves de números, que pasan tal cual; de
+# `avanzado`, el valor de la clave o el de su campo `valor`.
+.dl_avisar_avanzado <- function(s, anotar) {
+  avanzado <- s[["avanzado"]]
+  if (!is.list(avanzado)) return(invisible())
+  t <- .dl_claves_simple()
+  t <- t[nzchar(t$destino) & !grepl("[", t$destino, fixed = TRUE) &
+           t$tipo %in% c("entero", "n\u00famero", "lista de n\u00fameros", "lista de enteros"), ]
+  texto <- function(v) paste(vapply(unlist(v), format, ""), collapse = ", ")
+  for (i in seq_len(nrow(t))) {
+    corto <- .dl_valor_en(s, t$clave[i])
+    largo <- .dl_valor_en(avanzado, t$destino[i])
+    if (.dl_es_mapa(largo)) largo <- largo[["valor"]]
+    if (is.null(corto) || is.null(largo) || !is.numeric(unlist(corto)) || !is.numeric(unlist(largo)) ||
+        identical(as.numeric(unlist(corto)), as.numeric(unlist(largo)))) next
+    anotar("configuraci\u00f3n", "aviso", sprintf(
+      "%s (%s) y avanzado: %s (%s) dicen valores distintos: rige el de `avanzado`; deja uno de los dos",
+      t$clave[i], texto(corto), t$destino[i], texto(largo)))
+  }
+}
+
+# En «proyecto», un aviso con los subtipos que entran en la suma y no tienen configuración en el proyecto (`causas`:
+# las que la tienen, .dl_causas_config; NULL sin carpeta), cuyas corridas pueden venir de otra carpeta, y la línea en
+# orden que dice qué se suma.
+.dl_revisar_subtipos <- function(s, causas, anotar) {
+  sin <- setdiff(.dl_subtipos_suma(s)$entran, causas$causa)
+  if (length(sin))
+    anotar("proyecto", "aviso", sprintf(paste0(
+      "el/los subtipo(s) %s no tiene(n) configuraci\u00f3n en el proyecto: puede(n) estar en otra carpeta (con ",
+      "subtipo_de: %d); dl_correr() busca sus corridas en la carpeta de las corridas de esta causa"),
+      paste(sin, collapse = ", "), as.integer(s[["causa"]])))
+  anotar("proyecto", "ok", sprintf("%s: dl_correr() suma las corridas de sus subtipos", .dl_texto_suma(s)))
 }
 
 # Aviso del paso «proxies» cuando la configuración `s` trae claves proxies.* y el proyecto no trae proxies_crudos:
@@ -350,16 +405,20 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     for (a in attr(p$tablas[[t]], "avisos")) anotar(t, "aviso", a)
     anotar(t, "ok", .dl_linea_tabla(p$tablas[[t]], origen = TRUE))
   }
+  suma <- .dl_es_suma(cfg)
   if (!is.null(p$calibracion)) {
     for (a in attr(p$calibracion, "avisos")) anotar("proxies", "aviso", a)
     anotar("proxies", "ok", .dl_linea_proxies(p$calibracion))
-  } else .dl_avisar_proxies_sin_crudos(cfg$origen$configuracion, anotar)
+  } else if (suma) .dl_avisar_claves_suma(cfg$origen$configuracion, anotar)
+  else .dl_avisar_proxies_sin_crudos(cfg$origen$configuracion, anotar)
+  if (!suma) .dl_avisar_avanzado(cfg$origen$configuracion, anotar)
   archivo <- cfg$origen$archivo
   anotar("configuraci\u00f3n", "ok", sprintf("%s: proyecto", if (identical(archivo, "configuracion"))
     "la configuraci\u00f3n dada como lista" else basename(archivo)))
   causas <- if (!is.null(p$carpeta)) .dl_causas_config(p$carpeta, NULL, cfg$cause_id)
   .dl_revisar_reglas(list(tablas = p$tablas, tablas_modelo = .dl_tablas_modelo(p$tablas, p$calibracion), cfg = cfg,
                           causas = causas), anotar)
+  if (suma) .dl_revisar_subtipos(cfg$origen$configuracion, causas, anotar)
   if (!errores()) function() p
 }
 
@@ -371,11 +430,15 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #      su traducción, con la severidad de la partición si la declara;
 #   4. «proyecto»: las reglas entre tablas (.dl_problemas_proyecto), si nada falló antes.
 # Devuelve la función que arma el proyecto (como dl_proyecto(), con su traducción: dentro del paso «insumos», donde un
-# error de la traducción queda en la revisión) o NULL si algo falló.
+# error de la traducción queda en la revisión) o NULL si algo falló. De una suma de subtipos (.dl_es_suma) solo se
+# leen sus tablas (ubicaciones y poblacion), no hay paso «proxies» y el paso «proyecto» dice además qué subtipos no
+# tienen configuración en el proyecto (.dl_revisar_subtipos).
 .dl_revisar_contrato <- function(carpeta, cf, rel, revisar, anotar, errores) {
   s <- .dl_leer_config(cf$archivo)
+  suma <- .dl_es_suma(s)
   fallidas <- character()
-  tablas <- .dl_tablas_proyecto(carpeta, list(), .dl_opciones_lectores(s), paso = function(t, expr) {
+  tablas <- .dl_tablas_proyecto(carpeta, list(), .dl_opciones_lectores(s), cuales = .dl_tablas_de(s),
+                                paso = function(t, expr) {
     v <- revisar(t, expr, .dl_linea_tabla)
     if (is.null(v)) fallidas <<- c(fallidas, t)
     for (a in attr(v, "avisos")) anotar(t, "aviso", a)
@@ -387,12 +450,15 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   }
   s <- revisar("configuraci\u00f3n", .dl_claves_config_simple(s, cf$archivo), NULL)
   if (is.null(s)) return(omitir())
+  if (suma) .dl_avisar_claves_suma(s, anotar) else .dl_avisar_avanzado(s, anotar)
   espera <- intersect(c("ubicaciones", "betas", "covariables"), fallidas)
   if (length(espera)) {
     anotar("configuraci\u00f3n", "omitido", sprintf("su traducci\u00f3n espera a la tabla %s", espera[1L]))
     return(omitir())
   }
-  px <- .dl_revisar_proxies(s, cf$archivo, tablas, fallidas, revisar, anotar)
+  px <- if (suma) list(ok = TRUE)
+        else .dl_revisar_proxies(s, cf$archivo, tablas, fallidas, revisar, anotar, cf$causa,
+                                 .dl_padre_de(.dl_causas_config(carpeta, s, cf$causa), cf$causa))
   if (!px$ok) {
     anotar("configuraci\u00f3n", "omitido", "su traducci\u00f3n espera a la calibraci\u00f3n de proxies_crudos")
     return(omitir())
@@ -403,6 +469,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
                  function(pre) sprintf("%s: proyecto", rel))
   if (is.null(pre) || errores()) return(omitir())
   .dl_revisar_reglas(pre, anotar)
+  if (suma) .dl_revisar_subtipos(s, pre$causas, anotar)
   function() .dl_proyecto_armado(carpeta, carpeta, pre)
 }
 
@@ -435,7 +502,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #'
 #' @details
 #' La revisión usa los mismos lectores y validadores que [dl_proyecto()] y [dl_insumos()]: lo que pasa la revisión es
-#' lo que ellos aceptan. Sus pasos, en orden:
+#' lo que ellos aceptan. Sus pasos, en orden (los de una causa que se ajusta; los de una suma de subtipos, más abajo):
 #' 1. cada tabla (`ubicaciones`, `poblacion`, `ancla`, ...), leída por su lector y validada sola, como en [dl_tabla()]:
 #'    una columna que falta, un CSV guardado desde Excel con «;» o coma decimal, un sexo, una medida o un número que no
 #'    se reconoce, bandas de edad que se solapan... La línea en orden dice cuántas filas trae
@@ -443,20 +510,23 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #'    (o que solo trae el encabezado) es un error;
 #' 2. `configuración`: sus claves y valores, como los lee [dl_configuracion()]. Su traducción toma cosas de las
 #'    tablas (la ubicación nacional, las betas): si `ubicaciones`, `betas` o `covariables` tienen un error, espera
-#'    (`-`);
+#'    (`-`). Avisa (`!`) de una clave que el bloque `avanzado` también declara, en su clave del formato completo, con
+#'    otro valor (por ejemplo `ancla.error_maximo` y `avanzado: anchor.gate_err_mediano`): rige el de `avanzado`, y
+#'    [dl_proyecto()] no lo dice;
 #' 3. `proyecto`: las reglas que cruzan tablas, cada problema con su tabla delante: que toda ubicación esté en
 #'    `ubicaciones` (sin códigos repetidos, una sola sin `padre`, la nacional; las subnacionales con la nacional de
 #'    padre); que la población traiga el año que se estima y los sexos del modelo, con las mismas bandas de edad en
 #'    todas las ubicaciones, años y sexos, seguidas (sin huecos) y desde `edad_inicio`; que el ancla traiga la
 #'    prevalencia de la causa (y la mortalidad, si la usa el prior de la mortalidad en exceso) en el año del ancla y en
 #'    cada sexo, y la columna `causa` si el proyecto tiene varias; que cada banda del ancla sea una unión de bandas de
-#'    la población o se pueda agrupar con `poblacion_detalle`; que cada covariable de `betas` (y cada
-#'    `valor_nacional_de`) tenga su valor nacional en el año del ancla y que `escala` vaya solo con la transformación
-#'    lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
-#'    que se anclan traiga su intervalo (`inferior` y `superior`); que las proporciones de `severidad` sumen 1. Avisa
-#'    (`!`) de una covariable con proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera
-#'    de la estimación subnacional) y de valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por
-#'    persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+#'    la población o se pueda agrupar con `poblacion_detalle`; que cada covariable de `betas` tenga su valor nacional
+#'    en el año del ancla (el suyo o, con `valor_nacional_de` y valores subnacionales de la covariable, el de la
+#'    covariable que nombra) y que `escala` vaya solo con la transformación lineal; que cada ubicación subnacional
+#'    con proxies los traiga de todas las covariables y que el valor nacional en que se anclan traiga su intervalo
+#'    (`inferior` y `superior`); que las proporciones de `severidad` sumen 1. Avisa (`!`) de una covariable con
+#'    proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
+#'    subnacional) y de valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por persona-año
+#'    (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
 #' 4. `insumos`: si nada falló, los insumos completos ([dl_insumos()]), con las reglas que necesitan todo armado: que
 #'    la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
 #'    población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la
@@ -468,6 +538,12 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #' Cada problema lleva una sugerencia: [dl_configuracion()] si nombra una clave de la configuración, las columnas de
 #' su tabla ([dl_tablas]) o [dl_proyecto()]. Un paso que espera a que se corrija otro (`-`) no cuenta como error ni
 #' como aviso.
+#'
+#' De una causa que es la suma de sus subtipos (`suma_de_subtipos: sí`; ver [dl_proyecto()]) se revisan sus dos
+#' tablas (`ubicaciones` y `poblacion`), su configuración y, en `proyecto`, las reglas de esas tablas; no hay paso
+#' `insumos`, porque la causa no se ajusta. Avisa (`!`) de las claves de la configuración que una suma no usa y de
+#' los subtipos que entran en la suma y no tienen configuración en el proyecto: pueden estar en otra carpeta, y
+#' [dl_correr()] busca sus corridas al sumar.
 #'
 #' En un proyecto en el formato completo de la 0.2.2 se revisan la configuración, los insumos completos y la
 #' severidad.
@@ -529,7 +605,8 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
     k <- p$configuracion$cause_id
     if (!is.null(causa) && causa != k) .dl_stop("`causa` es %d y el proyecto es de la causa %d", causa, k)
     r <- .dl_revisar_pasos(k, identical(p$formato, "simple"),
-                           function(revisar, anotar, errores) .dl_revisar_objeto(p, revisar, anotar, errores))
+                           function(revisar, anotar, errores) .dl_revisar_objeto(p, revisar, anotar, errores),
+                           insumos = !.dl_es_suma(p))
     rownames(r) <- NULL
     return(.dl_imprimir_revision(r, if (is.null(p$carpeta)) "(sin carpeta: las tablas vienen como argumentos)"
                                     else sprintf("\u00ab%s\u00bb", basename(p$carpeta))))
@@ -576,27 +653,64 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' La corrida no se escribe en dos casos, que `dl_correr()` comprueba en cuanto puede, con las mismas compuertas que
 #' [dl_exportar_corrida()]. Si las cadenas no convergieron (R-hat < 1.01 y ESS >= 400), justo después del ajuste:
 #' aumenta `iteraciones` y `calentamiento` con `opciones`. Y si la prevalencia ajustada se aleja de la del ancla
-#' (error relativo mediano mayor que 0.05), justo después de la validación, también con `rapido = TRUE`: revisa el
-#' ajuste y los datos o, con su procedencia, declara un máximo mayor en la configuración, en `avanzado: {anchor:
-#' {gate_err_mediano: {valor, procedencia}}}` (en el formato completo, sin `avanzado`; ver [dl_configuracion()]).
+#' (error relativo mediano mayor que 0.05), justo después de la validación, también con `rapido = TRUE` o
+#' `forzar = TRUE`: revisa el ajuste y los datos o declara un máximo mayor en la configuración, `ancla: {error_maximo:
+#' ...}` en un proyecto (en el formato completo, `anchor: {gate_err_mediano: {valor, procedencia}}`; ver
+#' [dl_configuracion()]).
+#'
+#' `forzar = TRUE` salta la primera compuerta, la de la convergencia, y solo esa: la corrida se escribe con las
+#' cadenas que se pidieron aunque no hayan convergido, un mensaje da su R-hat y su ESS y el manifiesto lo declara
+#' (`validacion.gates.force`), como en [dl_exportar_corrida()]. El nombre de la corrida no cambia. Sirve para mirar
+#' una corrida que aún no converge; sus números no sirven para publicar.
 #'
 #' `rapido = TRUE` es una prueba, para ver que el proyecto corre de principio a fin: cadenas cortas (100
 #' simulaciones, 2 cadenas de 2000 iteraciones), las mismas en la sensibilidad, etiquetas solo con la
 #' `ancla.correlacion_edad` de la configuración y la corrida escrita con `forzar = TRUE`, sin exigir la convergencia
 #' (el manifiesto lo declara). Su nombre termina en `-prueba` y sus números no sirven para publicar.
 #'
-#' La causa debe tener severidad (sus estados de salud en `severidad.csv` o desde `severidad.particion`): sin ella los
-#' AVD serían cero y la corrida no se escribe. `dl_correr()` lo comprueba antes de ajustar. Los ajustes quedan en la caché de la sesión:
-#' [dl_ajustar()] con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
-#' proyecto con las tablas del contrato, los mensajes de todos los pasos citan sus claves y sus tablas (como [dl_insumos()]).
+#' Con `anios`, la causa se corre una vez por año, en orden, y el proyecto se vuelve a leer para cada uno
+#' (`dl_proyecto(anio = )`, con la regla del año del ancla de [dl_proyecto()]): un proyecto sirve para varios años sin
+#' editar su configuración. Las comprobaciones de los argumentos se hacen una vez, antes del primer año; el nombre de
+#' cada corrida lleva el año (`causa-<causa>-<año>`, y `-prueba` con `rapido = TRUE`), y cada corrida es de por sí
+#' una corrida completa, como la de un `dl_correr()` sin `anios`. El proyecto de todos los años se lee antes de correr
+#' el primero: si el de alguno no se puede leer (el ancla no trae ese año ni el anterior, falta su población...),
+#' `dl_correr()` se detiene ahí, con el año y el problema, sin haber escrito ninguna corrida. Si un año falla al
+#' correr, se detiene con el error de ese año y dice qué años quedaron escritos; esas corridas siguen en su carpeta.
 #'
-#' @inheritParams dl_ajustar
+#' La causa debe tener severidad (sus estados de salud en `severidad.csv` o desde `severidad.particion`): sin ella los
+#' AVD serían cero y la corrida no se escribe. `dl_correr()` lo comprueba antes de ajustar.
+#'
+#' Una causa que es la suma de sus subtipos (`suma_de_subtipos: sí` en su configuración; ver [dl_proyecto()]) no se
+#' ajusta: `dl_correr()` busca en `carpeta_salida` la corrida más reciente de cada subtipo que entra en la suma, del
+#' año que se estima, y las suma simulación a simulación con [dl_sumar_hijas()], con el `nombre` y los
+#' `subtipos_omitidos` de la configuración. Las corridas se reconocen por su manifiesto (la causa y el año), así que
+#' valen las de cualquier proyecto escritas en esa carpeta. Con `rapido = TRUE` suma las corridas de prueba (las que
+#' terminan en `-prueba`) y la suma también es de prueba; con `rapido = FALSE`, las de producción, nunca las de
+#' prueba. Si falta la corrida de un subtipo, el error dice cuál, de qué año y dónde se buscó. Con `anios`, suma cada
+#' año con las corridas de ese año. `semilla`, `sensibilidad`, `opciones` y `forzar` no se usan: no hay ajuste. El
+#' nombre de la corrida sigue la misma regla (`causa-<causa>`, con el año y `-prueba` si corresponde), y la corrida es
+#' la de [dl_sumar_hijas()]: celdas, simulaciones y manifiesto, sin diagnósticos.
+#'
+#' La corrida más reciente de un subtipo es la del último día (la fecha de su nombre) y, en ese día, la de mayor
+#' versión. Si ese día hay corridas del subtipo con nombres distintos (por ejemplo `causa-<causa>` y
+#' `causa-<causa>-<año>`), gana la que se escribió última, por la fecha de modificación de su `manifest.yaml`: copiar
+#' la carpeta de las corridas sin conservar las fechas de los archivos puede cambiar ese desempate. Los mensajes dicen
+#' qué corrida se tomó de cada subtipo y cuáles se escribieron con `forzar = TRUE`, que en una suma de producción
+#' quedan también entre las limitaciones de su manifiesto; para elegirlas a mano, [dl_sumar_hijas()]. Los subtipos de
+#' una suma son causas que se ajustan: una suma no puede ser subtipo de otra suma.
+#'
+#' Los ajustes quedan en la caché de la sesión: [dl_ajustar()] con los mismos insumos, opciones y semilla devuelve el
+#' de la corrida sin volver a muestrear. Con un proyecto con las tablas del contrato, los mensajes de todos los pasos
+#' citan sus claves y sus tablas (como [dl_insumos()]).
+#'
 #' @param proyecto Carpeta del proyecto (con las tablas del contrato de insumos o en el formato completo) o un
 #'   proyecto de [dl_proyecto()].
 #' @param causa Causa (`cause_id`); `NULL` si el proyecto tiene una sola (o si `proyecto` ya es un `dl_proyecto`).
+#' @param semilla Semilla (entero), obligatoria: el resultado es reproducible con la misma semilla. Una causa que es
+#'   la suma de sus subtipos no se ajusta y no la usa.
 #' @param carpeta_salida Carpeta raíz de las corridas: la corrida se escribe en
 #'   `<carpeta_salida>/mod/dismod_lite/<AAAA-MM-DD>_causa-<causa>_v<n>/`. `NULL` (por defecto) es la carpeta
-#'   `resultados` del proyecto.
+#'   `resultados` del proyecto. Una suma de subtipos busca ahí las corridas de sus subtipos.
 #' @param rapido `TRUE` para una corrida de prueba (ver Detalles); `FALSE` (por defecto), la de producción.
 #' @param sensibilidad `TRUE` (por defecto) corre el análisis de sensibilidad y lo guarda en la corrida
 #'   (`diagnostics/sensibilidad.csv`); `FALSE` lo omite.
@@ -605,14 +719,24 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #'   corrida sigue siendo una prueba.
 #' @param registro Archivo YAML del registro de corridas, que ya existe (uno nuevo es un archivo con la línea
 #'   `datasets: []`): la corrida se agrega al final. Se comprueba antes de ajustar. `NULL` (por defecto) no registra.
-#' @return Objeto de clase `dl_run`, como el de [dl_exportar_corrida()], una lista con `run_id` (el identificador de
-#'   la corrida, `<AAAA-MM-DD>_causa-<causa>_v<n>`, o `..._causa-<causa>-prueba_v<n>` con `rapido = TRUE`), `dir`
-#'   (su carpeta), `manifest` (el contenido de su `manifest.yaml`, como lista) y `files` (las tablas de celdas
-#'   escritas, una por medida, con su ruta, su sha256 y su número de filas). Los mensajes dicen qué paso corre y, al
-#'   final, dónde quedó la corrida.
+#' @param forzar `TRUE` escribe la corrida aunque las cadenas no hayan convergido (queda declarado en el manifiesto;
+#'   ver Detalles); no salta la compuerta del ancla. `FALSE` (por defecto) exige la convergencia, salvo con
+#'   `rapido = TRUE`, que la salta siempre.
+#' @param anios Vector de años enteros, sin `NA` ni repetidos (por ejemplo `2019:2023`): corre la causa una vez por
+#'   año, en orden, con el proyecto leído para cada uno (ver Detalles). `NULL` (por defecto) corre una sola vez, el
+#'   año de la configuración del proyecto.
+#' @return Sin `anios`, un objeto de clase `dl_run`, como el de [dl_exportar_corrida()], una lista con `run_id` (el
+#'   identificador de la corrida, `<AAAA-MM-DD>_causa-<causa>_v<n>`, o `..._causa-<causa>-prueba_v<n>` con
+#'   `rapido = TRUE`), `dir` (su carpeta), `manifest` (el contenido de su `manifest.yaml`, como lista) y `files` (las
+#'   tablas de celdas escritas, una por medida, con su ruta, su sha256 y su número de filas). Los mensajes dicen qué
+#'   paso corre y, al final, dónde quedó la corrida.
+#'
+#'   Con `anios`, una lista de clase `dl_corridas` con un `dl_run` por año, con los años como nombres
+#'   (`corridas[["2023"]]`); su identificador es `<AAAA-MM-DD>_causa-<causa>-<año>_v<n>`
+#'   (`..._causa-<causa>-<año>-prueba_v<n>` con `rapido = TRUE`). `print()` muestra una línea por año.
 #' @seealso [dl_proyecto()], [dl_revisar_proyecto()] (antes de correr), [dl_opciones_mcmc()] (las cadenas),
-#'   [dl_estimaciones()] y [dl_exportar_corrida()] (el contenido de la carpeta de la corrida); para los subtipos de una
-#'   causa, [dl_sumar_hijas()].
+#'   [dl_estimaciones()] y [dl_exportar_corrida()] (el contenido de la carpeta de la corrida); para sumar a mano las
+#'   corridas de los subtipos de una causa, [dl_sumar_hijas()].
 #' @family proyecto
 #' @examples
 #' \donttest{
@@ -630,51 +754,159 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' run$manifest$configuracion$por_defecto
 #' unlink(salida, recursive = TRUE)
 #'
+#' # la misma causa para dos años: una corrida por año, que el proyecto relee para cada uno
+#' corridas <- dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+#'                       carpeta_salida = salida, anios = c(2019, 2023))
+#' corridas
+#' corridas[["2023"]]$run_id
+#' unlink(salida, recursive = TRUE)
+#'
 #' # la corrida de producción de un proyecto propio: las cadenas por defecto (1000 simulaciones,
 #' # 4 cadenas de 50 000 iteraciones) o las mismas con el motor en C++, más rápido
 #' # dl_correr("mi_proyecto", semilla = 1)
 #' # dl_correr("mi_proyecto", semilla = 1, opciones = dl_opciones_mcmc(motor = "rcpp"))
+#' # y, para mirar una corrida cuyas cadenas aún no convergen, sin la compuerta de la convergencia
+#' # dl_correr("mi_proyecto", semilla = 1, forzar = TRUE)
+#' # y una corrida de producción por año
+#' # dl_correr("mi_proyecto", semilla = 1, anios = 2018:2023)
+#'
+#' # una causa que es la suma de sus subtipos: en una copia del ejemplo, la causa 9100, que declara
+#' # sus subtipos (9101, 9102 y 9103), deja de ajustarse con `suma_de_subtipos: sí`
+#' carpeta <- dl_ejemplo(copiar_en = file.path(tempdir(), "proyecto_con_suma"))
+#' con <- file(file.path(carpeta, "config", "9100.yaml"), open = "a", encoding = "UTF-8")
+#' writeLines("suma_de_subtipos: sí", con)
+#' close(con)
+#' dl_proyecto(carpeta, causa = 9100)
+#' # primero una corrida de cada subtipo (aquí, de prueba) y después la suma, que las busca en la
+#' # carpeta de las corridas (`resultados`, en la carpeta del proyecto)
+#' for (k in c(9101, 9102, 9103))
+#'   dl_correr(carpeta, causa = k, semilla = 1, rapido = TRUE, sensibilidad = FALSE)
+#' suma <- dl_correr(carpeta, causa = 9100, rapido = TRUE)
+#' vapply(suma$manifest$causa$hijas, `[[`, "", "run_id")
+#' unlink(carpeta, recursive = TRUE)
 #' }
 #' @export
 dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, rapido = FALSE, sensibilidad = TRUE,
-                      opciones = NULL, registro = NULL) {
+                      opciones = NULL, registro = NULL, forzar = FALSE, anios = NULL) {
   if (missing(proyecto)) .dl_stop("falta `proyecto` (la carpeta del proyecto o un proyecto de dl_proyecto())")
-  .dl_exigir_semilla(semilla)
+  # la semilla se exige abajo, con el proyecto leído: una suma de subtipos no la usa
+  if (!missing(semilla)) .dl_exigir_semilla(semilla)
   .dl_exigir_si_no(rapido, "rapido")
   .dl_exigir_si_no(sensibilidad, "sensibilidad")
+  .dl_exigir_si_no(forzar, "forzar")
   if (!is.null(opciones)) .dl_exigir_clase(opciones, "dl_mcmc_opts", "opciones", "dl_opciones_mcmc()")
   if (!is.null(carpeta_salida)) .dl_exigir_carpeta(carpeta_salida, argumento = "carpeta_salida")
   .dl_exigir_registro(!is.null(registro), registro)
-  p <- if (inherits(proyecto, "dl_proyecto")) proyecto
-       else if (.dl_es_texto1(proyecto) && dir.exists(proyecto)) dl_proyecto(proyecto, causa)
-       else .dl_stop("`proyecto` debe ser la carpeta de un proyecto o un proyecto de dl_proyecto(); es %s",
-                     .dl_describir_objeto(proyecto))
+  if (!is.null(anios)) anios <- .dl_exigir_anios(anios)
+  p <- .dl_proyecto_a_correr(proyecto, causa, anios)
   cfg <- p$configuracion
   if (!is.null(causa) && .dl_exigir_causa(causa) != cfg$cause_id)
     .dl_stop("`causa` es %d y el proyecto es de la causa %d", .dl_exigir_causa(causa), cfg$cause_id)
+  suma <- .dl_es_suma(cfg)
+  if (!suma && missing(semilla)) .dl_exigir_semilla()
   if (is.null(carpeta_salida)) {
     # el proyecto de ejemplo, instalado con el paquete, no es un lugar para escribir
     if (.dl_en_paquete(p$carpeta))
       .dl_stop("el proyecto est\u00e1 dentro de la instalaci\u00f3n del paquete (%s): da `carpeta_salida`", p$carpeta)
     carpeta_salida <- file.path(p$carpeta, "resultados")
   }
+  o <- opciones %||% if (rapido) do.call(dl_opciones_mcmc, .DL_OPCIONES_PRUEBA) else dl_opciones_mcmc()
+  if (rapido && !suma)
+    .dl_message(paste0("corrida de prueba (rapido = TRUE): %d cadena(s) de %d iteraciones y forzar = TRUE, que la ",
+                       "escribe aunque las cadenas no converjan. Sus n\u00fameros no sirven para publicar: para la ",
+                       "corrida final, rapido = FALSE"), o$chains, o$iter)
+  nombre <- function(anio) sprintf("causa-%d%s%s", cfg$cause_id, if (is.null(anio)) "" else paste0("-", anio),
+                                   if (rapido) "-prueba" else "")
+  correr <- function(p, anio)
+    if (suma) .dl_correr_suma(p, carpeta_salida, rapido, registro, nombre(anio))
+    else .dl_correr_proyecto(p, semilla, carpeta_salida, rapido, sensibilidad, o, registro, forzar, nombre(anio))
+  if (is.null(anios)) return(correr(p, NULL))
+  .dl_correr_anios(p, anios, correr)
+}
+
+# El proyecto que corre dl_correr(): el `dl_proyecto` dado o el de la carpeta `proyecto`, leído para el primero de
+# `anios` (con el error de la lectura de ese año, .dl_en_anio) o, sin `anios`, para el año de su configuración.
+.dl_proyecto_a_correr <- function(proyecto, causa, anios) {
+  if (inherits(proyecto, "dl_proyecto")) return(proyecto)
+  if (!.dl_es_texto1(proyecto) || !dir.exists(proyecto))
+    .dl_stop("`proyecto` debe ser la carpeta de un proyecto o un proyecto de dl_proyecto(); es %s",
+             .dl_describir_objeto(proyecto))
+  if (is.null(anios)) return(dl_proyecto(proyecto, causa))
+  .dl_en_anio(anios[1L], list(), dl_proyecto(proyecto, causa, anio = anios[1L]), lectura = TRUE)
+}
+
+# Las corridas de `anios` (.dl_exigir_anios), una por año y en orden: `correr(p, anio)` corre el proyecto `p`, leído
+# para ese año (.dl_proyecto_de_anio). Los proyectos de todos los años se leen antes de correr el primero: un año que
+# no se puede leer detiene dl_correr() sin haber escrito ninguna corrida, y los mensajes de cada lectura salen una
+# sola vez. Devuelve un `dl_corridas` con una corrida por año.
+.dl_correr_anios <- function(p, anios, correr) {
+  proyectos <- lapply(anios, function(anio) .dl_en_anio(anio, list(), .dl_proyecto_de_anio(p, anio), lectura = TRUE))
+  corridas <- list()
+  for (k in seq_along(anios)) {
+    .dl_message("a\u00f1o %d (%d de %d)", anios[k], k, length(anios))
+    corridas[[as.character(anios[k])]] <- .dl_en_anio(anios[k], corridas, correr(proyectos[[k]], anios[k]))
+  }
+  structure(corridas, class = "dl_corridas")
+}
+
+# Evalúa `expr`, que corre el proyecto del año `anio` o, con `lectura`, lo lee antes de correr ninguno. Si falla, el
+# error es el mismo con el año delante y dice qué años quedaron escritos (`corridas`: las que van) o, en la lectura,
+# que no se corrió ninguno; conserva las clases del error original, delante de las de todo error del paquete, y sus
+# campos (`problemas`, `faltan`...), y lleva los campos `anio` y `escritas`.
+.dl_en_anio <- function(anio, corridas, expr, lectura = FALSE) {
+  tryCatch(expr, error = function(e) {
+    hechas <- vapply(corridas, function(r) r$run_id, "")
+    suyos <- unclass(e)[setdiff(names(e), c("message", "call", "detalle", "funcion", "anio", "escritas"))]
+    .dl_stop(paste0(if (lectura) "el proyecto no se puede leer para el a\u00f1o %d"
+                    else "la corrida del a\u00f1o %d fall\u00f3", ": %s\n  %s"), anio, .dl_detalle(e),
+             if (lectura) "No se corri\u00f3 ning\u00fan a\u00f1o: corrige ese a\u00f1o o qu\u00edtalo de `anios`."
+             else if (length(hechas)) sprintf("Quedaron escritas las corridas de: %s.",
+                                              paste(sprintf("%s (%s)", names(hechas), hechas), collapse = ", "))
+             else "No qued\u00f3 escrita ninguna corrida.",
+             clase = setdiff(class(e), c("dl_error", "error", "condition")),
+             campos = c(list(anio = anio, escritas = as.integer(names(corridas))), suyos))
+  })
+}
+
+# `anios` de dl_correr(): un vector de años enteros, sin NA ni repetidos. Devuelve los enteros.
+.dl_exigir_anios <- function(anios) {
+  if (!is.numeric(anios) || !length(anios) || anyNA(anios) || !all(is.finite(anios)) || any(anios != round(anios)) ||
+      any(anios < 1) || any(anios > .Machine$integer.max))
+    .dl_stop("`anios` debe ser un vector de a\u00f1os, n\u00fameros enteros sin NA (por ejemplo 2018:2023); es %s",
+             .dl_describir_objeto(anios))
+  if (anyDuplicated(anios))
+    .dl_stop("`anios` no debe repetir a\u00f1os: se repite %s", paste(unique(anios[duplicated(anios)]), collapse = ", "))
+  as.integer(anios)
+}
+
+#' @export
+print.dl_corridas <- function(x, ...) {
+  cat(sprintf("<dl_corridas> %d corrida(s), una por a\u00f1o\n", length(x)))
+  cat(sprintf("  %s: %s\n", names(x), vapply(x, function(r) r$run_id, "")), sep = "")
+  invisible(x)
+}
+
+# La corrida de un proyecto ya leído (`p`, para el año que se estima) con las opciones `o` del ajuste nacional y la
+# carpeta del resultado llamada `nombre`: los pasos de dl_correr(), que ya comprobó sus argumentos.
+.dl_correr_proyecto <- function(p, semilla, carpeta_salida, rapido, sensibilidad, o, registro, forzar, nombre) {
+  cfg <- p$configuracion
   # con un proyecto simple, los mensajes en sus palabras
   .dl_en_simple(simple = .dl_es_simple(cfg), datos = p$tablas$datos, {
-    o <- opciones %||% if (rapido) do.call(dl_opciones_mcmc, .DL_OPCIONES_PRUEBA) else dl_opciones_mcmc()
-    if (rapido)
-      .dl_message(paste0("corrida de prueba (rapido = TRUE): %d cadena(s) de %d iteraciones y forzar = TRUE, que la ",
-                         "escribe aunque las cadenas no converjan. Sus n\u00fameros no sirven para publicar: para la ",
-                         "corrida final, rapido = FALSE"), o$chains, o$iter)
-
     .dl_message("causa %d: insumos", cfg$cause_id)
     b <- dl_insumos(p)
     .dl_exigir_severidad(b$severidad, cfg$cause_id)
 
     .dl_message("ajuste nacional: %d cadena(s) de %d iteraciones por sexo (motor %s)", o$chains, o$iter, o$engine)
     f <- dl_ajustar(b, o, semilla = semilla)
-    .dl_compuerta_convergencia(f, forzar = rapido, remedio = paste0(
+    ess_minimo <- formals(.dl_compuerta_convergencia)$ess_minimo
+    convergencia <- .dl_compuerta_convergencia(f, forzar = forzar || rapido, ess_minimo = ess_minimo, remedio = paste0(
       "Aumenta las iteraciones y el calentamiento con opciones = dl_opciones_mcmc(iteraciones = ..., ",
-      "calentamiento = ...); para una prueba, rapido = TRUE"))
+      "calentamiento = ...); para una prueba, rapido = TRUE; forzar = TRUE la escribe igual y lo declara en el ",
+      "manifiesto"))
+    if (forzar && !.dl_cadenas_convergieron(convergencia, ess_minimo))
+      .dl_message(paste0("forzar = TRUE: las cadenas no convergieron (R-hat m\u00e1ximo %.4f, debe ser < 1.01; ESS ",
+                         "m\u00ednimo %.0f, debe ser >= %s) y la corrida se escribe igual; el manifiesto lo declara ",
+                         "(validacion.gates.force)"), convergencia$rhat_max, convergencia$ess_min, format(ess_minimo))
     f0 <- dl_ajustar_solo_prior(b, o, semilla = semilla, ajuste = f)
     casc <- NULL
     if (nrow(b$cov_proxy) > 0L || identical(b$cfg$cascada$modo$valor, "plana")) {
@@ -692,10 +924,8 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
 
     .dl_message("validaci\u00f3n contra el ancla y AVD")
     validacion <- dl_validar_ancla(f, b, cascada = casc)
-    ruta <- "anchor: {gate_err_mediano: {valor: ..., procedencia: ...}}"
-    .dl_compuerta_ancla(b$cfg, validacion, remedio = sprintf(paste0(
-      "declara un m\u00e1ximo mayor en la configuraci\u00f3n, con su procedencia: %s (ver ?dl_configuracion); ",
-      "rapido = TRUE no la salta"), if (.dl_es_simple(cfg)) sprintf("avanzado: {%s}", ruta) else ruta))
+    .dl_compuerta_ancla(b$cfg, validacion,
+                        remedio = .dl_remedio_compuerta_ancla(cfg, "ni rapido = TRUE ni forzar = TRUE la saltan"))
     comorbilidad <- if (!is.null(b$rutas$std_yld)) dl_factor_comorbilidad(b)
     if (is.null(comorbilidad))
       .dl_message("el ancla no trae AVD: los AVD no se corrigen por comorbilidad (el manifiesto lo declara)")
@@ -713,10 +943,66 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
 
     resumen <- dl_resumir(list(fit = ajuste, yld = avd, bundle = b))
     run <- dl_exportar_corrida(list(resumen = resumen, fit = ajuste, yld = avd, bundle = b),
-                               nombre = sprintf("causa-%d%s", cfg$cause_id, if (rapido) "-prueba" else ""),
+                               nombre = nombre,
                                carpeta = carpeta_salida, etiquetas = etiquetas, validacion = validacion,
-                               sensibilidad = sens, forzar = rapido, registro = registro)
+                               sensibilidad = sens, forzar = forzar || rapido, registro = registro)
     .dl_message("corrida escrita en %s%s", run$dir, if (rapido) " (prueba: no sirve para publicar)" else "")
     run
   })
+}
+
+# Dice qué corrida se tomó de cada subtipo de una suma (`corridas`: sus carpetas, en el orden de `subtipos`) y, en una
+# suma de producción, qué subtipos entran con una corrida escrita con forzar = TRUE (validacion.gates.force de su
+# manifiesto); las de prueba se escriben todas así. Devuelve esos subtipos (ninguno en una suma de prueba), que el
+# manifiesto de la suma declara entre sus limitaciones.
+.dl_decir_corridas_suma <- function(subtipos, corridas, rapido) {
+  for (i in seq_along(corridas)) .dl_message("%d: %s", subtipos[i], basename(corridas[i]))
+  forzadas <- vapply(corridas, function(d) isTRUE(.dl_leer_manifest(d)$validacion$gates$force), NA)
+  if (rapido || !any(forzadas)) return(invisible(integer()))
+  .dl_message(paste0("las corridas de los subtipos %s se escribieron con forzar = TRUE (sin exigir la ",
+                     "convergencia): la suma las toma igual"), paste(subtipos[forzadas], collapse = ", "))
+  invisible(as.integer(subtipos[forzadas]))
+}
+
+# Lo que dl_sumar_hijas() exige de la corrida de cada subtipo de la suma de la causa `causa` (`corridas`: sus
+# carpetas, en el orden de `subtipos`), en palabras del proyecto: que sea de una causa que se ajusta (una suma, con
+# causa.agregacion en su manifiesto, no es subtipo de otra suma) y que declare a `causa` como su causa padre.
+.dl_exigir_subtipos_de <- function(subtipos, corridas, causa) {
+  manifiestos <- lapply(corridas, .dl_leer_manifest)
+  de <- function(k) sprintf("la(s) corrida(s) %s (subtipo(s) %s)", paste(basename(corridas[k]), collapse = ", "),
+                            paste(subtipos[k], collapse = ", "))
+  sumas <- which(vapply(manifiestos, function(m) !is.null(m$causa$agregacion), NA))
+  if (length(sumas))
+    .dl_stop(paste0("%s es/son la suma de otras corridas: una suma no puede ser subtipo de otra suma. Los subtipos ",
+                    "de la causa %d deben ser causas que se ajustan: declara en su clave `subtipos`, en lugar de ",
+                    "esa suma, los subtipos que ella suma"), de(sumas), causa)
+  padres <- vapply(manifiestos, function(m) as.integer(m$causa$extraction_cause_id %||% NA_integer_), 0L)
+  otro <- which(!padres %in% causa)
+  if (length(otro))
+    .dl_stop(paste0("%s no declara(n) a la causa %d como su causa padre: el subtipo se corre desde un proyecto que ",
+                    "tenga la configuraci\u00f3n de la causa %d, con \u00e9l en `subtipos`, o con subtipo_de: %d en ",
+                    "su propia configuraci\u00f3n"), de(otro), causa, causa, causa)
+}
+
+# La corrida de una causa que es la suma de sus subtipos (`p`, su proyecto leído para el año que se estima): busca en
+# `carpeta_salida` la corrida más reciente de ese año de cada subtipo que entra (.dl_corridas_de_subtipos: las de
+# prueba con `rapido`, las de producción sin él) y las suma con dl_sumar_hijas(), con el nombre de la causa y los
+# subtipos omitidos de la configuración y las rutas del proyecto. Antes dice cuáles tomó y comprueba, en palabras del
+# proyecto, lo que la suma exige de cada corrida (.dl_exigir_subtipos_de). Los subtipos de una suma de producción
+# escritos con forzar = TRUE quedan entre las limitaciones de su manifiesto.
+.dl_correr_suma <- function(p, carpeta_salida, rapido, registro, nombre) {
+  cfg <- p$configuracion
+  s <- cfg$origen$configuracion
+  anio <- .dl_anio_ajuste(cfg)
+  .dl_message("causa %d: %s, con sus corridas %s de %d en %s", cfg$cause_id, .dl_texto_suma(s),
+              if (rapido) "de prueba" else "de producci\u00f3n", anio, .dl_dir_corrida(carpeta_salida))
+  subtipos <- .dl_subtipos_suma(s)$entran
+  corridas <- .dl_corridas_de_subtipos(carpeta_salida, subtipos, anio, prueba = rapido)
+  forzadas <- .dl_decir_corridas_suma(subtipos, corridas, rapido)
+  .dl_exigir_subtipos_de(subtipos, corridas, cfg$cause_id)
+  run <- .dl_sumar_corridas(corridas, causa = cfg$cause_id, nombre = nombre, carpeta = carpeta_salida,
+                            nombre_causa = cfg$origen$nombre, registro = registro, rutas = p$rutas,
+                            omitidas = cfg$suma$omitidas, forzadas = forzadas)
+  .dl_message("corrida escrita en %s%s", run$dir, if (rapido) " (prueba: no sirve para publicar)" else "")
+  run
 }

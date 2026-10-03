@@ -244,6 +244,89 @@ test_that("valor_nacional_de: el proxy se ancla en el valor nacional de la susti
   expect_identical(x$proxies$covariate_id_gbd, c(882L, 882L))
   expect_identical(x$proxies$ancla_ghdx, c("0.45", "0.45"))
   expect_setequal(x$cov$nacional$covariate_name_short, c("sdi", "sdi_std"))
+  # la beta no necesita la fila nacional de su propia covariable: sin ella, los mismos proxies
+  cambiar <- function(t, ...) { t[...names()] <- list(...); t }
+  sin_copia <- cambiar(tablas, covariables = cov[!(ubicacion == "P" & covariable == "sdi")])
+  expect_identical(dismodlite:::.dl_ids_covariable(sin_copia), list(sdi = 1L, sdi_std = 882L))
+  y <- dismodlite:::.dl_traducir_contrato(sin_copia, cfg)
+  expect_identical(y$proxies, x$proxies)
+  expect_identical(y$cov$nacional, x$cov$nacional[covariate_name_short == "sdi_std"])
+  # sí la de la sustituta, y la de una beta sin valor_nacional_de
+  sin_std <- cambiar(tablas, covariables = cov[covariable != "sdi_std"])
+  expect_error(dismodlite:::.dl_traducir_contrato(sin_std, cfg),
+               "la tabla covariables no trae el valor nacional \\(ubicación P\\) de sdi_std, que usa la tabla betas")
+  b2 <- tab("betas", data.frame(covariable = "sdi", efecto_sobre = "prevalencia", transformacion = "log", beta = -1))
+  expect_error(dismodlite:::.dl_traducir_contrato(cambiar(sin_copia, betas = b2), cfg_min()),
+               "no trae el valor nacional \\(ubicación P\\) de sdi, que usa la tabla betas")
   cfg$covariables[[1]]$sustituye$covariate_name_short <- "otra"
   expect_error(dismodlite:::.dl_traducir_contrato(tablas, cfg), "sale de otra, que no está en la tabla betas")
+})
+
+# ---- Filas de ambos sexos en el ancla ----
+
+# El ancla del ejemplo con la mitad de sus bandas de ambos sexos (copias con otros valores) y la población agrupada en
+# 80+ (el ancla sigue en 80-84 ... 95+): hace falta poblacion_detalle. Devuelve las tablas para dl_proyecto().
+tablas_ancla_ambos <- function(ambos = TRUE, detalle_sexos = c("hombres", "mujeres")) {
+  t <- dl_proyecto(dl_ejemplo(), 9100)$tablas
+  pob <- data.table::copy(t$poblacion)
+  g <- pob[edad_inicio >= 80, list(edad_inicio = 80, edad_fin = NA_real_, poblacion = sum(poblacion)),
+           by = list(ubicacion, anio, sexo)]
+  pob <- rbind(pob[edad_inicio < 80], g, use.names = TRUE)
+  det <- t$poblacion[edad_inicio >= 80, list(poblacion = sum(poblacion)),
+                     by = list(anio, sexo, edad_inicio, edad_fin)]
+  if ("ambos" %in% detalle_sexos)
+    det <- rbind(det, det[, list(sexo = "ambos", poblacion = sum(poblacion)), by = list(anio, edad_inicio, edad_fin)],
+                 use.names = TRUE)
+  an <- data.table::copy(t$ancla)
+  if (ambos) {
+    am <- data.table::copy(an)[, `:=`(sexo = "ambos", valor = valor * 1.01, inferior = inferior * 1.01,
+                                      superior = superior * 1.01)]
+    am <- am[, list(valor = mean(valor), inferior = mean(inferior), superior = mean(superior), nombre_causa = nombre_causa[1L]),
+             by = list(causa, anio, sexo, edad_inicio, edad_fin, medida)]
+    an <- rbind(an, am, use.names = TRUE)
+  }
+  list(poblacion = as.data.frame(pob), ancla = as.data.frame(an),
+       poblacion_detalle = as.data.frame(det[sexo %in% detalle_sexos]))
+}
+
+proyecto_ancla_ambos <- function(...) {
+  x <- tablas_ancla_ambos(...)
+  dl_proyecto(dl_ejemplo(), 9100, poblacion = x$poblacion, ancla = x$ancla, poblacion_detalle = x$poblacion_detalle)
+}
+
+leer_traduccion_ancla <- function(p)
+  dismodlite:::.dl_trad_ancla(p$tablas, p$configuracion, dismodlite:::.dl_bandas_proyecto(p$tablas))
+
+test_that("las filas de ambos sexos del ancla, más finas que la población, no exigen detalle de ambos", {
+  p <- proyecto_ancla_ambos()
+  b <- suppressMessages(dl_insumos(p))
+  sin <- suppressMessages(dl_insumos(proyecto_ancla_ambos(ambos = FALSE)))
+  expect_identical(b$hash, sin$hash)
+  expect_identical(b$prior_gbd, sin$prior_gbd)
+  # la traducción no lleva las filas de ambos sexos (código de sexo 3)
+  expect_false("3" %in% leer_traduccion_ancla(p)$sex_id)
+})
+
+test_that("con poblacion_detalle de ambos sexos, el ancla de ambos sexos se agrupa como la de cada sexo", {
+  p <- proyecto_ancla_ambos(detalle_sexos = c("hombres", "mujeres", "ambos"))
+  expect_true("3" %in% leer_traduccion_ancla(p)$sex_id)
+  expect_identical(suppressMessages(dl_insumos(p))$hash,
+                   suppressMessages(dl_insumos(proyecto_ancla_ambos(ambos = FALSE)))$hash)
+})
+
+test_that("sin poblacion_detalle de hombres o de mujeres, el error de hoy aunque no haya filas de ambos sexos", {
+  expect_error(proyecto_ancla_ambos(detalle_sexos = "hombres"), "poblacion_detalle.*mujeres")
+  expect_error(proyecto_ancla_ambos(detalle_sexos = "ambos"), "poblacion_detalle.*(hombres|mujeres)")
+})
+
+test_that("ambos sexos del ancla más fino y sin detalle de ninguno: sigue pidiendo poblacion_detalle", {
+  x <- tablas_ancla_ambos()
+  expect_error(dl_proyecto(dl_ejemplo(), 9100, poblacion = x$poblacion, ancla = x$ancla), "poblacion_detalle")
+})
+
+test_that("las bandas de ambos sexos que no son más finas que la población pasan tal cual", {
+  a <- tab("ancla", data.frame(anio = 2023L, sexo = c("hombres", "ambos"), edad_inicio = 70, edad_fin = 75,
+                               medida = "prevalencia", valor = 0.1, inferior = 0.05, superior = 0.2))
+  x <- dismodlite:::.dl_traducir_contrato(list(ubicaciones = ubic, poblacion = pob80, ancla = a), cfg_min())
+  expect_setequal(x$ancla$sex_id, c("1", "3"))
 })
