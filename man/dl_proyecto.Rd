@@ -208,7 +208,8 @@ p <- dl_proyecto(configuracion = list(causa = 9101, anio = 2023, edad_inicio = 3
 # una causa que es la suma de sus subtipos: solo su configuración, las ubicaciones y la población
 suma <- dl_proyecto(configuracion = list(causa = 9200, nombre = "Suma de ejemplo", anio = 2023,
                                          subtipos = c(9101, 9102, 9103), suma_de_subtipos = "sí"),
-                    ubicaciones = dl_ejemplo("ubicaciones.csv"), poblacion = dl_ejemplo("poblacion.csv"))
+                    ubicaciones = dl_ejemplo("ubicaciones.csv"),
+                    poblacion = dl_ejemplo("poblacion.csv"))
 suma
 \donttest{
 # el paso siguiente: los insumos
