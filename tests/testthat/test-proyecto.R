@@ -795,6 +795,12 @@ test_that("las claves proxies.* se revisan", {
   probs <- dismodlite:::.dl_problemas_config_simple(list(causa = 1L, anio = 2023L, edad_inicio = 30,
     proxies = list(excluir = list(2021))))
   expect_true(any(grepl("proxies.excluir: es una lista de registros", probs)))
+  # una covariable sin valor ({haqi: } en el YAML) es un problema, no «cociente» en silencio
+  s <- c(list(causa = 1L, anio = 2023L, edad_inicio = 30),
+         yaml::yaml.load("proxies:\n  transformacion: {haqi: , ldi: diferencia}"))
+  probs <- dismodlite:::.dl_problemas_config_simple(s)
+  expect_true(any(grepl("proxies.transformacion.haqi: falta el valor.*cociente, diferencia", probs)))
+  expect_false(any(grepl("proxies.transformacion.ldi", probs)))
 })
 
 test_that("una configuración con proxies.* válidas pasa y la traducción las ignora", {

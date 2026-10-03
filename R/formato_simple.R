@@ -179,7 +179,10 @@
   if (is.list(tr) && !is.null(names(tr)))
     for (j in names(tr)) {
       v <- tr[[j]]
-      if (!is.null(v) && !(.dl_es_texto1(v) && v %in% .DL_PROXIES_TRANSFORMACIONES))
+      if (is.null(v))
+        p(paste0("proxies.transformacion.", j),
+          sprintf("falta el valor; los admitidos son: %s", paste(.DL_PROXIES_TRANSFORMACIONES, collapse = ", ")))
+      else if (!(.dl_es_texto1(v) && v %in% .DL_PROXIES_TRANSFORMACIONES))
         p(paste0("proxies.transformacion.", j),
           sprintf("valor no admitido: %s; los admitidos son: %s", paste(unlist(v), collapse = ", "),
                   paste(.DL_PROXIES_TRANSFORMACIONES, collapse = ", ")))
