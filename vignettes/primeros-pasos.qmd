@@ -55,8 +55,10 @@ las describe columna por columna):
 - `ubicaciones.csv`: la ubicación nacional (código `123`) y las 25 subnacionales.
 - `poblacion.csv`: la población por ubicación, año, sexo y banda de edad.
 - `ancla/`: la **estimación de referencia**, el ancla, tal como se descarga de GBD Results.
-- `covariables/`: los valores nacionales de las covariables, tal como se descargan del GHDx, y sus valores
-  subnacionales (`proxies.csv`), que dan las diferencias entre ubicaciones.
+- `covariables/`: los valores nacionales de las covariables, tal como se descargan del GHDx.
+- `proxies_crudos.csv`: una encuesta con tres ediciones que mide cada covariable por ubicación subnacional. El
+  paquete la calibra al leer el proyecto: de ahí salen los valores subnacionales de las covariables, que dan las
+  diferencias entre ubicaciones.
 - `betas.csv`: el efecto publicado de cada covariable.
 - `datos.csv`: los datos locales (estudios, registros).
 - `severidad.csv`: los estados de salud de cada causa y sus pesos de discapacidad, para los AVD.

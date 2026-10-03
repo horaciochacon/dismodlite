@@ -100,13 +100,17 @@ dl_revisar_proyecto(dl_ejemplo(), causa = 9100)
 #>   ✓ ubicaciones: leída: 26 fila(s)
 #>   ✓ poblacion: leída: 2100 fila(s)
 #>   ✓ ancla: leída: 768 fila(s) (descarga de GBD Results)
-#>   ✓ covariables: leída: 1508 fila(s) (descarga de covariables del GHDx)
+#>   ✓ covariables: leída: 8 fila(s) (descarga de covariables del GHDx)
 #>   ✓ betas: leída: 3 fila(s)
 #>   ✓ datos: leída: 185 fila(s)
 #>   ✓ severidad: leída: 12 fila(s)
+#>   ✓ proxies_crudos: leída: 1500 fila(s)
+#>   ✓ proxies: SEV_scalar_agestd_cvd_pvd: paseo_aleatorio, q = 2.26e-05, ediciones 2019, 2021, 2023
+#>       LDI_pc: paseo_aleatorio, q = 0.000373, ediciones 2019, 2021, 2023
+#>       haqi: paseo_aleatorio, q = 0.406, ediciones 2019, 2021, 2023
 #>   ✓ configuración: config/9100.yaml: proyecto
 #>   ✓ proyecto: las reglas entre tablas se cumplen
-#>   ✓ insumos: dl_insumos() los arma y los valida (hash 1e144edebc72)
+#>   ✓ insumos: dl_insumos() los arma y los valida (hash 159ad785562b)
 #> Todo en orden.
 ```
 

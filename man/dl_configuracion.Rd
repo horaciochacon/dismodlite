@@ -72,10 +72,11 @@ notas:
 Las claves con punto van dentro de su bloque (\code{ancla.peso} es \verb{peso:} bajo \verb{ancla:}). Las covariables actúan solo
 en la estimación subnacional: con sus valores por ubicación en la tabla \code{covariables}, la diferencia de log i (o de
 log f, con \code{efecto_sobre: mortalidad_exceso} en la tabla \code{betas}) de cada ubicación es \code{beta} por su diferencia con
-el valor nacional; el ajuste nacional no cambia. \verb{avanzado:} pasa claves del formato completo tal cual y se aplica
-al final (para expertos). El bloque \code{subnacional} también se puede llamar \code{departamentos}, su nombre anterior. La
-carpeta del proyecto y sus archivos: ver \code{\link[=dl_proyecto]{dl_proyecto()}}. Todas las claves, con su valor por defecto, están en la
-tabla de la sección siguiente.
+el valor nacional; el ajuste nacional no cambia. Si el proyecto trae \code{proxies_crudos}, leerlo la calibra para el
+año que se estima (\code{anio}, o el de \code{cambios}) con las claves \verb{proxies.*} (\code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}). \verb{avanzado:}
+pasa claves del formato completo tal cual y se aplica al final (para expertos). El bloque \code{subnacional} también se
+puede llamar \code{departamentos}, su nombre anterior. La carpeta del proyecto y sus archivos: ver \code{\link[=dl_proyecto]{dl_proyecto()}}.
+Todas las claves, con su valor por defecto, están en la tabla de la sección siguiente.
 }
 
 \section{Claves de la configuración de un proyecto}{
