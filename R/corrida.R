@@ -457,14 +457,22 @@
 .dl_cadenas_convergieron <- function(convergencia, ess_minimo)
   convergencia$rhat_max < 1.01 && convergencia$ess_min >= ess_minimo
 
+# Qué hacer cuando el error del ancla pasa el máximo, en las palabras de la configuración `cfg`: dónde se declara un
+# máximo mayor (la clave del proyecto o la del formato completo) y `no_salta`, qué no salta la compuerta.
+.dl_remedio_compuerta_ancla <- function(cfg, no_salta) {
+  donde <- if (.dl_es_simple(cfg)) ": ancla: {error_maximo: ...}"
+           else paste0(", con su procedencia: anchor: {gate_err_mediano: {valor: ..., procedencia: ...}} ",
+                       "(en un proyecto, ancla: {error_maximo: ...})")
+  sprintf("declara un m\u00e1ximo mayor en la configuraci\u00f3n%s (ver ?dl_configuracion); %s", donde, no_salta)
+}
+
 # Compuerta del error del ancla de la validación `validacion` (anchor_identity: error relativo mediano de la
 # prevalencia por banda): un error si pasa el máximo, que devuelve. forzar no la salta: el máximo solo se relaja en la
-# configuración (anchor.gate_err_mediano, con su procedencia), y entonces queda declarado entre las limitaciones. La
-# usan dl_exportar_corrida() y dl_correr(), justo después de la validación; `remedio`: dónde se declara el máximo y
-# qué no salta la compuerta, con los argumentos de cada una.
-.dl_compuerta_ancla <- function(cfg, validacion, remedio = paste0(
-  "declara un m\u00e1ximo mayor en la configuraci\u00f3n, con su procedencia: anchor: {gate_err_mediano: {valor: ..., ",
-  "procedencia: ...}} (en un proyecto, dentro de avanzado; ver ?dl_configuracion); forzar no la salta")) {
+# configuración (anchor.gate_err_mediano, con su procedencia; en un proyecto, ancla.error_maximo), y entonces queda
+# declarado entre las limitaciones. La usan dl_exportar_corrida() y dl_correr(), justo después de la validación;
+# `remedio`: dónde se declara el máximo y qué no salta la compuerta (.dl_remedio_compuerta_ancla), con los argumentos
+# de cada una.
+.dl_compuerta_ancla <- function(cfg, validacion, remedio = .dl_remedio_compuerta_ancla(cfg, "forzar no la salta")) {
   gate_ancla <- as.numeric(cfg$anchor$gate_err_mediano$valor %||% .DL_GATE_ERR_MEDIANO_DEFECTO)
   rv <- attr(validacion, "resumen")
   err_ancla <- if (!is.null(rv)) rv[check == "anchor_identity"]$err_rel_mediano
@@ -502,10 +510,11 @@
 #'   archivo en `inputs$contrato`. `inputs/contrato/` es la carpeta de un proyecto: `dl_proyecto(file.path(run$dir,
 #'   "inputs", "contrato"))` repite la corrida sin la carpeta original, también si las tablas o la configuración se
 #'   dieron en R. En `betas.csv` van las betas que usó la causa, bajo la causa de la corrida: las de su causa padre
-#'   si es un subtipo sin betas propias, cuya configuración congelada lleva además `avanzado: extraction: cause_id`
-#'   (la causa padre, que [dl_sumar_hijas()] exige). La carpeta de `severidad.particion` se copia en
-#'   `inputs/contrato/particion/<corrida>/`, con la ruta de la configuración congelada cambiada a ella y el sha256 de
-#'   cada archivo en `inputs$contrato` (`particion`); la tabla `severidad`, que sale de ella, no se congela aparte.
+#'   si es un subtipo sin betas propias, cuya configuración congelada declara además a la causa padre (`subtipo_de`,
+#'   o `avanzado: extraction: cause_id` si la relación salía de `subtipos`), que [dl_sumar_hijas()] exige. La carpeta
+#'   de `severidad.particion` se copia en `inputs/contrato/particion/<corrida>/`, con la ruta de la configuración
+#'   congelada cambiada a ella y el sha256 de cada archivo en `inputs$contrato` (`particion`); la tabla `severidad`, que
+#'   sale de ella, no se congela aparte.
 #'   `proxies_crudos` se congela como vino (y `covariables.csv` sin las filas calibradas): el proyecto congelado
 #'   vuelve a calibrar con la misma configuración y da los mismos insumos.
 #' - `manifest.yaml`: la descripción de la corrida (abajo).
@@ -525,8 +534,8 @@
 #'
 #' `forzar = TRUE` salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 #' (error relativo mediano mayor que `anchor.gate_err_mediano`, 0.05 por defecto), la corrida no se escribe. Ese
-#' máximo se declara, con su procedencia, en la configuración (en un proyecto, en `avanzado`; ver
-#' [dl_configuracion()]).
+#' máximo se declara en la configuración (en un proyecto, `ancla: {error_maximo: ...}`; en el formato completo,
+#' `anchor: {gate_err_mediano: {valor, procedencia}}`; ver [dl_configuracion()]).
 #'
 #' @param piezas Lista con `resumen` ([dl_resumir()]), `fit` (ajuste o cascada), `yld` ([dl_avd()]) y `bundle`
 #'   (insumos), las mismas con que se hizo el resumen; también valen los nombres `ajuste`, `avd` e `insumos`.
@@ -674,12 +683,12 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
 # Las tablas del contrato `contrato` y la configuración del proyecto que congela la corrida de `cfg`, para que
 # inputs/contrato/ sea un proyecto por sí solo: la tabla betas, solo con las betas que usó la causa
 # (.dl_betas_de_causa) y las de su causa padre (extraction.cause_id: un subtipo sin betas propias) puestas a su nombre;
-# y la configuración tal como se leyó, más `avanzado: extraction` si la causa usa las betas de su padre (la relación
-# la declara la configuración del padre, que no se congela). Si la configuración declara severidad.particion, la
-# carpeta de esa partición (`particion`, la de las rutas del proyecto) va también: `particion` = list(origen, ruta),
-# con ruta = particion/<corrida>, relativa a inputs/contrato/, que pasa a ser la de severidad.particion en la
-# configuración congelada; la tabla severidad, que sale de ella, no se congela. Sin tablas (formato completo),
-# configuración y partición NULL.
+# y la configuración tal como se leyó, más `avanzado: extraction` si la causa usa las betas de su padre y la
+# configuración no lo declara con subtipo_de (la relación la declara la configuración del padre, que no se congela).
+# Si la configuración declara severidad.particion, la carpeta de esa partición (`particion`, la de las rutas del
+# proyecto) va también: `particion` = list(origen, ruta), con ruta = particion/<corrida>, relativa a
+# inputs/contrato/, que pasa a ser la de severidad.particion en la configuración congelada; la tabla severidad, que
+# sale de ella, no se congela. Sin tablas (formato completo), configuración y partición NULL.
 .dl_contrato_congelado <- function(contrato, cfg, particion = NULL) {
   if (!length(contrato)) return(list(tablas = contrato, configuracion = NULL))
   s <- cfg$origen$configuracion
@@ -690,7 +699,7 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
       b[!is.na(causa) & causa == padre, causa := as.integer(cfg$cause_id)]
     contrato$betas <- if (nrow(b)) b
   }
-  if (!is.null(padre) && !is.null(s) && is.null(s$avanzado$extraction))
+  if (!is.null(padre) && !is.null(s) && is.null(s$avanzado$extraction) && is.null(s$subtipo_de))
     s$avanzado$extraction <- cfg$extraction
   part <- NULL
   if (!is.null(s) && !is.null(.dl_valor_en(s, "severidad.particion")) && !is.null(particion)) {

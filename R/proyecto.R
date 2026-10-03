@@ -200,18 +200,34 @@
                          subtipos = list(suppressWarnings(as.integer(unlist(s[["subtipos"]])))))
 }
 
-# La causa padre de `causa`: la que la declara en `subtipos` (`causas`, .dl_causas_config), o NULL.
+# Las causas que declaran a `causa` en `subtipos` (`causas`, .dl_causas_config).
+.dl_padres_de <- function(causas, causa) causas$causa[vapply(causas$subtipos, function(h) causa %in% h, NA)]
+
+# La causa padre de `causa`: la que la declara en `subtipos`, o NULL.
 .dl_padre_de <- function(causas, causa) {
-  k <- which(vapply(causas$subtipos, function(h) causa %in% h, NA))[1L]
-  if (!is.na(k)) causas$causa[[k]]
+  padres <- .dl_padres_de(causas, causa)
+  if (length(padres)) padres[[1L]]
 }
 
-# La causa cuyas betas usa un subtipo sin filas propias: la que declara avanzado.extraction.cause_id en la configuración
-# `s` (un subtipo en su propia carpeta, sin la configuración de su padre), o NULL; un valor que no es un entero lo
-# rechaza después la validación. Sin ella, la causa padre es la que declara al subtipo en `subtipos`.
+# La causa cuyas betas usa un subtipo sin filas propias: la que declara la configuración `s` (un subtipo en su propia
+# carpeta, sin la configuración de su padre) en avanzado.extraction.cause_id, que manda, o en subtipo_de; o NULL. Un
+# valor que no es un entero lo rechaza después la validación. Sin ella, la causa padre es la que declara al subtipo
+# en `subtipos`.
 .dl_padre_extraction <- function(s) {
-  ec <- .dl_valor_en(s, "avanzado.extraction.cause_id")
+  ec <- .dl_valor_en(s, "avanzado.extraction.cause_id") %||% .dl_valor_en(s, "subtipo_de")
   if (.dl_es_entero1(ec)) as.integer(ec)
+}
+
+# Error si el subtipo_de de la configuración `s` de `causa` dice una causa padre y la configuración de otra causa del
+# proyecto (`causas`) declara a `causa` en `subtipos`: la relación se dice en un solo sitio o en los dos igual.
+.dl_comprobar_subtipo_de <- function(s, archivo, causa, causas) {
+  declarado <- .dl_valor_en(s, "subtipo_de")
+  if (!.dl_es_entero1(declarado)) return(invisible())
+  otros <- setdiff(.dl_padres_de(causas, causa), as.integer(declarado))
+  if (length(otros))
+    .dl_stop_config_simple(archivo, sprintf(paste0(
+      "subtipo_de: es %d y la configuraci\u00f3n de la causa %d declara a la causa %d en su clave `subtipos`: los dos ",
+      "deben decir la misma causa padre"), as.integer(declarado), otros[1L], causa))
 }
 
 # Lo que la traducción de la configuración de `causa` toma de las tablas (.dl_traducir_config_simple): la ubicación
@@ -265,6 +281,7 @@
     particion <- ruta
     tablas$severidad <- .dl_severidad_particion(s, causa, particion)
   }
+  .dl_comprobar_subtipo_de(s, archivo, causa, causas)
   tm <- .dl_tablas_modelo(tablas, calibracion)
   ctx <- .dl_contexto_tablas(tm, causa, .dl_padre_extraction(s) %||% .dl_padre_de(causas, causa))
   list(cfg = .dl_config_simple(s, archivo, causa, ctx, cambios), tablas = tablas, tablas_modelo = tm,
@@ -627,8 +644,8 @@
 #' filas de todas en la columna `causa` (sin ella, una fila vale para todas). Una causa que es la suma de otras las
 #' declara en `subtipos`; un subtipo sin betas propias usa las de su causa padre. El subtipo encuentra a su padre por
 #' esa clave, en otra configuración del mismo proyecto; leído solo (en su propia carpeta), lo declara con
-#' `avanzado: {extraction: {cause_id: <padre>, motivo: ...}}` y, sin betas propias, usa las de esa causa (ver
-#' [dl_sumar_hijas()]). La causa padre se lee con `dl_proyecto()` aunque solo se sume: necesita su prevalencia en el
+#' `subtipo_de: <padre>` y, sin betas propias, usa las de esa causa (ver [dl_sumar_hijas()]); si las dos configuraciones
+#' dicen su padre, deben decir la misma causa. La causa padre se lee con `dl_proyecto()` aunque solo se sume: necesita su prevalencia en el
 #' ancla (y su mortalidad, con el prior por defecto de la mortalidad en exceso). Cada subtipo se corre por separado y
 #' sus corridas se suman con [dl_sumar_hijas()], con las rutas del proyecto de la causa padre:
 #' ```r

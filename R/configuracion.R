@@ -216,6 +216,10 @@
 #' # con cambios (claves del formato completo)
 #' cfg <- dl_configuracion(9100, file.path(dl_ejemplo(), "config"),
 #'                         cambios = list(anchor = list(lambda = 0.5)))
+#' # o con una clave más de la configuración del proyecto: aquí, el error del ancla que se acepta
+#' d <- dl_ejemplo(copiar_en = tempfile("proyecto"))
+#' cat("ancla:\n  error_maximo: 0.08\n", file = file.path(d, "config", "9100.yaml"), append = TRUE)
+#' dl_configuracion(9100, d)$anchor$gate_err_mediano
 #' @export
 dl_configuracion <- function(causa, carpeta_config = NULL, cambios = NULL) {
   causa <- .dl_exigir_causa(causa)
@@ -293,12 +297,12 @@ NULL
 #' tabla de claves, cada procedencia que el formato completo exige dice «declarado en la configuración del proyecto»,
 #' y las claves tomadas por defecto quedan en `origen$por_defecto` (y en el manifiesto de cada corrida, en
 #' `configuracion.por_defecto`). Sobre esa traducción se aplican, en este orden, el bloque `avanzado:` de la
-#' configuración y el argumento `cambios`, los dos con claves del formato completo. Por ejemplo, para aceptar un error
-#' mayor entre la prevalencia ajustada y la del ancla antes de escribir la corrida:
+#' configuración y el argumento `cambios`, los dos con claves del formato completo (así que `avanzado` manda sobre la
+#' clave corta que traduce a la misma). Por ejemplo, para relajar el prior de la mortalidad en exceso:
 #' ```yaml
 #' avanzado:
-#'   anchor:
-#'     gate_err_mediano: {valor: 0.08, procedencia: el ancla tiene pocas bandas de edad}
+#'   emr_prior:
+#'     factor_sd: {valor: 1.5, procedencia: el prior por edad del ancla es más estrecho que los datos}
 #' ```
 #' Algunas claves del formato completo sin equivalente en la configuración de un proyecto, útiles en `avanzado` (entre
 #' paréntesis, el valor cuando la clave no está):
@@ -313,10 +317,10 @@ NULL
 #'   ancla (3).
 #' - `emr_prior.factor_sd`: `{valor, procedencia}`, con valor mayor o igual que 1: multiplica la desviación estándar
 #'   del prior de la EMR (1: el prior tal cual).
-#' - `emr_prior.fraccion_aguda`: `{valor, procedencia}`: la fracción de las muertes por la causa que ocurre en su fase
-#'   aguda; se descuenta de la mortalidad del ancla en el prior y el techo de la EMR (0).
-#' - `anchor.gate_err_mediano`: `{valor, procedencia}`: el error relativo mediano máximo entre la prevalencia
-#'   ajustada y la del ancla con que se escribe la corrida (0.05).
+#' - `emr_prior.fraccion_aguda.cfr_30d`: la letalidad a 30 días de la fase aguda, en (0, 1), junto a
+#'   `mortalidad_exceso.fraccion_aguda` (`avanzado: {emr_prior: {fraccion_aguda: {cfr_30d: 0.1}}}`): la comprobación
+#'   `implied_incidence` de [dl_validar_ancla()] compara entonces con la incidencia del ancla por (1 - `cfr_30d`), la de
+#'   los sobrevivientes a 28 días.
 #' - `anchor.metrica_prevalencia`: `{valor, procedencia}`: la métrica en que se lee la prevalencia del ancla. `Rate`
 #'   (por defecto) es la proporción de la población, por 100 000. `Percent` repite lo que hacían las versiones hasta la
 #'   1.0.0 y sirve solo para reproducir sus corridas: en GBD Results divide los casos por las personas con alguna causa,
@@ -326,11 +330,9 @@ NULL
 #'   `poblacion` en el año del ancla, que entonces debe traer esas bandas; en el formato completo, `pesos_80mas`);
 #'   `false` usa las bandas tal cual llegan (así las deja la traducción de un proyecto, que agrupa con
 #'   `poblacion_detalle` solo las que la población no tiene). Por defecto `true` en el formato completo.
-#' - `extraction`: `{cause_id, motivo}`: la causa padre de un subtipo que se lee sin la configuración de su padre
-#'   (en su propia carpeta). La corrida la declara en su manifiesto y [dl_sumar_hijas()] la exige para sumar el
-#'   subtipo. Un subtipo sin filas propias en `betas` usa las de esta causa (las filas del padre sirven tal cual);
-#'   con filas propias, las suyas. En un proyecto con la configuración del padre (`subtipos`) sale sola, y la corrida
-#'   congelada de un subtipo la escribe.
+#' - `extraction`: `{cause_id, motivo}`: la causa padre de un subtipo, en el formato completo. En un proyecto la
+#'   declara `subtipo_de` (un subtipo en su propia carpeta, sin la configuración de su padre) o sale sola de `subtipos`
+#'   en la configuración del padre; `avanzado: {extraction: {cause_id, motivo}}` manda sobre las dos.
 #' - `cascada.dx_fuera_de_banda`: en las edades sin grupo de edad del proxy, `cero` (sin diferencia con el valor
 #'   nacional) o `vecina` (la del grupo más próximo, con procedencia) (`cero`).
 #' - `cascada.dx_interpolacion`: entre los grupos de edad del proxy, `lineal` (interpolada entre sus puntos medios)

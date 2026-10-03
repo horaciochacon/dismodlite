@@ -578,8 +578,8 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' [dl_exportar_corrida()]. Si las cadenas no convergieron (R-hat < 1.01 y ESS >= 400), justo después del ajuste:
 #' aumenta `iteraciones` y `calentamiento` con `opciones`. Y si la prevalencia ajustada se aleja de la del ancla
 #' (error relativo mediano mayor que 0.05), justo después de la validación, también con `rapido = TRUE` o
-#' `forzar = TRUE`: revisa el ajuste y los datos o, con su procedencia, declara un máximo mayor en la configuración,
-#' en `avanzado: {anchor: {gate_err_mediano: {valor, procedencia}}}` (en el formato completo, sin `avanzado`; ver
+#' `forzar = TRUE`: revisa el ajuste y los datos o declara un máximo mayor en la configuración, `ancla: {error_maximo:
+#' ...}` en un proyecto (en el formato completo, `anchor: {gate_err_mediano: {valor, procedencia}}`; ver
 #' [dl_configuracion()]).
 #'
 #' `forzar = TRUE` salta la primera compuerta, la de la convergencia, y solo esa: la corrida se escribe con las
@@ -791,11 +791,8 @@ print.dl_corridas <- function(x, ...) {
 
     .dl_message("validaci\u00f3n contra el ancla y AVD")
     validacion <- dl_validar_ancla(f, b, cascada = casc)
-    ruta <- "anchor: {gate_err_mediano: {valor: ..., procedencia: ...}}"
-    .dl_compuerta_ancla(b$cfg, validacion, remedio = sprintf(paste0(
-      "declara un m\u00e1ximo mayor en la configuraci\u00f3n, con su procedencia: %s (ver ?dl_configuracion); ",
-      "ni rapido = TRUE ni forzar = TRUE la saltan"),
-      if (.dl_es_simple(cfg)) sprintf("avanzado: {%s}", ruta) else ruta))
+    .dl_compuerta_ancla(b$cfg, validacion,
+                        remedio = .dl_remedio_compuerta_ancla(cfg, "ni rapido = TRUE ni forzar = TRUE la saltan"))
     comorbilidad <- if (!is.null(b$rutas$std_yld)) dl_factor_comorbilidad(b)
     if (is.null(comorbilidad))
       .dl_message("el ancla no trae AVD: los AVD no se corrigen por comorbilidad (el manifiesto lo declara)")

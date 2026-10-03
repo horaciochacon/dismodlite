@@ -90,8 +90,7 @@ La corrida no se escribe en dos casos, que \code{dl_correr()} comprueba en cuant
 \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}. Si las cadenas no convergieron (R-hat < 1.01 y ESS >= 400), justo después del ajuste:
 aumenta \code{iteraciones} y \code{calentamiento} con \code{opciones}. Y si la prevalencia ajustada se aleja de la del ancla
 (error relativo mediano mayor que 0.05), justo después de la validación, también con \code{rapido = TRUE} o
-\code{forzar = TRUE}: revisa el ajuste y los datos o, con su procedencia, declara un máximo mayor en la configuración,
-en \verb{avanzado: \{anchor: \{gate_err_mediano: \{valor, procedencia\}\}\}} (en el formato completo, sin \code{avanzado}; ver
+\code{forzar = TRUE}: revisa el ajuste y los datos o declara un máximo mayor en la configuración, \code{ancla: {error_maximo: ...}} en un proyecto (en el formato completo, \verb{anchor: \{gate_err_mediano: \{valor, procedencia\}\}}; ver
 \code{\link[=dl_configuracion]{dl_configuracion()}}).
 
 \code{forzar = TRUE} salta la primera compuerta, la de la convergencia, y solo esa: la corrida se escribe con las

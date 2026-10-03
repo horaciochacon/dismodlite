@@ -151,7 +151,15 @@
   }
   for (k in t$clave[t$defecto == "obligatoria" & !grepl("[.[]", t$clave)])
     if (is.null(s[[k]])) p(k, sprintf("falta (obligatoria): %s", t$descripcion[t$clave == k]))
-  c(probs, .dl_problemas_particion(s), .dl_problemas_proxies(s))
+  c(probs, .dl_problemas_particion(s), .dl_problemas_subtipo(s), .dl_problemas_proxies(s))
+}
+
+# subtipo_de no puede ser la propia causa (solo si las dos tienen la forma que toca: la forma la revisa
+# .dl_problemas_config_simple).
+.dl_problemas_subtipo <- function(s) {
+  padre <- .dl_valor_en(s, "subtipo_de")
+  if (.dl_es_entero1(padre) && .dl_es_entero1(s[["causa"]]) && as.integer(padre) == as.integer(s[["causa"]]))
+    sprintf("subtipo_de: es la propia causa (%d): debe ser la causa padre", as.integer(padre))
 }
 
 # severidad.padre y componente.secuelas se leen de la corrida de partición: sin severidad.particion no tienen de
@@ -306,7 +314,7 @@
 .dl_betas_de_otras_causas <- function(contexto, causa) {
   if (!is.null(contexto$betas) || !length(contexto$causas_betas)) return("")
   sprintf(paste0("; la tabla betas no trae filas de la causa %s%s (trae las de %s): agrega las de la causa o, si es ",
-                 "un subtipo que usa las de otra causa, decl\u00e1rala en avanzado: extraction: cause_id"),
+                 "un subtipo que usa las de otra causa, decl\u00e1rala en subtipo_de"),
           causa, if (!is.null(contexto$padre)) sprintf(" ni de la causa %d, de la que toma las betas", contexto$padre)
                  else "", paste(contexto$causas_betas, collapse = ", "))
 }
@@ -348,6 +356,8 @@
   if (!length(contexto$ubicacion_gbd)) pd <- pd[pd$clave != "ubicacion_gbd", ]
   # proxies.*: sin destino en el formato completo; su valor por defecto lo informa la calibracion de los proxies
   pd <- pd[!startsWith(pd$clave, "proxies."), ]
+  # ancla.error_maximo: sin la clave, la configuracion completa no declara el umbral (rige el del paquete)
+  pd <- pd[pd$clave != "ancla.error_maximo", ]
   reglas <- c(nombre = contexto$nombre, ubicacion_gbd = paste(contexto$ubicacion_gbd, collapse = ", "),
               subnacional.modo = modo, nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
   # el año del ancla: el de ancla.anio o el que se estima y, si el ancla no lo trae, el último anterior
@@ -362,6 +372,7 @@
                                         ifelse(pd$defecto == "anio", format(s[["anio"]]), pd$defecto)), pd$clave)
   prior <- val("mortalidad_exceso.prior")
   techo <- dado("mortalidad_exceso.techo")
+  fa <- dado("mortalidad_exceso.fraccion_aguda")
   proc <- .DL_PROCEDENCIA_SIMPLE
   cfg <- list(
     schema = "dismod_lite/v1", cause_id = as.integer(s[["causa"]]),
@@ -375,7 +386,8 @@
     remision = list(valor = val("remision"), fuente = proc),
     emr_prior = c(list(tipo = voc("mortalidad_exceso.prior", prior)),
                   if (prior == "plano") list(tipo_procedencia = proc),
-                  if (!is.null(techo)) list(cota = c(0, num(techo)), fuente_cota = proc)),
+                  if (!is.null(techo)) list(cota = c(0, num(techo)), fuente_cota = proc),
+                  if (!is.null(fa)) list(fraccion_aguda = list(valor = num(fa), procedencia = proc))),
     nudos_incidencia = nudos, sigma_suavidad = num(val("incidencia.suavidad")),
     # agrupar_bandas_finas: un proyecto trae las bandas como son (las finas de 80 a\u00f1os y m\u00e1s no se agrupan)
     anchor = c(list(location_id = ubicacion, lambda = num(val("ancla.peso")),
@@ -383,7 +395,9 @@
                     agrupar_bandas_finas = FALSE),
                if (length(dado("componente.secuelas")))
                  list(componente = list(sequela_ids = as.integer(unlist(dado("componente.secuelas"))),
-                                        motivo = proc))),
+                                        motivo = proc)),
+               if (!is.null(dado("ancla.error_maximo")))
+                 list(gate_err_mediano = list(valor = num(dado("ancla.error_maximo")), procedencia = proc))),
     medidas_entrada = if (length(s[["datos_en_ajuste"]])) voc("datos_en_ajuste", s[["datos_en_ajuste"]]) else list(),
     # escala y cota_warning: los valores de la cascada del formato completo, sin clave simple
     cascada = c(list(kappa = num(val("subnacional.kappa")), escala = "natural", cota_warning = 0.5),
@@ -409,8 +423,10 @@
                   c(list(fuente = "mod", run_id = basename(dado("severidad.particion")), procedencia = proc),
                     if (!is.null(dado("severidad.padre"))) list(padre = as.integer(dado("severidad.padre"))))
                 else list(fuente = "tabla", procedencia = proc),
-    sensibilidad = list(lambda = num(val("sensibilidad.peso")), rho = num(val("sensibilidad.correlacion_edad")),
-                        kappa = num(val("sensibilidad.kappa"))),
+    sensibilidad = c(list(lambda = num(val("sensibilidad.peso")), rho = num(val("sensibilidad.correlacion_edad")),
+                          kappa = num(val("sensibilidad.kappa"))),
+                     if (!is.null(dado("sensibilidad.fraccion_aguda")))
+                       list(fraccion_aguda = num(dado("sensibilidad.fraccion_aguda")))),
     decisiones = if (length(s[["notas"]])) as.character(unlist(s[["notas"]])),
     # `configuracion`: la configuración del proyecto tal como se leyó, con los nombres de clave de ahora (la corrida
     # la congela en inputs/contrato/config.yaml, para repetirla)

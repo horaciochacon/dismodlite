@@ -109,8 +109,8 @@
 #'
 #' @details
 #' - `anchor_identity`: la mediana de la prevalencia de cada banda frente a la del ancla. El error relativo mediano
-#'   de las bandas es una compuerta de la corrida: si pasa de 0.05 ([dl_configuracion()], `anchor.gate_err_mediano`
-#'   en `avanzado`), [dl_exportar_corrida()] no la escribe. Una banda fuera del intervalo del 95 % del ancla se
+#'   de las bandas es una compuerta de la corrida: si pasa de 0.05 ([dl_configuracion()], `anchor.gate_err_mediano`;
+#'   en un proyecto, `ancla.error_maximo`), [dl_exportar_corrida()] no la escribe. Una banda fuera del intervalo del 95 % del ancla se
 #'   revisa y la decisión se documenta, pero no es un error por sí sola.
 #' - `implied_incidence`: la incidencia poblacional que implica la ecuación, i (1 - p), frente a la incidencia del
 #'   ancla (la medida 6 de las descargas; sin ella, un mensaje dice que la comprobación se omite). Es una validación

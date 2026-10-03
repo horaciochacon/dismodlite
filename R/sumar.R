@@ -104,7 +104,7 @@
 #' `subtipos`, `ubicaciones`, `poblacion` y su ancla: [dl_proyecto()] la lee aunque la causa no se ajuste). Cada hija se
 #' corre por separado (por ejemplo con [dl_correr()]) y su corrida debe declarar a la causa padre (`extraction_cause_id`
 #' en su manifiesto): lo hace sola si la hija se lee en el mismo proyecto que la configuración del padre; una hija en su
-#' propia carpeta lo declara con `avanzado: {extraction: {cause_id: <padre>, motivo: ...}}` (ver [dl_configuracion()]).
+#' propia carpeta lo declara con `subtipo_de: <padre>` (ver [dl_configuracion()]).
 #' Antes de sumar se comprueba que las corridas sean de esas hijas, con el mismo año, año del ancla, ronda de GBD,
 #' número de simulaciones y celdas (ubicaciones, sexos y bandas). La simulación k de la suma es la suma de las
 #' simulaciones k de las hijas; la correlación entre hijas no se modela (cada una viene de su propio ajuste). Una hija

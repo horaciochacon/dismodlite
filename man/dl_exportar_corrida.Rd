@@ -80,10 +80,11 @@ proyecto de las tablas del contrato (\code{\link[=dl_proyecto]{dl_proyecto()}}),
 como se leyó (\code{config.yaml}, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada
 archivo en \code{inputs$contrato}. \verb{inputs/contrato/} es la carpeta de un proyecto: \code{dl_proyecto(file.path(run$dir, "inputs", "contrato"))} repite la corrida sin la carpeta original, también si las tablas o la configuración se
 dieron en R. En \code{betas.csv} van las betas que usó la causa, bajo la causa de la corrida: las de su causa padre
-si es un subtipo sin betas propias, cuya configuración congelada lleva además \code{avanzado: extraction: cause_id}
-(la causa padre, que \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} exige). La carpeta de \code{severidad.particion} se copia en
-\verb{inputs/contrato/particion/<corrida>/}, con la ruta de la configuración congelada cambiada a ella y el sha256 de
-cada archivo en \code{inputs$contrato} (\code{particion}); la tabla \code{severidad}, que sale de ella, no se congela aparte.
+si es un subtipo sin betas propias, cuya configuración congelada declara además a la causa padre (\code{subtipo_de},
+o \code{avanzado: extraction: cause_id} si la relación salía de \code{subtipos}), que \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} exige. La carpeta
+de \code{severidad.particion} se copia en \verb{inputs/contrato/particion/<corrida>/}, con la ruta de la configuración
+congelada cambiada a ella y el sha256 de cada archivo en \code{inputs$contrato} (\code{particion}); la tabla \code{severidad}, que
+sale de ella, no se congela aparte.
 \code{proxies_crudos} se congela como vino (y \code{covariables.csv} sin las filas calibradas): el proyecto congelado
 vuelve a calibrar con la misma configuración y da los mismos insumos.
 \item \code{manifest.yaml}: la descripción de la corrida (abajo).
@@ -104,8 +105,8 @@ covariable), es \code{true}.
 
 \code{forzar = TRUE} salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 (error relativo mediano mayor que \code{anchor.gate_err_mediano}, 0.05 por defecto), la corrida no se escribe. Ese
-máximo se declara, con su procedencia, en la configuración (en un proyecto, en \code{avanzado}; ver
-\code{\link[=dl_configuracion]{dl_configuracion()}}).
+máximo se declara en la configuración (en un proyecto, \code{ancla: {error_maximo: ...}}; en el formato completo,
+\verb{anchor: \{gate_err_mediano: \{valor, procedencia\}\}}; ver \code{\link[=dl_configuracion]{dl_configuracion()}}).
 }
 \examples{
 \donttest{

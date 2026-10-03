@@ -240,7 +240,7 @@ head(cal[cal$ubicacion == "01" & cal$covariable == "LDI_pc"], 3)
 El efecto de cada covariable: el coeficiente $\beta$ publicado, que es el cambio del logaritmo de la tasa por unidad
 de la covariable transformada. Una fuente habitual es el apéndice metodológico del modelo de GBD de la causa. Sin
 `causa`, la beta vale para todas las causas; un subtipo sin filas propias usa las de su causa padre: la que lo
-declara en `subtipos` en el mismo proyecto o, en su propia carpeta, la de `avanzado: extraction` (sección 7). La
+declara en `subtipos` en el mismo proyecto o, en su propia carpeta, la de `subtipo_de` (sección 7). La
 estimación
 subnacional usa las betas cuya covariable tiene filas subnacionales en `covariables`.
 
@@ -776,16 +776,21 @@ una_causa/
   pueden pasar de 1 (son los de la partición divididos por su cuota) y se aceptan con un aviso, como en la versión
   0.2.2.
 - **`poblacion_detalle`** hace falta solo si una banda del ancla cabe dentro de una banda de la población (sección 5).
+- **`ancla.error_maximo`** y **`mortalidad_exceso.fraccion_aguda`** son claves de la configuración: el error
+  relativo mediano máximo entre la prevalencia ajustada y la del ancla con que se escribe la corrida (0.05 por
+  defecto) y la parte de las muertes que ocurre en la fase aguda, que se descuenta del csmr del ancla (nada por
+  defecto). `sensibilidad.fraccion_aguda` es la lista de valores de esta última que recorre la sensibilidad.
 - **`avanzado`** lleva, tal cual, las claves del formato completo que la configuración no tiene, cada una con su
-  procedencia. Las más usadas: `anchor.gate_err_mediano` (el error máximo del ancla con que se escribe la corrida),
-  `emr_prior.fraccion_aguda` (la parte de las muertes que ocurre en la fase aguda), `emr_prior.factor_techo` (el
-  factor del techo de la mortalidad en exceso, 3 por defecto), `nsub`, `offset_lognormal` y `extraction` (abajo).
-  La lista completa está en `?dl_configuracion`.
+  procedencia. Las más usadas: `emr_prior.factor_techo` (el factor del techo de la mortalidad en exceso, 3 por
+  defecto), `nsub`, `offset_lognormal` y `emr_prior.fraccion_aguda.cfr_30d`. La lista completa está en
+  `?dl_configuracion`.
 
 ```yaml
+ancla:
+  error_maximo: 0.08
+mortalidad_exceso:
+  fraccion_aguda: 0.3
 avanzado:
-  anchor:
-    gate_err_mediano: {valor: 0.08, procedencia: el ancla tiene pocas bandas de edad}
   emr_prior:
     factor_techo: 6
 ```
@@ -812,15 +817,14 @@ Hay dos formas de organizar varias causas:
 
 2. **Una carpeta por causa**: cada carpeta es un proyecto de una causa, con su `config.yaml` y sus tablas. Es cómodo
    cuando cada causa tiene fuentes propias, pero un subtipo leído solo **no conoce a su causa padre**: lo declara con
-   `avanzado: {extraction: {cause_id, motivo}}`, para que su corrida se pueda sumar. Sin filas propias en `betas`,
+   `subtipo_de: <causa padre>`, para que su corrida se pueda sumar. Sin filas propias en `betas`,
    usa las de esa causa, así que la tabla `betas` del padre sirve tal cual; con filas propias, las suyas:
 
    ```{r}
    #| label: subtipo-solo
    betas_padre <- read.csv(dl_ejemplo("betas.csv"), encoding = "UTF-8")
    unique(betas_padre$causa)                                # solo las del padre
-   config_subtipo <- list(causa = 9101, anio = 2023, edad_inicio = 30,
-                          avanzado = list(extraction = list(cause_id = 9100, motivo = "subtipo de la causa 9100")))
+   config_subtipo <- list(causa = 9101, anio = 2023, edad_inicio = 30, subtipo_de = 9100)
    p <- dl_proyecto(configuracion = config_subtipo, ubicaciones = ubicaciones, poblacion = poblacion,
                     ancla = dl_ejemplo("ancla"), covariables = dl_ejemplo("covariables"), betas = betas_padre,
                     severidad = severidad[severidad$causa == 9101, ])

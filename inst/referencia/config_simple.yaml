@@ -108,6 +108,18 @@ claves:
       Sin esta clave, si la tabla ancla no trae la
       prevalencia de la causa en `anio`, se proyecta desde el último año anterior que trae, con un mensaje.
 
+  - clave: ancla.error_maximo
+    tipo: número
+    destino: anchor.gate_err_mediano
+    defecto: "0.05"
+    ejemplo: "0.08"
+    descripcion: >-
+      Error relativo mediano máximo, en (0, 1), entre la prevalencia ajustada y la del ancla con que se escribe la
+      corrida: la compuerta del ancla, que ni `rapido` ni `forzar` saltan. Se sube solo con una razón (los datos
+      locales son mejores que el ancla, el ancla tiene pocas bandas de edad; anótala en `notas`): la corrida declara
+      el umbral entre sus limitaciones.
+    error: debe ser un número en (0, 1) (sin la clave, 0.05)
+
   - clave: nudos
     tipo: lista de números
     destino: nudos_incidencia
@@ -144,6 +156,17 @@ claves:
     ejemplo: "0.25"
     descripcion: Techo de la EMR, un número > 0, por persona-año.
     error: debe ser un número > 0, por persona-año (sin la clave, 3 veces la EMR máxima del ancla)
+
+  - clave: mortalidad_exceso.fraccion_aguda
+    tipo: número
+    destino: emr_prior.fraccion_aguda
+    ejemplo: "0.3"
+    descripcion: >-
+      Fracción de las muertes de la causa que ocurre en su fase aguda, en [0, 1): GBD reparte las muertes de algunas
+      causas entre una fase aguda (los primeros 28 días, con su propio modelo) y la crónica, que es la que modela
+      dismodlite, con una razón que no publica. Esa fracción se descuenta del csmr del ancla en el prior y el techo
+      de la EMR; sin la clave no se descuenta nada. Anota en `notas` de dónde sale.
+    error: debe ser un número en [0, 1) (sin la clave, no se descuenta nada del csmr)
 
   - clave: remision
     tipo: número
@@ -264,6 +287,14 @@ claves:
     ejemplo: "[1]"
     descripcion: Valores de subnacional.kappa del análisis de sensibilidad.
 
+  - clave: sensibilidad.fraccion_aguda
+    tipo: lista de números
+    destino: sensibilidad.fraccion_aguda
+    ejemplo: "[0, 0.3, 0.5]"
+    descripcion: >-
+      Valores de mortalidad_exceso.fraccion_aguda del análisis de sensibilidad, cada uno en [0, 1); sin la clave, la
+      sensibilidad no varía la fracción aguda.
+
   - clave: subtipos
     tipo: lista de enteros
     ejemplo: "[1011, 1012, 1013]"
@@ -272,6 +303,17 @@ claves:
       configuración en el mismo proyecto (config/<causa>.yaml), que la reconoce como subtipo (sin betas propias,
       usa las de esta causa), y sus corridas se suman con dl_sumar_hijas(), que deja fuera las hijas de su
       argumento `omitidas` (ver ?dl_proyecto).
+
+  - clave: subtipo_de
+    tipo: entero
+    destino: extraction.cause_id
+    ejemplo: "1010"
+    descripcion: >-
+      Causa padre de esta causa, para un subtipo que se lee en su propia carpeta, sin la configuración de su padre: si
+      la tabla betas no trae filas de la causa, usa las de la causa padre, y la corrida declara a la causa padre, que
+      dl_sumar_hijas() exige para sumarla. Si la configuración del padre la declara en `subtipos`, la relación sale
+      sola y las dos deben decir la misma causa (ver ?dl_proyecto).
+    error: debe ser un entero, el cause_id de la causa padre (distinto de la propia causa)
 
   - clave: notas
     tipo: lista de textos

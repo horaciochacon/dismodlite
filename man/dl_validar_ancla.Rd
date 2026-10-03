@@ -40,8 +40,8 @@ ajuste). Con una cascada y mortalidad subnacional reservada en los datos (las fi
 \details{
 \itemize{
 \item \code{anchor_identity}: la mediana de la prevalencia de cada banda frente a la del ancla. El error relativo mediano
-de las bandas es una compuerta de la corrida: si pasa de 0.05 (\code{\link[=dl_configuracion]{dl_configuracion()}}, \code{anchor.gate_err_mediano}
-en \code{avanzado}), \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} no la escribe. Una banda fuera del intervalo del 95 \% del ancla se
+de las bandas es una compuerta de la corrida: si pasa de 0.05 (\code{\link[=dl_configuracion]{dl_configuracion()}}, \code{anchor.gate_err_mediano};
+en un proyecto, \code{ancla.error_maximo}), \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} no la escribe. Una banda fuera del intervalo del 95 \% del ancla se
 revisa y la decisión se documenta, pero no es un error por sí sola.
 \item \code{implied_incidence}: la incidencia poblacional que implica la ecuación, i (1 - p), frente a la incidencia del
 ancla (la medida 6 de las descargas; sin ella, un mensaje dice que la comprobación se omite). Es una validación

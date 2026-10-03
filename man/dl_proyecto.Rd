@@ -136,8 +136,8 @@ Con varias causas, cada una tiene su configuración en \verb{config/<causa>.yaml
 filas de todas en la columna \code{causa} (sin ella, una fila vale para todas). Una causa que es la suma de otras las
 declara en \code{subtipos}; un subtipo sin betas propias usa las de su causa padre. El subtipo encuentra a su padre por
 esa clave, en otra configuración del mismo proyecto; leído solo (en su propia carpeta), lo declara con
-\verb{avanzado: \{extraction: \{cause_id: <padre>, motivo: ...\}\}} y, sin betas propias, usa las de esa causa (ver
-\code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}). La causa padre se lee con \code{dl_proyecto()} aunque solo se sume: necesita su prevalencia en el
+\verb{subtipo_de: <padre>} y, sin betas propias, usa las de esa causa (ver \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}); si las dos configuraciones
+dicen su padre, deben decir la misma causa. La causa padre se lee con \code{dl_proyecto()} aunque solo se sume: necesita su prevalencia en el
 ancla (y su mortalidad, con el prior por defecto de la mortalidad en exceso). Cada subtipo se corre por separado y
 sus corridas se suman con \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, con las rutas del proyecto de la causa padre:
 

@@ -42,6 +42,11 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada y las plantil
   expect_true("#   anio_validacion: 2019" %in% lineas)
   expect_true("# nudos: [30, 40, 50, 60, 70, 80, 95]" %in% lineas)
   expect_true("# subtipos: [1011, 1012, 1013]" %in% lineas)
+  # las claves de una causa que es un subtipo, de la fase aguda y del error del ancla, comentadas con su ejemplo
+  expect_true("# subtipo_de: 1010" %in% lineas)
+  expect_true("#   error_maximo: 0.08" %in% lineas)
+  expect_true("#   fraccion_aguda: 0.3" %in% lineas)
+  expect_true("#   fraccion_aguda: [0, 0.3, 0.5]" %in% lineas)
   expect_lte(max(nchar(lineas)), 120L)
   # el LEEME: la carpeta del proyecto, ?dl_tablas y de dónde descargar el ancla y las covariables (las direcciones
   # del contrato estimates/v1)
@@ -145,6 +150,14 @@ test_that("de la plantilla al proyecto: llenada con las tablas del ejemplo, la r
   cfg_todas <- dl_configuracion(9100, d)
   sin_origen <- function(x) x[setdiff(names(x), "origen")]
   expect_identical(sin_origen(cfg_todas), sin_origen(cfg))
+  # declarar el máximo del error del ancla con su valor por defecto solo agrega su procedencia
+  lineas <- sub("^#   error_maximo: 0.08$", "  error_maximo: 0.05", lineas)
+  writeLines(enc2utf8(lineas), file.path(d, "config.yaml"), useBytes = TRUE)
+  cfg_gate <- dl_configuracion(9100, d)
+  expect_identical(cfg_gate$anchor$gate_err_mediano,
+                   list(valor = 0.05, procedencia = "declarado en la configuración del proyecto"))
+  cfg_gate$anchor$gate_err_mediano <- cfg_todas$anchor$gate_err_mediano
+  expect_identical(sin_origen(cfg_gate), sin_origen(cfg_todas))
 })
 
 # ---- dl_revisar_proyecto() ----
@@ -313,15 +326,16 @@ test_that("dl_correr(rapido = TRUE) sobre el ejemplo simple escribe la carpeta d
   f <- dl_ajustar(b, do.call(dl_opciones_mcmc, .DL_OPCIONES_PRUEBA), semilla = 3)
   expect_identical(round(max(f$mcmc$rhat), 6), man$validacion$gates$rhat_max)
   # un máximo del error del ancla que el ajuste no cumple: la corrida no se escribe, tampoco con rapido = TRUE, y el
-  # mensaje dice qué clave declarar (en `avanzado`, en el formato simple). La configuración cambió: los insumos son
-  # otros y el ajuste se vuelve a muestrear; el error llega justo después de la validación, antes de los AVD
-  cfg <- c(cfg, "avanzado:", "  anchor:", "    gate_err_mediano: {valor: 0.0001, procedencia: prueba}")
+  # mensaje dice qué clave declarar (ancla.error_maximo, en el formato simple). La configuración cambió: los insumos
+  # son otros y el ajuste se vuelve a muestrear; el error llega justo después de la validación, antes de los AVD
+  cfg <- c(cfg, "ancla:", "  error_maximo: 0.0001")
   writeLines(enc2utf8(cfg), file.path(d, "config", "9100.yaml"), useBytes = TRUE)
   e <- expect_error(suppressMessages(dl_correr(d, causa = 9100, semilla = 3, rapido = TRUE, sensibilidad = FALSE)),
                     class = "dl_error")
-  expect_match(conditionMessage(e), paste0("se aleja del ancla \\(error relativo mediano .*avanzado: \\{anchor: ",
-                                           "\\{gate_err_mediano: \\{valor: \\.\\.\\., procedencia: \\.\\.\\.\\}\\}\\} ",
-                                           "\\(ver \\?dl_configuracion\\); ni rapido = TRUE ni forzar = TRUE la saltan"))
+  expect_match(conditionMessage(e), paste0("se aleja del ancla \\(error relativo mediano .*configuración: ",
+                                           "ancla: \\{error_maximo: \\.\\.\\.\\} \\(ver \\?dl_configuracion\\); ",
+                                           "ni rapido = TRUE ni forzar = TRUE la saltan"))
+  expect_no_match(conditionMessage(e), "avanzado|gate_err_mediano")
   # sin los nombres internos de las comprobaciones
   expect_no_match(paste(c(conditionMessage(e), mensajes), collapse = "\n"), "anchor_identity|amplitud_csmr")
   # forzar = TRUE tampoco la salta (sin rapido: cadenas cortas dadas en `opciones`)

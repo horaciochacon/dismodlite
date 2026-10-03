@@ -251,11 +251,13 @@ test_that("un subtipo sin betas propias usa las de su causa padre (subtipos en l
 })
 
 # Un subtipo (502) en su propia carpeta, sin la configuración de su padre (501): declara la causa de sus betas en
-# avanzado.extraction; la tabla betas trae una beta de la causa `causa_betas`. `config`: líneas que se agregan.
-subtipo_en_su_carpeta <- function(causa_betas, config = character(), env = parent.frame()) {
+# avanzado.extraction (o en subtipo_de, con `clave_corta`); la tabla betas trae una beta de la causa `causa_betas`.
+# `config`: líneas que se agregan.
+subtipo_en_su_carpeta <- function(causa_betas, config = character(), env = parent.frame(), clave_corta = FALSE) {
+  padre <- if (clave_corta) "subtipo_de: 501"
+           else c("avanzado:", "  extraction:", "    cause_id: 501", "    motivo: subtipo de la causa 501")
   d <- escribir_pais_ficticio(file.path(withr::local_tempdir(.local_envir = env), "subtipo"), 502L, 2020L,
-                              c("causa: 502", "anio: 2020", "edad_inicio: 40", config, "avanzado:", "  extraction:",
-                                "    cause_id: 501", "    motivo: subtipo de la causa 501"))
+                              c("causa: 502", "anio: 2020", "edad_inicio: 40", config, padre))
   data.table::fwrite(data.table::data.table(causa = causa_betas, covariable = "indice", efecto_sobre = "prevalencia",
                                             transformacion = "log", beta = 0.5), file.path(d, "betas.csv"))
   data.table::fwrite(data.table::data.table(ubicacion = c("999", "A", "B", "C"), covariable = "indice",
@@ -280,7 +282,125 @@ test_that("un subtipo en su propia carpeta usa las betas de la causa de avanzado
 test_that("un subtipo sin betas propias ni de la causa de avanzado.extraction: el error dice qué hacer", {
   d <- subtipo_en_su_carpeta(777L, c("subnacional:", "  modo: covariables"))
   expect_error(dl_proyecto(d), paste0("la tabla betas no trae filas de la causa 502 ni de la causa 501, de la que ",
-                                      "toma las betas \\(trae las de 777\\).*avanzado: extraction: cause_id"))
+                                      "toma las betas \\(trae las de 777\\).*declárala en subtipo_de"))
+})
+
+test_that("subtipo_de: un subtipo en su propia carpeta o dado en memoria usa las betas de su causa padre", {
+  d <- subtipo_en_su_carpeta(501L, clave_corta = TRUE)
+  hija <- dl_proyecto(d)
+  expect_identical(hija$configuracion$extraction$cause_id, 501L)
+  expect_identical(hija$configuracion$extraction$motivo, "subtipo de la causa 501")
+  b <- suppressMessages(dl_insumos(hija))
+  expect_identical(b$betas$covariate_name_short, "indice")
+  # lo mismo que declararlo bajo avanzado
+  expect_identical(b$hash, suppressMessages(dl_insumos(dl_proyecto(subtipo_en_su_carpeta(501L))))$hash)
+  # sin carpeta, con las tablas en memoria, también las encuentra
+  mem <- dl_proyecto(configuracion = list(causa = 502, anio = 2020, edad_inicio = 40, subtipo_de = 501),
+                     ubicaciones = tablas_de(d, "ubicaciones")$ubicaciones, poblacion = tablas_de(d, "poblacion")$poblacion,
+                     ancla = file.path(d, "ancla"), betas = tablas_de(d, "betas")$betas,
+                     covariables = tablas_de(d, "covariables")$covariables)
+  expect_identical(mem$configuracion$origen$betas$covariable, "indice")
+  expect_identical(suppressMessages(dl_insumos(mem))$betas$covariate_name_short, "indice")
+  # sin las betas de la causa ni las de la padre, el error nombra subtipo_de
+  expect_error(dl_proyecto(subtipo_en_su_carpeta(777L, c("subnacional:", "  modo: covariables"), clave_corta = TRUE)),
+               "ni de la causa 501, de la que toma las betas.*declárala en subtipo_de")
+})
+
+test_that("subtipo_de y avanzado.extraction a la vez: manda avanzado", {
+  d <- subtipo_en_su_carpeta(501L, c("subtipo_de: 777"))
+  expect_identical(dl_proyecto(d)$configuracion$extraction$cause_id, 501L)
+})
+
+test_that("subtipo_de y el subtipos de la configuración del padre: la misma causa, o un error que nombra las dos", {
+  copia <- function(subtipo_de, env = parent.frame()) {
+    s <- readLines(dl_ejemplo("config", "9101.yaml"), encoding = "UTF-8")
+    copia_ejemplo(`config/9101.yaml` = c(s, sprintf("subtipo_de: %d", subtipo_de)), env = env)
+  }
+  p <- dl_proyecto(copia(9100L), 9101)
+  expect_identical(p$configuracion$extraction$cause_id, 9100L)
+  e <- expect_error(dl_proyecto(copia(9102L), 9101), class = "dl_error")
+  expect_match(conditionMessage(e),
+               "subtipo_de: es 9102 y la configuración de la causa 9100 declara a la causa 9101 en su clave `subtipos`")
+  # la revisión lo dice en el paso de la configuración
+  r <- suppressMessages(utils::capture.output(rev <- dl_revisar_proyecto(copia(9102L), causa = 9101)))
+  expect_match(rev$detalle[rev$paso == "configuración"], "subtipo_de: es 9102 y la configuración de la causa 9100")
+  # la propia causa no es su padre
+  expect_match(dismodlite:::.dl_problemas_config_simple(list(causa = 9101L, anio = 2023L, edad_inicio = 30,
+                                                             subtipo_de = 9101L)),
+               "^subtipo_de: es la propia causa \\(9101\\)")
+})
+
+test_that("las claves ancla.error_maximo, mortalidad_exceso.fraccion_aguda y sensibilidad.fraccion_aguda llegan a su destino", {
+  proc <- .DL_PROCEDENCIA_SIMPLE
+  base <- list(causa = 501L, anio = 2020L, edad_inicio = 40L)
+  ctx <- list(ubicacion = "999", nombre = "x", subnacional = FALSE)
+  cfg <- .dl_config_simple(c(base, list(ancla = list(error_maximo = 0.1),
+                                        mortalidad_exceso = list(fraccion_aguda = 0.5),
+                                        sensibilidad = list(fraccion_aguda = c(0.4, 0.5)))), "config.yaml", 501L, ctx)
+  expect_identical(cfg$anchor$gate_err_mediano, list(valor = 0.1, procedencia = proc))
+  expect_identical(cfg$emr_prior$fraccion_aguda, list(valor = 0.5, procedencia = proc))
+  expect_identical(cfg$sensibilidad$fraccion_aguda, c(0.4, 0.5))
+  # la misma configuración que las claves del formato completo bajo avanzado, con la procedencia de la traducción
+  larga <- .dl_config_simple(c(base, list(avanzado = list(
+    anchor = list(gate_err_mediano = list(valor = 0.1, procedencia = proc)),
+    emr_prior = list(fraccion_aguda = list(valor = 0.5, procedencia = proc)),
+    sensibilidad = list(fraccion_aguda = list(0.4, 0.5))))), "config.yaml", 501L, ctx)
+  sin_origen <- function(x) x[setdiff(names(x), "origen")]
+  expect_identical(sin_origen(cfg), sin_origen(larga))
+  # un valor entero, una sola fracción en la sensibilidad
+  uno <- .dl_config_simple(c(base, list(mortalidad_exceso = list(fraccion_aguda = 0L),
+                                        sensibilidad = list(fraccion_aguda = 0.3))), "config.yaml", 501L, ctx)
+  expect_identical(uno$emr_prior$fraccion_aguda$valor, 0)
+  expect_identical(uno$sensibilidad$fraccion_aguda, 0.3)
+  # `avanzado` manda sobre la clave corta, y completa su bloque (cfr_30d no tiene clave corta)
+  avanzado <- .dl_config_simple(c(base, list(ancla = list(error_maximo = 0.1),
+                                             mortalidad_exceso = list(fraccion_aguda = 0.5),
+                                             avanzado = list(anchor = list(gate_err_mediano = list(valor = 0.2,
+                                                                                                   procedencia = "x")),
+                                                             emr_prior = list(fraccion_aguda = list(cfr_30d = 0.1))))),
+                                "config.yaml", 501L, ctx)
+  expect_identical(avanzado$anchor$gate_err_mediano, list(valor = 0.2, procedencia = "x"))
+  expect_identical(avanzado$emr_prior$fraccion_aguda,
+                   list(valor = 0.5, procedencia = proc, cfr_30d = 0.1))
+})
+
+test_that("sin las claves nuevas la configuración y los insumos de un proyecto de hoy no cambian", {
+  # sin la clave la configuración completa no declara el umbral, la fracción aguda ni la de la sensibilidad
+  cfg <- dl_configuracion_ejemplo(9101L)
+  expect_identical(cfg$anchor$gate_err_mediano, list(valor = 0.05))
+  expect_null(cfg$emr_prior$fraccion_aguda)
+  expect_null(cfg$sensibilidad$fraccion_aguda)
+  expect_false(any(c("ancla.error_maximo", "mortalidad_exceso.fraccion_aguda", "sensibilidad.fraccion_aguda",
+                     "subtipo_de") %in% names(cfg$origen$por_defecto)))
+  # el hash de los insumos de la versión anterior a las claves
+  hashes <- vapply(c(9100L, 9101L), function(ca) suppressMessages(dl_insumos(dl_proyecto(dl_ejemplo(), ca)))$hash, "")
+  expect_identical(unname(hashes), c("ff1e50fe6b5f79a924d4b99476c9759de85a2c5ba9c775627de0ca2785069e49",
+                                     "0e21efee8666d99ad26034bea8f3951ea636d58a8321e78e474a464c98822535"))
+})
+
+test_that("las claves nuevas fuera de rango o de otro tipo son un error que nombra la clave corta", {
+  base <- list(causa = 501L, anio = 2020L, edad_inicio = 40L)
+  ctx <- list(ubicacion = "999", nombre = "x", subnacional = FALSE)
+  forma <- function(...) .dl_problemas_config_simple(c(base, list(...)))
+  expect_match(forma(ancla = list(error_maximo = "poco")), "^ancla.error_maximo: debe ser un número en \\(0, 1\\)")
+  expect_match(forma(mortalidad_exceso = list(fraccion_aguda = "mucha")),
+               "^mortalidad_exceso.fraccion_aguda: debe ser un número en \\[0, 1\\)")
+  expect_match(forma(sensibilidad = list(fraccion_aguda = "a")),
+               "^sensibilidad.fraccion_aguda: debe ser una lista de números")
+  expect_match(forma(subtipo_de = 9.5), "^subtipo_de: debe ser un entero, el cause_id de la causa padre")
+  expect_match(forma(subtipo_de = "x"), "^subtipo_de: debe ser un entero")
+  expect_match(forma(subtipo_de = 501L), "^subtipo_de: es la propia causa \\(501\\)")
+  expect_match(forma(ancla = list(error_maximo = 0.1, tope = 1)), "ancla.tope: clave desconocida")
+  # los dominios, el validador completo, citado por la clave corta
+  fuera <- function(...) tryCatch(.dl_config_simple(c(base, list(...)), "config.yaml", 501L, ctx),
+                                  dl_error = function(e) conditionMessage(e))
+  for (v in list(0, 1, -0.1, 2))
+    expect_match(fuera(ancla = list(error_maximo = v)), "ancla.error_maximo \\(anchor.gate_err_mediano.valor\\): valor debe estar en \\(0, 1\\)",
+                 info = v)
+  for (v in list(1, -0.1))
+    expect_match(fuera(mortalidad_exceso = list(fraccion_aguda = v)),
+                 "mortalidad_exceso.fraccion_aguda \\(emr_prior.fraccion_aguda.valor\\): valor debe ser un número en \\[0, 1\\)",
+                 info = v)
 })
 
 test_that("proxies en bandas que no son de GBD ni de la población (uniones de sus bandas) llevan su id y cierran", {
