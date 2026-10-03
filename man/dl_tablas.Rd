@@ -321,6 +321,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \code{\link[=dl_tabla]{dl_tabla()}}, \code{\link[=dl_plantilla]{dl_plantilla()}}, \code{\link[=dl_proyecto]{dl_proyecto()}}.
 
 Funciones del proyecto:
+\code{\link{dl_calibrar_proxies}()},
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_nuevo_proyecto}()},

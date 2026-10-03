@@ -75,6 +75,7 @@ de la configuración), \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}}
 proyecto lleno, para comparar).
 
 Funciones del proyecto:
+\code{\link{dl_calibrar_proxies}()},
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_plantilla}()},

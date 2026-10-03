@@ -110,6 +110,7 @@ r <- dl_revisar_proyecto(p)
 \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}} y \code{\link[=dl_correr]{dl_correr()}}.
 
 Funciones del proyecto:
+\code{\link{dl_calibrar_proxies}()},
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_nuevo_proyecto}()},

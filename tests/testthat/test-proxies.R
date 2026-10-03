@@ -109,3 +109,132 @@ test_that("el cierre con pesos que suman 0 es un error", {
   expect_error(dismodlite:::.dl_cerrar_proxies(c(0.1, 0.2), c(0.01, 0.02), c(0, 0), 5, "cociente"), "suman 0")
   expect_error(dismodlite:::.dl_cerrar_proxies(c(0.1, 0.2), c(0.01, 0.02), c(0, 0), 5, "diferencia"), "suman 0")
 })
+
+# ---- dl_calibrar_proxies() ----
+
+# La población del contrato exige las columnas de edad: una sola banda abierta desde 0 (todas las edades).
+pob_toy <- function() data.frame(ubicacion = rep(c("A", "B", "N"), each = 2), anio = rep(c(2019, 2023), 3),
+                                 sexo = "ambos", edad_inicio = 0, edad_fin = NA,
+                                 poblacion = c(100, 110, 300, 290, 400, 400))
+nac_toy <- function(v = 50) data.frame(anio = 2023L, sexo = "ambos", covariable = "haqi", valor = v,
+                                       inferior = v - 2, superior = v + 2)
+crudos_toy <- function() data.frame(ubicacion = rep(c("A", "B"), 3), anio = rep(c(2019, 2021, 2023), each = 2),
+                                    covariable = "haqi", indicador = "índice de prueba",
+                                    valor = c(40, 60, 42, 58, 41, 61), error_estandar = 2)
+
+# En los crudos de prueba el gradiente casi no cambia entre ediciones (menos que su error): q queda en el borde
+# inferior y la función lo avisa.
+test_that("dl_calibrar_proxies cierra en el valor nacional y declara la calibración", {
+  expect_warning(cal <- dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), anio = 2023,
+                                            transformacion = c(haqi = "diferencia")), "borde inferior")
+  expect_s3_class(cal, "dl_tabla")
+  w <- c(A = 110, B = 290)[cal$ubicacion]
+  expect_equal(sum(w * cal$valor) / sum(w), 50, tolerance = 1e-12)
+  k <- attr(cal, "calibracion")
+  expect_identical(k$metodo, "paseo_aleatorio")
+  expect_true(is.finite(k$q))
+  expect_true(all(c("g", "se_g", "g_suavizado", "S") %in% names(attr(cal, "series"))))
+})
+
+test_that("edicion usa la edición del año o la más cercana", {
+  cal <- dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), anio = 2022, metodo = "edicion",
+                             transformacion = c(haqi = "diferencia"), anio_nacional = 2023)
+  s <- attr(cal, "series")
+  expect_identical(unique(s$anio[s$usada]), 2021L)   # 2021 y 2023 a la misma distancia: la anterior
+})
+
+test_that("una sola edición por serie: paseo_aleatorio avisa y usa la edición", {
+  cr <- crudos_toy()[crudos_toy()$anio == 2023, ]
+  expect_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")),
+                 "haqi.*una sola edici")
+  expect_true(is.na(attr(cal, "calibracion")$q))
+})
+
+test_that("ediciones fuera de los años de la población usan el año más cercano y lo declaran", {
+  cr <- crudos_toy(); cr$anio <- cr$anio - 5L      # 2014, 2016, 2018
+  expect_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")),
+                 "borde inferior")
+  expect_match(attr(cal, "calibracion")$anios_poblacion, "2014.*2019")
+})
+
+test_that("series desbalanceadas: una ubicación sin una edición se interpola, no se descarta", {
+  cr <- crudos_toy()[-3, ]                          # A sin 2021
+  expect_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2021, transformacion = c(haqi = "diferencia"),
+                                            anio_nacional = 2023), "borde inferior")
+  expect_setequal(cal$ubicacion, c("A", "B"))
+})
+
+test_that("errores claros de dl_calibrar_proxies", {
+  cr <- crudos_toy(); cr$valor[1] <- -1
+  expect_error(dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023), "cociente.*mayor que 0")
+  expect_error(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), 2023,
+                                   excluir = data.frame(anio = 2021, motivo = NA)), "motivo")
+  expect_error(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), 2023, transformacion = c(otra = "cociente")),
+               "otra")
+  expect_error(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy()[pob_toy()$ubicacion != "B", ], 2023),
+               "B.*poblaci")
+  expect_error(dl_calibrar_proxies(crudos_toy(), nac_toy()[0, ], pob_toy(), 2023), "haqi.*nacional.*2023")
+  # banda de los crudos que cruza una banda de la población
+  pob <- data.frame(ubicacion = rep(c("A", "B"), each = 2), anio = 2023, sexo = "ambos",
+                    edad_inicio = c(0, 15), edad_fin = c(15, NA), poblacion = 100)
+  cr <- crudos_toy(); cr$edad_inicio <- 10; cr$edad_fin <- 50
+  expect_error(dl_calibrar_proxies(cr, nac_toy(), pob, 2023), "10-49")
+})
+
+test_that("más errores: error estándar 0, transformación desconocida, valor nacional ambiguo", {
+  cr <- crudos_toy(); cr$error_estandar[2] <- 0
+  expect_error(dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023), "error_estandar.*mayor que 0")
+  expect_error(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "log")),
+               "desconocida")
+  # dos filas nacionales que sirven igual: una del sexo y de todas las edades, otra de ambos y de la banda
+  pob <- data.frame(ubicacion = rep(c("A", "B"), each = 4), anio = 2023, sexo = rep(c("hombres", "mujeres"), 4),
+                    edad_inicio = rep(c(0, 0, 15, 15), 2), edad_fin = rep(c(15, 15, NA, NA), 2), poblacion = 100)
+  cr <- data.frame(ubicacion = c("A", "B"), anio = 2023, sexo = "hombres", edad_inicio = 15, edad_fin = NA,
+                   covariable = "x", valor = c(1, 2), error_estandar = 0.1)
+  nac <- data.frame(anio = 2023, covariable = "x", sexo = c("hombres", "ambos"), edad_inicio = c(NA, 15),
+                    edad_fin = NA, valor = c(1.5, 1.6))
+  expect_error(dl_calibrar_proxies(cr, nac, pob, 2023, metodo = "edicion"), "x.*2 filas.*nacional.*2023.*hombres")
+  # la que coincide en sexo y banda gana sobre las que coinciden en menos
+  nac$edad_inicio[1] <- 15; nac$valor[1] <- 1.7
+  cal <- dl_calibrar_proxies(cr, nac, pob, 2023, metodo = "edicion")
+  expect_equal(sum(cal$valor) / 2, 1.7, tolerance = 1e-12)
+})
+
+test_that("exclusiones: la edición no entra y queda declarada con su motivo", {
+  cal <- suppressWarnings(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), 2023,
+                                              transformacion = c(haqi = "diferencia"),
+                                              excluir = data.frame(anio = 2021, motivo = "cambio de cuestionario")))
+  expect_false(2021L %in% attr(cal, "series")$anio)
+  expect_match(attr(cal, "calibracion")$excluidas, "2021.*cambio de cuestionario")
+  expect_warning(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), 2023, metodo = "edicion",
+                                     excluir = data.frame(anio = 2012, motivo = "error de tipeo")),
+                 "no están en proxies_crudos.*2012")
+  expect_match(cal$fuente[1], "^índice de prueba: calibrado \\(paseo_aleatorio, q = .*ediciones 2019, 2023\\)")
+})
+
+test_that("cociente por sexo y banda: suma los sexos de la población y cierra en el nacional de cada banda", {
+  pob <- expand.grid(ubicacion = c("A", "B"), anio = 2023, sexo = c("hombres", "mujeres"),
+                     edad_inicio = c(0, 15, 50), stringsAsFactors = FALSE)
+  pob$edad_fin <- c(15, 50, NA)[match(pob$edad_inicio, c(0, 15, 50))]
+  pob$poblacion <- seq_len(nrow(pob)) * 10
+  cr <- data.frame(ubicacion = rep(c("A", "B"), 2), anio = rep(c(2021, 2023), each = 2), covariable = "x",
+                   edad_inicio = 15, edad_fin = 125, valor = c(0.2, 0.4, 0.25, 0.35), error_estandar = 0.02)
+  nac <- data.frame(anio = 2023, covariable = "x", sexo = "ambos", edad_inicio = c(0, 15), edad_fin = c(15, NA),
+                    valor = c(0.1, 0.3))
+  cal <- dl_calibrar_proxies(cr, nac, pob, 2023, metodo = "edicion")
+  N <- function(u) sum(pob$poblacion[pob$ubicacion == u & pob$edad_inicio >= 15])
+  w <- vapply(cal$ubicacion, N, 0)
+  expect_equal(sum(w * cal$valor) / sum(w), 0.3, tolerance = 1e-12)
+  expect_equal(cal$error_estandar, unname(cal$valor * 0.02 / c(A = 0.25, B = 0.35)[cal$ubicacion]))
+  expect_identical(unique(cal$edad_inicio), 15)
+})
+
+test_that("q en el borde del intervalo: se declara y se avisa", {
+  cr <- crudos_toy(); cr$valor <- rep(c(40, 60), 3)   # el gradiente no cambia: q al borde inferior
+  expect_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")),
+                 "borde inferior")
+  expect_true(attr(cal, "calibracion")$q_en_borde)
+  cr$valor <- c(40, 60, 44, 58, 40, 61); cr$error_estandar <- 1     # el gradiente se mueve más que su error
+  expect_no_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")))
+  expect_false(attr(cal, "calibracion")$q_en_borde)
+})

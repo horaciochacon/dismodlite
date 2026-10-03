@@ -23,13 +23,25 @@
 #   cociente:    X_d = X exp(ĝ_d) / Σ_d w_d exp(ĝ_d)     se(X_d) = X_d sqrt(S_d)
 #   diferencia:  X_d = X + ĝ_d − Σ_d w_d ĝ_d             se(X_d) = sqrt(S_d)
 # Aproximaciones declaradas: se(X_d) no incluye la incertidumbre de la normalización ni la de X; se/p es la
-# aproximación delta de la escala log.
+# aproximación delta de la escala log; N_{d,t} y w_d usan el año de `poblacion` más cercano (con dos igual de cerca,
+# el anterior), también fuera de sus años.
+#
+# Gradiente del año a, por método:
+#   edicion:          ĝ_d = g_{d,t*}, S_d = se_g,t*^2, con t* la edición de la serie más cercana a a (empate: la
+#                     anterior); en las series de salida, `usada` marca t*
+#   paseo_aleatorio:  ĝ_d, S_d del suavizador RTS en a con el q de la covariable; sin q (todas las series con una sola
+#                     edición), lo mismo que edicion, con un aviso
 
 # ---- Constantes ----
 
 # Intervalo de búsqueda de q (varianza por año del gradiente): de prácticamente constante a un gradiente que cambia
 # más de 3 unidades de log por año (más de lo que ningún proxy razonable cambia).
 .DL_Q_LIMITES <- c(1e-8, 10)
+
+# Distancia en log q a un límite de .DL_Q_LIMITES por debajo de la cual q quedó en el borde. optimize() se detiene a
+# lo sumo a unas dos veces su tolerancia (por defecto .Machine$double.eps^0.25, en log q) del óptimo; con el óptimo en
+# el borde, ahí queda.
+.DL_Q_BORDE_LOG <- 3 * .Machine$double.eps^0.25
 
 # ---- Gradiente de una edición ----
 
@@ -123,4 +135,394 @@
   } else {
     list(valor = X + g - sum(w * g), se = sqrt(S))
   }
+}
+
+# ---- Entradas ----
+
+# Las tablas leídas con dl_tabla() y las ediciones de `excluir` quitadas de los crudos. Los crudos sin sexo son de
+# ambos sexos y sin edades, de todas las edades (banda 0-125); `con_edades` dice si las traían (las filas que salen
+# las llevan solo entonces); avisa si `excluir` nombra ediciones que no están. `ubicaciones`: las subnacionales de
+# los crudos, también las de ediciones excluidas; `quitadas`: las (covariable, anio) excluidas, con su motivo;
+# `covs`: las covariables de los crudos.
+.dl_leer_entradas_proxies <- function(crudos, covariables, poblacion, excluir) {
+  cr <- dl_tabla("proxies_crudos", crudos)
+  con_edades <- "edad_inicio" %in% names(cr)
+  if (!"sexo" %in% names(cr)) data.table::set(cr, j = "sexo", value = "ambos")
+  if (!con_edades) data.table::set(cr, j = c("edad_inicio", "edad_fin"), value = list(0, .DL_EDAD_ABIERTA))
+  excluir <- .dl_validar_excluir(excluir)
+  fuera <- cr$anio %in% excluir$anio
+  if (length(sobran <- setdiff(excluir$anio, cr$anio)))
+    .dl_warn("`excluir` nombra ediciones que no est\u00e1n en proxies_crudos (no excluye nada): %s",
+             paste(sobran, collapse = ", "))
+  quitadas <- unique(cr[fuera, c("covariable", "anio"), with = FALSE])
+  data.table::set(quitadas, j = "motivo", value = excluir$motivo[match(quitadas$anio, excluir$anio)])
+  list(crudos = cr[!fuera], quitadas = quitadas, ubicaciones = unique(cr$ubicacion), covs = unique(cr$covariable),
+       covariables = dl_tabla("covariables", covariables), poblacion = dl_tabla("poblacion", poblacion),
+       con_edades = con_edades)
+}
+
+# `excluir` como data.frame(anio, motivo); vacío si es NULL. Error si no tiene esas columnas o si una edición no
+# trae motivo.
+.dl_validar_excluir <- function(excluir) {
+  if (is.null(excluir)) return(data.frame(anio = integer(), motivo = character()))
+  if (!is.data.frame(excluir) || !all(c("anio", "motivo") %in% names(excluir)) || !is.numeric(excluir$anio))
+    .dl_stop("`excluir` debe ser un data.frame con las columnas anio (n\u00famero) y motivo: una fila por edici\u00f3n excluida")
+  sin <- is.na(excluir$motivo) | !nzchar(trimws(as.character(excluir$motivo)))
+  if (any(sin))
+    .dl_stop("cada edici\u00f3n excluida lleva su motivo, y no lo trae: %s", paste(excluir$anio[sin], collapse = ", "))
+  data.frame(anio = as.integer(excluir$anio), motivo = as.character(excluir$motivo))
+}
+
+# ---- Validación de los crudos ----
+
+# Las reglas de los crudos que la tabla no ve sola: error_estandar > 0, valores > 0 con cociente, población de cada
+# ubicación y bandas que son uniones de bandas de la población. Devuelve la transformación de cada covariable.
+.dl_validar_crudos <- function(e, transformacion) {
+  cr <- e$crudos
+  if (!nrow(cr)) .dl_stop("proxies_crudos no tiene filas")
+  sin_ed <- setdiff(e$covs, cr$covariable)
+  if (length(sin_ed))
+    .dl_stop("proxies_crudos: la(s) covariable(s) %s no tiene(n) ediciones que no est\u00e9n excluidas",
+             paste(sin_ed, collapse = ", "))
+  mal <- which(!(cr$error_estandar > 0))
+  if (length(mal))
+    .dl_stop("proxies_crudos: el error_estandar debe ser mayor que 0 y no lo es en %s", .dl_donde_crudos(cr, mal))
+  tr <- .dl_transformaciones(transformacion, unique(cr$covariable))
+  mal <- which(tr[cr$covariable] == "cociente" & cr$valor <= 0)
+  if (length(mal))
+    .dl_stop(paste0("la transformaci\u00f3n \u00abcociente\u00bb necesita cada valor mayor que 0, y la covariable %s ",
+                    "tiene valores iguales o menores que 0 (%s); para ella usa la \u00abdiferencia\u00bb"),
+             cr$covariable[mal[1L]], .dl_donde_crudos(cr, mal))
+  sin_pob <- setdiff(unique(cr$ubicacion), e$poblacion$ubicacion)
+  if (length(sin_pob))
+    .dl_stop("proxies_crudos: la(s) ubicaci\u00f3n(es) %s no tiene(n) poblaci\u00f3n; agr\u00e9gala(s) a la tabla poblacion",
+             paste(sin_pob, collapse = ", "))
+  bandas <- unique(cr[, c("covariable", "sexo", "edad_inicio", "edad_fin"), with = FALSE])
+  for (i in seq_len(nrow(bandas))) .dl_validar_banda_crudos(bandas[i], e$poblacion)
+  tr
+}
+
+# Filas `i` de los crudos en un mensaje: «A en 2019, B en 2021» (como mucho 3).
+.dl_donde_crudos <- function(cr, i)
+  paste0(paste(utils::head(sprintf("%s en %d", cr$ubicacion[i], cr$anio[i]), 3L), collapse = ", "),
+         if (length(i) > 3L) sprintf(" y %d m\u00e1s", length(i) - 3L) else "")
+
+# La transformación de cada covariable de `covs`: la de `transformacion` (vector o lista con nombres) o «cociente».
+.dl_transformaciones <- function(transformacion, covs) {
+  tr <- stats::setNames(rep("cociente", length(covs)), covs)
+  if (!length(transformacion)) return(tr)
+  if (is.list(transformacion)) transformacion <- unlist(transformacion)
+  if (!is.character(transformacion) || is.null(names(transformacion)) || any(!nzchar(names(transformacion))))
+    .dl_stop("`transformacion` debe tener un nombre por valor: covariable = \u00abcociente\u00bb o \u00abdiferencia\u00bb")
+  fuera <- setdiff(names(transformacion), covs)
+  if (length(fuera))
+    .dl_stop("`transformacion` nombra covariables que no est\u00e1n en proxies_crudos: %s (las de los crudos: %s)",
+             paste(fuera, collapse = ", "), paste(covs, collapse = ", "))
+  for (x in transformacion) .dl_validar_transformacion(x)
+  tr[names(transformacion)] <- transformacion
+  tr
+}
+
+# Banda en los mensajes: «todas las edades» o como .dl_nombre_banda() («10-49 años», «80 años y más»).
+.dl_texto_banda_crudos <- function(a0, a1)
+  if (a0 == 0 && a1 == .DL_EDAD_ABIERTA) "todas las edades" else .dl_nombre_banda(a0, a1)
+
+# Error si la banda [a0, a1) de `b` (una fila: covariable, sexo, edad_inicio, edad_fin) no es una unión de bandas de
+# la población de su sexo: ninguna banda de la población la cruza y las que caen dentro la cubren entera.
+.dl_validar_banda_crudos <- function(b, pob) {
+  f <- .dl_poblacion_sexo(pob, b$sexo)
+  B <- unique(f[, c("edad_inicio", "edad_fin"), with = FALSE])
+  dentro <- B$edad_inicio >= b$edad_inicio & B$edad_fin <= b$edad_fin
+  cruza <- B$edad_inicio < b$edad_fin & B$edad_fin > b$edad_inicio & !dentro
+  if (any(dentro) && !any(cruza) &&
+      sum(B$edad_fin[dentro] - B$edad_inicio[dentro]) == b$edad_fin - b$edad_inicio) return(invisible())
+  B <- B[order(B$edad_inicio)]
+  .dl_stop(paste0("la banda %s de proxies_crudos (covariable %s, sexo %s) no es una uni\u00f3n de bandas de la ",
+                  "poblaci\u00f3n; las de la poblaci\u00f3n de ese sexo son: %s"),
+           .dl_texto_banda_crudos(b$edad_inicio, b$edad_fin), b$covariable, b$sexo,
+           if (nrow(B)) paste(.dl_nombre_banda(B$edad_inicio, B$edad_fin), collapse = ", ") else "ninguna")
+}
+
+# ---- Población ----
+
+# Filas de la población del sexo `s`: las de ese sexo o, para «ambos» si la población no lo trae, las de hombres y
+# mujeres (que se suman). Sin filas si no hay ninguna de las dos formas.
+.dl_poblacion_sexo <- function(pob, s) {
+  f <- pob[pob$sexo == s]
+  if (!nrow(f) && s == "ambos" && all(c("hombres", "mujeres") %in% pob$sexo)) f <- pob[pob$sexo != "ambos"]
+  f
+}
+
+# El año de `anios` más cercano a cada `t`; con dos igual de cerca, el anterior.
+.dl_anio_mas_cercano <- function(t, anios) {
+  anios <- sort(unique(as.integer(anios)))
+  vapply(t, function(x) anios[which.min(abs(anios - x))], 0L, USE.NAMES = FALSE)
+}
+
+# N de cada ubicación de `u` en el sexo `s` y la banda [a0, a1) en el año `a`: la suma de las bandas de la población
+# que caen en ella (y de los dos sexos, para «ambos» sin filas de ambos). Error si a una ubicación le falta.
+.dl_poblacion_banda <- function(pob, u, s, a0, a1, a) {
+  f <- .dl_poblacion_sexo(pob, s)
+  f <- f[f$anio == a & f$edad_inicio >= a0 & f$edad_fin <= a1]
+  falta <- setdiff(u, f$ubicacion)
+  if (length(falta))
+    .dl_stop("la ubicaci\u00f3n %s no tiene poblaci\u00f3n en %d (sexo %s, %s)", paste(falta, collapse = ", "), a, s,
+             .dl_texto_banda_crudos(a0, a1))
+  vapply(u, function(x) sum(f$poblacion[f$ubicacion == x]), 0, USE.NAMES = FALSE)
+}
+
+# ---- Gradientes ----
+
+# Columnas que identifican una serie.
+.DL_COLS_SERIE <- c("covariable", "ubicacion", "sexo", "edad_inicio", "edad_fin")
+
+# g y se_g de cada fila de los crudos: .dl_gradiente_edicion() por covariable, sexo, banda y edición, con N del año
+# de la población más cercano a la edición (`anio_poblacion`).
+.dl_gradientes <- function(cr, pob, tr) {
+  cr <- data.table::copy(cr)
+  data.table::set(cr, j = "anio_poblacion", value = .dl_anio_mas_cercano(cr$anio, pob$anio))
+  partes <- lapply(split(cr, by = c("covariable", "sexo", "edad_inicio", "edad_fin", "anio")), function(x) {
+    N <- .dl_poblacion_banda(pob, x$ubicacion, x$sexo[1L], x$edad_inicio[1L], x$edad_fin[1L], x$anio_poblacion[1L])
+    gr <- .dl_gradiente_edicion(x$valor, x$error_estandar, N, tr[[x$covariable[1L]]])
+    data.table::data.table(x[, c(.DL_COLS_SERIE, "anio", "anio_poblacion"), with = FALSE], g = gr$g, se_g = gr$se_g)
+  })
+  data.table::rbindlist(partes)
+}
+
+# ---- Gradiente del año que se estima ----
+
+# ĝ y S en `anio` de cada serie de una covariable (`s`: sus gradientes por edición) con el método temporal (cabecera).
+# Devuelve list(series: `s` con g_suavizado, S y usada en cada edición; estimado: una fila por serie con ĝ (g), S y
+# las ediciones que entran; q; q_en_borde).
+.dl_gradiente_del_anio <- function(s, anio, metodo) {
+  covariable <- s$covariable[1L]
+  por_serie <- split(s, by = .DL_COLS_SERIE)
+  q <- NA_real_
+  if (metodo == "paseo_aleatorio") {
+    q <- .dl_estimar_q(lapply(por_serie, function(x) list(t = x$anio, y = x$g, se = x$se_g)))
+    if (is.na(q))
+      .dl_warn(paste0("covariable %s: todas sus series tienen una sola edici\u00f3n, as\u00ed que q no se puede ",
+                      "estimar; paseo_aleatorio usa la edici\u00f3n de cada serie (como metodo = \"edicion\")"),
+               covariable)
+  }
+  partes <- lapply(por_serie, function(x) if (is.na(q)) .dl_serie_edicion(x, anio) else .dl_serie_suavizada(x, anio, q))
+  list(series = data.table::rbindlist(lapply(partes, `[[`, "series")),
+       estimado = data.table::rbindlist(lapply(partes, `[[`, "estimado")),
+       q = q, q_en_borde = .dl_q_en_borde(q, covariable))
+}
+
+# Una serie `x` con el método edicion: la edición t* más cercana a `anio` (empate: la anterior); ĝ = g_t*, S = se_g^2.
+.dl_serie_edicion <- function(x, anio) {
+  t_usada <- .dl_anio_mas_cercano(anio, x$anio)
+  series <- data.table::data.table(x, g_suavizado = x$g, S = x$se_g^2, usada = x$anio == t_usada)
+  list(series = series, estimado = data.table::data.table(x[1L, .DL_COLS_SERIE, with = FALSE], g = x$g[series$usada],
+                                                          S = x$se_g[series$usada]^2, ediciones = t_usada))
+}
+
+# Una serie `x` con el paseo aleatorio de varianza q: el suavizador RTS en cada edición (para mirar la serie) y en
+# `anio` (ĝ, S). Todas las ediciones entran.
+.dl_serie_suavizada <- function(x, anio, q) {
+  en <- function(a) .dl_suavizar_serie(x$anio, x$g, x$se_g, q, a)
+  cada <- lapply(x$anio, en)
+  series <- data.table::data.table(x, g_suavizado = vapply(cada, `[[`, 0, "g"), S = vapply(cada, `[[`, 0, "S"),
+                                   usada = TRUE)
+  r <- en(anio)
+  list(series = series, estimado = data.table::data.table(x[1L, .DL_COLS_SERIE, with = FALSE], g = r$g, S = r$S,
+                                                          ediciones = paste(sort(x$anio), collapse = ", ")))
+}
+
+# ¿q quedó en un borde de .DL_Q_LIMITES? Si es así, avisa qué significa. NA sin q.
+.dl_q_en_borde <- function(q, covariable) {
+  if (is.na(q)) return(NA)
+  d <- abs(log(q) - log(.DL_Q_LIMITES))
+  if (d[1L] < .DL_Q_BORDE_LOG)
+    .dl_warn(paste0("covariable %s: q qued\u00f3 en el borde inferior de su intervalo de b\u00fasqueda (%g): el ",
+                    "gradiente es pr\u00e1cticamente constante y el suavizado da la media de las ediciones ponderada ",
+                    "por 1/se\u00b2"), covariable, .DL_Q_LIMITES[1L])
+  if (d[2L] < .DL_Q_BORDE_LOG)
+    .dl_warn(paste0("covariable %s: q qued\u00f3 en el borde superior de su intervalo de b\u00fasqueda (%g): cada ",
+                    "edici\u00f3n manda y el suavizado casi no aporta (el resultado es casi el de la edici\u00f3n ",
+                    "m\u00e1s cercana)"), covariable, .DL_Q_LIMITES[2L])
+  any(d < .DL_Q_BORDE_LOG)
+}
+
+# ---- Cierre y filas ----
+
+# X: el valor nacional de `covariable` en `anio_nacional` para el sexo `s` y la banda [a0, a1). Son nacionales las
+# filas sin ubicacion o con una que no es subnacional de los crudos (`subnacionales`); sirven las del mismo sexo o de
+# ambos y de la misma banda o de todas las edades, y gana la que coincide en más. Error si falta o si empatan varias.
+.dl_valor_nacional <- function(cv, covariable, anio_nacional, s, a0, a1, subnacionales) {
+  col <- function(nombre, defecto) if (nombre %in% names(cv)) cv[[nombre]] else rep(defecto, nrow(cv))
+  ubi <- col("ubicacion", NA_character_); an <- col("anio", NA_integer_); sx <- col("sexo", "ambos")
+  e0 <- col("edad_inicio", NA_real_); e1 <- col("edad_fin", NA_real_)
+  todas <- is.na(e0) | (e0 == 0 & e1 == .DL_EDAD_ABIERTA)
+  banda_igual <- (!is.na(e0) & e0 == a0 & e1 == a1) | (todas & a0 == 0 & a1 == .DL_EDAD_ABIERTA)
+  sirve <- cv$covariable == covariable & (is.na(ubi) | !ubi %in% subnacionales) &
+    (is.na(an) | an == anio_nacional) & sx %in% c(s, "ambos") & (banda_igual | todas)
+  coincide <- (sx == s) + banda_igual
+  k <- which(sirve & coincide == max(-1L, coincide[sirve]))
+  que <- sprintf("en %d (sexo %s, %s)", anio_nacional, s, .dl_texto_banda_crudos(a0, a1))
+  if (!length(k))
+    .dl_stop(paste0("la covariable %s no tiene valor nacional %s: agr\u00e9galo a covariables en una fila sin ",
+                    "ubicacion, del mismo sexo o de ambos y de la misma banda o de todas las edades"), covariable, que)
+  if (length(k) > 1L)
+    .dl_stop("la covariable %s tiene %d filas que sirven igual como valor nacional %s: deja una", covariable,
+             length(k), que)
+  cv$valor[k]
+}
+
+# Error, antes de calcular nada, si a una covariable, sexo y banda de los crudos le falta su valor nacional (o tiene
+# más de uno que sirve igual): .dl_valor_nacional() en cada una.
+.dl_validar_nacionales <- function(e, anio_nacional) {
+  b <- unique(e$crudos[, c("covariable", "sexo", "edad_inicio", "edad_fin"), with = FALSE])
+  for (i in seq_len(nrow(b)))
+    .dl_valor_nacional(e$covariables, b$covariable[i], anio_nacional, b$sexo[i], b$edad_inicio[i], b$edad_fin[i],
+                       e$ubicaciones)
+  invisible()
+}
+
+# Filas calibradas de una covariable desde `est` (.dl_gradiente_del_anio()$estimado): por sexo y banda, X, los pesos
+# w (población del año de `poblacion` más cercano a `anio`) y .dl_cerrar_proxies(). `fuente`: el texto delante de
+# las ediciones de cada serie.
+.dl_filas_calibradas <- function(est, e, tr, anio, anio_nacional, fuente) {
+  anio_w <- .dl_anio_mas_cercano(anio, e$poblacion$anio)
+  data.table::rbindlist(lapply(split(est, by = c("sexo", "edad_inicio", "edad_fin")), function(x) {
+    X <- .dl_valor_nacional(e$covariables, x$covariable[1L], anio_nacional, x$sexo[1L], x$edad_inicio[1L],
+                            x$edad_fin[1L], e$ubicaciones)
+    w <- .dl_poblacion_banda(e$poblacion, x$ubicacion, x$sexo[1L], x$edad_inicio[1L], x$edad_fin[1L], anio_w)
+    cl <- .dl_cerrar_proxies(x$g, x$S, w, X, tr)
+    data.table::data.table(ubicacion = x$ubicacion, anio = as.integer(anio), sexo = x$sexo,
+                           edad_inicio = x$edad_inicio, edad_fin = x$edad_fin, covariable = x$covariable,
+                           valor = cl$valor, error_estandar = cl$se,
+                           fuente = sprintf("%s, ediciones %s)", fuente, x$ediciones))
+  }))
+}
+
+# Una covariable de principio a fin: gradiente del año, filas cerradas y su fila de `calibracion`. `gr`: sus
+# gradientes (.dl_gradientes()).
+.dl_calibrar_covariable <- function(gr, e, tr, anio, anio_nacional, metodo) {
+  cov <- gr$covariable[1L]
+  r <- .dl_gradiente_del_anio(gr, anio, metodo)
+  ind <- unique(stats::na.omit(e$crudos$indicador[e$crudos$covariable == cov]))
+  fuente <- sprintf("%s: calibrado (%s%s", if (length(ind)) paste(ind, collapse = " / ") else cov, metodo,
+                    if (is.na(r$q)) "" else sprintf(", q = %s", format(signif(r$q, 3L))))
+  ed <- unique(gr[, c("anio", "anio_poblacion"), with = FALSE])
+  ed <- ed[order(ed$anio)]
+  exc <- e$quitadas[e$quitadas$covariable == cov]
+  exc <- exc[order(exc$anio)]
+  calibracion <- data.table::data.table(
+    covariable = cov, metodo = metodo, transformacion = tr, q = r$q, q_en_borde = r$q_en_borde,
+    ediciones = paste(ed$anio, collapse = ", "),
+    excluidas = paste(sprintf("%d (%s)", exc$anio, exc$motivo), collapse = "; "),
+    anios_poblacion = sprintf("ediciones: %s; cierre: %d \u2192 %d",
+                              paste(sprintf("%d \u2192 %d", ed$anio, ed$anio_poblacion), collapse = ", "),
+                              as.integer(anio), .dl_anio_mas_cercano(anio, e$poblacion$anio)))
+  list(filas = .dl_filas_calibradas(r$estimado, e, tr, anio, anio_nacional, fuente),
+       series = r$series[, c(.DL_COLS_SERIE, "anio", "g", "se_g", "g_suavizado", "S", "usada"), with = FALSE],
+       calibracion = calibracion)
+}
+
+# ---- La función exportada ----
+
+#' Calibrar proxies subnacionales desde una encuesta
+#'
+#' Convierte un indicador de encuesta ya agregado por ubicación subnacional y edición (la tabla `proxies_crudos`)
+#' en las filas subnacionales de la tabla `covariables` para el año que se estima: cada ubicación conserva su
+#' posición relativa en la encuesta y el promedio ponderado por la población cierra exactamente en el valor
+#' nacional de la covariable, que sigue en `covariables`.
+#'
+#' @details
+#' **Gradiente de cada edición.** Por covariable, sexo, banda de edad y edición t, el gradiente de la ubicación d
+#' compara su valor con el promedio de las subnacionales de esa edición, p̄_t, ponderado por la población del año de
+#' `poblacion` más cercano a t (con dos igual de cerca, el anterior):
+#' - `cociente`: g = log(p / p̄_t), con error se / p (aproximación delta de la escala log). Para indicadores
+#'   positivos que se comparan en proporción (prevalencias, tasas); exige valores mayores que 0.
+#' - `diferencia`: g = p − p̄_t, con error se. Para índices en los que importa la distancia en puntos (como un
+#'   índice de 0 a 100) o indicadores que pueden valer 0.
+#'
+#' **Gradiente del año que se estima.**
+#' - `edicion`: el de la edición del año o, si no hay, el de la más cercana (con dos igual de cerca, la anterior),
+#'   con su varianza se_g².
+#' - `paseo_aleatorio`: cada serie (covariable, ubicación, sexo y banda) sigue un paseo aleatorio,
+#'   g_t = g_{t−1} + η_t con η_t ~ N(0, q·Δt), observado con su error. Un filtro de Kalman y un suavizador RTS dan
+#'   el gradiente en el año que se estima, haya o no edición ese año, usando todas las ediciones de la serie. q, la
+#'   varianza por año del gradiente, se estima por máxima verosimilitud, una por covariable con todas sus series.
+#'
+#' **Cómo leer q.** Su raíz es cuánto se mueve el gradiente en un año (en log con `cociente`, en las unidades del
+#' indicador con `diferencia`). Con q muy chico el gradiente es casi constante y el resultado es la media de las
+#' ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de `edicion`. Si q queda
+#' en un borde de su intervalo de búsqueda, `calibracion` lo marca (`q_en_borde`) y la función avisa. Si todas las
+#' series de una covariable tienen una sola edición, q no se puede estimar: se usa la edición de cada serie, con un
+#' aviso, y `q` es `NA`. Una serie con una sola edición entre otras que sí estiman q coincide con `edicion` solo en
+#' el año de esa edición; en otro año su varianza suma q·|Δt|.
+#'
+#' **Cierre.** Por sexo y banda, con w_d la población de cada ubicación en el año de `poblacion` más cercano a `anio`
+#' y X el valor nacional:
+#' - `cociente`: X_d = X · exp(ĝ_d) / Σ w_d exp(ĝ_d), con error X_d · √S_d;
+#' - `diferencia`: X_d = X + ĝ_d − Σ w_d ĝ_d, con error √S_d.
+#'
+#' Σ w_d X_d / Σ w_d = X por construcción. El valor nacional es la fila de `covariables` de la covariable sin
+#' `ubicacion` (o con una que no está en los crudos), del año `anio_nacional`, del mismo sexo o de ambos y de la misma
+#' banda o de todas las edades; gana la que coincide en más.
+#'
+#' **Aproximaciones declaradas.** El error de X_d no incluye la incertidumbre de la normalización ni la del valor
+#' nacional; se/p es la aproximación delta; la población de cada edición (y la del cierre) es la del año más cercano
+#' de `poblacion`, también fuera de sus años (`calibracion$anios_poblacion` dice cuál se usó). Una edición en la que
+#' falta una ubicación se compara con el promedio de las que sí están; esa ubicación se interpola con sus otras
+#' ediciones.
+#'
+#' @param crudos Tabla `proxies_crudos` (ver [dl_tablas]): `data.frame` o ruta de un CSV o una carpeta.
+#' @param covariables Tabla `covariables`, con el valor nacional de cada covariable de los crudos.
+#' @param poblacion Tabla `poblacion` de las ubicaciones de los crudos; sus bandas de edad (y sus sexos, para «ambos»)
+#'   deben poder sumarse en las de los crudos.
+#' @param anio Año que se estima: el de las filas que salen.
+#' @param metodo Método temporal: `"paseo_aleatorio"` (por defecto) o `"edicion"`.
+#' @param transformacion Vector (o lista) con nombres, covariable = `"cociente"` o `"diferencia"`. Las covariables que
+#'   no nombra usan `"cociente"`.
+#' @param excluir `data.frame` con `anio` y `motivo`: ediciones que no entran. Cada una necesita su motivo.
+#' @param anio_nacional Año del valor nacional que cierra las filas. Por defecto, `anio`.
+#' @return Una [dl_tabla()] `covariables` con las filas subnacionales del año: `ubicacion`, `anio`, `sexo`, las
+#'   edades (si los crudos las traen), `covariable`, `valor`, `error_estandar` y `fuente` (el indicador, el método,
+#'   q y las ediciones de la serie). Dos atributos:
+#'   - `calibracion`: un `data.table` por covariable con `metodo`, `transformacion`, `q`, `q_en_borde`, `ediciones`,
+#'     `excluidas` (con su motivo) y `anios_poblacion` (el año de la población de cada edición y del cierre).
+#'   - `series`: un `data.table` por serie y edición con `g`, `se_g`, `g_suavizado` y `S` (el gradiente suavizado y
+#'     su varianza en el año de la edición; con `edicion`, g y se_g²) y `usada` (la edición que tomó `edicion`;
+#'     con el paseo aleatorio entran todas). Sin edades en los crudos, la banda es 0-125 (todas las edades).
+#' @seealso [dl_tablas] (la tabla `proxies_crudos`), [dl_tabla()], [dl_proyecto()].
+#' @family proyecto
+#' @examples
+#' pob <- data.frame(ubicacion = rep(c("R01", "R02", "R03"), each = 2), anio = rep(c(2019, 2023), 3),
+#'                   sexo = "ambos", edad_inicio = 0, edad_fin = NA,
+#'                   poblacion = c(100, 110, 300, 290, 200, 210))
+#' crudos <- data.frame(ubicacion = rep(c("R01", "R02", "R03"), 3), anio = rep(c(2019, 2021, 2023), each = 3),
+#'                      covariable = "haqi", indicador = "índice de acceso (encuesta)",
+#'                      valor = c(40, 60, 52, 45, 58, 50, 41, 63, 55), error_estandar = 1.5)
+#' nacional <- data.frame(anio = 2023, covariable = "haqi", valor = 56.4)
+#' cal <- dl_calibrar_proxies(crudos, nacional, pob, anio = 2023, transformacion = c(haqi = "diferencia"))
+#' cal
+#' attr(cal, "calibracion")
+#' # las series: gradiente observado (puntos) y suavizado (líneas), por ubicación
+#' s <- attr(cal, "series")
+#' plot(g ~ anio, s, col = factor(ubicacion), pch = 19, ylab = "gradiente")
+#' for (u in unique(s$ubicacion)) lines(g_suavizado ~ anio, s[s$ubicacion == u, ])
+#' @export
+dl_calibrar_proxies <- function(crudos, covariables, poblacion, anio, metodo = c("paseo_aleatorio", "edicion"),
+                                transformacion = NULL, excluir = NULL, anio_nacional = anio) {
+  metodo <- match.arg(metodo)
+  if (!.dl_es_entero1(anio)) .dl_stop("`anio` debe ser un a\u00f1o (un entero); es %s", .dl_describir_objeto(anio))
+  if (!.dl_es_entero1(anio_nacional))
+    .dl_stop("`anio_nacional` debe ser un a\u00f1o (un entero); es %s", .dl_describir_objeto(anio_nacional))
+  e <- .dl_leer_entradas_proxies(crudos, covariables, poblacion, excluir)
+  tr <- .dl_validar_crudos(e, transformacion)
+  .dl_validar_nacionales(e, anio_nacional)
+  gr <- .dl_gradientes(e$crudos, e$poblacion, tr)
+  partes <- lapply(split(gr, by = "covariable"), function(g)
+    .dl_calibrar_covariable(g, e, tr[[g$covariable[1L]]], anio, anio_nacional, metodo))
+  filas <- data.table::rbindlist(lapply(partes, `[[`, "filas"))
+  if (!e$con_edades) data.table::set(filas, j = c("edad_inicio", "edad_fin"), value = NULL)
+  out <- dl_tabla("covariables", filas)
+  data.table::setattr(out, "calibracion", data.table::rbindlist(lapply(partes, `[[`, "calibracion")))
+  data.table::setattr(out, "series", data.table::rbindlist(lapply(partes, `[[`, "series")))
+  out
 }

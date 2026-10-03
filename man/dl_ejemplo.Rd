@@ -92,6 +92,7 @@ unlink(copia, recursive = TRUE)
 un proyecto desde una carpeta vacía.
 
 Funciones del proyecto:
+\code{\link{dl_calibrar_proxies}()},
 \code{\link{dl_correr}()},
 \code{\link{dl_nuevo_proyecto}()},
 \code{\link{dl_plantilla}()},

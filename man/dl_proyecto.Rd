@@ -148,6 +148,7 @@ siguiente), \code{\link[=dl_ejemplo]{dl_ejemplo()}} (el proyecto de ejemplo), \c
 \code{\link[=dl_revisar_proyecto]{dl_revisar_proyecto()}} (revisarla antes de correr) y \code{\link[=dl_correr]{dl_correr()}} (la corrida completa en una llamada).
 
 Funciones del proyecto:
+\code{\link{dl_calibrar_proxies}()},
 \code{\link{dl_correr}()},
 \code{\link{dl_ejemplo}()},
 \code{\link{dl_nuevo_proyecto}()},
