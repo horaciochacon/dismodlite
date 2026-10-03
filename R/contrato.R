@@ -321,6 +321,10 @@ dl_plantilla <- function(tabla, archivo = NULL) {
 #' Cada tabla es un CSV (o una carpeta de CSV) de la carpeta del proyecto con su nombre, o un `data.frame` que se pasa
 #' a [dl_proyecto()]. Las descargas de GBD Results y del GHDx se reconocen por sus columnas y se convierten solas.
 #'
+#' El ancla puede traer filas de ambos sexos, pero el modelo no las usa: si son más finas que la población y
+#' `poblacion_detalle` no trae `ambos`, se dejan fuera en vez de pedir ese detalle (el de hombres y mujeres sí hace
+#' falta); con detalle de `ambos`, se agrupan como las de cada sexo.
+#'
 #' @seealso [dl_tabla()], [dl_plantilla()], [dl_proyecto()].
 #' @family proyecto
 #' @name dl_tablas

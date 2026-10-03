@@ -75,7 +75,8 @@ subnacionales, los proxies cierran en el valor nacional, los datos tienen valore
 El proyecto se traduce al formato completo de la versión 0.2.2, el que usa el resto del paquete: la configuración y
 las tablas a una carpeta temporal de la sesión, que se reutiliza mientras no cambien. Los números leídos pasan tal
 cual; solo se calcula lo que sale de la población (el total nacional, si no viene) y la agrupación del ancla en las
-bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina).
+bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina; sus filas de ambos sexos, que el modelo no
+usa, no piden ese detalle y se dejan fuera si no lo traen).
 
 \code{print()} muestra la causa, el año, las tablas que encontró, el modo subnacional, la calibración de
 \code{proxies_crudos} (por covariable: el método, q y las ediciones) y las claves de la configuración que tomaron su
