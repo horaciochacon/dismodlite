@@ -6,7 +6,9 @@
 #   t          año de una edición de la encuesta; a, el año que se estima
 #   p_{d,t}    valor crudo del indicador; se_{d,t} su error estándar
 #   N_{d,t}    población de d en el sexo y la banda, del año de `poblacion` más cercano a t
-#   p̄_t        Σ_d N_{d,t} p_{d,t} / Σ_d N_{d,t}
+#   C          ubicaciones comunes: las que están en todas las ediciones (no excluidas) de la covariable, el sexo
+#              y la banda; con ediciones desbalanceadas, el promedio de referencia no se mueve con la cobertura
+#   p̄_t        Σ_{d∈C} N_{d,t} p_{d,t} / Σ_{d∈C} N_{d,t}  (g se calcula para toda d presente en t)
 #   g_{d,t}    gradiente: log(p_{d,t} / p̄_t) (cociente) o p_{d,t} − p̄_t (diferencia); se_g su error
 #   q          varianza por año del paseo aleatorio del gradiente
 #   ĝ_d, S_d   gradiente suavizado en el año a y su varianza
@@ -45,12 +47,13 @@
 
 # ---- Gradiente de una edición ----
 
-# g y se_g de las ubicaciones de una edición, sexo y banda: valores `p`, errores `se`, poblaciones `N`.
-.dl_gradiente_edicion <- function(p, se, N, transformacion) {
+# g y se_g de las ubicaciones de una edición, sexo y banda: valores `p`, errores `se`, poblaciones `N`. `ref`: las
+# ubicaciones (lógico) que forman p̄_t, el conjunto común C; por defecto, todas.
+.dl_gradiente_edicion <- function(p, se, N, transformacion, ref = rep(TRUE, length(p))) {
   .dl_validar_transformacion(transformacion)
   if (transformacion == "cociente" && any(p <= 0))
     .dl_stop("la transformaci\u00f3n \u00abcociente\u00bb necesita valores positivos y hay valores iguales o menores que 0; usa la \u00abdiferencia\u00bb")
-  pbar <- sum(N * p) / sum(N)
+  pbar <- sum(N[ref] * p[ref]) / sum(N[ref])
   if (transformacion == "cociente") list(g = log(p / pbar), se_g = se / p)
   else list(g = p - pbar, se_g = se)
 }
@@ -165,8 +168,9 @@
 # trae motivo.
 .dl_validar_excluir <- function(excluir) {
   if (is.null(excluir)) return(data.frame(anio = integer(), motivo = character()))
-  if (!is.data.frame(excluir) || !all(c("anio", "motivo") %in% names(excluir)) || !is.numeric(excluir$anio))
-    .dl_stop("`excluir` debe ser un data.frame con las columnas anio (n\u00famero) y motivo: una fila por edici\u00f3n excluida")
+  if (!is.data.frame(excluir) || !all(c("anio", "motivo") %in% names(excluir)) || !is.numeric(excluir$anio) ||
+      anyNA(excluir$anio) || any(excluir$anio != round(excluir$anio)))
+    .dl_stop("`excluir` debe ser un data.frame con las columnas anio (a\u00f1os enteros) y motivo: una fila por edici\u00f3n excluida")
   sin <- is.na(excluir$motivo) | !nzchar(trimws(as.character(excluir$motivo)))
   if (any(sin))
     .dl_stop("cada edici\u00f3n excluida lleva su motivo, y no lo trae: %s", paste(excluir$anio[sin], collapse = ", "))
@@ -197,6 +201,10 @@
   if (length(sin_pob))
     .dl_stop("proxies_crudos: la(s) ubicaci\u00f3n(es) %s no tiene(n) poblaci\u00f3n; agr\u00e9gala(s) a la tabla poblacion",
              paste(sin_pob, collapse = ", "))
+  for (sx in unique(cr$sexo)) if (!nrow(.dl_poblacion_sexo(e$poblacion, sx)))
+    .dl_stop("la poblaci\u00f3n no trae %s, que piden proxies_crudos (covariable(s) %s)",
+             if (sx == "ambos") "ambos sexos (ni hombres y mujeres para sumarlos)" else sx,
+             paste(unique(cr$covariable[cr$sexo == sx]), collapse = ", "))
   bandas <- unique(cr[, c("covariable", "sexo", "edad_inicio", "edad_fin"), with = FALSE])
   for (i in seq_len(nrow(bandas))) .dl_validar_banda_crudos(bandas[i], e$poblacion)
   tr
@@ -276,17 +284,50 @@
 # Columnas que identifican una serie.
 .DL_COLS_SERIE <- c("covariable", "ubicacion", "sexo", "edad_inicio", "edad_fin")
 
-# g y se_g de cada fila de los crudos: .dl_gradiente_edicion() por covariable, sexo, banda y edición, con N del año
-# de la población más cercano a la edición (`anio_poblacion`).
+# g y se_g de cada fila de los crudos, por covariable, sexo y banda (.dl_gradientes_banda), con N del año de la
+# población más cercano a la edición (`anio_poblacion`).
 .dl_gradientes <- function(cr, pob, tr) {
   cr <- data.table::copy(cr)
   data.table::set(cr, j = "anio_poblacion", value = .dl_anio_mas_cercano(cr$anio, pob$anio))
-  partes <- lapply(split(cr, by = c("covariable", "sexo", "edad_inicio", "edad_fin", "anio")), function(x) {
-    N <- .dl_poblacion_banda(pob, x$ubicacion, x$sexo[1L], x$edad_inicio[1L], x$edad_fin[1L], x$anio_poblacion[1L])
-    gr <- .dl_gradiente_edicion(x$valor, x$error_estandar, N, tr[[x$covariable[1L]]])
-    data.table::data.table(x[, c(.DL_COLS_SERIE, "anio", "anio_poblacion"), with = FALSE], g = gr$g, se_g = gr$se_g)
+  partes <- lapply(split(cr, by = c("covariable", "sexo", "edad_inicio", "edad_fin")), function(x)
+    .dl_gradientes_banda(x, pob, tr[[x$covariable[1L]]]))
+  data.table::rbindlist(partes)
+}
+
+# Los gradientes de una covariable, sexo y banda (`x`): p̄_t sobre las ubicaciones comunes C (cabecera), con los
+# pesos de la población de cada edición; g para toda ubicación presente. Avisa qué falta si las ediciones no traen las
+# mismas ubicaciones; error si C tiene menos de dos.
+.dl_gradientes_banda <- function(x, pob, transformacion) {
+  comunes <- .dl_ubicaciones_comunes(x)
+  partes <- lapply(split(x, by = "anio"), function(y) {
+    N <- .dl_poblacion_banda(pob, y$ubicacion, y$sexo[1L], y$edad_inicio[1L], y$edad_fin[1L], y$anio_poblacion[1L])
+    gr <- .dl_gradiente_edicion(y$valor, y$error_estandar, N, transformacion, ref = y$ubicacion %in% comunes)
+    data.table::data.table(y[, c(.DL_COLS_SERIE, "anio", "anio_poblacion"), with = FALSE], g = gr$g, se_g = gr$se_g)
   })
   data.table::rbindlist(partes)
+}
+
+# C: las ubicaciones de `x` (una covariable, sexo y banda) presentes en todas sus ediciones. Avisa con los pares
+# (ubicación, edición) que faltan; error si quedan menos de dos.
+.dl_ubicaciones_comunes <- function(x) {
+  ediciones <- sort(unique(x$anio)); ubicaciones <- sort(unique(x$ubicacion))
+  presentes <- table(factor(x$ubicacion, ubicaciones))
+  comunes <- names(presentes)[presentes == length(ediciones)]
+  que <- sprintf("covariable %s (sexo %s, %s)", x$covariable[1L], x$sexo[1L],
+                 .dl_texto_banda_crudos(x$edad_inicio[1L], x$edad_fin[1L]))
+  if (length(comunes) < 2L)
+    .dl_stop(paste0("solo %d ubicaci\u00f3n(es) de la %s est\u00e1(n) en todas las ediciones (%s), y el promedio ",
+                    "de referencia de cada edici\u00f3n necesita al menos dos; excluye (`excluir`) las ediciones con ",
+                    "menos ubicaciones"), length(comunes), que, paste(ediciones, collapse = ", "))
+  if (length(comunes) < length(ubicaciones)) {
+    todos <- expand.grid(ubicacion = ubicaciones, anio = ediciones, stringsAsFactors = FALSE)
+    faltan <- todos[!paste(todos$ubicacion, todos$anio) %in% paste(x$ubicacion, x$anio), ]
+    .dl_warn(paste0("las ediciones de la %s no traen las mismas ubicaciones (faltan: %s); el promedio de referencia ",
+                    "de cada edici\u00f3n usa solo las que est\u00e1n en todas (%s), y las que faltan se interpolan ",
+                    "con sus otras ediciones"), que, .dl_donde_crudos(faltan, seq_len(nrow(faltan))),
+             paste(comunes, collapse = ", "))
+  }
+  comunes
 }
 
 # ---- Gradiente del año que se estima ----
@@ -331,12 +372,13 @@
                                                           ediciones = paste(sort(x$anio), collapse = ", ")))
 }
 
-# ¿q quedó en un borde de .DL_Q_LIMITES? Si es así, avisa qué significa. NA sin q.
+# ¿q quedó en un borde de .DL_Q_LIMITES? En el inferior lo informa (un gradiente estable es un resultado, no un
+# problema); en el superior avisa (el suavizado no aporta). NA sin q.
 .dl_q_en_borde <- function(q, covariable) {
   if (is.na(q)) return(NA)
   d <- abs(log(q) - log(.DL_Q_LIMITES))
   if (d[1L] < .DL_Q_BORDE_LOG)
-    .dl_warn(paste0("covariable %s: q qued\u00f3 en el borde inferior de su intervalo de b\u00fasqueda (%g): el ",
+    .dl_message(paste0("covariable %s: q qued\u00f3 en el borde inferior de su intervalo de b\u00fasqueda (%g): el ",
                     "gradiente es pr\u00e1cticamente constante y el suavizado da la media de las ediciones ponderada ",
                     "por 1/se\u00b2"), covariable, .DL_Q_LIMITES[1L])
   if (d[2L] < .DL_Q_BORDE_LOG)
@@ -366,8 +408,8 @@
     .dl_stop(paste0("la covariable %s no tiene valor nacional %s: agr\u00e9galo a covariables en una fila sin ",
                     "ubicacion, del mismo sexo o de ambos y de la misma banda o de todas las edades"), covariable, que)
   if (length(k) > 1L)
-    .dl_stop("la covariable %s tiene %d filas que sirven igual como valor nacional %s: deja una", covariable,
-             length(k), que)
+    .dl_stop("la covariable %s tiene %d filas que sirven igual como valor nacional %s (ubicacion: %s): deja una",
+             covariable, length(k), que, paste(ifelse(is.na(ubi[k]), "vac\u00eda", ubi[k]), collapse = ", "))
   cv$valor[k]
 }
 
@@ -412,7 +454,7 @@
   exc <- exc[order(exc$anio)]
   calibracion <- data.table::data.table(
     covariable = cov, metodo = metodo, transformacion = tr, q = r$q, q_en_borde = r$q_en_borde,
-    ediciones = paste(ed$anio, collapse = ", "),
+    ediciones = paste(sort(unique(r$series$anio[r$series$usada])), collapse = ", "),
     excluidas = paste(sprintf("%d (%s)", exc$anio, exc$motivo), collapse = "; "),
     anios_poblacion = sprintf("ediciones: %s; cierre: %d \u2192 %d",
                               paste(sprintf("%d \u2192 %d", ed$anio, ed$anio_poblacion), collapse = ", "),
@@ -433,8 +475,11 @@
 #'
 #' @details
 #' **Gradiente de cada edición.** Por covariable, sexo, banda de edad y edición t, el gradiente de la ubicación d
-#' compara su valor con el promedio de las subnacionales de esa edición, p̄_t, ponderado por la población del año de
-#' `poblacion` más cercano a t (con dos igual de cerca, el anterior):
+#' compara su valor con p̄_t, el promedio de esa edición ponderado por la población del año de `poblacion` más
+#' cercano a t (con dos igual de cerca, el anterior). p̄_t se toma sobre las ubicaciones **comunes**, las que están
+#' en todas las ediciones: así la referencia no se mueve cuando una edición no trae todas las ubicaciones. Si las
+#' ediciones no traen las mismas ubicaciones, la función avisa cuáles faltan; si menos de dos están en todas, es un
+#' error (excluye las ediciones con menos ubicaciones).
 #' - `cociente`: g = log(p / p̄_t), con error se / p (aproximación delta de la escala log). Para indicadores
 #'   positivos que se comparan en proporción (prevalencias, tasas); exige valores mayores que 0.
 #' - `diferencia`: g = p − p̄_t, con error se. Para índices en los que importa la distancia en puntos (como un
@@ -451,7 +496,8 @@
 #' **Cómo leer q.** Su raíz es cuánto se mueve el gradiente en un año (en log con `cociente`, en las unidades del
 #' indicador con `diferencia`). Con q muy chico el gradiente es casi constante y el resultado es la media de las
 #' ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de `edicion`. Si q queda
-#' en un borde de su intervalo de búsqueda, `calibracion` lo marca (`q_en_borde`) y la función avisa. Si todas las
+#' en un borde de su intervalo de búsqueda, `calibracion` lo marca (`q_en_borde`): en el inferior (gradiente estable)
+#' la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si todas las
 #' series de una covariable tienen una sola edición, q no se puede estimar: se usa la edición de cada serie, con un
 #' aviso, y `q` es `NA`. Una serie con una sola edición entre otras que sí estiman q coincide con `edicion` solo en
 #' el año de esa edición; en otro año su varianza suma q·|Δt|.
@@ -467,9 +513,8 @@
 #'
 #' **Aproximaciones declaradas.** El error de X_d no incluye la incertidumbre de la normalización ni la del valor
 #' nacional; se/p es la aproximación delta; la población de cada edición (y la del cierre) es la del año más cercano
-#' de `poblacion`, también fuera de sus años (`calibracion$anios_poblacion` dice cuál se usó). Una edición en la que
-#' falta una ubicación se compara con el promedio de las que sí están; esa ubicación se interpola con sus otras
-#' ediciones.
+#' de `poblacion`, también fuera de sus años (`calibracion$anios_poblacion` dice cuál se usó). Una ubicación que falta
+#' en una edición se interpola con sus otras ediciones.
 #'
 #' @param crudos Tabla `proxies_crudos` (ver [dl_tablas]): `data.frame` o ruta de un CSV o una carpeta.
 #' @param covariables Tabla `covariables`, con el valor nacional de cada covariable de los crudos.
@@ -484,7 +529,8 @@
 #' @return Una [dl_tabla()] `covariables` con las filas subnacionales del año: `ubicacion`, `anio`, `sexo`, las
 #'   edades (si los crudos las traen), `covariable`, `valor`, `error_estandar` y `fuente` (el indicador, el método,
 #'   q y las ediciones de la serie). Dos atributos:
-#'   - `calibracion`: un `data.table` por covariable con `metodo`, `transformacion`, `q`, `q_en_borde`, `ediciones`,
+#'   - `calibracion`: un `data.table` por covariable con `metodo`, `transformacion`, `q`, `q_en_borde`, `ediciones`
+#'     (las usadas: con el paseo aleatorio, todas las no excluidas; con `edicion`, las elegidas en alguna serie),
 #'     `excluidas` (con su motivo) y `anios_poblacion` (el año de la población de cada edición y del cierre).
 #'   - `series`: un `data.table` por serie y edición con `g`, `se_g`, `g_suavizado` y `S` (el gradiente suavizado y
 #'     su varianza en el año de la edición; con `edicion`, g y se_g²) y `usada` (la edición que tomó `edicion`;
