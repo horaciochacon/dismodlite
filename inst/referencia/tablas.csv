@@ -38,7 +38,7 @@ betas,escala,numero,valor,no,,,0,,,,"Multiplica la diferencia de la covariable (
 betas,beta,numero,valor,si,,,,,,,"Coeficiente publicado"
 betas,inferior,numero,valor,no,,,,,,,"Límite inferior del 95 % (vacío: beta fija)"
 betas,superior,numero,valor,no,,,,,,,"Límite superior del 95 % (vacío: beta fija)"
-betas,valor_nacional_de,texto,valor,no,,,,,,,"Otra covariable cuyo valor nacional ancla a esta"
+betas,valor_nacional_de,texto,valor,no,,,,,,,"Otra covariable cuyo valor nacional ancla a esta (su fila nacional propia no hace falta)"
 betas,escala_confirmada,logico,valor,no,,,,,,,"true confirma una beta lineal grande con escala 1"
 betas,fuente,texto,valor,no,,,,,,,"De dónde sale la beta"
 datos,causa,entero,eje,no,,,,,,,"Causa; sin la columna, la del proyecto"

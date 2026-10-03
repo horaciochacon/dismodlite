@@ -244,6 +244,20 @@ test_that("valor_nacional_de: el proxy se ancla en el valor nacional de la susti
   expect_identical(x$proxies$covariate_id_gbd, c(882L, 882L))
   expect_identical(x$proxies$ancla_ghdx, c("0.45", "0.45"))
   expect_setequal(x$cov$nacional$covariate_name_short, c("sdi", "sdi_std"))
+  # la beta no necesita la fila nacional de su propia covariable: sin ella, los mismos proxies
+  cambiar <- function(t, ...) { t[...names()] <- list(...); t }
+  sin_copia <- cambiar(tablas, covariables = cov[!(ubicacion == "P" & covariable == "sdi")])
+  expect_identical(dismodlite:::.dl_ids_covariable(sin_copia), list(sdi = 1L, sdi_std = 882L))
+  y <- dismodlite:::.dl_traducir_contrato(sin_copia, cfg)
+  expect_identical(y$proxies, x$proxies)
+  expect_identical(y$cov$nacional, x$cov$nacional[covariate_name_short == "sdi_std"])
+  # sí la de la sustituta, y la de una beta sin valor_nacional_de
+  sin_std <- cambiar(tablas, covariables = cov[covariable != "sdi_std"])
+  expect_error(dismodlite:::.dl_traducir_contrato(sin_std, cfg),
+               "la tabla covariables no trae el valor nacional \\(ubicación P\\) de sdi_std, que usa la tabla betas")
+  b2 <- tab("betas", data.frame(covariable = "sdi", efecto_sobre = "prevalencia", transformacion = "log", beta = -1))
+  expect_error(dismodlite:::.dl_traducir_contrato(cambiar(sin_copia, betas = b2), cfg_min()),
+               "no trae el valor nacional \\(ubicación P\\) de sdi, que usa la tabla betas")
   cfg$covariables[[1]]$sustituye$covariate_name_short <- "otra"
   expect_error(dismodlite:::.dl_traducir_contrato(tablas, cfg), "sale de otra, que no está en la tabla betas")
 })

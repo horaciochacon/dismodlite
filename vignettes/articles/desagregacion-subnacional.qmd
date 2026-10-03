@@ -514,6 +514,31 @@ subnacional:
 `dl_correr()` omite entonces la cascada y lo dice en un mensaje. (Las comillas en `"no"` son opcionales: el paquete
 lee `no` como texto, pero así el archivo se lee igual en cualquier lector de YAML.)
 
+## El valor nacional de otra covariable {#valor-nacional-de}
+
+La diferencia $dX$ compara el valor de cada ubicación con el valor nacional de la misma covariable. A veces los dos no
+existen con el mismo nombre: la β se publicó para una covariable por edad y los valores subnacionales que hay se
+comparan con su versión estandarizada por edad, que en el GHDx es otra covariable. La columna `valor_nacional_de` de
+`betas` lo declara en la fila de la β:
+
+```
+covariable,efecto_sobre,transformacion,beta,inferior,superior,valor_nacional_de
+sev_por_edad,prevalencia,log,0.62,0.55,0.70,sev_estandarizado
+```
+
+Con ella:
+
+- el valor nacional que se resta en $dX$, y en el que deben cerrar los proxies de `sev_por_edad`, es el de
+  `sev_estandarizado` en el año del ancla;
+- `covariables` trae la fila nacional de `sev_estandarizado` (con su intervalo) y las filas subnacionales de
+  `sev_por_edad`; la fila nacional de `sev_por_edad` no hace falta;
+- si los valores subnacionales vienen de `proxies_crudos`, la calibración cierra en el valor nacional de
+  `sev_estandarizado` (`dl_proyecto()` lo toma de `betas`; a mano, el argumento `valor_nacional_de` de
+  `dl_calibrar_proxies()`), y la calibración lo declara: en el paso «proxies» de la revisión y en `params.proxies`
+  del manifiesto.
+
+La corrida lo deja escrito en el manifiesto (`cascada.sustituciones`) y en sus limitaciones.
+
 ## La escala de una covariable {#escala}
 
 Con una covariable lineal, la diferencia $dX$ entre la ubicación y el país se multiplica por `escala` antes de la β;

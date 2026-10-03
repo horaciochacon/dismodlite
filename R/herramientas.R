@@ -304,7 +304,8 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 }
 
 # La línea en orden del paso «proxies»: por covariable de la calibración `cal` (dl_calibrar_proxies), el método, q
-# (con 3 cifras; si quedó en un borde de su intervalo, cuál), las ediciones usadas y las excluidas.
+# (con 3 cifras; si quedó en un borde de su intervalo, cuál), las ediciones usadas, las excluidas y, si cierra en el
+# valor nacional de otra covariable (valor_nacional_de), cuál.
 .dl_linea_proxies <- function(cal) {
   k <- attr(cal, "calibracion")
   borde <- c(inferior = " (en el borde inferior: el gradiente es pr\u00e1cticamente constante)",
@@ -312,15 +313,18 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   borde[is.na(borde)] <- ""
   q <- ifelse(is.na(k$q), "no se estima (una sola edici\u00f3n por serie)",
               vapply(k$q, function(x) format(signif(x, 3L)), ""))
-  paste(sprintf("%s: %s, q = %s%s, ediciones %s%s", k$covariable, k$metodo, q, borde, k$ediciones,
-                ifelse(nzchar(k$excluidas), paste0("; excluidas: ", k$excluidas), "")), collapse = "\n")
+  paste(sprintf("%s: %s, q = %s%s, ediciones %s%s%s", k$covariable, k$metodo, q, borde, k$ediciones,
+                ifelse(nzchar(k$excluidas), paste0("; excluidas: ", k$excluidas), ""),
+                ifelse(is.na(k$valor_nacional_de), "", paste0("; cierra en el valor nacional de ", k$valor_nacional_de))),
+        collapse = "\n")
 }
 
 # El paso «proxies» de la revisión de una carpeta: la calibración de proxies_crudos (.dl_calibracion_proyecto), con
 # sus avisos y sus errores, cuando las tablas de las que toma algo se leyeron (`fallidas`: las que no). Devuelve
 # list(ok, calibracion): `ok` es FALSE si la calibración falló o espera a una tabla; sin proxies_crudos, la
-# calibración es NULL y no hay paso, salvo un aviso si la configuración trae claves proxies.* (no se usan).
-.dl_revisar_proxies <- function(s, archivo, tablas, fallidas, revisar, anotar, causa = s[["causa"]]) {
+# calibración es NULL y no hay paso, salvo un aviso si la configuración trae claves proxies.* (no se usan). `padre`:
+# la causa que declara a `causa` en `subtipos` (solo se evalúa al calibrar, dentro del paso).
+.dl_revisar_proxies <- function(s, archivo, tablas, fallidas, revisar, anotar, causa = s[["causa"]], padre = NULL) {
   if (is.null(tablas$proxies_crudos)) {
     .dl_avisar_proxies_sin_crudos(s, anotar)
     return(list(ok = TRUE, calibracion = NULL))
@@ -330,7 +334,8 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     anotar("proxies", "omitido", sprintf("la calibraci\u00f3n espera a la tabla %s", espera[1L]))
     return(list(ok = FALSE))
   }
-  cal <- revisar("proxies", .dl_calibracion_proyecto(s, archivo, tablas, causa = causa), .dl_linea_proxies)
+  cal <- revisar("proxies", .dl_calibracion_proyecto(s, archivo, tablas, causa = causa, padre = padre),
+                 .dl_linea_proxies)
   list(ok = !is.null(cal), calibracion = cal)
 }
 
@@ -428,7 +433,8 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     return(omitir())
   }
   px <- if (suma) list(ok = TRUE)
-        else .dl_revisar_proxies(s, cf$archivo, tablas, fallidas, revisar, anotar, cf$causa)
+        else .dl_revisar_proxies(s, cf$archivo, tablas, fallidas, revisar, anotar, cf$causa,
+                                 .dl_padre_de(.dl_causas_config(carpeta, s, cf$causa), cf$causa))
   if (!px$ok) {
     anotar("configuraci\u00f3n", "omitido", "su traducci\u00f3n espera a la calibraci\u00f3n de proxies_crudos")
     return(omitir())
@@ -487,9 +493,9 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #'    todas las ubicaciones, años y sexos, seguidas (sin huecos) y desde `edad_inicio`; que el ancla traiga la
 #'    prevalencia de la causa (y la mortalidad, si la usa el prior de la mortalidad en exceso) en el año del ancla y en
 #'    cada sexo, y la columna `causa` si el proyecto tiene varias; que cada banda del ancla sea una unión de bandas de
-#'    la población o se pueda agrupar con `poblacion_detalle`; que cada covariable de `betas` (y cada
-#'    `valor_nacional_de`) tenga su valor nacional en el año del ancla y que `escala` vaya solo con la transformación
-#'    lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
+#'    la población o se pueda agrupar con `poblacion_detalle`; que cada covariable de `betas` tenga su valor nacional
+#'    en el año del ancla (el suyo o, con `valor_nacional_de`, el de la covariable que nombra) y que `escala` vaya
+#'    solo con la transformación lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
 #'    que se anclan traiga su intervalo (`inferior` y `superior`); que las proporciones de `severidad` sumen 1. Avisa
 #'    (`!`) de una covariable con proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera
 #'    de la estimación subnacional) y de valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por

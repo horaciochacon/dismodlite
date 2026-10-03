@@ -1315,3 +1315,76 @@ test_that("un año anterior a todos los del ancla: el error de las reglas, que n
   expect_error(minimo(2021), paste0("anio: la tabla ancla no trae la prevalencia de la causa en 2021 y el último año ",
                                     "anterior que trae es 2019: el ancla se proyecta a lo sumo un año"))
 })
+
+# ---- valor_nacional_de ----
+
+# Las tablas del proyecto de la carpeta `d` (el ejemplo, causa 9100) con la beta de haqi anclada en otra covariable,
+# haqi_estandarizado: covariables gana las filas nacionales de haqi con ese nombre (su valor, más `mas`) y, sin
+# `copia`, pierde las de haqi. Devuelve el proyecto leído con esas tablas.
+proyecto_valor_nacional_de <- function(d, copia, mas = 0, nombre = "haqi_estandarizado") {
+  t <- suppressMessages(dl_proyecto(d, 9100))$tablas
+  cv <- t$covariables
+  nac <- cv$covariable == "haqi" & (if ("ubicacion" %in% names(cv)) is.na(cv$ubicacion) else TRUE)
+  std <- data.table::copy(cv[nac])[, `:=`(covariable = "haqi_estandarizado", covariable_id = 1098L,
+                                         valor = valor + mas, inferior = inferior + mas, superior = superior + mas)]
+  t$covariables <- rbind(if (copia) cv else cv[!nac], std)
+  t$betas <- data.table::copy(t$betas)[, valor_nacional_de := ifelse(covariable == "haqi", nombre, NA_character_)]
+  do.call(dl_proyecto, c(list(causa = 9100, configuracion = file.path(d, "config", "9100.yaml")),
+                         lapply(t, as.data.frame)))
+}
+
+test_that("valor_nacional_de: la beta no necesita la fila nacional de su propia covariable", {
+  d <- ejemplo_calibrado()
+  con <- suppressMessages(dl_insumos(proyecto_valor_nacional_de(d, copia = TRUE)))
+  p <- proyecto_valor_nacional_de(d, copia = FALSE)
+  expect_false(any(p$tablas$covariables$covariable == "haqi" & is.na(p$tablas$covariables$ubicacion)))
+  sin <- suppressMessages(dl_insumos(p))
+  # lo que entra a la estimación subnacional no cambia: los proxies y el valor nacional que se les resta
+  expect_identical(sin$cov_proxy, con$cov_proxy)
+  expect_identical(sin$cov_valores, con$cov_valores[covariate_name_short != "haqi"])
+  # sin su fila nacional, la covariable de la beta no tiene el identificador del GHDx: toma su posición en betas
+  expect_identical(sin$betas[, !"covariate_id"], con$betas[, !"covariate_id"])
+  dX <- function(b) dismodlite:::.dl_dX(b, dismodlite:::.dl_proxies(b), n = 20L, semilla = 1L)
+  expect_identical(dX(sin), dX(con))
+  expect_identical(sin$cfg$covariables, con$cfg$covariables)
+  expect_identical(unique(sin$cov_proxy[covariate_id_gbd == 1098L]$ancla_ghdx), 50.9)
+  # y la cascada corre, con el valor nacional de la sustituta
+  r <- suppressMessages(dl_correr(p, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                  carpeta_salida = withr::local_tempdir()))
+  su <- r$manifest$cascada$sustituciones[[1]]
+  expect_identical(su[c("covariate_name_short", "covariate_id_nacional")],
+                   list(covariate_name_short = "haqi", covariate_id_nacional = 1098L))
+})
+
+test_that("valor_nacional_de: sin el valor nacional de la covariable nombrada, el error la nombra", {
+  e <- expect_error(proyecto_valor_nacional_de(ejemplo_calibrado(), copia = TRUE, nombre = "haqi_otro"),
+                    class = "dl_error")
+  expect_match(e$problemas, paste0("^betas: valor_nacional_de nombra haqi_otro, sin valor nacional de 2023 \\(el año ",
+                                   "del ancla\\) en la tabla covariables$"), all = FALSE)
+})
+
+test_that("valor_nacional_de con proxies_crudos: la calibración cierra en la covariable nombrada", {
+  d <- dl_ejemplo()
+  for (copia in c(FALSE, TRUE)) {
+    p <- proyecto_valor_nacional_de(d, copia = copia, mas = 3)
+    k <- attr(p$calibracion, "calibracion")
+    expect_identical(k$valor_nacional_de, c(NA, NA, "haqi_estandarizado"))
+    b <- suppressMessages(dl_insumos(p))                  # las reglas pasan: los proxies cierran en su ancla
+    px <- b$cov_proxy[covariate_id_gbd == 1098L]
+    expect_identical(unique(px$ancla_ghdx), 50.9 + 3)
+    pob <- p$tablas$poblacion[anio == 2023, list(w = sum(poblacion)), by = ubicacion]
+    expect_equal(sum(px$valor_calibrado * pob$w[match(px$location_id, pob$ubicacion)]) /
+                   sum(pob$w[match(px$location_id, pob$ubicacion)]), 53.9, tolerance = 1e-12)
+  }
+  # la revisión de la carpeta calibra igual
+  d2 <- copia_ejemplo()
+  cv <- proyecto_valor_nacional_de(d, copia = FALSE, mas = 3)$tablas
+  unlink(file.path(d2, "covariables"), recursive = TRUE)
+  data.table::fwrite(cv$covariables, file.path(d2, "covariables.csv"))
+  data.table::fwrite(cv$betas, file.path(d2, "betas.csv"))
+  utils::capture.output(rev <- suppressMessages(dl_revisar_proyecto(d2, 9100)))
+  expect_false(any(rev$estado == "error"))
+  expect_identical(rev$estado[rev$paso == "proxies"], "ok")
+  expect_identical(attr(dl_proyecto(d2, 9100)$calibracion, "calibracion")$valor_nacional_de,
+                   c(NA, NA, "haqi_estandarizado"))
+})

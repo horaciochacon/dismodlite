@@ -284,8 +284,9 @@
   if (!is.list(s) || is.null(names(s)))
     .dl_stop_config_simple(archivo, "el archivo no es una lista de claves (clave: valor, una por l\u00ednea)")
   tablas <- .dl_tablas_proyecto(carpeta, dadas, .dl_opciones_lectores(s), cuales = .dl_tablas_de(s))
-  .dl_config_de_tablas(s, archivo, causa, tablas, .dl_causas_config(carpeta, s, causa), base, cambios,
-                       .dl_calibracion_proyecto(s, archivo, tablas, cambios, causa))
+  causas <- .dl_causas_config(carpeta, s, causa)
+  .dl_config_de_tablas(s, archivo, causa, tablas, causas, base, cambios,
+                       .dl_calibracion_proyecto(s, archivo, tablas, cambios, causa, .dl_padre_de(causas, causa)))
 }
 
 # La configuración de `causa` con las tablas ya leídas (lo que sigue a su lectura en .dl_preparar_contrato; la
@@ -364,11 +365,12 @@
 # La calibración de proxies_crudos (dl_calibrar_proxies) con la configuración `s` (de `archivo`) y los `cambios` del
 # formato completo (los de dl_configuracion()): el año que se estima (years.ajuste de `cambios` o anio), el del valor
 # nacional (years.ancla de `cambios` o, sin ella, el año del ancla del proyecto: .dl_anio_ancla_leido, con
-# ancla.anio y los años del ancla de `causa`) y las claves proxies.metodo, proxies.transformacion y proxies.excluir.
+# ancla.anio y los años del ancla de `causa`), las claves proxies.metodo, proxies.transformacion y proxies.excluir y
+# el valor_nacional_de de las betas de la causa (.dl_nacional_de_betas; `padre`: la causa padre de un subtipo).
 # Los años salen de `s`, `cambios` y la tabla ancla, no de la configuración traducida, que necesita la calibración
 # para su contexto. Los avisos de la calibración siguen su curso y quedan también en su atributo `avisos`, para la
 # revisión de un proyecto ya leído. NULL si el proyecto no trae proxies_crudos.
-.dl_calibracion_proyecto <- function(s, archivo, tablas, cambios = NULL, causa = s[["causa"]]) {
+.dl_calibracion_proyecto <- function(s, archivo, tablas, cambios = NULL, causa = s[["causa"]], padre = NULL) {
   if (is.null(tablas$proxies_crudos)) return(NULL)
   s <- .dl_claves_config_simple(s, archivo)
   .dl_exigir_proxies_proyecto(s, tablas)
@@ -381,10 +383,22 @@
                         transformacion = unlist(.dl_valor_en(s, "proxies.transformacion")),
                         excluir = if (length(ex)) data.table::rbindlist(ex, fill = TRUE),
                         anio_nacional = as.integer(cambios$years$ancla$valor %||% .dl_anio_ancla_leido(
-                          anio, .dl_valor_en(s, "ancla.anio"), .dl_anios_ancla(tablas, causa))$anio)),
+                          anio, .dl_valor_en(s, "ancla.anio"), .dl_anios_ancla(tablas, causa))$anio),
+                        valor_nacional_de = .dl_nacional_de_betas(tablas, causa, .dl_padre_extraction(s) %||% padre)),
     warning = function(w) avisos <<- c(avisos, w$detalle %||% conditionMessage(w)))
   if (length(avisos)) data.table::setattr(cal, "avisos", avisos)
   cal
+}
+
+# El argumento valor_nacional_de de dl_calibrar_proxies() que declara la tabla betas: de las betas de `causa` (las de
+# `padre` si es un subtipo sin betas propias) cuya covariable está en proxies_crudos, covariable -> su
+# valor_nacional_de. NULL si ninguna lo declara.
+.dl_nacional_de_betas <- function(tablas, causa, padre = NULL) {
+  b <- .dl_betas_de_causa(tablas$betas, causa, padre)
+  if (is.null(b) || !"valor_nacional_de" %in% names(b)) return(NULL)
+  b <- unique(b[!is.na(b$valor_nacional_de) & b$covariable %in% tablas$proxies_crudos$covariable,
+                c("covariable", "valor_nacional_de"), with = FALSE])
+  if (nrow(b)) stats::setNames(b$valor_nacional_de, b$covariable)
 }
 
 # Lo que la calibración del proyecto necesita antes de empezar, en palabras del proyecto: la tabla covariables (con

@@ -591,8 +591,9 @@ NULL
   unique(cov$covariable[.dl_es_nacional(cov, .dl_ubicacion_nacional(tablas)) & (is.na(a) | a == anio)])
 }
 
-# betas (las de la causa): cada covariable y cada valor_nacional_de tiene valor nacional en el año del ancla; escala
-# solo con la transformación lineal (con log o logit, vacía o 1).
+# betas (las de la causa): cada covariable tiene valor nacional en el año del ancla, el suyo o, si la fila declara
+# valor_nacional_de, el de la covariable que nombra (la fila nacional propia no hace falta); escala solo con la
+# transformación lineal (con log o logit, vacía o 1).
 .dl_regla_betas <- function(tablas, cfg) {
   b <- .dl_betas_de_causa(tablas$betas, cfg$cause_id, cfg$extraction$cause_id)
   if (is.null(b) || !nrow(b)) return(character())
@@ -600,8 +601,8 @@ NULL
   nac <- .dl_covariables_nacionales(tablas, anio)
   donde <- sprintf("de %d (el a\u00f1o del ancla) en la tabla covariables%s", anio,
                    if (is.null(tablas$covariables)) ", que no est\u00e1" else "")
-  sin <- setdiff(b$covariable, nac)
   vn <- .dl_col(b, "valor_nacional_de", NA_character_)
+  sin <- setdiff(b$covariable[is.na(vn)], nac)
   vn_sin <- setdiff(vn[!is.na(vn)], nac)
   escala <- .dl_col(b, "escala", NA_real_)
   mal <- b$transformacion %in% c("log", "logit") & !is.na(escala) & escala != 1

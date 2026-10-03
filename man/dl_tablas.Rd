@@ -138,7 +138,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \code{beta} \tab número \tab sí \tab Coeficiente publicado\cr
 \code{inferior} \tab número \tab no \tab Límite inferior del 95 \% (vacío: beta fija)\cr
 \code{superior} \tab número \tab no \tab Límite superior del 95 \% (vacío: beta fija)\cr
-\code{valor_nacional_de} \tab texto \tab no \tab Otra covariable cuyo valor nacional ancla a esta\cr
+\code{valor_nacional_de} \tab texto \tab no \tab Otra covariable cuyo valor nacional ancla a esta (su fila nacional propia no hace falta)\cr
 \code{escala_confirmada} \tab lógico \tab no \tab true confirma una beta lineal grande con escala 1\cr
 \code{fuente} \tab texto \tab no \tab De dónde sale la beta\cr
 }
@@ -152,7 +152,7 @@ a \code{\link[=dl_proyecto]{dl_proyecto()}}. Las descargas de GBD Results y del 
 \item{\code{beta}}{Coeficiente publicado. Número, obligatoria.}
 \item{\code{inferior}}{Límite inferior del 95 \% (vacío: beta fija). Número, opcional.}
 \item{\code{superior}}{Límite superior del 95 \% (vacío: beta fija). Número, opcional.}
-\item{\code{valor_nacional_de}}{Otra covariable cuyo valor nacional ancla a esta. Texto, opcional.}
+\item{\code{valor_nacional_de}}{Otra covariable cuyo valor nacional ancla a esta (su fila nacional propia no hace falta). Texto, opcional.}
 \item{\code{escala_confirmada}}{true confirma una beta lineal grande con escala 1. Lógico, opcional.}
 \item{\code{fuente}}{De dónde sale la beta. Texto, opcional.}
 }

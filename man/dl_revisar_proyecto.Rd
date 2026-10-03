@@ -41,9 +41,9 @@ padre); que la población traiga el año que se estima y los sexos del modelo, c
 todas las ubicaciones, años y sexos, seguidas (sin huecos) y desde \code{edad_inicio}; que el ancla traiga la
 prevalencia de la causa (y la mortalidad, si la usa el prior de la mortalidad en exceso) en el año del ancla y en
 cada sexo, y la columna \code{causa} si el proyecto tiene varias; que cada banda del ancla sea una unión de bandas de
-la población o se pueda agrupar con \code{poblacion_detalle}; que cada covariable de \code{betas} (y cada
-\code{valor_nacional_de}) tenga su valor nacional en el año del ancla y que \code{escala} vaya solo con la transformación
-lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
+la población o se pueda agrupar con \code{poblacion_detalle}; que cada covariable de \code{betas} tenga su valor nacional
+en el año del ancla (el suyo o, con \code{valor_nacional_de}, el de la covariable que nombra) y que \code{escala} vaya
+solo con la transformación lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
 que se anclan traiga su intervalo (\code{inferior} y \code{superior}); que las proporciones de \code{severidad} sumen 1. Avisa
 (\code{!}) de una covariable con proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera
 de la estimación subnacional) y de valores de mortalidad de \code{datos} que parecen tasas por 100 000 en vez de por

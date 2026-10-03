@@ -251,8 +251,12 @@ subnacional usa las betas cuya covariable tiene filas subnacionales en `covariab
   la covariable en 0-1 y la descarga viene en 0-100. La guía
   [Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html#escala)
   lo explica con un ejemplo.
-- `valor_nacional_de`: otra covariable cuyo valor nacional ancla a esta (por ejemplo, un proxy subnacional de otra
-  fuente que se compara con la covariable de GBD).
+- `valor_nacional_de`: otra covariable cuyo valor nacional ancla a esta. Por ejemplo, una beta estimada por edad
+  cuyos valores subnacionales se comparan con la versión estandarizada por edad de la misma covariable. La
+  covariable de la beta no necesita entonces su fila nacional en `covariables`: basta la de la covariable nombrada.
+  Si los valores subnacionales vienen de `proxies_crudos`, la calibración cierra en ese mismo valor nacional. La guía
+  [Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html#valor-nacional-de)
+  lo explica.
 
 ```{r}
 #| label: col-betas
@@ -880,8 +884,8 @@ Antes de correr:
       subnacionales, con las mismas bandas en todas, seguidas y sin huecos.
 - [ ] `ancla/` tiene la descarga sin editar, con todas las medidas en *Rate*, de los dos sexos y del año que se
       estima; si sus bandas son más finas que las de la población (80 y más, menores de 5), hay `poblacion_detalle`.
-- [ ] Cada beta de `betas` tiene su covariable en `covariables`, con su valor nacional; los proxies subnacionales
-      cierran en el valor nacional.
+- [ ] Cada beta de `betas` tiene su covariable en `covariables`, con su valor nacional (o, con `valor_nacional_de`,
+      el de la covariable que nombra); los proxies subnacionales cierran en ese valor nacional.
 - [ ] `datos` tiene la prevalencia como proporción y las tasas por persona-año, una fila por sexo; los datos
       excluidos tienen `motivo`; `datos_en_ajuste` lista las medidas que deben entrar, y `ancla.peso` y `notas`
       reflejan un posible doble conteo.
