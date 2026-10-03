@@ -160,8 +160,8 @@
 # que suma todas las bandas de la población); `con_edades` dice si traían las columnas (las filas que salen las
 # llevan solo entonces, vacías en las de todas las edades); avisa si `excluir` nombra ediciones que no están. `ubicaciones`: las subnacionales de
 # los crudos, también las de ediciones excluidas; `quitadas`: las (covariable, anio) excluidas, con su motivo;
-# `covs`: las covariables de los crudos.
-.dl_leer_entradas_proxies <- function(crudos, covariables, poblacion, excluir) {
+# `covs`: las covariables de los crudos. `ubicacion_gbd`: la de dl_tabla(), para leer `covariables`.
+.dl_leer_entradas_proxies <- function(crudos, covariables, poblacion, excluir, ubicacion_gbd = NULL) {
   cr <- dl_tabla("proxies_crudos", crudos)
   con_edades <- "edad_inicio" %in% names(cr)
   if (!"sexo" %in% names(cr)) data.table::set(cr, j = "sexo", value = "ambos")
@@ -176,8 +176,8 @@
   quitadas <- unique(cr[fuera, c("covariable", "anio"), with = FALSE])
   data.table::set(quitadas, j = "motivo", value = excluir$motivo[match(quitadas$anio, excluir$anio)])
   list(crudos = cr[!fuera], quitadas = quitadas, ubicaciones = unique(cr$ubicacion), covs = unique(cr$covariable),
-       covariables = dl_tabla("covariables", covariables), poblacion = dl_tabla("poblacion", poblacion),
-       con_edades = con_edades)
+       covariables = dl_tabla("covariables", covariables, ubicacion_gbd = ubicacion_gbd),
+       poblacion = dl_tabla("poblacion", poblacion), con_edades = con_edades)
 }
 
 # `excluir` como data.frame(anio, motivo); vacío si es NULL. Error si no tiene esas columnas, si un año no es un
@@ -562,6 +562,9 @@
 #'   no nombra usan `"cociente"`.
 #' @param excluir `data.frame` con `anio` y `motivo`: ediciones que no entran. Cada una necesita su motivo.
 #' @param anio_nacional Año del valor nacional que cierra las filas. Por defecto, `anio`.
+#' @param ubicacion_gbd `location_id` de GBD del país, para leer `covariables` cuando es una carpeta (o un CSV) de
+#'   descargas del GHDx con varias ubicaciones, como la carpeta `covariables/` de un proyecto (ver [dl_tabla()]).
+#'   No hace falta si `covariables` ya es una tabla leída.
 #' @return Una [dl_tabla()] `covariables` con las filas subnacionales del año: `ubicacion`, `anio`, `sexo`, las
 #'   edades (si los crudos las traen; vacías en las de todas las edades), `covariable`, `valor`, `error_estandar` y
 #'   `fuente` (el indicador, el método, q y las ediciones de la serie). Tres atributos:
@@ -606,12 +609,12 @@
 #' head(cal19)
 #' @export
 dl_calibrar_proxies <- function(crudos, covariables, poblacion, anio, metodo = c("paseo_aleatorio", "edicion"),
-                                transformacion = NULL, excluir = NULL, anio_nacional = anio) {
+                                transformacion = NULL, excluir = NULL, anio_nacional = anio, ubicacion_gbd = NULL) {
   metodo <- match.arg(metodo)
   if (!.dl_es_entero1(anio)) .dl_stop("`anio` debe ser un a\u00f1o (un entero); es %s", .dl_describir_objeto(anio))
   if (!.dl_es_entero1(anio_nacional))
     .dl_stop("`anio_nacional` debe ser un a\u00f1o (un entero); es %s", .dl_describir_objeto(anio_nacional))
-  e <- .dl_leer_entradas_proxies(crudos, covariables, poblacion, excluir)
+  e <- .dl_leer_entradas_proxies(crudos, covariables, poblacion, excluir, ubicacion_gbd)
   tr <- .dl_validar_crudos(e, transformacion)
   .dl_validar_nacionales(e, anio_nacional)
   gr <- .dl_gradientes(e$crudos, e$poblacion, tr)

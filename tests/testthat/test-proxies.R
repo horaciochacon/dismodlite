@@ -353,3 +353,16 @@ test_that("errores menores: sexo que falta en la población y años de excluir n
     expect_error(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), 2023,
                                      excluir = data.frame(anio = a, motivo = "x")), "enteros")
 })
+
+# La carpeta covariables/ del ejemplo trae las descargas del GHDx con varias ubicaciones (el país y otras): sin
+# ubicacion_gbd no se sabe cuál es el valor nacional; con ella, da lo mismo que la tabla ya leída del proyecto.
+test_that("ubicacion_gbd: la carpeta de descargas del GHDx del ejemplo, con varias ubicaciones", {
+  d <- dl_ejemplo()
+  args <- list(file.path(d, "proxies_crudos.csv"), file.path(d, "covariables"), file.path(d, "poblacion.csv"),
+               anio = 2023, transformacion = c(haqi = "diferencia"))
+  expect_error(do.call(dl_calibrar_proxies, args), "varias ubicaciones.*ubicacion_gbd")
+  cal <- suppressMessages(do.call(dl_calibrar_proxies, c(args, ubicacion_gbd = 123)))
+  p <- suppressMessages(dl_proyecto(d, causa = 9100))
+  expect_equal(cal$valor, p$calibracion$valor)
+  expect_identical(cal$ubicacion, p$calibracion$ubicacion)
+})

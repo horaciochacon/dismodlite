@@ -224,7 +224,8 @@ proxies:
 **Una sola fuente por covariable.** Las filas subnacionales de cada covariable vienen de `covariables` o de
 `proxies_crudos`, no de las dos; un proyecto puede calibrar unas covariables y traer otras ya calibradas. Para
 calibrar fuera de un proyecto (otro año, otra configuración), `dl_calibrar_proxies()` hace lo mismo con las tablas
-como argumentos.
+como argumentos; si `covariables` es la carpeta de descargas del GHDx, con varias ubicaciones, `ubicacion_gbd` dice
+cuál es el país (como en `dl_tabla()`).
 
 **Cómo queda registrada.** `print(proyecto)` y `dl_revisar_proyecto()` (en su paso «proxies») dan, por covariable,
 el método, q y las ediciones. Cada corrida de `dl_correr()` guarda la tabla `proxies_crudos` tal como vino en

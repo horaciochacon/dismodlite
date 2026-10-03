@@ -12,7 +12,8 @@ dl_calibrar_proxies(
   metodo = c("paseo_aleatorio", "edicion"),
   transformacion = NULL,
   excluir = NULL,
-  anio_nacional = anio
+  anio_nacional = anio,
+  ubicacion_gbd = NULL
 )
 }
 \arguments{
@@ -35,6 +36,10 @@ no nombra usan \code{"cociente"}.}
 \item{excluir}{\code{data.frame} con \code{anio} y \code{motivo}: ediciones que no entran. Cada una necesita su motivo.}
 
 \item{anio_nacional}{Año del valor nacional que cierra las filas. Por defecto, \code{anio}.}
+
+\item{ubicacion_gbd}{\code{location_id} de GBD del país, para leer \code{covariables} cuando es una carpeta (o un CSV) de
+descargas del GHDx con varias ubicaciones, como la carpeta \verb{covariables/} de un proyecto (ver \code{\link[=dl_tabla]{dl_tabla()}}).
+No hace falta si \code{covariables} ya es una tabla leída.}
 }
 \value{
 Una \code{\link[=dl_tabla]{dl_tabla()}} \code{covariables} con las filas subnacionales del año: \code{ubicacion}, \code{anio}, \code{sexo}, las
