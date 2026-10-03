@@ -383,8 +383,9 @@
 
 # covariables y betas -> ids (covariable -> covariate_id), nacional (los valores nacionales en el formato de la descarga
 # del GHDx, para la carpeta covariables/ de la traducción) y betas (las de la causa). NULL si la causa no tiene betas.
-# El valor nacional se exige de cada covariable de una beta sin valor_nacional_de y de cada covariable que
-# valor_nacional_de nombra; el de la covariable de una beta que lo declara entra si la tabla lo trae.
+# El valor nacional se exige de cada covariable que necesita su propia fila (.dl_betas_con_fila_propia: la de una beta
+# sin valor_nacional_de, o con él y sin valores subnacionales) y de cada covariable que valor_nacional_de nombra; el
+# de las demás entra si la tabla lo trae.
 .dl_trad_covariables <- function(tablas, cfg, bandas) {
   betas <- .dl_betas_de_causa(tablas$betas, cfg$cause_id, cfg$extraction$cause_id)
   if (is.null(betas) || !nrow(betas)) return(NULL)
@@ -396,7 +397,7 @@
   cov <- tablas$covariables
   d <- cov[.dl_es_nacional(cov, nacional) & cov$covariable %in% names(ids)]
   vn <- .dl_col(betas, "valor_nacional_de", NA_character_)
-  faltan <- setdiff(unique(c(betas$covariable[is.na(vn)], vn[!is.na(vn)])), d$covariable)
+  faltan <- setdiff(unique(c(.dl_betas_con_fila_propia(tablas, betas), vn[!is.na(vn)])), d$covariable)
   if (length(faltan))
     .dl_stop("la tabla covariables no trae el valor nacional (ubicaci\u00f3n %s) de %s, que usa la tabla betas",
              nacional, paste(faltan, collapse = ", "))

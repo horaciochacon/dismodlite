@@ -595,9 +595,25 @@ NULL
   unique(cov$covariable[.dl_es_nacional(cov, .dl_ubicacion_nacional(tablas)) & (is.na(a) | a == anio)])
 }
 
+# Covariables con valores subnacionales: filas subnacionales en covariables o filas en proxies_crudos.
+.dl_covariables_subnacionales <- function(tablas) {
+  cov <- tablas$covariables
+  unique(c(if (!is.null(cov)) cov$covariable[!.dl_es_nacional(cov, .dl_ubicacion_nacional(tablas))],
+           tablas$proxies_crudos$covariable))
+}
+
+# Las covariables de las betas `b` que necesitan su propia fila nacional: las de una beta sin valor_nacional_de y las
+# de una que lo declara si la covariable no tiene valores subnacionales (sin ellos no hay proxy que anclar en el valor
+# nacional de la otra, y el modelo usa el suyo).
+.dl_betas_con_fila_propia <- function(tablas, b) {
+  vn <- .dl_col(b, "valor_nacional_de", NA_character_)
+  unique(b$covariable[is.na(vn) | !b$covariable %in% .dl_covariables_subnacionales(tablas)])
+}
+
 # betas (las de la causa): cada covariable tiene valor nacional en el año del ancla, el suyo o, si la fila declara
-# valor_nacional_de, el de la covariable que nombra (la fila nacional propia no hace falta); escala solo con la
-# transformación lineal (con log o logit, vacía o 1).
+# valor_nacional_de y la covariable tiene valores subnacionales, el de la covariable que nombra (la fila nacional
+# propia no hace falta: .dl_betas_con_fila_propia); escala solo con la transformación lineal (con log o logit, vacía
+# o 1).
 .dl_regla_betas <- function(tablas, cfg) {
   b <- .dl_betas_de_causa(tablas$betas, cfg$cause_id, cfg$extraction$cause_id)
   if (is.null(b) || !nrow(b)) return(character())
@@ -606,7 +622,7 @@ NULL
   donde <- sprintf("de %d (el a\u00f1o del ancla) en la tabla covariables%s", anio,
                    if (is.null(tablas$covariables)) ", que no est\u00e1" else "")
   vn <- .dl_col(b, "valor_nacional_de", NA_character_)
-  sin <- setdiff(b$covariable[is.na(vn)], nac)
+  sin <- setdiff(.dl_betas_con_fila_propia(tablas, b), nac)
   vn_sin <- setdiff(vn[!is.na(vn)], nac)
   escala <- .dl_col(b, "escala", NA_real_)
   mal <- b$transformacion %in% c("log", "logit") & !is.na(escala) & escala != 1

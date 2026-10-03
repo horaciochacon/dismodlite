@@ -279,14 +279,17 @@
 # severidad de la partición si la configuración la declara, el contexto que la configuración toma de ellas y su
 # traducción (.dl_config_simple, con `cambios`); y la carpeta de esa partición (`particion`, o NULL), que dl_insumos()
 # necesita para las fracciones de un componente. `base`: la carpeta de las rutas relativas de la configuración.
+# `ancla_declarado`: el ancla.anio del archivo cuando el argumento `anio` de dl_proyecto() lo bajó al año que se
+# estima (.dl_config_a_leer); va al contexto de la traducción, para la procedencia del año del ancla.
 .dl_preparar_contrato <- function(s, archivo, causa, carpeta, dadas = list(), cambios = NULL,
-                                  base = carpeta %||% .dl_raiz_proyecto(archivo)) {
+                                  base = carpeta %||% .dl_raiz_proyecto(archivo), ancla_declarado = NULL) {
   if (!is.list(s) || is.null(names(s)))
     .dl_stop_config_simple(archivo, "el archivo no es una lista de claves (clave: valor, una por l\u00ednea)")
   tablas <- .dl_tablas_proyecto(carpeta, dadas, .dl_opciones_lectores(s), cuales = .dl_tablas_de(s))
   causas <- .dl_causas_config(carpeta, s, causa)
   .dl_config_de_tablas(s, archivo, causa, tablas, causas, base, cambios,
-                       .dl_calibracion_proyecto(s, archivo, tablas, cambios, causa, .dl_padre_de(causas, causa)))
+                       .dl_calibracion_proyecto(s, archivo, tablas, cambios, causa, .dl_padre_de(causas, causa)),
+                       ancla_declarado)
 }
 
 # La configuración de `causa` con las tablas ya leídas (lo que sigue a su lectura en .dl_preparar_contrato; la
@@ -295,7 +298,8 @@
 # las tablas tal como se leyeron; NULL sin ellos), que hace quien llama: .dl_preparar_contrato o el paso «proxies» de
 # la revisión. El contexto y la traducción ven las tablas del modelo (`tablas_modelo`: covariables con las filas
 # calibradas); `tablas` son las del proyecto tal como vinieron.
-.dl_config_de_tablas <- function(s, archivo, causa, tablas, causas, base, cambios = NULL, calibracion = NULL) {
+.dl_config_de_tablas <- function(s, archivo, causa, tablas, causas, base, cambios = NULL, calibracion = NULL,
+                                 ancla_declarado = NULL) {
   particion <- if (!.dl_es_suma(s)) .dl_valor_en(s, "severidad.particion")
   if (!is.null(particion)) {
     ruta <- normalizePath(file.path(base, particion), winslash = "/", mustWork = FALSE)
@@ -309,6 +313,7 @@
   .dl_comprobar_un_padre(s, archivo, causa, causas)
   tm <- .dl_tablas_modelo(tablas, calibracion)
   ctx <- .dl_contexto_tablas(tm, causa, .dl_padre_extraction(s) %||% .dl_padre_de(causas, causa))
+  ctx$ancla_declarado <- ancla_declarado
   list(cfg = .dl_config_simple(s, archivo, causa, ctx, cambios), tablas = tablas, tablas_modelo = tm,
        calibracion = calibracion, causas = causas, particion = particion)
 }
@@ -343,6 +348,12 @@
   if (!is.null(declarado)) return(list(anio = declarado, proyectado = FALSE))
   .dl_anio_ancla_proyecto(anio, NULL, anios_ancla)
 }
+
+# La procedencia de years.ancla cuando el argumento `anio` de dl_proyecto() pide un año anterior al ancla.anio que
+# declara la configuración (`declarado`): el año del ancla es el que se estima.
+.dl_procedencia_ancla_anterior <- function(anio, declarado)
+  sprintf(paste0("el a\u00f1o del ancla es el que se estima (%d): el ancla.anio declarado en la configuraci\u00f3n ",
+                 "del proyecto (%d) es posterior"), anio, declarado)
 
 # La procedencia de years.ancla cuando el año del ancla se proyecta sin que la configuración lo declare.
 .dl_procedencia_proyeccion <- function(anio, desde)
@@ -669,11 +680,12 @@
 #' Cada tabla es `<tabla>.csv` o una carpeta `<tabla>/` cuyos CSV se juntan (cada uno pasa por su lector), como
 #' `poblacion_detalle/` con un CSV por fuente. Las rutas no se declaran, salvo la de la partición de severidad
 #' (`severidad.particion`, relativa a la carpeta). Los demás archivos de la carpeta (un `LEEME.md`, la carpeta
-#' `resultados/` que escribe [dl_correr()]) no se leen. Una tabla opcional ausente, o con solo el encabezado, no existe (así quedan las plantillas de
-#' [dl_nuevo_proyecto()]). Las obligatorias son `ubicaciones`, `poblacion` y `ancla` (una causa que es la suma de sus
-#' subtipos solo usa las dos primeras: ver «Subtipos y la causa que es su suma»): con ellas se estima la causa en
-#' el país y, si hay ubicaciones subnacionales, en cada una con las tasas nacionales. [dl_correr()], que calcula los
-#' años vividos con discapacidad (AVD), necesita también `severidad` (o `severidad.particion` en la configuración).
+#' `resultados/` que escribe [dl_correr()]) no se leen. Una tabla opcional ausente, o con solo el encabezado, no
+#' existe (así quedan las plantillas de [dl_nuevo_proyecto()]). Las obligatorias son `ubicaciones`, `poblacion` y
+#' `ancla` (una causa que es la suma de sus subtipos solo usa las dos primeras: ver «Subtipos y la causa que es su
+#' suma»): con ellas se estima la causa en el país y, si hay ubicaciones subnacionales, en cada una con las tasas
+#' nacionales. [dl_correr()], que calcula los años vividos con discapacidad (AVD), necesita también `severidad` (o
+#' `severidad.particion` en la configuración).
 #' `covariables` y `betas` agregan las diferencias entre ubicaciones subnacionales y `datos`, los datos locales. Las
 #' columnas de cada tabla, sus unidades y sus valores están en [dl_tablas]. Con `proxies_crudos`, `dl_proyecto()`
 #' calibra los valores subnacionales de sus covariables para el año que se estima ([dl_calibrar_proxies()], con las
@@ -748,6 +760,8 @@
 #'     `poblacion`.
 #'   - `calibracion`: solo si el proyecto trae `proxies_crudos`, el resultado de [dl_calibrar_proxies()] (las filas
 #'     calibradas, con los atributos `calibracion`, `series` y `excluidas`).
+#'   - `configuracion_dada`: solo si `configuracion` se dio como lista, esa lista tal como se dio (con ella
+#'     [dl_correr()] vuelve a leer el proyecto para cada año de `anios`).
 #' @seealso [dl_tablas] (las tablas), [dl_configuracion()] (las claves de la configuración), [dl_insumos()] (el paso
 #'   siguiente), [dl_ejemplo()] (el proyecto de ejemplo), [dl_nuevo_proyecto()] (crear la carpeta de un proyecto),
 #'   [dl_revisar_proyecto()] (revisarla antes de correr) y [dl_correr()] (la corrida completa en una llamada).
@@ -807,17 +821,22 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL,
   as.integer(anio)
 }
 
-# La configuración que lee dl_proyecto(): list(s, archivo, causa, simple, origen: la lista dada o NULL). Sin `configuracion`, la de `causa` en la
-# carpeta (.dl_configs_proyecto y .dl_elegir_configs); con ella, su archivo o la lista misma. La causa es la pedida o,
-# sin ella, la que declara la configuración. Con `anio`, una configuración simple se lee con ese año en su clave
-# `anio`, como si el archivo lo trajera (la del formato completo lo recibe después, como un cambio de years.ajuste),
-# y un ancla.anio posterior baja a ese año (.dl_anio_ancla_proyecto): la configuración sirve para los años anteriores.
+# La configuración que lee dl_proyecto(): list(s, archivo, causa, simple, origen: la lista dada o NULL). Sin
+# `configuracion`, la de `causa` en la carpeta (.dl_configs_proyecto y .dl_elegir_configs); con ella, su archivo o la
+# lista misma. La causa es la pedida o, sin ella, la que declara la configuración. Con `anio`, una configuración
+# simple se lee con ese año en su clave `anio`, como si el archivo lo trajera (la del formato completo lo recibe
+# después, como un cambio de years.ajuste), y un ancla.anio posterior baja a ese año (.dl_anio_ancla_proyecto): la
+# configuración sirve para los años anteriores. `ancla_declarado` guarda ese ancla.anio posterior, para la procedencia
+# del año del ancla (NULL si no bajó).
 .dl_config_a_leer <- function(carpeta, causa, configuracion, anio = NULL) {
   con_anio <- function(cf) {
     if (is.null(anio) || !cf$simple || !is.list(cf$s)) return(cf)
     cf$s[["anio"]] <- anio
     declarado <- .dl_valor_en(cf$s, "ancla.anio")
-    if (.dl_es_entero1(declarado)) cf$s$ancla$anio <- .dl_anio_ancla_proyecto(anio, declarado, integer())$anio
+    if (.dl_es_entero1(declarado)) {
+      cf$s$ancla$anio <- .dl_anio_ancla_proyecto(anio, declarado, integer())$anio
+      if (declarado > anio) cf$ancla_declarado <- as.integer(declarado)
+    }
     cf
   }
   if (is.null(configuracion)) {
@@ -847,7 +866,7 @@ dl_proyecto <- function(carpeta = NULL, causa = NULL, ..., configuracion = NULL,
 # identifica por la carpeta o, sin ella, por el archivo de la configuración o el contenido de la lista. Un año del
 # ancla proyectado sin declararlo (.dl_proyeccion_anunciada) se anuncia con un mensaje.
 .dl_proyecto_contrato <- function(carpeta, cf, dadas) {
-  pre <- .dl_preparar_contrato(cf$s, cf$archivo, cf$causa, carpeta, dadas)
+  pre <- .dl_preparar_contrato(cf$s, cf$archivo, cf$causa, carpeta, dadas, ancla_declarado = cf$ancla_declarado)
   .dl_exigir_reglas_proyecto(pre)
   proyeccion <- .dl_proyeccion_anunciada(pre$cfg)
   if (!is.null(proyeccion)) .dl_message("%s", proyeccion)

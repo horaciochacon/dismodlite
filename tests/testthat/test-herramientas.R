@@ -465,6 +465,38 @@ test_that("dl_correr(anios = ) corre la causa una vez por año y devuelve una co
   expect_match(conditionMessage(e0), "No quedó escrita ninguna corrida\\.")
 })
 
+test_that("el error de un año conserva la clase del error original", {
+  propio <- structure(class = c("error_propio", "error", "condition"), list(message = "algo falló", call = NULL))
+  e <- expect_error(.dl_en_anio(2020L, list(), stop(propio)), "la corrida del año 2020 falló: algo falló",
+                    class = "error_propio")
+  expect_s3_class(e, "dl_error")
+  expect_identical(class(e), c("error_propio", "dl_error", "error", "condition"))
+  expect_identical(e[c("anio", "escritas")], list(anio = 2020L, escritas = integer()))
+  # el de un error del paquete sigue siendo un dl_error, sin clases repetidas
+  e <- expect_error(.dl_en_anio(2020L, list(), .dl_stop("no se pudo")), "falló: no se pudo", class = "dl_error")
+  expect_identical(class(e), c("dl_error", "error", "condition"))
+})
+
+test_that("dl_correr(anios = ) con forzar = TRUE y registro: cada año se escribe forzado y queda registrado", {
+  d <- copia_ejemplo()
+  reg <- file.path(d, "registro.yaml"); writeLines("datasets: []", reg)
+  o <- dl_opciones_mcmc(simulaciones = 100L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L,
+                        adelgazamiento = 1L)
+  mensajes <- character()
+  r <- withCallingHandlers(dl_correr(d, 9101, semilla = 1, opciones = o, sensibilidad = FALSE, forzar = TRUE,
+                                     registro = reg, anios = c(2019, 2023)),
+                           message = function(m) {
+                             mensajes <<- c(mensajes, conditionMessage(m)); invokeRestart("muffleMessage")
+                           })
+  expect_s3_class(r, "dl_corridas")
+  expect_identical(names(r), c("2019", "2023"))
+  expect_true(all(vapply(r, function(x) isTRUE(x$manifest$validacion$gates$force), NA)))
+  expect_match(vapply(r, function(x) x$run_id, ""), "_causa-9101-20(19|23)_v1$")     # corridas de producción
+  expect_length(grep("forzar = TRUE: las cadenas no convergieron", mensajes), 2L)    # una vez por año
+  registradas <- vapply(yaml::read_yaml(reg)$datasets, function(x) x$run_id, "")
+  expect_identical(registradas, unname(vapply(r, function(x) x$run_id, "")))
+})
+
 # ---- Una causa que es la suma de sus subtipos ----
 
 test_that("dl_revisar_proyecto() de una suma: sus tablas, su configuración y sus subtipos, sin pasos de modelo", {

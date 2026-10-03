@@ -128,7 +128,9 @@ otra: una beta estimada por edad cuyos valores subnacionales se comparan con la 
 la misma covariable. \code{valor_nacional_de} lo dice, covariable de los crudos = covariable de \code{covariables}: X es
 entonces el valor nacional de la covariable nombrada, que se busca con las mismas reglas, y la propia no necesita
 fila nacional. Las filas que salen llevan el nombre de la covariable de los crudos. En un proyecto es la columna
-\code{valor_nacional_de} de la tabla \code{betas} (\link{dl_tablas}), y \code{\link[=dl_proyecto]{dl_proyecto()}} la pasa a la calibración.
+\code{valor_nacional_de} de la tabla \code{betas} (\link{dl_tablas}), y \code{\link[=dl_proyecto]{dl_proyecto()}} la pasa a la calibración (en un proyecto,
+la beta queda eximida de su fila nacional solo si su covariable tiene valores subnacionales, en \code{covariables} o en
+\code{proxies_crudos}).
 
 \strong{Aproximaciones declaradas.} El error de X_d no incluye la incertidumbre de la normalización ni la del valor
 nacional; se/p es la aproximación delta; la población de cada edición (y la del cierre) es la del año más cercano

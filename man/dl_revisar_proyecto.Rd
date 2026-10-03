@@ -42,12 +42,13 @@ todas las ubicaciones, años y sexos, seguidas (sin huecos) y desde \code{edad_i
 prevalencia de la causa (y la mortalidad, si la usa el prior de la mortalidad en exceso) en el año del ancla y en
 cada sexo, y la columna \code{causa} si el proyecto tiene varias; que cada banda del ancla sea una unión de bandas de
 la población o se pueda agrupar con \code{poblacion_detalle}; que cada covariable de \code{betas} tenga su valor nacional
-en el año del ancla (el suyo o, con \code{valor_nacional_de}, el de la covariable que nombra) y que \code{escala} vaya
-solo con la transformación lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
-que se anclan traiga su intervalo (\code{inferior} y \code{superior}); que las proporciones de \code{severidad} sumen 1. Avisa
-(\code{!}) de una covariable con proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera
-de la estimación subnacional) y de valores de mortalidad de \code{datos} que parecen tasas por 100 000 en vez de por
-persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+en el año del ancla (el suyo o, con \code{valor_nacional_de} y valores subnacionales de la covariable, el de la
+covariable que nombra) y que \code{escala} vaya solo con la transformación lineal; que cada ubicación subnacional
+con proxies los traiga de todas las covariables y que el valor nacional en que se anclan traiga su intervalo
+(\code{inferior} y \code{superior}); que las proporciones de \code{severidad} sumen 1. Avisa (\code{!}) de una covariable con
+proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
+subnacional) y de valores de mortalidad de \code{datos} que parecen tasas por 100 000 en vez de por persona-año
+(mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
 \item \code{insumos}: si nada falló, los insumos completos (\code{\link[=dl_insumos]{dl_insumos()}}), con las reglas que necesitan todo armado: que
 la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
 población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la

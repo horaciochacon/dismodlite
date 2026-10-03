@@ -1264,6 +1264,17 @@ test_that("con ancla.anio, el año del ancla es el menor entre ese y el que se e
   x <- proyecto_y_mensajes(d, 9101, anio = 2019)
   expect_identical(.dl_anio_ancla(x$p$configuracion), 2019L)
   expect_identical(x$mensajes, character())
+  # la procedencia dice lo que pasó: el ancla.anio declarado es posterior y el año del ancla es el que se estima
+  expect_identical(x$p$configuracion$years$ancla, list(valor = 2019L, procedencia = paste0(
+    "el año del ancla es el que se estima (2019): el ancla.anio declarado en la configuración del proyecto (2023) ",
+    "es posterior")))
+  # sin el argumento, o con un año que no baja el ancla.anio declarado, la de siempre
+  expect_identical(dl_proyecto(d, 9101)$configuracion$years$ancla,
+                   list(valor = 2023L, procedencia = .DL_PROCEDENCIA_SIMPLE))
+  expect_identical(suppressMessages(dl_proyecto(d, 9101, anio = 2024))$configuracion$years$ancla,
+                   list(valor = 2023L, procedencia = .DL_PROCEDENCIA_SIMPLE))
+  expect_identical(dl_proyecto(d, 9101, anio = 2023)$configuracion$years$ancla,
+                   list(valor = 2023L, procedencia = .DL_PROCEDENCIA_SIMPLE))
   expect_identical(suppressMessages(dl_insumos(x$p))$prior_gbd,
                    suppressMessages(dl_insumos(dl_proyecto(copia_ejemplo(), 9101, anio = 2019)))$prior_gbd)
   expect_identical(.dl_anio_ancla(dl_proyecto(d, 9101)$configuracion), 2023L)
@@ -1283,7 +1294,7 @@ test_that("un ancla.anio posterior al `anio` de la configuración es un error; s
                                       poblacion = dl_ejemplo("poblacion.csv"), ancla = dl_ejemplo("ancla"))
   expect_error(minimo(), "ancla.anio .*: debe ser un entero igual al año de ajuste o un año antes")
   expect_identical(minimo(anio = 2019)$configuracion$years$ancla,
-                   list(valor = 2019L, procedencia = .DL_PROCEDENCIA_SIMPLE))
+                   list(valor = 2019L, procedencia = .dl_procedencia_ancla_anterior(2019L, 2025L)))
 })
 
 test_that("las traducciones de dos años del mismo proyecto conviven; la del mismo año se reemplaza", {
@@ -1363,6 +1374,25 @@ test_that("valor_nacional_de: sin el valor nacional de la covariable nombrada, e
                                    "del ancla\\) en la tabla covariables$"), all = FALSE)
 })
 
+test_that("valor_nacional_de sin valores subnacionales de la covariable: la beta sigue pidiendo su fila nacional", {
+  # el ejemplo sin proxies (ni calibrados ni crudos): la estimación subnacional es plana y no hay proxy que anclar
+  t <- suppressMessages(dl_proyecto(dl_ejemplo(), 9100))$tablas
+  t$proxies_crudos <- NULL
+  cv <- t$covariables
+  std <- data.table::copy(cv[covariable == "haqi"])[, `:=`(covariable = "haqi_estandarizado", covariable_id = 1098L)]
+  t$betas <- data.table::copy(t$betas)[, valor_nacional_de := ifelse(covariable == "haqi", "haqi_estandarizado",
+                                                                     NA_character_)]
+  leer <- function(covariables)
+    suppressWarnings(suppressMessages(do.call(dl_proyecto, c(
+      list(causa = 9100, configuracion = list(causa = 9100, anio = 2023, edad_inicio = 30)),
+      lapply(replace(t, "covariables", list(covariables)), as.data.frame)))))
+  e <- expect_error(leer(rbind(cv[covariable != "haqi"], std)), class = "dl_error")
+  expect_match(e$problemas, paste0("^betas: haqi no tiene\\(n\\) valor nacional de 2023 \\(el año del ancla\\) en la ",
+                                   "tabla covariables: agrega su fila nacional$"), all = FALSE)
+  # con su fila nacional, el proyecto se lee y sus insumos se arman
+  expect_s3_class(suppressWarnings(suppressMessages(dl_insumos(leer(rbind(cv, std))))), "dl_bundle")
+})
+
 test_that("valor_nacional_de con proxies_crudos: la calibración cierra en la covariable nombrada", {
   d <- dl_ejemplo()
   for (copia in c(FALSE, TRUE)) {
@@ -1370,6 +1400,13 @@ test_that("valor_nacional_de con proxies_crudos: la calibración cierra en la co
     k <- attr(p$calibracion, "calibracion")
     expect_identical(k$valor_nacional_de, c(NA, NA, "haqi_estandarizado"))
     b <- suppressMessages(dl_insumos(p))                  # las reglas pasan: los proxies cierran en su ancla
+    # el manifiesto de la corrida declara la covariable que dio el valor nacional, y solo de la que lo toma de otra
+    if (!copia) {
+      r <- suppressMessages(dl_correr(p, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                      carpeta_salida = withr::local_tempdir()))
+      expect_identical(r$manifest$params$proxies$haqi$valor_nacional_de, "haqi_estandarizado")
+      expect_null(r$manifest$params$proxies$LDI_pc$valor_nacional_de)
+    }
     px <- b$cov_proxy[covariate_id_gbd == 1098L]
     expect_identical(unique(px$ancla_ghdx), 50.9 + 3)
     pob <- p$tablas$poblacion[anio == 2023, list(w = sum(poblacion)), by = ubicacion]

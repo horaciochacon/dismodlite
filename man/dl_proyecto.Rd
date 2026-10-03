@@ -43,6 +43,8 @@ como vinieron (\code{covariables} sin las filas calibradas). De una suma de subt
 \code{poblacion}.
 \item \code{calibracion}: solo si el proyecto trae \code{proxies_crudos}, el resultado de \code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}} (las filas
 calibradas, con los atributos \code{calibracion}, \code{series} y \code{excluidas}).
+\item \code{configuracion_dada}: solo si \code{configuracion} se dio como lista, esa lista tal como se dio (con ella
+\code{\link[=dl_correr]{dl_correr()}} vuelve a leer el proyecto para cada año de \code{anios}).
 }
 }
 \description{
@@ -124,11 +126,12 @@ puede leer en un proyecto (sí en el formato completo, con sus catálogos).
 Cada tabla es \verb{<tabla>.csv} o una carpeta \verb{<tabla>/} cuyos CSV se juntan (cada uno pasa por su lector), como
 \verb{poblacion_detalle/} con un CSV por fuente. Las rutas no se declaran, salvo la de la partición de severidad
 (\code{severidad.particion}, relativa a la carpeta). Los demás archivos de la carpeta (un \code{LEEME.md}, la carpeta
-\verb{resultados/} que escribe \code{\link[=dl_correr]{dl_correr()}}) no se leen. Una tabla opcional ausente, o con solo el encabezado, no existe (así quedan las plantillas de
-\code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}}). Las obligatorias son \code{ubicaciones}, \code{poblacion} y \code{ancla} (una causa que es la suma de sus
-subtipos solo usa las dos primeras: ver «Subtipos y la causa que es su suma»): con ellas se estima la causa en
-el país y, si hay ubicaciones subnacionales, en cada una con las tasas nacionales. \code{\link[=dl_correr]{dl_correr()}}, que calcula los
-años vividos con discapacidad (AVD), necesita también \code{severidad} (o \code{severidad.particion} en la configuración).
+\verb{resultados/} que escribe \code{\link[=dl_correr]{dl_correr()}}) no se leen. Una tabla opcional ausente, o con solo el encabezado, no
+existe (así quedan las plantillas de \code{\link[=dl_nuevo_proyecto]{dl_nuevo_proyecto()}}). Las obligatorias son \code{ubicaciones}, \code{poblacion} y
+\code{ancla} (una causa que es la suma de sus subtipos solo usa las dos primeras: ver «Subtipos y la causa que es su
+suma»): con ellas se estima la causa en el país y, si hay ubicaciones subnacionales, en cada una con las tasas
+nacionales. \code{\link[=dl_correr]{dl_correr()}}, que calcula los años vividos con discapacidad (AVD), necesita también \code{severidad} (o
+\code{severidad.particion} en la configuración).
 \code{covariables} y \code{betas} agregan las diferencias entre ubicaciones subnacionales y \code{datos}, los datos locales. Las
 columnas de cada tabla, sus unidades y sus valores están en \link{dl_tablas}. Con \code{proxies_crudos}, \code{dl_proyecto()}
 calibra los valores subnacionales de sus covariables para el año que se estima (\code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}, con las

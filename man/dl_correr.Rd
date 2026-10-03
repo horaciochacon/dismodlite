@@ -115,15 +115,22 @@ La causa debe tener severidad (sus estados de salud en \code{severidad.csv} o de
 AVD serían cero y la corrida no se escribe. \code{dl_correr()} lo comprueba antes de ajustar.
 
 Una causa que es la suma de sus subtipos (\code{suma_de_subtipos: sí} en su configuración; ver \code{\link[=dl_proyecto]{dl_proyecto()}}) no se
-ajusta: \code{dl_correr()} busca en \code{carpeta_salida} la corrida más reciente (la de mayor fecha y versión) de cada
-subtipo que entra en la suma, del año que se estima, y las suma simulación a simulación con \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, con
-el \code{nombre} y los \code{subtipos_omitidos} de la configuración. Las corridas se reconocen por su manifiesto (la causa y
-el año), así que valen las de cualquier proyecto escritas en esa carpeta. Con \code{rapido = TRUE} suma las corridas de
-prueba (las que terminan en \code{-prueba}) y la suma también es de prueba; con \code{rapido = FALSE}, las de producción,
-nunca las de prueba. Si falta la corrida de un subtipo, el error dice cuál, de qué año y dónde se buscó. Con
-\code{anios}, suma cada año con las corridas de ese año. \code{semilla}, \code{sensibilidad}, \code{opciones} y \code{forzar} no se usan:
-no hay ajuste. El nombre de la corrida sigue la misma regla (\verb{causa-<causa>}, con el año y \code{-prueba} si
-corresponde), y la corrida es la de \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}: celdas, simulaciones y manifiesto, sin diagnósticos.
+ajusta: \code{dl_correr()} busca en \code{carpeta_salida} la corrida más reciente de cada subtipo que entra en la suma, del
+año que se estima, y las suma simulación a simulación con \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, con el \code{nombre} y los
+\code{subtipos_omitidos} de la configuración. Las corridas se reconocen por su manifiesto (la causa y el año), así que
+valen las de cualquier proyecto escritas en esa carpeta. Con \code{rapido = TRUE} suma las corridas de prueba (las que
+terminan en \code{-prueba}) y la suma también es de prueba; con \code{rapido = FALSE}, las de producción, nunca las de
+prueba. Si falta la corrida de un subtipo, el error dice cuál, de qué año y dónde se buscó. Con \code{anios}, suma cada
+año con las corridas de ese año. \code{semilla}, \code{sensibilidad}, \code{opciones} y \code{forzar} no se usan: no hay ajuste. El
+nombre de la corrida sigue la misma regla (\verb{causa-<causa>}, con el año y \code{-prueba} si corresponde), y la corrida es
+la de \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}: celdas, simulaciones y manifiesto, sin diagnósticos.
+
+La corrida más reciente de un subtipo es la del último día (la fecha de su nombre) y, en ese día, la de mayor
+versión. Si ese día hay corridas del subtipo con nombres distintos (por ejemplo \verb{causa-<causa>} y
+\verb{causa-<causa>-<año>}), gana la que se escribió última, por la fecha de modificación de su \code{manifest.yaml}: copiar
+la carpeta de las corridas sin conservar las fechas de los archivos puede cambiar ese desempate. Los mensajes dicen
+qué corrida se tomó de cada subtipo y cuáles se escribieron con \code{forzar = TRUE}; para elegirlas a mano,
+\code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}. Los subtipos de una suma son causas que se ajustan: una suma no puede ser subtipo de otra suma.
 
 Los ajustes quedan en la caché de la sesión:
 \code{\link[=dl_ajustar]{dl_ajustar()}} con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un

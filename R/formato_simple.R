@@ -397,7 +397,8 @@
 #   ubicacion (el código nacional), nombre, betas (la tabla betas de la causa, ya resuelta para un subtipo),
 #   anios_ancla (los años con prevalencia de la causa en el ancla: de ellos sale years.ancla, .dl_anio_ancla_leido),
 #   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es) e
-#   ids_covariable (covariable -> covariate_id, para valor_nacional_de).
+#   ids_covariable (covariable -> covariate_id, para valor_nacional_de); y ancla_declarado (el ancla.anio del archivo
+#   cuando el argumento `anio` de dl_proyecto() lo bajó al año que se estima: la procedencia de years.ancla lo dice).
 # `origen`: formato, archivo, nombre, modo subnacional, betas y claves tomadas por defecto (con su valor); y las
 # unidades: «contrato», las de las tablas del proyecto (proporción o por persona-año, sin conversión; .dl_metrica_std).
 .dl_traducir_config_simple <- function(s, archivo, contexto) {
@@ -452,7 +453,11 @@
   cfg <- list(
     schema = "dismod_lite/v1", cause_id = as.integer(s[["causa"]]),
     years = c(list(ajuste = s[["anio"]]),
-              if (!is.null(dado("ancla.anio"))) list(ancla = list(valor = ancla$anio, procedencia = proc))
+              if (!is.null(dado("ancla.anio")))
+                list(ancla = list(valor = ancla$anio,
+                                  procedencia = if (is.null(contexto$ancla_declarado)) proc
+                                                else .dl_procedencia_ancla_anterior(ancla$anio,
+                                                                                    contexto$ancla_declarado)))
               else if (ancla$proyectado)
                 list(ancla = list(valor = ancla$anio,
                                   procedencia = .dl_procedencia_proyeccion(as.integer(s[["anio"]]), ancla$anio)))),

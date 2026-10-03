@@ -494,12 +494,13 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #'    prevalencia de la causa (y la mortalidad, si la usa el prior de la mortalidad en exceso) en el año del ancla y en
 #'    cada sexo, y la columna `causa` si el proyecto tiene varias; que cada banda del ancla sea una unión de bandas de
 #'    la población o se pueda agrupar con `poblacion_detalle`; que cada covariable de `betas` tenga su valor nacional
-#'    en el año del ancla (el suyo o, con `valor_nacional_de`, el de la covariable que nombra) y que `escala` vaya
-#'    solo con la transformación lineal; que cada ubicación subnacional con proxies los traiga de todas las covariables y que el valor nacional en
-#'    que se anclan traiga su intervalo (`inferior` y `superior`); que las proporciones de `severidad` sumen 1. Avisa
-#'    (`!`) de una covariable con proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera
-#'    de la estimación subnacional) y de valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por
-#'    persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+#'    en el año del ancla (el suyo o, con `valor_nacional_de` y valores subnacionales de la covariable, el de la
+#'    covariable que nombra) y que `escala` vaya solo con la transformación lineal; que cada ubicación subnacional
+#'    con proxies los traiga de todas las covariables y que el valor nacional en que se anclan traiga su intervalo
+#'    (`inferior` y `superior`); que las proporciones de `severidad` sumen 1. Avisa (`!`) de una covariable con
+#'    proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
+#'    subnacional) y de valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por persona-año
+#'    (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
 #' 4. `insumos`: si nada falló, los insumos completos ([dl_insumos()]), con las reglas que necesitan todo armado: que
 #'    la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
 #'    población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la
@@ -652,15 +653,22 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' AVD serían cero y la corrida no se escribe. `dl_correr()` lo comprueba antes de ajustar.
 #'
 #' Una causa que es la suma de sus subtipos (`suma_de_subtipos: sí` en su configuración; ver [dl_proyecto()]) no se
-#' ajusta: `dl_correr()` busca en `carpeta_salida` la corrida más reciente (la de mayor fecha y versión) de cada
-#' subtipo que entra en la suma, del año que se estima, y las suma simulación a simulación con [dl_sumar_hijas()], con
-#' el `nombre` y los `subtipos_omitidos` de la configuración. Las corridas se reconocen por su manifiesto (la causa y
-#' el año), así que valen las de cualquier proyecto escritas en esa carpeta. Con `rapido = TRUE` suma las corridas de
-#' prueba (las que terminan en `-prueba`) y la suma también es de prueba; con `rapido = FALSE`, las de producción,
-#' nunca las de prueba. Si falta la corrida de un subtipo, el error dice cuál, de qué año y dónde se buscó. Con
-#' `anios`, suma cada año con las corridas de ese año. `semilla`, `sensibilidad`, `opciones` y `forzar` no se usan:
-#' no hay ajuste. El nombre de la corrida sigue la misma regla (`causa-<causa>`, con el año y `-prueba` si
-#' corresponde), y la corrida es la de [dl_sumar_hijas()]: celdas, simulaciones y manifiesto, sin diagnósticos.
+#' ajusta: `dl_correr()` busca en `carpeta_salida` la corrida más reciente de cada subtipo que entra en la suma, del
+#' año que se estima, y las suma simulación a simulación con [dl_sumar_hijas()], con el `nombre` y los
+#' `subtipos_omitidos` de la configuración. Las corridas se reconocen por su manifiesto (la causa y el año), así que
+#' valen las de cualquier proyecto escritas en esa carpeta. Con `rapido = TRUE` suma las corridas de prueba (las que
+#' terminan en `-prueba`) y la suma también es de prueba; con `rapido = FALSE`, las de producción, nunca las de
+#' prueba. Si falta la corrida de un subtipo, el error dice cuál, de qué año y dónde se buscó. Con `anios`, suma cada
+#' año con las corridas de ese año. `semilla`, `sensibilidad`, `opciones` y `forzar` no se usan: no hay ajuste. El
+#' nombre de la corrida sigue la misma regla (`causa-<causa>`, con el año y `-prueba` si corresponde), y la corrida es
+#' la de [dl_sumar_hijas()]: celdas, simulaciones y manifiesto, sin diagnósticos.
+#'
+#' La corrida más reciente de un subtipo es la del último día (la fecha de su nombre) y, en ese día, la de mayor
+#' versión. Si ese día hay corridas del subtipo con nombres distintos (por ejemplo `causa-<causa>` y
+#' `causa-<causa>-<año>`), gana la que se escribió última, por la fecha de modificación de su `manifest.yaml`: copiar
+#' la carpeta de las corridas sin conservar las fechas de los archivos puede cambiar ese desempate. Los mensajes dicen
+#' qué corrida se tomó de cada subtipo y cuáles se escribieron con `forzar = TRUE`; para elegirlas a mano,
+#' [dl_sumar_hijas()]. Los subtipos de una suma son causas que se ajustan: una suma no puede ser subtipo de otra suma.
 #'
 #' Los ajustes quedan en la caché de la sesión:
 #' [dl_ajustar()] con los mismos insumos, opciones y semilla devuelve el de la corrida sin volver a muestrear. Con un
@@ -761,12 +769,7 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
   if (!is.null(carpeta_salida)) .dl_exigir_carpeta(carpeta_salida, argumento = "carpeta_salida")
   .dl_exigir_registro(!is.null(registro), registro)
   if (!is.null(anios)) anios <- .dl_exigir_anios(anios)
-  p <- if (inherits(proyecto, "dl_proyecto")) proyecto
-       else if (.dl_es_texto1(proyecto) && dir.exists(proyecto))
-         if (is.null(anios)) dl_proyecto(proyecto, causa)
-         else .dl_en_anio(anios[1L], list(), dl_proyecto(proyecto, causa, anio = anios[1L]))
-       else .dl_stop("`proyecto` debe ser la carpeta de un proyecto o un proyecto de dl_proyecto(); es %s",
-                     .dl_describir_objeto(proyecto))
+  p <- .dl_proyecto_a_correr(proyecto, causa, anios)
   cfg <- p$configuracion
   if (!is.null(causa) && .dl_exigir_causa(causa) != cfg$cause_id)
     .dl_stop("`causa` es %d y el proyecto es de la causa %d", .dl_exigir_causa(causa), cfg$cause_id)
@@ -792,6 +795,17 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
   .dl_correr_anios(p, anios, correr)
 }
 
+# El proyecto que corre dl_correr(): el `dl_proyecto` dado o el de la carpeta `proyecto`, leído para el primero de
+# `anios` (con el error de ese año, .dl_en_anio) o, sin `anios`, para el año de su configuración.
+.dl_proyecto_a_correr <- function(proyecto, causa, anios) {
+  if (inherits(proyecto, "dl_proyecto")) return(proyecto)
+  if (!.dl_es_texto1(proyecto) || !dir.exists(proyecto))
+    .dl_stop("`proyecto` debe ser la carpeta de un proyecto o un proyecto de dl_proyecto(); es %s",
+             .dl_describir_objeto(proyecto))
+  if (is.null(anios)) return(dl_proyecto(proyecto, causa))
+  .dl_en_anio(anios[1L], list(), dl_proyecto(proyecto, causa, anio = anios[1L]))
+}
+
 # Las corridas de `anios` (.dl_exigir_anios), una por año y en orden: `correr(p, anio)` corre el proyecto `p`, leído
 # para ese año (.dl_proyecto_de_anio). Devuelve un `dl_corridas` con una corrida por año.
 .dl_correr_anios <- function(p, anios, correr) {
@@ -805,7 +819,8 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
 }
 
 # Evalúa `expr`, que corre o lee el proyecto del año `anio`. Si falla, el error es el mismo con el año delante y dice
-# qué años quedaron escritos (`corridas`: las que van).
+# qué años quedaron escritos (`corridas`: las que van); conserva las clases del error original, delante de las de
+# todo error del paquete, y lleva los campos `anio` y `escritas`.
 .dl_en_anio <- function(anio, corridas, expr) {
   tryCatch(expr, error = function(e) {
     hechas <- vapply(corridas, function(r) r$run_id, "")
@@ -813,6 +828,7 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
              if (length(hechas)) sprintf("Quedaron escritas las corridas de: %s.",
                                          paste(sprintf("%s (%s)", names(hechas), hechas), collapse = ", "))
              else "No qued\u00f3 escrita ninguna corrida.",
+             clase = setdiff(class(e), c("dl_error", "error", "condition")),
              campos = list(anio = anio, escritas = as.integer(names(corridas))))
   })
 }
@@ -914,8 +930,8 @@ print.dl_corridas <- function(x, ...) {
 # La corrida de una causa que es la suma de sus subtipos (`p`, su proyecto leído para el año que se estima): busca en
 # `carpeta_salida` la corrida más reciente de ese año de cada subtipo que entra (.dl_corridas_de_subtipos: las de
 # prueba con `rapido`, las de producción sin él) y las suma con dl_sumar_hijas(), con el nombre de la causa y los
-# subtipos omitidos de la configuración y las rutas del proyecto. Antes dice cuáles tomó y comprueba, en palabras del proyecto, lo que
-# dl_sumar_hijas() exige de cada corrida: que declare a la causa como su causa padre.
+# subtipos omitidos de la configuración y las rutas del proyecto. Antes dice cuáles tomó y comprueba, en palabras del
+# proyecto, lo que dl_sumar_hijas() exige de cada corrida: que declare a la causa como su causa padre.
 .dl_correr_suma <- function(p, carpeta_salida, rapido, registro, nombre) {
   cfg <- p$configuracion
   s <- cfg$origen$configuracion
