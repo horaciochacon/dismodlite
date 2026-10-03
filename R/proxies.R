@@ -376,10 +376,11 @@
                                                           ediciones = paste(sort(x$anio), collapse = ", ")))
 }
 
-# ¿q quedó en un borde de .DL_Q_LIMITES? En el inferior lo informa (un gradiente estable es un resultado, no un
-# problema); en el superior avisa (el suavizado no aporta). NA sin q.
+# ¿En qué borde de .DL_Q_LIMITES quedó q? "inferior", "superior" o NA (dentro del intervalo, o sin q). En el
+# inferior lo informa (un gradiente estable es un resultado, no un problema); en el superior avisa (el suavizado no
+# aporta).
 .dl_q_en_borde <- function(q, covariable) {
-  if (is.na(q)) return(NA)
+  if (is.na(q)) return(NA_character_)
   d <- abs(log(q) - log(.DL_Q_LIMITES))
   if (d[1L] < .DL_Q_BORDE_LOG)
     .dl_message(paste0("covariable %s: q qued\u00f3 en el borde inferior de su intervalo de b\u00fasqueda (%g): el ",
@@ -389,7 +390,7 @@
     .dl_warn(paste0("covariable %s: q qued\u00f3 en el borde superior de su intervalo de b\u00fasqueda (%g): cada ",
                     "edici\u00f3n manda y el suavizado casi no aporta (el resultado es casi el de la edici\u00f3n ",
                     "m\u00e1s cercana)"), covariable, .DL_Q_LIMITES[2L])
-  any(d < .DL_Q_BORDE_LOG)
+  c("inferior", "superior", NA_character_)[match(TRUE, c(d < .DL_Q_BORDE_LOG, TRUE))]
 }
 
 # ---- Cierre y filas ----
@@ -500,8 +501,8 @@
 #' **Cómo leer q.** Su raíz es cuánto se mueve el gradiente en un año (en log con `cociente`, en las unidades del
 #' indicador con `diferencia`). Con q muy chico el gradiente es casi constante y el resultado es la media de las
 #' ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de `edicion`. Si q queda
-#' en un borde de su intervalo de búsqueda, `calibracion` lo marca (`q_en_borde`): en el inferior (gradiente estable)
-#' la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si todas las
+#' en un borde de su intervalo de búsqueda, `calibracion` dice cuál (`q_en_borde`: `"inferior"` o `"superior"`): en el
+#' inferior (gradiente estable) la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si todas las
 #' series de una covariable tienen una sola edición, q no se puede estimar: se usa la edición de cada serie, con un
 #' aviso, y `q` es `NA`. Una serie con una sola edición entre otras que sí estiman q coincide con `edicion` solo en
 #' el año de esa edición; en otro año su varianza suma q·|Δt|.
@@ -532,13 +533,17 @@
 #' @param anio_nacional Año del valor nacional que cierra las filas. Por defecto, `anio`.
 #' @return Una [dl_tabla()] `covariables` con las filas subnacionales del año: `ubicacion`, `anio`, `sexo`, las
 #'   edades (si los crudos las traen), `covariable`, `valor`, `error_estandar` y `fuente` (el indicador, el método,
-#'   q y las ediciones de la serie). Dos atributos:
-#'   - `calibracion`: un `data.table` por covariable con `metodo`, `transformacion`, `q`, `q_en_borde`, `ediciones`
-#'     (las usadas: con el paseo aleatorio, todas las no excluidas; con `edicion`, las elegidas en alguna serie),
-#'     `excluidas` (con su motivo) y `anios_poblacion` (el año de la población de cada edición y del cierre).
+#'   q y las ediciones de la serie). Tres atributos:
+#'   - `calibracion`: un `data.table` por covariable con `metodo`, `transformacion`, `q`, `q_en_borde` (el borde de su
+#'     intervalo de búsqueda en que quedó q, `"inferior"` o `"superior"`; `NA` si no quedó en ninguno o no hay q),
+#'     `ediciones` (las usadas: con el paseo aleatorio, todas las no excluidas; con `edicion`, las elegidas en alguna
+#'     serie), `excluidas` (en texto, con su motivo) y `anios_poblacion` (el año de la población de cada edición y del
+#'     cierre).
 #'   - `series`: un `data.table` por serie y edición con `g`, `se_g`, `g_suavizado` y `S` (el gradiente suavizado y
 #'     su varianza en el año de la edición; con `edicion`, g y se_g²) y `usada` (la edición que tomó `edicion`;
 #'     con el paseo aleatorio entran todas). Sin edades en los crudos, la banda es 0-125 (todas las edades).
+#'   - `excluidas`: un `data.table` con `covariable`, `anio` y `motivo`, una fila por edición excluida de cada
+#'     covariable (sin filas si no se excluyó ninguna).
 #' @seealso [dl_tablas] (la tabla `proxies_crudos`), [dl_tabla()], [dl_proyecto()].
 #' @family proyecto
 #' @examples
@@ -574,5 +579,8 @@ dl_calibrar_proxies <- function(crudos, covariables, poblacion, anio, metodo = c
   out <- dl_tabla("covariables", filas)
   data.table::setattr(out, "calibracion", data.table::rbindlist(lapply(partes, `[[`, "calibracion")))
   data.table::setattr(out, "series", data.table::rbindlist(lapply(partes, `[[`, "series")))
+  q <- e$quitadas[order(e$quitadas$covariable, e$quitadas$anio)]
+  data.table::setattr(out, "excluidas", data.table::data.table(covariable = q$covariable, anio = as.integer(q$anio),
+                                                               motivo = q$motivo))
   out
 }

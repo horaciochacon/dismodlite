@@ -183,7 +183,7 @@ test_that("un panel desbalanceado da lo mismo que el balanceado si los gradiente
   expect_warning(des <- suppressMessages(dl_calibrar_proxies(cr[-7, ], nac, pob, 2023)), "faltan: R1 en 2021")
   expect_equal(des$valor[order(des$ubicacion)], bal$valor[order(bal$ubicacion)], tolerance = 1e-8)
   expect_lte(attr(des, "calibracion")$q, attr(bal, "calibracion")$q * 10)
-  expect_true(attr(des, "calibracion")$q_en_borde)
+  expect_identical(attr(des, "calibracion")$q_en_borde, "inferior")
 })
 
 test_that("errores claros de dl_calibrar_proxies", {
@@ -228,6 +228,12 @@ test_that("exclusiones: la edición no entra y queda declarada con su motivo", {
                                               excluir = data.frame(anio = 2021, motivo = "cambio de cuestionario")))
   expect_false(2021L %in% attr(cal, "series")$anio)
   expect_match(attr(cal, "calibracion")$excluidas, "2021.*cambio de cuestionario")
+  expect_identical(as.data.frame(attr(cal, "excluidas")),
+                   data.frame(covariable = "haqi", anio = 2021L, motivo = "cambio de cuestionario"))
+  # en el manifiesto de una corrida, cada excluida con su anio y su motivo
+  px <- dismodlite:::.dl_params_proxies(cal)$proxies$haqi
+  expect_identical(px$excluidas, list(list(anio = 2021L, motivo = "cambio de cuestionario")))
+  expect_identical(px$ediciones, list(2019L, 2023L))
   expect_warning(dl_calibrar_proxies(crudos_toy(), nac_toy(), pob_toy(), 2023, metodo = "edicion",
                                      excluir = data.frame(anio = 2012, motivo = "error de tipeo")),
                  "no están en proxies_crudos.*2012")
@@ -256,14 +262,14 @@ test_that("q en el borde del intervalo: se declara; el inferior se informa y el 
   expect_no_warning(expect_message(
     cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")),
     "borde inferior"))
-  expect_true(attr(cal, "calibracion")$q_en_borde)
+  expect_identical(attr(cal, "calibracion")$q_en_borde, "inferior")
   cr$valor <- c(40, 60, 47, 52, 41, 61); cr$error_estandar <- 0.5   # saltos grandes frente al error: q al superior
   expect_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")),
                  "borde superior")
-  expect_true(attr(cal, "calibracion")$q_en_borde)
+  expect_identical(attr(cal, "calibracion")$q_en_borde, "superior")
   cr$valor <- c(40, 60, 44, 58, 40, 61); cr$error_estandar <- 1     # el gradiente se mueve más que su error
   expect_no_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")))
-  expect_false(attr(cal, "calibracion")$q_en_borde)
+  expect_identical(attr(cal, "calibracion")$q_en_borde, NA_character_)
 })
 
 test_that("calibracion$ediciones son las usadas; con el paseo aleatorio, usada es TRUE en todas", {

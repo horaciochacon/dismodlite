@@ -97,8 +97,8 @@ a medio escribir se borra.
 congelada), cascada, datos, \code{decisiones} (las de la configuración; una lista vacía si no hay), validación y
 limitaciones; en un proyecto con las tablas del contrato de insumos, además, \code{configuracion} (el formato y las
 claves que tomaron su valor por defecto) y, si el proyecto trae \code{proxies_crudos}, \code{params.proxies}: por covariable,
-el método, la transformación, q, si quedó en un borde de su intervalo, las ediciones usadas y las excluidas con su
-motivo. En la cascada, \code{haqi_nacional} se conserva por compatibilidad con la versión 0.2.2: es \code{false} solo si la
+el método, la transformación, q, el borde de su intervalo en que quedó (si quedó en uno), las ediciones usadas y
+las excluidas, cada una con su \code{anio} y su \code{motivo}. En la cascada, \code{haqi_nacional} se conserva por compatibilidad con la versión 0.2.2: es \code{false} solo si la
 cascada aplicó un proxy subnacional de una covariable llamada \code{haqi}; si no (también en un proyecto sin esa
 covariable), es \code{true}.
 

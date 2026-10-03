@@ -853,6 +853,12 @@ test_that("el proyecto calibra con proxies.metodo, proxies.transformacion, proxi
   expect_identical(k[, c("metodo", "transformacion", "ediciones", "excluidas")],
                    data.table::data.table(metodo = "edicion", transformacion = "diferencia", ediciones = "2023",
                                           excluidas = "2021 (prueba)"))
+  # los años de `cambios` (dl_configuracion()) mandan sobre los de la configuración: calibra el año que se estima
+  s <- dismodlite:::.dl_leer_config(f)
+  cal <- dismodlite:::.dl_calibracion_proyecto(s, f, p$tablas, list(years = list(ajuste = 2019L)))
+  expect_identical(unique(cal$anio), 2019L)
+  expect_identical(dl_configuracion(9100, file.path(d, "config"),
+                                    cambios = list(years = list(ajuste = 2019L)))$years$ajuste, 2019L)
   # una covariable de proxies.transformacion que no está en proxies_crudos, en palabras de la clave
   writeLines(sub("haqi: diferencia", "ldi: diferencia", readLines(f)), f)
   expect_error(dl_proyecto(d, 9100), "proxies.transformacion.ldi: .*no está en proxies_crudos")

@@ -298,10 +298,9 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 # (con 3 cifras; si quedó en un borde de su intervalo, cuál), las ediciones usadas y las excluidas.
 .dl_linea_proxies <- function(cal) {
   k <- attr(cal, "calibracion")
-  inferior <- k$q < sqrt(prod(.DL_Q_LIMITES))
-  borde <- ifelse(!k$q_en_borde %in% TRUE, "",
-                  ifelse(inferior, " (en el borde inferior: el gradiente es pr\u00e1cticamente constante)",
-                         " (en el borde superior: cada edici\u00f3n manda)"))
+  borde <- c(inferior = " (en el borde inferior: el gradiente es pr\u00e1cticamente constante)",
+             superior = " (en el borde superior: cada edici\u00f3n manda)")[k$q_en_borde]
+  borde[is.na(borde)] <- ""
   q <- ifelse(is.na(k$q), "no se estima (una sola edici\u00f3n por serie)",
               vapply(k$q, function(x) format(signif(x, 3L)), ""))
   paste(sprintf("%s: %s, q = %s%s, ediciones %s%s", k$covariable, k$metodo, q, borde, k$ediciones,
@@ -336,7 +335,10 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     for (a in attr(p$tablas[[t]], "avisos")) anotar(t, "aviso", a)
     anotar(t, "ok", .dl_linea_tabla(p$tablas[[t]], origen = TRUE))
   }
-  if (!is.null(p$calibracion)) anotar("proxies", "ok", .dl_linea_proxies(p$calibracion))
+  if (!is.null(p$calibracion)) {
+    for (a in attr(p$calibracion, "avisos")) anotar("proxies", "aviso", a)
+    anotar("proxies", "ok", .dl_linea_proxies(p$calibracion))
+  }
   archivo <- cfg$origen$archivo
   anotar("configuraci\u00f3n", "ok", sprintf("%s: proyecto", if (identical(archivo, "configuracion"))
     "la configuraci\u00f3n dada como lista" else basename(archivo)))

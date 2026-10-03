@@ -37,14 +37,18 @@ no nombra usan \code{"cociente"}.}
 \value{
 Una \code{\link[=dl_tabla]{dl_tabla()}} \code{covariables} con las filas subnacionales del año: \code{ubicacion}, \code{anio}, \code{sexo}, las
 edades (si los crudos las traen), \code{covariable}, \code{valor}, \code{error_estandar} y \code{fuente} (el indicador, el método,
-q y las ediciones de la serie). Dos atributos:
+q y las ediciones de la serie). Tres atributos:
 \itemize{
-\item \code{calibracion}: un \code{data.table} por covariable con \code{metodo}, \code{transformacion}, \code{q}, \code{q_en_borde}, \code{ediciones}
-(las usadas: con el paseo aleatorio, todas las no excluidas; con \code{edicion}, las elegidas en alguna serie),
-\code{excluidas} (con su motivo) y \code{anios_poblacion} (el año de la población de cada edición y del cierre).
+\item \code{calibracion}: un \code{data.table} por covariable con \code{metodo}, \code{transformacion}, \code{q}, \code{q_en_borde} (el borde de su
+intervalo de búsqueda en que quedó q, \code{"inferior"} o \code{"superior"}; \code{NA} si no quedó en ninguno o no hay q),
+\code{ediciones} (las usadas: con el paseo aleatorio, todas las no excluidas; con \code{edicion}, las elegidas en alguna
+serie), \code{excluidas} (en texto, con su motivo) y \code{anios_poblacion} (el año de la población de cada edición y del
+cierre).
 \item \code{series}: un \code{data.table} por serie y edición con \code{g}, \code{se_g}, \code{g_suavizado} y \code{S} (el gradiente suavizado y
 su varianza en el año de la edición; con \code{edicion}, g y se_g²) y \code{usada} (la edición que tomó \code{edicion};
 con el paseo aleatorio entran todas). Sin edades en los crudos, la banda es 0-125 (todas las edades).
+\item \code{excluidas}: un \code{data.table} con \code{covariable}, \code{anio} y \code{motivo}, una fila por edición excluida de cada
+covariable (sin filas si no se excluyó ninguna).
 }
 }
 \description{
@@ -80,8 +84,8 @@ varianza por año del gradiente, se estima por máxima verosimilitud, una por co
 \strong{Cómo leer q.} Su raíz es cuánto se mueve el gradiente en un año (en log con \code{cociente}, en las unidades del
 indicador con \code{diferencia}). Con q muy chico el gradiente es casi constante y el resultado es la media de las
 ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de \code{edicion}. Si q queda
-en un borde de su intervalo de búsqueda, \code{calibracion} lo marca (\code{q_en_borde}): en el inferior (gradiente estable)
-la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si todas las
+en un borde de su intervalo de búsqueda, \code{calibracion} dice cuál (\code{q_en_borde}: \code{"inferior"} o \code{"superior"}): en el
+inferior (gradiente estable) la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si todas las
 series de una covariable tienen una sola edición, q no se puede estimar: se usa la edición de cada serie, con un
 aviso, y \code{q} es \code{NA}. Una serie con una sola edición entre otras que sí estiman q coincide con \code{edicion} solo en
 el año de esa edición; en otro año su varianza suma q·|Δt|.

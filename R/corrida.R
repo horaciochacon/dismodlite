@@ -285,17 +285,22 @@
 .dl_haqi_nacional <- function(casc) !("haqi" %in% unique(casc$dX$covariate_name_short))
 
 # Clave params.proxies del manifiesto: por covariable de la calibración `cal` (b$calibracion_proxies), el método, la
-# transformación, q (6 cifras significativas; sin q, nada), si quedó en un borde, las ediciones usadas y las
-# excluidas con su motivo (el texto de la calibración). NULL sin calibración: los manifiestos sin proxies_crudos no
-# cambian.
+# transformación, q (6 cifras significativas; sin q, nada), el borde de su intervalo en que quedó («inferior» o
+# «superior»; en ninguno, nada), las ediciones usadas y las excluidas, cada una con su anio y su motivo (sin
+# excluidas, nada). NULL sin calibración: los manifiestos sin proxies_crudos no cambian.
 .dl_params_proxies <- function(cal) {
   if (is.null(cal)) return(NULL)
   k <- attr(cal, "calibracion")
+  ex <- attr(cal, "excluidas")
+  excluidas <- function(cov) {
+    x <- ex[ex$covariable == cov]
+    if (nrow(x)) lapply(seq_len(nrow(x)), function(j) list(anio = as.integer(x$anio[j]), motivo = x$motivo[j]))
+  }
   list(proxies = stats::setNames(lapply(seq_len(nrow(k)), function(i) list(
     metodo = k$metodo[i], transformacion = k$transformacion[i],
     q = if (!is.na(k$q[i])) signif(k$q[i], 6L), q_en_borde = if (!is.na(k$q_en_borde[i])) k$q_en_borde[i],
     ediciones = as.list(as.integer(strsplit(k$ediciones[i], ", ", fixed = TRUE)[[1L]])),
-    excluidas = if (nzchar(k$excluidas[i])) k$excluidas[i])), k$covariable))
+    excluidas = excluidas(k$covariable[i]))), k$covariable))
 }
 
 # Manifiesto (manifest.yaml) de una corrida de dl_exportar_corrida(): identificación, causa, parámetros, insumos,
@@ -504,8 +509,8 @@
 #' congelada), cascada, datos, `decisiones` (las de la configuración; una lista vacía si no hay), validación y
 #' limitaciones; en un proyecto con las tablas del contrato de insumos, además, `configuracion` (el formato y las
 #' claves que tomaron su valor por defecto) y, si el proyecto trae `proxies_crudos`, `params.proxies`: por covariable,
-#' el método, la transformación, q, si quedó en un borde de su intervalo, las ediciones usadas y las excluidas con su
-#' motivo. En la cascada, `haqi_nacional` se conserva por compatibilidad con la versión 0.2.2: es `false` solo si la
+#' el método, la transformación, q, el borde de su intervalo en que quedó (si quedó en uno), las ediciones usadas y
+#' las excluidas, cada una con su `anio` y su `motivo`. En la cascada, `haqi_nacional` se conserva por compatibilidad con la versión 0.2.2: es `false` solo si la
 #' cascada aplicó un proxy subnacional de una covariable llamada `haqi`; si no (también en un proyecto sin esa
 #' covariable), es `true`.
 #'

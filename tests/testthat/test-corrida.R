@@ -354,6 +354,8 @@ test_that("la corrida de un proyecto con proxies_crudos registra la calibración
   expect_identical(px$metodo, "paseo_aleatorio")
   expect_identical(px$transformacion, "cociente")
   expect_true(is.finite(px$q) && px$q > 0)
+  expect_null(px$q_en_borde)                                 # dentro de su intervalo
+  expect_null(px$excluidas)
   expect_identical(unlist(px$ediciones), c(2019L, 2021L, 2023L))
   # los crudos se congelan como vinieron, sin filas calibradas en covariables
   expect_true("proxies_crudos" %in% unlist(lapply(man$inputs$contrato, `[[`, "tabla")))

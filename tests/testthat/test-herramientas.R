@@ -687,6 +687,12 @@ test_that("el paso «proxies» muestra el borde inferior de q, los avisos y los 
   data.table::fwrite(cr2[!(ubicacion == "05" & anio == 2021L)], f)
   x <- revisar_callado(d, causa = 9100)
   expect_match(x$detalle[x$paso == "proxies" & x$estado == "aviso"], "no traen las mismas ubicaciones", all = FALSE)
+  # también en la revisión de un proyecto ya leído
+  p <- suppressWarnings(suppressMessages(dl_proyecto(d, 9100)))
+  expect_match(attr(p$calibracion, "avisos"), "no traen las mismas ubicaciones", all = FALSE)
+  x2 <- revisar_callado(p)
+  expect_identical(x2$detalle[x2$paso == "proxies" & x2$estado == "aviso"],
+                   x$detalle[x$paso == "proxies" & x$estado == "aviso"])
   # un error de la calibración va en el paso, y las reglas entre tablas esperan
   data.table::fwrite(cr2[ubicacion == "05", error_estandar := 0], f)
   x <- revisar_callado(d, causa = 9100)

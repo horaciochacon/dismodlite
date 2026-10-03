@@ -244,16 +244,17 @@
   if (!is.list(s) || is.null(names(s)))
     .dl_stop_config_simple(archivo, "el archivo no es una lista de claves (clave: valor, una por l\u00ednea)")
   tablas <- .dl_tablas_proyecto(carpeta, dadas, .dl_opciones_lectores(s))
-  .dl_config_de_tablas(s, archivo, causa, tablas, .dl_causas_config(carpeta, s, causa), base, cambios)
+  .dl_config_de_tablas(s, archivo, causa, tablas, .dl_causas_config(carpeta, s, causa), base, cambios,
+                       .dl_calibracion_proyecto(s, archivo, tablas, cambios))
 }
 
 # La configuración de `causa` con las tablas ya leídas (lo que sigue a su lectura en .dl_preparar_contrato; la
 # revisión lo hace en su propio paso): la severidad de la partición, si la configuración la declara (error si su
-# carpeta no existe), la calibración de proxies_crudos (`calibracion`; la revisión la pasa ya hecha en su paso
-# «proxies»), el contexto y la traducción. El contexto y la traducción ven las tablas del modelo (`tablas_modelo`:
-# covariables con las filas calibradas); `tablas` son las del proyecto tal como vinieron.
-.dl_config_de_tablas <- function(s, archivo, causa, tablas, causas, base, cambios = NULL,
-                                 calibracion = .dl_calibracion_proyecto(s, archivo, tablas)) {
+# carpeta no existe), el contexto y la traducción. `calibracion`: la de proxies_crudos (.dl_calibracion_proyecto, de
+# las tablas tal como se leyeron; NULL sin ellos), que hace quien llama: .dl_preparar_contrato o el paso «proxies» de
+# la revisión. El contexto y la traducción ven las tablas del modelo (`tablas_modelo`: covariables con las filas
+# calibradas); `tablas` son las del proyecto tal como vinieron.
+.dl_config_de_tablas <- function(s, archivo, causa, tablas, causas, base, cambios = NULL, calibracion = NULL) {
   particion <- .dl_valor_en(s, "severidad.particion")
   if (!is.null(particion)) {
     ruta <- normalizePath(file.path(base, particion), winslash = "/", mustWork = FALSE)
@@ -271,20 +272,30 @@
 
 # ---- Los proxies crudos del proyecto ----
 
-# La calibración de proxies_crudos (dl_calibrar_proxies) con la configuración `s` (de `archivo`): el año que se
-# estima, el valor nacional del año del ancla (ancla.anio; sin ella, el mismo año, como .dl_anio_ancla) y las claves
-# proxies.metodo, proxies.transformacion y proxies.excluir. NULL si el proyecto no trae proxies_crudos.
-.dl_calibracion_proyecto <- function(s, archivo, tablas) {
+# La calibración de proxies_crudos (dl_calibrar_proxies) con la configuración `s` (de `archivo`) y los `cambios` del
+# formato completo (los de dl_configuracion()): el año que se estima (years.ajuste de `cambios` o anio), el del valor
+# nacional (years.ancla de `cambios`, ancla.anio o, sin ellas, el que se estima, como .dl_anio_ancla) y las claves
+# proxies.metodo, proxies.transformacion y proxies.excluir. Los años salen de `s` y `cambios`, no de la configuración
+# traducida, que necesita la calibración para su contexto. Los avisos de la calibración siguen su curso y quedan
+# también en su atributo `avisos`, para la revisión de un proyecto ya leído. NULL si el proyecto no trae
+# proxies_crudos.
+.dl_calibracion_proyecto <- function(s, archivo, tablas, cambios = NULL) {
   if (is.null(tablas$proxies_crudos)) return(NULL)
   s <- .dl_claves_config_simple(s, archivo)
   .dl_exigir_proxies_proyecto(s, tablas)
-  anio <- as.integer(s$anio)
+  anio <- as.integer(cambios$years$ajuste %||% s$anio)
   ex <- .dl_valor_en(s, "proxies.excluir")
-  dl_calibrar_proxies(tablas$proxies_crudos, tablas$covariables, tablas$poblacion, anio,
-                      metodo = .dl_valor_en(s, "proxies.metodo") %||% "paseo_aleatorio",
-                      transformacion = unlist(.dl_valor_en(s, "proxies.transformacion")),
-                      excluir = if (length(ex)) data.table::rbindlist(ex, fill = TRUE),
-                      anio_nacional = as.integer(.dl_valor_en(s, "ancla.anio") %||% anio))
+  avisos <- character()
+  cal <- withCallingHandlers(
+    dl_calibrar_proxies(tablas$proxies_crudos, tablas$covariables, tablas$poblacion, anio,
+                        metodo = .dl_valor_en(s, "proxies.metodo") %||% "paseo_aleatorio",
+                        transformacion = unlist(.dl_valor_en(s, "proxies.transformacion")),
+                        excluir = if (length(ex)) data.table::rbindlist(ex, fill = TRUE),
+                        anio_nacional = as.integer(cambios$years$ancla$valor %||% .dl_valor_en(s, "ancla.anio") %||%
+                                                     anio)),
+    warning = function(w) avisos <<- c(avisos, w$detalle %||% conditionMessage(w)))
+  if (length(avisos)) data.table::setattr(cal, "avisos", avisos)
+  cal
 }
 
 # Lo que la calibración del proyecto necesita antes de empezar, en palabras del proyecto: la tabla covariables (con
