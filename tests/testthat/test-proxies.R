@@ -286,13 +286,32 @@ test_that("q en el borde del intervalo: se declara; el inferior se informa y el 
     cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")),
     "borde inferior"))
   expect_identical(attr(cal, "calibracion")$q_en_borde, "inferior")
-  cr$valor <- c(40, 60, 47, 52, 41, 61); cr$error_estandar <- 0.5   # saltos grandes frente al error: q al superior
+  # saltos de unos 6 puntos frente a un error de 0,05: q pasaría de 1e3 σ̄² = 2,5e-3; queda en el borde superior
+  cr$valor <- c(40, 60, 47, 52, 41, 61); cr$error_estandar <- 0.05
   expect_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")),
                  "borde superior")
   expect_identical(attr(cal, "calibracion")$q_en_borde, "superior")
   cr$valor <- c(40, 60, 44, 58, 40, 61); cr$error_estandar <- 1     # el gradiente se mueve más que su error
   expect_no_warning(cal <- dl_calibrar_proxies(cr, nac_toy(), pob_toy(), 2023, transformacion = c(haqi = "diferencia")))
   expect_identical(attr(cal, "calibracion")$q_en_borde, NA_character_)
+})
+
+# Con `diferencia`, q está en unidades del indicador al cuadrado: el intervalo de búsqueda es relativo a σ̄² (la
+# mediana de se_g²), así que el mismo indicador en otra escala da los mismos valores (por el factor) y el mismo borde.
+test_that("q no depende de la escala del indicador: ×100 y ÷100 dan lo mismo, salvo el factor", {
+  cr <- crudos_toy(); cr$valor <- c(40, 60, 44, 58, 40, 61); cr$error_estandar <- 1
+  calibrar <- function(f) {
+    x <- cr; x$valor <- x$valor * f; x$error_estandar <- x$error_estandar * f
+    dl_calibrar_proxies(x, nac_toy(50 * f), pob_toy(), 2023, transformacion = c(haqi = "diferencia"))
+  }
+  base <- calibrar(1)
+  for (f in c(100, 1 / 100)) {
+    expect_no_warning(cal <- calibrar(f))
+    expect_equal(cal$valor / f, base$valor, tolerance = 1e-6)
+    expect_equal(cal$error_estandar / f, base$error_estandar, tolerance = 1e-6)
+    expect_equal(attr(cal, "calibracion")$q / f^2, attr(base, "calibracion")$q, tolerance = 1e-6)
+    expect_identical(attr(cal, "calibracion")$q_en_borde, NA_character_)
+  }
 })
 
 test_that("calibracion$ediciones son las usadas; con el paseo aleatorio, usada es TRUE en todas", {

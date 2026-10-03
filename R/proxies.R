@@ -10,7 +10,8 @@
 #              y la banda; con ediciones desbalanceadas, el promedio de referencia no se mueve con la cobertura
 #   p̄_t        Σ_{d∈C} N_{d,t} p_{d,t} / Σ_{d∈C} N_{d,t}  (g se calcula para toda d presente en t)
 #   g_{d,t}    gradiente: log(p_{d,t} / p̄_t) (cociente) o p_{d,t} − p̄_t (diferencia); se_g su error
-#   q          varianza por año del paseo aleatorio del gradiente
+#   q          varianza por año del paseo aleatorio del gradiente (en las unidades de g al cuadrado)
+#   σ̄²         mediana de se_g² sobre todas las observaciones (serie, edición) de la covariable: la escala de q
 #   ĝ_d, S_d   gradiente suavizado en el año a y su varianza
 #   w_d        población de d en el año a, normalizada en el sexo y la banda
 #   X          valor nacional de la covariable; X_d el valor calibrado de d
@@ -19,7 +20,10 @@
 #   g_t = g_{t-1} + η_t,  η_t ~ N(0, q Δt)          obs_t ~ N(g_t, se_g,t^2)
 # con prior difuso: el filtro empieza en la primera observación con media obs_1 y varianza se_g,1^2. q se estima
 # por covariable maximizando la suma, sobre sus series, de la log-verosimilitud de predicción de las observaciones
-# 2..n de cada serie (la primera fija el prior difuso).
+# 2..n de cada serie (la primera fija el prior difuso), en el intervalo relativo
+#   q ∈ σ̄² [r_min, r_max]                           (r_min, r_max: .DL_Q_LIMITES_REL)
+# relativo porque, con diferencia, g está en las unidades del indicador: el mismo indicador ×100 da q ×10⁴, y un
+# intervalo fijo cortaría a uno y no al otro. Con σ̄² como escala, el resultado no depende de las unidades.
 #
 # Cierre, por sexo y banda (exacto por construcción: Σ_d w_d X_d = X):
 #   cociente:    X_d = X exp(ĝ_d) / Σ_d w_d exp(ĝ_d)     se(X_d) = X_d sqrt(S_d)
@@ -36,11 +40,12 @@
 
 # ---- Constantes ----
 
-# Intervalo de búsqueda de q (varianza por año del gradiente): de prácticamente constante a un gradiente que cambia
-# más de 3 unidades de log por año (más de lo que ningún proxy razonable cambia).
-.DL_Q_LIMITES <- c(1e-8, 10)
+# Intervalo de búsqueda de q relativo a σ̄² (cabecera): q / σ̄² ∈ [1e-6, 1e3]. Abajo, la deriva de 1e-6 veces el
+# error típico de una edición es un gradiente prácticamente constante; arriba, una deriva por año de más de 30 veces
+# ese error (raíz de 1e3) hace que cada edición mande sola. El intervalo absoluto de una covariable: .dl_limites_q().
+.DL_Q_LIMITES_REL <- c(1e-6, 1e3)
 
-# Distancia en log q a un límite de .DL_Q_LIMITES por debajo de la cual q quedó en el borde. optimize() se detiene a
+# Distancia en log q a un límite del intervalo por debajo de la cual q quedó en el borde. optimize() se detiene a
 # lo sumo a unas dos veces su tolerancia (por defecto .Machine$double.eps^0.25, en log q) del óptimo; con el óptimo en
 # el borde, ahí queda.
 .DL_Q_BORDE_LOG <- 3 * .Machine$double.eps^0.25
@@ -115,14 +120,22 @@
 
 # ---- Estimación de q ----
 
+# El intervalo de búsqueda de q de una covariable (cabecera): σ̄² [r_min, r_max], con σ̄² la mediana de se_g² de
+# todas las observaciones de sus `series` (lista de list(t, y, se)).
+.dl_limites_q <- function(series) {
+  sigma2 <- stats::median(unlist(lapply(series, `[[`, "se"))^2)
+  sigma2 * .DL_Q_LIMITES_REL
+}
+
 # q de una covariable: maximiza la suma de las log-verosimilitudes de predicción de sus `series` (lista de
-# list(t, y, se)); NA sin ninguna serie con dos o más ediciones (no hay información sobre la deriva).
+# list(t, y, se)) en log q, dentro de .dl_limites_q(series); NA sin ninguna serie con dos o más ediciones (no hay
+# información sobre la deriva).
 .dl_estimar_q <- function(series) {
   utiles <- Filter(function(s) length(s$t) >= 2L, series)
   if (!length(utiles)) return(NA_real_)
   menos_loglik <- function(log_q) -sum(vapply(utiles, function(s)
     .dl_kalman_nivel_local(s$t, s$y, s$se, exp(log_q), max(s$t))$loglik, 0))
-  exp(stats::optimize(menos_loglik, log(.DL_Q_LIMITES))$minimum)
+  exp(stats::optimize(menos_loglik, log(.dl_limites_q(series)))$minimum)
 }
 
 # ---- Cierre en el valor nacional ----
@@ -349,8 +362,9 @@
   covariable <- s$covariable[1L]
   por_serie <- split(s, by = .DL_COLS_SERIE)
   q <- NA_real_
+  series <- lapply(por_serie, function(x) list(t = x$anio, y = x$g, se = x$se_g))
   if (metodo == "paseo_aleatorio") {
-    q <- .dl_estimar_q(lapply(por_serie, function(x) list(t = x$anio, y = x$g, se = x$se_g)))
+    q <- .dl_estimar_q(series)
     if (is.na(q))
       .dl_warn(paste0("covariable %s: todas sus series tienen una sola edici\u00f3n, as\u00ed que q no se puede ",
                       "estimar; paseo_aleatorio usa la edici\u00f3n de cada serie (como metodo = \"edicion\")"),
@@ -359,7 +373,7 @@
   partes <- lapply(por_serie, function(x) if (is.na(q)) .dl_serie_edicion(x, anio) else .dl_serie_suavizada(x, anio, q))
   list(series = data.table::rbindlist(lapply(partes, `[[`, "series")),
        estimado = data.table::rbindlist(lapply(partes, `[[`, "estimado")),
-       q = q, q_en_borde = .dl_q_en_borde(q, covariable))
+       q = q, q_en_borde = .dl_q_en_borde(q, .dl_limites_q(series), covariable))
 }
 
 # Una serie `x` con el método edicion: la edición t* más cercana a `anio` (empate: la anterior); ĝ = g_t*, S = se_g^2.
@@ -382,20 +396,22 @@
                                                           ediciones = paste(sort(x$anio), collapse = ", ")))
 }
 
-# ¿En qué borde de .DL_Q_LIMITES quedó q? "inferior", "superior" o NA (dentro del intervalo, o sin q). En el
-# inferior lo informa (un gradiente estable es un resultado, no un problema); en el superior avisa (el suavizado no
-# aporta).
-.dl_q_en_borde <- function(q, covariable) {
+# ¿En qué borde de su intervalo de búsqueda (`limites`, de .dl_limites_q) quedó q? "inferior", "superior" o NA
+# (dentro del intervalo, o sin q). En el inferior lo informa (un gradiente estable es un resultado, no un problema);
+# en el superior avisa (el suavizado no aporta).
+.dl_q_en_borde <- function(q, limites, covariable) {
   if (is.na(q)) return(NA_character_)
-  d <- abs(log(q) - log(.DL_Q_LIMITES))
+  d <- abs(log(q) - log(limites))
   if (d[1L] < .DL_Q_BORDE_LOG)
-    .dl_message(paste0("covariable %s: q qued\u00f3 en el borde inferior de su intervalo de b\u00fasqueda (%g): el ",
-                    "gradiente es pr\u00e1cticamente constante y el suavizado da la media de las ediciones ponderada ",
-                    "por 1/se\u00b2"), covariable, .DL_Q_LIMITES[1L])
+    .dl_message(paste0("covariable %s: q qued\u00f3 en el borde inferior de su intervalo de b\u00fasqueda (%g, ",
+                    "%g veces la mediana de se_g\u00b2): el gradiente es pr\u00e1cticamente constante y el suavizado ",
+                    "da la media de las ediciones ponderada por 1/se\u00b2"), covariable, limites[1L],
+                .DL_Q_LIMITES_REL[1L])
   if (d[2L] < .DL_Q_BORDE_LOG)
-    .dl_warn(paste0("covariable %s: q qued\u00f3 en el borde superior de su intervalo de b\u00fasqueda (%g): cada ",
-                    "edici\u00f3n manda y el suavizado casi no aporta (el resultado es casi el de la edici\u00f3n ",
-                    "m\u00e1s cercana)"), covariable, .DL_Q_LIMITES[2L])
+    .dl_warn(paste0("covariable %s: q qued\u00f3 en el borde superior de su intervalo de b\u00fasqueda (%g, ",
+                    "%g veces la mediana de se_g\u00b2): cada edici\u00f3n manda y el suavizado casi no aporta (el ",
+                    "resultado es casi el de la edici\u00f3n m\u00e1s cercana)"), covariable, limites[2L],
+             .DL_Q_LIMITES_REL[2L])
   c("inferior", "superior", NA_character_)[match(TRUE, c(d < .DL_Q_BORDE_LOG, TRUE))]
 }
 
@@ -507,8 +523,12 @@
 #'
 #' **Cómo leer q.** Su raíz es cuánto se mueve el gradiente en un año (en log con `cociente`, en las unidades del
 #' indicador con `diferencia`). Con q muy chico el gradiente es casi constante y el resultado es la media de las
-#' ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de `edicion`. Si q queda
-#' en un borde de su intervalo de búsqueda, `calibracion` dice cuál (`q_en_borde`: `"inferior"` o `"superior"`): en el
+#' ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de `edicion`. q se busca
+#' entre \eqn{10^{-6}\bar\sigma^2}{1e-6 sigma2} y \eqn{10^{3}\bar\sigma^2}{1e3 sigma2}, con
+#' \eqn{\bar\sigma^2}{sigma2} la mediana de se_g² de la covariable: un intervalo relativo al error de las ediciones,
+#' así que el resultado no depende de las unidades del indicador (con `diferencia`, el mismo índice ×100 da los
+#' mismos valores ×100 y q ×10⁴). Si q queda
+#' en un borde de ese intervalo, `calibracion` dice cuál (`q_en_borde`: `"inferior"` o `"superior"`): en el
 #' inferior (gradiente estable) la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si
 #' todas las series de una covariable tienen una sola edición, q no se puede estimar: se usa la edición de cada serie, con un
 #' aviso, y `q` es `NA`. Una serie con una sola edición entre otras que sí estiman q coincide con `edicion` solo en

@@ -24,7 +24,8 @@ Los valores subnacionales de una covariable pueden venir de una encuesta: el paq
   cada una con su motivo). Las filas subnacionales de cada covariable vienen de una sola tabla: si vienen de
   `covariables` y de `proxies_crudos`, es un error.
 * `print()` del proyecto y `dl_revisar_proyecto()` (paso «proxies») muestran, por covariable, el método, q y las
-  ediciones, y dicen si q quedó en un borde de su intervalo de búsqueda.
+  ediciones, y dicen si q quedó en un borde de su intervalo de búsqueda (relativo al error de las ediciones, así que
+  no depende de las unidades del indicador).
 * `dl_correr()` congela `proxies_crudos` en `inputs/contrato/` (repetir la corrida desde ahí vuelve a calibrar
   igual), escribe las series en `diagnostics/proxies_series.csv` y registra la calibración en `params.proxies` del
   manifiesto.

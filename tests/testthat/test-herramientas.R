@@ -698,7 +698,7 @@ test_that("el paso «proxies» muestra el borde inferior de q, los avisos y los 
   x <- revisar_callado(d, causa = 9100)
   x <- x[x$paso == "proxies", ]
   expect_identical(x$estado, "ok")
-  expect_match(x$detalle, "q = 1e-08 \\(en el borde inferior: el gradiente es prácticamente constante\\)")
+  expect_match(x$detalle, "q = [0-9.e+-]+ \\(en el borde inferior: el gradiente es prácticamente constante\\)")
   # una ubicación que falta en una edición: el aviso de dl_calibrar_proxies() en el paso
   data.table::fwrite(cr2[!(ubicacion == "05" & anio == 2021L)], f)
   x <- revisar_callado(d, causa = 9100)

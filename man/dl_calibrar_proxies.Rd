@@ -86,8 +86,12 @@ varianza por año del gradiente, se estima por máxima verosimilitud, una por co
 
 \strong{Cómo leer q.} Su raíz es cuánto se mueve el gradiente en un año (en log con \code{cociente}, en las unidades del
 indicador con \code{diferencia}). Con q muy chico el gradiente es casi constante y el resultado es la media de las
-ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de \code{edicion}. Si q queda
-en un borde de su intervalo de búsqueda, \code{calibracion} dice cuál (\code{q_en_borde}: \code{"inferior"} o \code{"superior"}): en el
+ediciones ponderada por 1/se²; con q grande cada edición manda y el resultado se acerca al de \code{edicion}. q se busca
+entre \eqn{10^{-6}\bar\sigma^2}{1e-6 sigma2} y \eqn{10^{3}\bar\sigma^2}{1e3 sigma2}, con
+\eqn{\bar\sigma^2}{sigma2} la mediana de se_g² de la covariable: un intervalo relativo al error de las ediciones,
+así que el resultado no depende de las unidades del indicador (con \code{diferencia}, el mismo índice ×100 da los
+mismos valores ×100 y q ×10⁴). Si q queda
+en un borde de ese intervalo, \code{calibracion} dice cuál (\code{q_en_borde}: \code{"inferior"} o \code{"superior"}): en el
 inferior (gradiente estable) la función lo informa con un mensaje; en el superior (cada edición manda) avisa. Si
 todas las series de una covariable tienen una sola edición, q no se puede estimar: se usa la edición de cada serie, con un
 aviso, y \code{q} es \code{NA}. Una serie con una sola edición entre otras que sí estiman q coincide con \code{edicion} solo en
