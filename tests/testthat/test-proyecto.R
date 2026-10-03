@@ -493,7 +493,10 @@ test_that("sin las claves nuevas la configuración y los insumos de un proyecto 
   expect_false(any(c("ancla.error_maximo", "mortalidad_exceso.fraccion_aguda", "sensibilidad.fraccion_aguda",
                      "subtipo_de", "suma_de_subtipos") %in% names(cfg$origen$por_defecto)))
   expect_null(cfg$suma)
-  # el hash de los insumos de la versión anterior a las claves
+  # el hash de los insumos de la versión anterior a las claves; los insumos dependen en el último bit de la
+  # plataforma, así que la constante solo se compara en la que se tomó
+  generada <- readLines(test_path("_referencia", "plataforma.txt"), warn = FALSE)[1]
+  skip_if_not(identical(generada, plataforma_actual()), sprintf("hash tomado en %s", generada))
   hashes <- vapply(c(9100L, 9101L), function(ca) suppressMessages(dl_insumos(dl_proyecto(dl_ejemplo(), ca)))$hash, "")
   expect_identical(unname(hashes), c("ff1e50fe6b5f79a924d4b99476c9759de85a2c5ba9c775627de0ca2785069e49",
                                      "0e21efee8666d99ad26034bea8f3951ea636d58a8321e78e474a464c98822535"))
