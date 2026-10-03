@@ -332,6 +332,16 @@ test_that("subtipo_de y el subtipos de la configuración del padre: la misma cau
 
 # ---- Una causa que es la suma de sus subtipos (suma_de_subtipos) ----
 
+test_that("sí o no se reconoce igual en cualquier configuración regional", {
+  formas <- list("sí", "Sí", "SÍ", "sÍ", "si", "Si", "SI", " sí ", "no", "No", "NO", TRUE, FALSE,
+                 "quizá", "s", "", 1L, NULL)
+  esperado <- c(as.list(rep(c(TRUE, FALSE, TRUE, FALSE), c(8L, 3L, 1L, 1L))), list(NULL, NULL, NULL, NULL, NULL))
+  expect_identical(lapply(formas, .dl_si_no), esperado)
+  # en una sesión en C, tolower() no pasa «Í» a minúscula
+  withr::with_locale(c(LC_CTYPE = "C"), expect_identical(lapply(formas, .dl_si_no), esperado))
+  expect_identical(.dl_si_no("S\u00cd"), TRUE)
+})
+
 test_that("suma_de_subtipos y subtipos_omitidos: la forma, con errores que nombran la clave", {
   base <- list(causa = 9200L, nombre = "Suma", anio = 2023L)
   forma <- function(...) .dl_problemas_config_simple(c(base, list(...)))
@@ -339,8 +349,10 @@ test_that("suma_de_subtipos y subtipos_omitidos: la forma, con errores que nombr
   for (v in list("sí", "si", "SÍ", TRUE)) expect_length(forma(subtipos = 9101:9102, suma_de_subtipos = v), 0L)
   for (v in list("no", FALSE))
     expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = v), "^edad_inicio: falta \\(obligatoria\\)")
-  expect_match(forma(subtipos = 9101:9102, suma_de_subtipos = "quizá"),
-               "^suma_de_subtipos: debe ser sí o no$", all = FALSE)
+  # un valor que no es sí ni no: solo ese problema, sin exigir las claves del modelo
+  expect_identical(forma(subtipos = 9101:9102, suma_de_subtipos = "quizá"), "suma_de_subtipos: debe ser sí o no")
+  expect_setequal(sub(":.*$", "", .dl_problemas_config_simple(list(subtipos = 9101:9102, suma_de_subtipos = "quizá"))),
+                  c("suma_de_subtipos", "causa", "anio"))
   expect_match(forma(suma_de_subtipos = "sí"), "^suma_de_subtipos: exige `subtipos`")
   sin_nombre <- .dl_problemas_config_simple(list(causa = 9200L, anio = 2023L, subtipos = 9101:9102,
                                                  suma_de_subtipos = "sí"))

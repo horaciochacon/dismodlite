@@ -250,14 +250,17 @@ test_that("las limitaciones de una suma salen de lo que hizo la suma, sin texto 
                label = paste(c(lim, lim2), collapse = "\n"))
 })
 
-# Una carpeta de corridas con manifiestos mínimos: `x` es una lista de list(run_id, causa, anio).
+# Una carpeta de corridas con manifiestos mínimos: `x` es una lista de list(run_id, causa, anio) y, si hace falta,
+# `escrita` (la hora en que se escribió el manifiesto) y `forzada` (validacion.gates.force).
 corridas_escritas <- function(x, env = parent.frame()) {
   salida <- withr::local_tempdir(.local_envir = env)
   for (r in x) {
     dir <- .dl_dir_corrida(salida, r$run_id)
     dir.create(dir, recursive = TRUE)
-    yaml::write_yaml(list(run_id = r$run_id, causa = list(cause_id = r$causa), params = list(year = r$anio)),
-                     file.path(dir, "manifest.yaml"))
+    man <- list(run_id = r$run_id, causa = list(cause_id = r$causa), params = list(year = r$anio))
+    if (!is.null(r$forzada)) man$validacion <- list(gates = list(force = r$forzada))
+    yaml::write_yaml(man, file.path(dir, "manifest.yaml"))
+    if (!is.null(r$escrita)) Sys.setFileTime(file.path(dir, "manifest.yaml"), as.POSIXct(r$escrita, tz = "UTC"))
   }
   salida
 }
@@ -291,6 +294,99 @@ test_that("la suma busca la corrida más reciente de cada subtipo, de su año y 
   # una carpeta de corridas que aún no existe: faltan todas
   expect_error(.dl_corridas_de_subtipos(file.path(salida, "no-existe"), 9101L, 2023L, prueba = TRUE),
                "falta la corrida de prueba de 2023 del/de los subtipo\\(s\\) 9101 en ")
+})
+
+test_that("entre corridas del mismo día con nombres distintos, la suma toma la última que se escribió", {
+  corrida <- function(run_id, escrita, anio = 2023L)
+    list(run_id = run_id, causa = 9101L, anio = anio, escrita = escrita)
+  # por la mañana, dos corridas sin `anios`; por la tarde, la de 2023 de una corrida con `anios`: la versión cuenta
+  # por nombre, y la v1 de la tarde es posterior a la v2 de la mañana
+  salida <- corridas_escritas(list(
+    corrida("2026-01-10_causa-9101_v1", "2026-01-10 09:00:00"),
+    corrida("2026-01-10_causa-9101_v2", "2026-01-10 10:00:00"),
+    corrida("2026-01-10_causa-9101-2023_v1", "2026-01-10 16:00:00"),
+    corrida("2026-01-10_causa-9101-2022_v1", "2026-01-10 15:00:00", 2022L)))
+  buscar <- function(carpeta) basename(.dl_corridas_de_subtipos(carpeta, 9101L, 2023L, prueba = FALSE))
+  expect_identical(buscar(salida), "2026-01-10_causa-9101-2023_v1")
+  # al revés: la corrida sin `anios` se repite después de la de `anios`
+  salida <- corridas_escritas(list(
+    corrida("2026-01-10_causa-9101-2023_v1", "2026-01-10 09:00:00"),
+    corrida("2026-01-10_causa-9101_v1", "2026-01-10 10:00:00"),
+    corrida("2026-01-10_causa-9101_v2", "2026-01-10 16:00:00")))
+  expect_identical(buscar(salida), "2026-01-10_causa-9101_v2")
+  # con el mismo nombre decide la versión, aunque el manifiesto de una anterior se haya tocado después; y un día
+  # posterior gana a cualquier hora de escritura
+  salida <- corridas_escritas(list(
+    corrida("2026-01-10_causa-9101_v1", "2026-01-10 18:00:00"),
+    corrida("2026-01-10_causa-9101_v2", "2026-01-10 10:00:00")))
+  expect_identical(buscar(salida), "2026-01-10_causa-9101_v2")
+  salida <- corridas_escritas(list(
+    corrida("2026-01-10_causa-9101_v3", "2026-01-12 18:00:00"),
+    corrida("2026-01-11_causa-9101-2023_v1", "2026-01-11 10:00:00")))
+  expect_identical(buscar(salida), "2026-01-11_causa-9101-2023_v1")
+})
+
+test_that("la búsqueda de las corridas de los subtipos salta un manifiesto ilegible, con un aviso que lo nombra", {
+  corrida <- function(run_id, causa) list(run_id = run_id, causa = causa, anio = 2023L)
+  salida <- corridas_escritas(list(corrida("2026-01-10_causa-9101_v1", 9101L),
+                                   corrida("2026-01-11_causa-777_v1", 777L),
+                                   corrida("2026-01-11_causa-778_v1", 778L)))
+  roto <- file.path(.dl_dir_corrida(salida, "2026-01-11_causa-777_v1"), "manifest.yaml")
+  writeLines(c("causa: {cause_id: 777", "  params: ["), roto)
+  texto <- file.path(.dl_dir_corrida(salida, "2026-01-11_causa-778_v1"), "manifest.yaml")
+  writeLines("no es un manifiesto", texto)
+  avisos <- character()
+  dir <- withCallingHandlers(.dl_corridas_de_subtipos(salida, 9101L, 2023L, prueba = FALSE),
+                             dl_warning = function(w) {
+                               avisos <<- c(avisos, conditionMessage(w)); invokeRestart("muffleWarning")
+                             })
+  expect_identical(basename(dir), "2026-01-10_causa-9101_v1")
+  expect_length(avisos, 2L)
+  expect_match(avisos[1], "no se puede leer el manifiesto de una corrida y no se cuenta: ")
+  expect_true(any(grepl(roto, avisos, fixed = TRUE)) && any(grepl(texto, avisos, fixed = TRUE)))
+})
+
+test_that("si falta la corrida de un subtipo, el error dice de qué otros años sí hay", {
+  corrida <- function(run_id, causa, anio) list(run_id = run_id, causa = causa, anio = anio)
+  salida <- corridas_escritas(list(
+    corrida("2026-01-10_causa-9101_v1", 9101L, 2023L), corrida("2026-01-10_causa-9101-2019_v1", 9101L, 2019L),
+    corrida("2026-01-10_causa-9102_v1", 9102L, 2023L), corrida("2026-01-10_causa-9102_v2", 9102L, 2023L),
+    corrida("2026-01-10_causa-9102-prueba_v1", 9102L, 2021L),          # de prueba: no es de las que se buscan
+    corrida("2026-01-10_causa-9103-2021_v1", 9103L, 2021L)))
+  e <- expect_error(.dl_corridas_de_subtipos(salida, 9101:9104, 2021L, prueba = FALSE), class = "dl_error")
+  expect_match(conditionMessage(e),
+               "falta la corrida de producción de 2021 del/de los subtipo\\(s\\) 9101, 9102, 9104 en ")
+  expect_match(conditionMessage(e), paste0("Corridas de producción de otros años: 9101 \\(2019, 2023\\); 9102 \\(2023\\)\\. ",
+                                           "Para sumar las de un año, dl_correr\\(anios = \\)\\. De 9102"))
+  expect_match(conditionMessage(e), "De 9102 solo hay corridas de prueba: para sumarlas, rapido = TRUE$")
+  # sin corridas de otros años, el error no los menciona
+  e <- expect_error(.dl_corridas_de_subtipos(salida, 9104L, 2021L, prueba = FALSE), class = "dl_error")
+  expect_no_match(conditionMessage(e), "otros años")
+})
+
+test_that("la suma dice qué corrida tomó de cada subtipo y cuáles se escribieron con forzar = TRUE", {
+  corrida <- function(run_id, causa, forzada = NULL)
+    list(run_id = run_id, causa = causa, anio = 2023L, forzada = forzada)
+  salida <- corridas_escritas(list(corrida("2026-01-10_causa-9101_v1", 9101L, FALSE),
+                                   corrida("2026-01-10_causa-9102_v1", 9102L, TRUE),
+                                   corrida("2026-01-10_causa-9103_v1", 9103L, TRUE),
+                                   corrida("2026-01-10_causa-9104_v1", 9104L)))
+  decir <- function(causas, ...) {
+    mensajes <- character()
+    corridas <- .dl_corridas_de_subtipos(salida, causas, 2023L, prueba = FALSE)
+    withCallingHandlers(.dl_decir_corridas_suma(causas, corridas, ...),
+                        message = function(m) {
+                          mensajes <<- c(mensajes, conditionMessage(m)); invokeRestart("muffleMessage")
+                        })
+    sub("\n$", "", mensajes)
+  }
+  m <- decir(9101:9104, rapido = FALSE)
+  expect_length(m, 5L)
+  expect_identical(sub("^dismodlite: ", "", m[1:4]), sprintf("%d: 2026-01-10_causa-%d_v1", 9101:9104, 9101:9104))
+  expect_match(m[5], "las corridas de los subtipos 9102, 9103 se escribieron con forzar = TRUE")
+  # ninguna forzada: solo las corridas; en una suma de prueba no se dice (toda corrida de prueba se escribe forzada)
+  expect_length(decir(c(9104L, 9101L), rapido = FALSE), 2L)
+  expect_length(decir(9101:9102, rapido = TRUE), 2L)
 })
 
 test_that("la corrida congela las tablas del contrato y sirven para repetirla", {

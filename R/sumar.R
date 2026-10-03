@@ -51,42 +51,72 @@
 }
 
 # Las corridas escritas en `carpeta_salida` (<carpeta_salida>/mod/dismod_lite/<run_id>/, con su manifiesto), una fila
-# por corrida: dir, run_id, fecha y versión (las de su run_id), si es de prueba (su nombre termina en «-prueba», como
-# las de dl_correr(rapido = TRUE)), y la causa y el año de su manifiesto. Las carpetas sin manifiesto, o cuyo nombre
-# no es un run_id, no cuentan. Devuelve un data.frame.
+# por corrida: dir, run_id, fecha, nombre y versión (las de su run_id), si es de prueba (su nombre termina en
+# «-prueba», como las de dl_correr(rapido = TRUE)), la causa y el año de su manifiesto y `escrita`, la hora en que se
+# escribió (la fecha de modificación de manifest.yaml, lo último que se escribe de una corrida: el manifiesto solo
+# guarda el día). Las carpetas sin manifiesto, o cuyo nombre no es un run_id, no cuentan; una con un manifiesto que no
+# se puede leer se salta con un aviso. Devuelve un data.frame.
 .dl_corridas_escritas <- function(carpeta_salida) {
   dirs <- list.dirs(.dl_dir_corrida(carpeta_salida), recursive = FALSE)
   dirs <- dirs[file.exists(file.path(dirs, "manifest.yaml"))]
   filas <- lapply(dirs, function(d) {
     partes <- .dl_partes_run_id(basename(d))
     if (is.null(partes)) return(NULL)
-    man <- .dl_leer_manifest(d)
-    data.table::data.table(dir = d, run_id = basename(d), fecha = partes$fecha, v = partes$v,
+    man <- .dl_manifest_o_aviso(d)
+    if (is.null(man)) return(NULL)
+    data.table::data.table(dir = d, run_id = basename(d), fecha = partes$fecha, nombre = partes$nombre, v = partes$v,
                            prueba = endsWith(partes$nombre, "-prueba"),
                            causa = as.integer(man$causa$cause_id %||% NA_integer_),
-                           anio = as.integer(man$params$year %||% NA_integer_))
+                           anio = as.integer(man$params$year %||% NA_integer_),
+                           escrita = as.numeric(file.mtime(file.path(d, "manifest.yaml"))))
   })
-  vacia <- data.table::data.table(dir = character(), run_id = character(), fecha = character(), v = integer(),
-                                  prueba = logical(), causa = integer(), anio = integer())
+  vacia <- data.table::data.table(dir = character(), run_id = character(), fecha = character(), nombre = character(),
+                                  v = integer(), prueba = logical(), causa = integer(), anio = integer(),
+                                  escrita = numeric())
   as.data.frame(data.table::rbindlist(c(list(vacia), filas)))
 }
 
-# La carpeta de la corrida más reciente (la de mayor fecha y, en ella, de mayor versión) de cada causa de `causas`
-# para el año `anio` en `carpeta_salida`: las de prueba (`prueba`) o las de producción. Un vector en el orden de
-# `causas`. Si falta la de alguna causa, un error que dice cuáles, de qué año y dónde se buscó, y si de esas causas y
-# ese año solo hay corridas de la otra clase.
+# El manifiesto de la corrida de la carpeta `dir_run`; si no se puede leer (no es un YAML válido, o no es una lista de
+# claves), NULL y un aviso que nombra el archivo.
+.dl_manifest_o_aviso <- function(dir_run) {
+  man <- tryCatch(.dl_leer_manifest(dir_run), error = function(e) e)
+  if (is.list(man) && !inherits(man, "condition")) return(man)
+  .dl_warn("no se puede leer el manifiesto de una corrida y no se cuenta: %s%s", file.path(dir_run, "manifest.yaml"),
+           if (inherits(man, "condition")) sprintf("\n  %s", .dl_detalle(man)) else "")
+  NULL
+}
+
+# Las corridas de `x` (filas de .dl_corridas_escritas) con la más reciente de cada causa primero: la del último día;
+# en ese día, de cada nombre la de mayor versión (la versión se cuenta por nombre y día: no se compara entre
+# nombres) y, entre nombres distintos, la última que se escribió.
+.dl_recientes_primero <- function(x) {
+  if (!nrow(x)) return(x)
+  x <- x[x$fecha == stats::ave(x$fecha, x$causa, FUN = max), ]
+  x <- x[x$v == stats::ave(x$v, x$causa, x$nombre, FUN = max), ]
+  x[order(x$escrita, decreasing = TRUE), ]
+}
+
+# La carpeta de la corrida más reciente (.dl_recientes_primero) de cada causa de `causas` para el año `anio` en
+# `carpeta_salida`: las de prueba (`prueba`) o las de producción. Un vector en el orden de `causas`. Si falta la de
+# alguna causa, un error que dice cuáles, de qué año y dónde se buscó, de qué otros años hay corridas de esa clase
+# de esas causas, y si de ese año solo las hay de la otra clase.
 .dl_corridas_de_subtipos <- function(carpeta_salida, causas, anio, prueba) {
-  x <- .dl_corridas_escritas(carpeta_salida)
-  x <- x[x$causa %in% causas & x$anio %in% anio, ]
-  de <- x[x$prueba == prueba, ]
-  de <- de[order(de$fecha, de$v, file.mtime(de$dir), decreasing = TRUE), ]
+  todas <- .dl_corridas_escritas(carpeta_salida)
+  x <- todas[todas$causa %in% causas & todas$anio %in% anio, ]
+  de <- .dl_recientes_primero(x[x$prueba == prueba, ])
   faltan <- setdiff(causas, de$causa)
   if (length(faltan)) {
     clase <- function(p) if (p) "de prueba" else "de producci\u00f3n"
     otras <- intersect(faltan, x$causa[x$prueba != prueba])
+    otros <- todas[todas$causa %in% faltan & todas$prueba == prueba & !is.na(todas$anio), ]
+    anios <- vapply(split(otros$anio, otros$causa), function(a) paste(sort(unique(a)), collapse = ", "), "")
     .dl_stop(paste0("falta la corrida %s de %d del/de los subtipo(s) %s en %s: c\u00f3rrelo(s) antes con dl_correr() ",
-                    "en esa carpeta de corridas (`carpeta_salida`)%s"),
+                    "en esa carpeta de corridas (`carpeta_salida`)%s%s"),
              clase(prueba), anio, paste(faltan, collapse = ", "), .dl_dir_corrida(carpeta_salida),
+             if (length(anios))
+               sprintf(". Corridas %s de otros a\u00f1os: %s. Para sumar las de un a\u00f1o, dl_correr(anios = )",
+                       clase(prueba), paste(sprintf("%s (%s)", names(anios), anios), collapse = "; "))
+             else "",
              if (length(otras))
                sprintf(". De %s solo hay corridas %s: para sumarlas, rapido = %s", paste(otras, collapse = ", "),
                        clase(!prueba), if (prueba) "FALSE" else "TRUE")

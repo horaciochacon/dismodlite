@@ -894,10 +894,21 @@ print.dl_corridas <- function(x, ...) {
   })
 }
 
+# Dice qué corrida se tomó de cada subtipo de una suma (`corridas`: sus carpetas, en el orden de `subtipos`) y, en una
+# suma de producción, qué subtipos entran con una corrida escrita con forzar = TRUE (validacion.gates.force de su
+# manifiesto); las de prueba se escriben todas así.
+.dl_decir_corridas_suma <- function(subtipos, corridas, rapido) {
+  for (i in seq_along(corridas)) .dl_message("%d: %s", subtipos[i], basename(corridas[i]))
+  forzadas <- vapply(corridas, function(d) isTRUE(.dl_leer_manifest(d)$validacion$gates$force), NA)
+  if (!rapido && any(forzadas))
+    .dl_message(paste0("las corridas de los subtipos %s se escribieron con forzar = TRUE (sin exigir la ",
+                       "convergencia): la suma las toma igual"), paste(subtipos[forzadas], collapse = ", "))
+}
+
 # La corrida de una causa que es la suma de sus subtipos (`p`, su proyecto leído para el año que se estima): busca en
 # `carpeta_salida` la corrida más reciente de ese año de cada subtipo que entra (.dl_corridas_de_subtipos: las de
 # prueba con `rapido`, las de producción sin él) y las suma con dl_sumar_hijas(), con el nombre de la causa y los
-# subtipos omitidos de la configuración y las rutas del proyecto. Antes comprueba, en palabras del proyecto, lo que
+# subtipos omitidos de la configuración y las rutas del proyecto. Antes dice cuáles tomó y comprueba, en palabras del proyecto, lo que
 # dl_sumar_hijas() exige de cada corrida: que declare a la causa como su causa padre.
 .dl_correr_suma <- function(p, carpeta_salida, rapido, registro, nombre) {
   cfg <- p$configuracion
@@ -907,6 +918,7 @@ print.dl_corridas <- function(x, ...) {
               if (rapido) "de prueba" else "de producci\u00f3n", anio, .dl_dir_corrida(carpeta_salida))
   subtipos <- .dl_subtipos_suma(s)$entran
   corridas <- .dl_corridas_de_subtipos(carpeta_salida, subtipos, anio, prueba = rapido)
+  .dl_decir_corridas_suma(subtipos, corridas, rapido)
   padres <- vapply(corridas, function(d)
     as.integer(.dl_leer_manifest(d)$causa$extraction_cause_id %||% NA_integer_), 0L)
   otro <- which(!padres %in% cfg$cause_id)

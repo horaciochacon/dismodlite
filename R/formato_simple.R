@@ -79,11 +79,15 @@
 }
 
 # Un valor de tipo «sí o no» como lógico: sí (o si) y no, sin distinguir mayúsculas, o true y false; NULL si no es
-# ninguno.
+# ninguno. Se compara con las formas escritas una a una: pasar «Í» a minúscula depende de la configuración regional.
+.DL_SI <- c("s\u00ed", "S\u00ed", "s\u00cd", "S\u00cd", "si", "Si", "sI", "SI")
+.DL_NO <- c("no", "No", "nO", "NO")
+
 .dl_si_no <- function(x) {
   if (isTRUE(x) || isFALSE(x)) return(x)
   if (!.dl_es_texto1(x)) return(NULL)
-  switch(tolower(trimws(x)), "s\u00ed" = , "si" = TRUE, "no" = FALSE, NULL)
+  x <- enc2utf8(trimws(x))
+  if (x %in% .DL_SI) TRUE else if (x %in% .DL_NO) FALSE
 }
 
 # TRUE si la causa es la suma de sus subtipos (suma_de_subtipos: sí) y no se ajusta. `x`: la configuración de un
@@ -185,7 +189,10 @@
     } else revisar(k, x, k)
   }
   obligatorias <- t$clave[t$defecto == "obligatoria" & !grepl("[.[]", t$clave)]
-  if (.dl_es_suma(s)) obligatorias <- intersect(obligatorias, .DL_CLAVES_SUMA)
+  # con un suma_de_subtipos que no es sí ni no, basta ese problema: no se sabe si las claves del modelo hacen falta
+  suma <- s[["suma_de_subtipos"]]
+  if (.dl_es_suma(s) || (!is.null(suma) && is.null(.dl_si_no(suma))))
+    obligatorias <- intersect(obligatorias, .DL_CLAVES_SUMA)
   for (k in obligatorias)
     if (is.null(s[[k]])) p(k, sprintf("falta (obligatoria): %s", t$descripcion[t$clave == k]))
   c(probs, .dl_problemas_particion(s), .dl_problemas_subtipo(s), .dl_problemas_suma(s), .dl_problemas_proxies(s))

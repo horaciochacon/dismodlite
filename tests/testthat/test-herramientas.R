@@ -521,7 +521,10 @@ test_that("dl_correr() de una suma busca las corridas de sus subtipos y las suma
   expect_match(run$run_id, "_causa-9200-prueba_v1$")
   expect_match(mensajes[1],
                "causa 9200: suma de los subtipos 9101 \\+ 9102 \\+ 9103, con sus corridas de prueba de 2023")
-  expect_no_match(paste(mensajes, collapse = "\n"), "cadena")
+  # y qué corrida tomó de cada subtipo
+  expect_identical(sub("\n$", "", mensajes[2:4]),
+                   sprintf("dl_correr(): %d: %s", 9101:9103, basename(vapply(9101:9103, de_subtipo, ""))))
+  expect_no_match(paste(mensajes, collapse = "\n"), "cadena|forzar")
   man <- run$manifest
   expect_identical(man$causa$agregacion, "suma_de_hijas")
   expect_identical(man$causa$cause_name, "Suma sintética de subtipos")
