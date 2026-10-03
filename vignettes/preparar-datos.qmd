@@ -848,8 +848,9 @@ padre>)$rutas)`. La guía
 
 Cada corrida congela en `inputs/contrato/` las tablas que usó y la configuración tal como se leyó, y esa carpeta es
 la de un proyecto: se lee y se corre igual. Las betas quedan bajo la causa de la corrida; la de un subtipo con las
-betas de su padre lleva además `avanzado: extraction`, así que el subtipo se repite solo. Una corrida de prueba del
-subtipo 9101 del ejemplo:
+betas de su padre lleva además la causa padre: la clave `subtipo_de` cuando la configuración la declara y, cuando la
+relación salía de `subtipos` en la configuración del padre (que no se congela), `avanzado: extraction`. Así el subtipo
+se repite solo. Una corrida de prueba del subtipo 9101 del ejemplo:
 
 ```{r}
 #| label: repetir

@@ -214,12 +214,19 @@
       "subtipos_omitidos: omite todos los `subtipos`: no queda ninguno que sumar")
 }
 
-# subtipo_de no puede ser la propia causa (solo si las dos tienen la forma que toca: la forma la revisa
-# .dl_problemas_config_simple).
+# Dominios y cruces de claves que la forma no ve (solo si los valores tienen la forma que toca: la forma la revisa
+# .dl_problemas_config_simple): subtipo_de es un entero positivo y no la propia causa; sensibilidad.fraccion_aguda, de
+# valores en [0, 1).
 .dl_problemas_subtipo <- function(s) {
   padre <- .dl_valor_en(s, "subtipo_de")
-  if (.dl_es_entero1(padre) && .dl_es_entero1(s[["causa"]]) && as.integer(padre) == as.integer(s[["causa"]]))
-    sprintf("subtipo_de: es la propia causa (%d): debe ser la causa padre", as.integer(padre))
+  fa <- .dl_valor_en(s, "sensibilidad.fraccion_aguda")
+  c(if (.dl_es_entero1(padre) && padre < 1)
+      "subtipo_de: debe ser un entero positivo, el cause_id de la causa padre",
+    if (.dl_es_entero1(padre) && .dl_es_entero1(s[["causa"]]) && as.integer(padre) == as.integer(s[["causa"]]))
+      sprintf("subtipo_de: es la propia causa (%d): debe ser la causa padre", as.integer(padre)),
+    if (.dl_es_tipo_simple(fa, "lista de n\u00fameros") && any(unlist(fa) < 0 | unlist(fa) >= 1))
+      sprintf("sensibilidad.fraccion_aguda: cada valor debe estar en [0, 1) (recibido: %s)",
+              paste(unlist(fa), collapse = ", ")))
 }
 
 # severidad.padre y componente.secuelas se leen de la corrida de partición: sin severidad.particion no tienen de

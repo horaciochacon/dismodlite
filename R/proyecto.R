@@ -233,7 +233,7 @@
 # proyecto (`causas`) declara a `causa` en `subtipos`: la relación se dice en un solo sitio o en los dos igual.
 .dl_comprobar_subtipo_de <- function(s, archivo, causa, causas) {
   declarado <- .dl_valor_en(s, "subtipo_de")
-  if (!.dl_es_entero1(declarado)) return(invisible())
+  if (!.dl_es_entero1(declarado) || declarado < 1) return(invisible())     # su forma la revisa la configuración
   otros <- setdiff(.dl_padres_de(causas, causa), as.integer(declarado))
   if (length(otros))
     .dl_stop_config_simple(archivo, sprintf(paste0(

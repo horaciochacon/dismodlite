@@ -492,9 +492,15 @@ test_that("las claves nuevas fuera de rango o de otro tipo son un error que nomb
                "^mortalidad_exceso.fraccion_aguda: debe ser un número en \\[0, 1\\)")
   expect_match(forma(sensibilidad = list(fraccion_aguda = "a")),
                "^sensibilidad.fraccion_aguda: debe ser una lista de números")
-  expect_match(forma(subtipo_de = 9.5), "^subtipo_de: debe ser un entero, el cause_id de la causa padre")
+  expect_match(forma(subtipo_de = 9.5), "^subtipo_de: debe ser un entero positivo, el cause_id de la causa padre")
   expect_match(forma(subtipo_de = "x"), "^subtipo_de: debe ser un entero")
   expect_match(forma(subtipo_de = 501L), "^subtipo_de: es la propia causa \\(501\\)")
+  expect_match(forma(subtipo_de = 0L), "^subtipo_de: debe ser un entero positivo")
+  expect_match(forma(subtipo_de = -3L), "^subtipo_de: debe ser un entero positivo")
+  for (v in list(1.5, -1, 1, c(0, 1.5)))
+    expect_match(forma(sensibilidad = list(fraccion_aguda = v)),
+                 "^sensibilidad.fraccion_aguda: cada valor debe estar en \\[0, 1\\)", info = v)
+  expect_length(forma(sensibilidad = list(fraccion_aguda = c(0, 0.3, 0.99))), 0L)
   expect_match(forma(ancla = list(error_maximo = 0.1, tope = 1)), "ancla.tope: clave desconocida")
   # los dominios, el validador completo, citado por la clave corta
   fuera <- function(...) tryCatch(.dl_config_simple(c(base, list(...)), "config.yaml", 501L, ctx),
@@ -506,6 +512,24 @@ test_that("las claves nuevas fuera de rango o de otro tipo son un error que nomb
     expect_match(fuera(mortalidad_exceso = list(fraccion_aguda = v)),
                  "mortalidad_exceso.fraccion_aguda \\(emr_prior.fraccion_aguda.valor\\): valor debe ser un número en \\[0, 1\\)",
                  info = v)
+})
+
+test_that("sensibilidad.fraccion_aguda fuera de [0, 1) y subtipo_de no positivo se atrapan al leer el proyecto", {
+  copia <- function(sensibilidad = "peso: [0.1, 0.5, 1.0]", subtipo_de = NULL, env = parent.frame()) {
+    s <- readLines(dl_ejemplo("config", "9101.yaml"), encoding = "UTF-8")
+    s[s == "  peso: [0.1, 0.5, 1.0]"] <- paste0("  ", sensibilidad)
+    copia_ejemplo(`config/9101.yaml` = c(s, subtipo_de), env = env)
+  }
+  casos <- list(list("fraccion_aguda: [0, 1.5]", NULL, "sensibilidad.fraccion_aguda"),
+                list("fraccion_aguda: [-1]", NULL, "sensibilidad.fraccion_aguda"),
+                list("peso: [0.5]", "subtipo_de: 0", "subtipo_de"))
+  for (k in casos) {
+    d <- copia(k[[1L]], k[[2L]])
+    e <- expect_error(dl_proyecto(d, 9101), class = "dl_error")
+    expect_match(conditionMessage(e), paste0(k[[3L]], ": (cada valor debe estar en \\[0, 1\\)|debe ser un entero positivo)"))
+    rev <- suppressMessages(dl_revisar_proyecto(d, 9101))
+    expect_match(rev$detalle[rev$paso == "configuración"], k[[3L]], fixed = TRUE)
+  }
 })
 
 test_that("proxies en bandas que no son de GBD ni de la población (uniones de sus bandas) llevan su id y cierran", {

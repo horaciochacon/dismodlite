@@ -342,7 +342,7 @@ claves:
       la tabla betas no trae filas de la causa, usa las de la causa padre, y la corrida declara a la causa padre, que
       la suma exige (dl_correr() de una causa con `suma_de_subtipos`, o dl_sumar_hijas()). Si la configuración del padre la declara en `subtipos`, la relación sale
       sola y las dos deben decir la misma causa (ver ?dl_proyecto).
-    error: debe ser un entero, el cause_id de la causa padre (distinto de la propia causa)
+    error: debe ser un entero positivo, el cause_id de la causa padre (distinto de la propia causa)
 
   - clave: notas
     tipo: lista de textos
