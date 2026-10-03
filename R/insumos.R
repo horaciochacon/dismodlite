@@ -366,10 +366,24 @@
 # entran los que la configuración declara; si falta uno declarado, lo detiene dl_cascada(), no dl_insumos().
 .dl_materializar_proxy <- function(cfg, paths, sch) {
   px <- .dl_leer_contrato(paths, "cov_proxy", sch, "cov_proxy")
+  if (.dl_es_simple(cfg)) .dl_exigir_proxies_del_anio(px$year, .dl_anio_ajuste(cfg))
   if (nrow(px)) px <- px[year %in% unlist(cfg$years$ajuste)]
   decl <- as.integer(unlist(lapply(cfg$covariables, function(cv) cv$proxy$covariate_id_proxy)))
   if (nrow(px) && length(decl)) px <- px[covariate_id_proxy %in% decl]
   px
+}
+
+# Un proyecto (formato simple) escribe los proxies del año con que se tradujo: si trae proxies (`anios`, el año de
+# cada fila) y ninguno es del que se estima (`ajuste`), el año cambió después de traducir. Error aquí, con el remedio,
+# en vez de la cascada sin proxies más adelante. El formato completo no pasa por aquí: sin proxies del año, la
+# corrida es solo nacional.
+.dl_exigir_proxies_del_anio <- function(anios, ajuste) {
+  anios <- sort(unique(as.integer(anios)))
+  if (!length(anios) || ajuste %in% anios) return(invisible())
+  .dl_stop(paste0("los proxies subnacionales del proyecto son de %s (el a\u00f1o con que se tradujo) y la ",
+                  "configuraci\u00f3n estima %d: vuelve a llamar a dl_proyecto() con anio: %d en la configuraci\u00f3n ",
+                  "(con proxies_crudos, as\u00ed se recalibran para %d)"),
+           paste(anios, collapse = ", "), ajuste, ajuste, ajuste)
 }
 
 # Tabla poblacion: un CSV o una carpeta de estimaciones de población (nacional y departamentos), del año de ajuste,

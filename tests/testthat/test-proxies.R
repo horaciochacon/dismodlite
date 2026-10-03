@@ -366,3 +366,12 @@ test_that("ubicacion_gbd: la carpeta de descargas del GHDx del ejemplo, con vari
   expect_equal(cal$valor, p$calibracion$valor)
   expect_identical(cal$ubicacion, p$calibracion$ubicacion)
 })
+
+# El año del proyecto cambiado después de traducirlo: los proxies (calibrados o no) son del año con que se tradujo,
+# y la cascada fallaba después, sin decir por qué. Ahora, un error temprano que dice qué hacer.
+test_that("proxies de otro año que el que se estima: error temprano que pide volver a traducir", {
+  p <- suppressMessages(dl_proyecto(dl_ejemplo(), causa = 9100))
+  p$configuracion$years$ajuste <- 2019L
+  expect_error(suppressMessages(dl_insumos(p)), "proxies.*2023.*2019.*dl_proyecto\\(\\).*anio: 2019")
+  expect_error(suppressMessages(dl_insumos(p$configuracion, p$rutas)), "proxies.*2023.*2019")
+})
