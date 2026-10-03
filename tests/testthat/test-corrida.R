@@ -251,6 +251,9 @@ test_that("la corrida congela las tablas del contrato y sirven para repetirla", 
   expect_true(all(file.exists(file.path(cong, c("ubicaciones.csv", "poblacion.csv", "ancla.csv")))))
   expect_false(dir.exists(file.path(r$dir, "inputs", "ghdx_cov")))
   man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  # sin proxies_crudos, nada de la calibración
+  expect_false("proxies" %in% names(man$params))
+  expect_false(file.exists(file.path(r$dir, "diagnostics", "proxies_series.csv")))
   p0 <- dl_proyecto(dl_ejemplo(), 9100)
   tablas <- Filter(Negate(is.null), lapply(man$inputs$contrato, `[[`, "tabla"))
   expect_setequal(unlist(tablas), names(p0$tablas))
@@ -334,4 +337,29 @@ test_that("la configuración de un proyecto se congela con sus tipos: releída e
   expect_identical(y[setdiff(names(s), "sensibilidad")], s[setdiff(names(s), "sensibilidad")])
   expect_identical(unlist(y$sensibilidad$peso), s$sensibilidad$peso)
   expect_identical(y$subnacional$kappa, 0.1 + 0.2)           # el double exacto
+})
+
+test_that("la corrida de un proyecto con proxies_crudos registra la calibración y se repite desde inputs/contrato/", {
+  d <- escribir_proxies_crudos(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  r <- suppressMessages(dl_correr(d, 9100, semilla = 1, rapido = TRUE, sensibilidad = FALSE,
+                                  carpeta_salida = withr::local_tempdir()))
+  man <- yaml::read_yaml(file.path(r$dir, "manifest.yaml"))
+  cong <- file.path(r$dir, "inputs", "contrato")
+  # las series de la calibración, en la carpeta de la corrida
+  s <- data.table::fread(file.path(r$dir, "diagnostics", "proxies_series.csv"))
+  expect_true(all(c("covariable", "ubicacion", "anio", "g", "se_g", "g_suavizado", "S", "usada") %in% names(s)))
+  expect_identical(nrow(s), 75L)
+  # params.proxies: por covariable, el método, la transformación, q, las ediciones y las excluidas
+  px <- man$params$proxies$haqi
+  expect_identical(px$metodo, "paseo_aleatorio")
+  expect_identical(px$transformacion, "cociente")
+  expect_true(is.finite(px$q) && px$q > 0)
+  expect_identical(unlist(px$ediciones), c(2019L, 2021L, 2023L))
+  # los crudos se congelan como vinieron, sin filas calibradas en covariables
+  expect_true("proxies_crudos" %in% unlist(lapply(man$inputs$contrato, `[[`, "tabla")))
+  cv <- data.table::fread(file.path(cong, "covariables.csv"), colClasses = list(character = "ubicacion"),
+                         na.strings = "")
+  expect_false(any(cv$covariable == "haqi" & !is.na(cv$ubicacion) & cv$ubicacion != "123"))
+  # repetir desde inputs/contrato/ recalibra igual
+  expect_identical(suppressMessages(dl_insumos(dl_proyecto(cong)))$hash, man$inputs$bundle_hash)
 })

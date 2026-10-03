@@ -654,3 +654,42 @@ test_that(".dl_num_exacto(): si ni el texto hexadecimal vuelve al número, un er
   local_mocked_bindings(.dl_leer_numeros = function(s) if (any(grepl("^0x", s))) rep(0.5, length(s)) else NULL)
   expect_error(.dl_num_exacto(0.1), "no hay un texto que vuelva exactamente a los números 0.1", class = "dl_error")
 })
+
+test_that("la revisión de un proyecto con proxies_crudos tiene el paso «proxies» (carpeta y proyecto leído)", {
+  d <- escribir_proxies_crudos(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  r <- revisar_callado(d, causa = 9100)
+  x <- r[r$paso == "proxies", ]
+  expect_identical(x$estado, "ok")
+  expect_match(x$detalle, "^haqi: paseo_aleatorio, q = [0-9.e-]+, ediciones 2019, 2021, 2023$")
+  pasos <- unique(r$paso)
+  expect_lt(match("proxies_crudos", pasos), match("proxies", pasos))
+  expect_lt(match("proxies", pasos), match("configuración", pasos))
+  expect_false(any(r$estado == "error"))
+  r2 <- revisar_callado(suppressMessages(dl_proyecto(d, 9100)))
+  expect_identical(r2[r2$paso == "proxies", "detalle"], x$detalle)
+  # sin proxies_crudos no hay paso «proxies»
+  expect_false("proxies" %in% revisar_callado(dl_ejemplo(), causa = 9100)$paso)
+})
+
+test_that("el paso «proxies» muestra el borde inferior de q, los avisos y los errores de la calibración", {
+  d <- escribir_proxies_crudos(dl_ejemplo(copiar_en = withr::local_tempdir()))
+  f <- file.path(d, "proxies_crudos.csv")
+  cr <- data.table::fread(f, colClasses = list(character = "ubicacion"))
+  # gradiente constante: q en el borde inferior, dicho en la línea en orden (no es un aviso)
+  base <- cr[anio == 2019L]
+  cr2 <- data.table::rbindlist(lapply(c(2019L, 2021L, 2023L), function(a) data.table::copy(base)[, anio := a][]))
+  data.table::fwrite(cr2, f)
+  x <- revisar_callado(d, causa = 9100)
+  x <- x[x$paso == "proxies", ]
+  expect_identical(x$estado, "ok")
+  expect_match(x$detalle, "q = 1e-08 \\(en el borde inferior: el gradiente es prácticamente constante\\)")
+  # una ubicación que falta en una edición: el aviso de dl_calibrar_proxies() en el paso
+  data.table::fwrite(cr2[!(ubicacion == "05" & anio == 2021L)], f)
+  x <- revisar_callado(d, causa = 9100)
+  expect_match(x$detalle[x$paso == "proxies" & x$estado == "aviso"], "no traen las mismas ubicaciones", all = FALSE)
+  # un error de la calibración va en el paso, y las reglas entre tablas esperan
+  data.table::fwrite(cr2[ubicacion == "05", error_estandar := 0], f)
+  x <- revisar_callado(d, causa = 9100)
+  expect_match(x$detalle[x$paso == "proxies" & x$estado == "error"], "error_estandar debe ser mayor que 0")
+  expect_identical(x$estado[x$paso == "proyecto"], "omitido")
+})

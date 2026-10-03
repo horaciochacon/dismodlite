@@ -284,6 +284,20 @@
 # (covariate_name_short "haqi"); una cascada plana o sin ese proxy usa el valor nacional en todos los departamentos.
 .dl_haqi_nacional <- function(casc) !("haqi" %in% unique(casc$dX$covariate_name_short))
 
+# Clave params.proxies del manifiesto: por covariable de la calibración `cal` (b$calibracion_proxies), el método, la
+# transformación, q (6 cifras significativas; sin q, nada), si quedó en un borde, las ediciones usadas y las
+# excluidas con su motivo (el texto de la calibración). NULL sin calibración: los manifiestos sin proxies_crudos no
+# cambian.
+.dl_params_proxies <- function(cal) {
+  if (is.null(cal)) return(NULL)
+  k <- attr(cal, "calibracion")
+  list(proxies = stats::setNames(lapply(seq_len(nrow(k)), function(i) list(
+    metodo = k$metodo[i], transformacion = k$transformacion[i],
+    q = if (!is.na(k$q[i])) signif(k$q[i], 6L), q_en_borde = if (!is.na(k$q_en_borde[i])) k$q_en_borde[i],
+    ediciones = as.list(as.integer(strsplit(k$ediciones[i], ", ", fixed = TRUE)[[1L]])),
+    excluidas = if (nzchar(k$excluidas[i])) k$excluidas[i])), k$covariable))
+}
+
 # Manifiesto (manifest.yaml) de una corrida de dl_exportar_corrida(): identificación, causa, parámetros, insumos,
 # particiones, cascada, datos, validación y limitaciones. `celdas` son las de la corrida (con run_id);
 # `convergencia` = list(rhat_max, ess_min, force). Los números calculados van redondeados: el emisor exige que el
@@ -305,7 +319,7 @@
                    sequela_ids = as.list(as.integer(b$componente$sequela_ids)),
                    fraccion_prevalencia = round(as.numeric(b$componente$fraccion_prevalencia), 6),
                    fraccion_yld = round(as.numeric(b$componente$fraccion_yld), 6)) else NULL),
-    params = list(seed = as.integer(f$seed), draws = as.integer(f$params$draws),
+    params = c(list(seed = as.integer(f$seed), draws = as.integer(f$params$draws),
                   chains = as.integer(f$params$chains), iter = as.integer(f$params$iter),
                   warmup = as.integer(f$params$warmup), thin = as.integer(f$params$thin),
                   year = as.integer(celdas$year[1]), anio_ancla = .dl_anio_ancla(cfg), remision = cfg$remision$valor,
@@ -334,6 +348,8 @@
                   # val = media de las simulaciones; lower y upper = sus cuantiles
                   estadistico_puntual = .DL_ESTADISTICO_PUNTUAL,
                   version_paquete = dl_version()),
+                  # la calibración de proxies_crudos, solo si el proyecto los trae
+                  .dl_params_proxies(b$calibracion_proxies)),
     inputs = c(list(bundle_hash = b$hash,
                   tablas = lapply(names(tablas_hash), function(nm)
                     list(tabla = sub("[.]csv$", "", nm), sha256 = tablas_hash[[nm]]))),
@@ -461,7 +477,9 @@
 #' - `diagnostics/`: `mcmc.csv` (R-hat y ESS), `aceptacion.csv`, `desplazamiento_splits.csv`, `validacion.csv`
 #'   ([dl_validar_ancla()]), `sensibilidad.csv` ([dl_sensibilidad()], si se da) y, con una cascada, `renorm.csv`
 #'   (los factores de renormalización), `dx_bandas.csv` (la mediana y el intervalo de dX por ubicación, sexo,
-#'   covariable y banda) y `amplitud.csv` (la validación de la amplitud, si se calculó).
+#'   covariable y banda) y `amplitud.csv` (la validación de la amplitud, si se calculó). Con un proyecto que trae
+#'   `proxies_crudos`, `proxies_series.csv`: las series de su calibración (el atributo `series` de
+#'   [dl_calibrar_proxies()]: el gradiente observado y el suavizado por ubicación y edición).
 #' - `inputs/`: los insumos congelados ([dl_congelar_insumos()]), la configuración usada (`config_usado.yaml`, en el
 #'   formato completo) y las descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con un
 #'   proyecto de las tablas del contrato ([dl_proyecto()]), `inputs/contrato/` guarda las tablas que se usaron
@@ -474,6 +492,8 @@
 #'   (la causa padre, que [dl_sumar_hijas()] exige). La carpeta de `severidad.particion` se copia en
 #'   `inputs/contrato/particion/<corrida>/`, con la ruta de la configuración congelada cambiada a ella y el sha256 de
 #'   cada archivo en `inputs$contrato` (`particion`); la tabla `severidad`, que sale de ella, no se congela aparte.
+#'   `proxies_crudos` se congela como vino (y `covariables.csv` sin las filas calibradas): el proyecto congelado
+#'   vuelve a calibrar con la misma configuración y da los mismos insumos.
 #' - `manifest.yaml`: la descripción de la corrida (abajo).
 #'
 #' El identificador `<AAAA-MM-DD>_<nombre>_v<n>` lleva la fecha del día y la versión siguiente a la mayor de ese día
@@ -483,7 +503,9 @@
 #' `manifest.yaml` describe la corrida: identificación, causa, parámetros, insumos (con el sha256 de cada tabla
 #' congelada), cascada, datos, `decisiones` (las de la configuración; una lista vacía si no hay), validación y
 #' limitaciones; en un proyecto con las tablas del contrato de insumos, además, `configuracion` (el formato y las
-#' claves que tomaron su valor por defecto). En la cascada, `haqi_nacional` se conserva por compatibilidad con la versión 0.2.2: es `false` solo si la
+#' claves que tomaron su valor por defecto) y, si el proyecto trae `proxies_crudos`, `params.proxies`: por covariable,
+#' el método, la transformación, q, si quedó en un borde de su intervalo, las ediciones usadas y las excluidas con su
+#' motivo. En la cascada, `haqi_nacional` se conserva por compatibilidad con la versión 0.2.2: es `false` solo si la
 #' cascada aplicó un proxy subnacional de una covariable llamada `haqi`; si no (también en un proyecto sin esa
 #' covariable), es `true`.
 #'
@@ -605,6 +627,8 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
                          list(dX_mediana = q[1], dX_lower = q[2], dX_upper = q[3]) },
                      by = list(location_id, sex_id, covariate_name_short, age_group_id)], "dx_bandas.csv")
   escribir(attr(validacion, "amplitud"), "amplitud.csv")
+  # las series de la calibración de proxies_crudos (gradiente observado y suavizado por ubicación y edición)
+  escribir(attr(b$calibracion_proxies, "series"), "proxies_series.csv")
   inputs_dir <- file.path(dir_run, "inputs")
   tablas_hash <- dl_congelar_insumos(b, inputs_dir)
   # la configuración traducida al formato completo (sin la del proyecto, que va en contrato/config.yaml)

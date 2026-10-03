@@ -285,17 +285,47 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
           if (length(attr(t, "lectores"))) sprintf(" (%s)", paste(attr(t, "lectores"), collapse = ", ")) else "")
 }
 
-# Las reglas entre tablas de `pre` (list(tablas, cfg, causas)) en el paso «proyecto».
+# Las reglas entre tablas de `pre` (list(tablas, tablas_modelo, cfg, causas)) en el paso «proyecto».
 .dl_revisar_reglas <- function(pre, anotar) {
-  pr <- .dl_problemas_proyecto(pre$tablas, pre$cfg, max(1L, nrow(pre$causas)))
+  pr <- .dl_problemas_proyecto(pre$tablas_modelo %||% pre$tablas, pre$cfg, max(1L, nrow(pre$causas)),
+                               originales = pre$tablas)
   for (a in pr$avisos) anotar("proyecto", "aviso", a)
   for (e in pr$problemas) anotar("proyecto", "error", e)
   if (!length(pr$problemas)) anotar("proyecto", "ok", "las reglas entre tablas se cumplen")
 }
 
+# La línea en orden del paso «proxies»: por covariable de la calibración `cal` (dl_calibrar_proxies), el método, q
+# (con 3 cifras; si quedó en un borde de su intervalo, cuál), las ediciones usadas y las excluidas.
+.dl_linea_proxies <- function(cal) {
+  k <- attr(cal, "calibracion")
+  inferior <- k$q < sqrt(prod(.DL_Q_LIMITES))
+  borde <- ifelse(!k$q_en_borde %in% TRUE, "",
+                  ifelse(inferior, " (en el borde inferior: el gradiente es pr\u00e1cticamente constante)",
+                         " (en el borde superior: cada edici\u00f3n manda)"))
+  q <- ifelse(is.na(k$q), "no se estima (una sola edici\u00f3n por serie)",
+              vapply(k$q, function(x) format(signif(x, 3L)), ""))
+  paste(sprintf("%s: %s, q = %s%s, ediciones %s%s", k$covariable, k$metodo, q, borde, k$ediciones,
+                ifelse(nzchar(k$excluidas), paste0("; excluidas: ", k$excluidas), "")), collapse = "\n")
+}
+
+# El paso «proxies» de la revisión de una carpeta: la calibración de proxies_crudos (.dl_calibracion_proyecto), con
+# sus avisos y sus errores, cuando las tablas de las que toma algo se leyeron (`fallidas`: las que no). Devuelve
+# list(ok, calibracion): `ok` es FALSE si la calibración falló o espera a una tabla; sin proxies_crudos, la
+# calibración es NULL y no hay paso.
+.dl_revisar_proxies <- function(s, archivo, tablas, fallidas, revisar, anotar) {
+  if (is.null(tablas$proxies_crudos)) return(list(ok = TRUE, calibracion = NULL))
+  espera <- intersect(c("covariables", "poblacion"), fallidas)
+  if (length(espera)) {
+    anotar("proxies", "omitido", sprintf("la calibraci\u00f3n espera a la tabla %s", espera[1L]))
+    return(list(ok = FALSE))
+  }
+  cal <- revisar("proxies", .dl_calibracion_proyecto(s, archivo, tablas), .dl_linea_proxies)
+  list(ok = !is.null(cal), calibracion = cal)
+}
+
 # Los pasos de un proyecto ya armado `p` (dl_proyecto(): sus tablas ya se leyeron y su configuración se tradujo): cada
-# tabla en orden, con sus avisos, la configuración, las reglas entre tablas y, para los insumos, el mismo proyecto. Del
-# formato completo, solo la configuración.
+# tabla en orden, con sus avisos, la calibración de proxies_crudos (si la trae), la configuración, las reglas entre
+# tablas y, para los insumos, el mismo proyecto. Del formato completo, solo la configuración.
 .dl_revisar_objeto <- function(p, revisar, anotar, errores) {
   cfg <- p$configuracion
   if (!identical(p$formato, "simple")) {
@@ -306,19 +336,23 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     for (a in attr(p$tablas[[t]], "avisos")) anotar(t, "aviso", a)
     anotar(t, "ok", .dl_linea_tabla(p$tablas[[t]], origen = TRUE))
   }
+  if (!is.null(p$calibracion)) anotar("proxies", "ok", .dl_linea_proxies(p$calibracion))
   archivo <- cfg$origen$archivo
   anotar("configuraci\u00f3n", "ok", sprintf("%s: proyecto", if (identical(archivo, "configuracion"))
     "la configuraci\u00f3n dada como lista" else basename(archivo)))
   causas <- if (!is.null(p$carpeta)) .dl_causas_config(p$carpeta, NULL, cfg$cause_id)
-  .dl_revisar_reglas(list(tablas = p$tablas, cfg = cfg, causas = causas), anotar)
+  .dl_revisar_reglas(list(tablas = p$tablas, tablas_modelo = .dl_tablas_modelo(p$tablas, p$calibracion), cfg = cfg,
+                          causas = causas), anotar)
   if (!errores()) function() p
 }
 
 # Los pasos de un proyecto con las tablas del contrato (`revisar`, `anotar` y `errores`: los de .dl_revisar_causa):
 #   1. cada tabla, leída por su lector y validada sola (las obligatorias que faltan, un error en su paso);
-#   2. la configuración: sus claves y, si las tablas de las que toma algo (ubicaciones, betas, covariables) se leyeron,
+#   2. «proxies», si el proyecto trae proxies_crudos: su calibración, con las claves de la configuración ya revisadas
+#      (.dl_revisar_proxies);
+#   3. la configuración: sus claves y, si las tablas de las que toma algo (ubicaciones, betas, covariables) se leyeron,
 #      su traducción, con la severidad de la partición si la declara;
-#   3. «proyecto»: las reglas entre tablas (.dl_problemas_proyecto), si nada falló antes.
+#   4. «proyecto»: las reglas entre tablas (.dl_problemas_proyecto), si nada falló antes.
 # Devuelve la función que arma el proyecto (como dl_proyecto(), con su traducción: dentro del paso «insumos», donde un
 # error de la traducción queda en la revisión) o NULL si algo falló.
 .dl_revisar_contrato <- function(carpeta, cf, rel, revisar, anotar, errores) {
@@ -341,9 +375,11 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
     anotar("configuraci\u00f3n", "omitido", sprintf("su traducci\u00f3n espera a la tabla %s", espera[1L]))
     return(omitir())
   }
+  px <- .dl_revisar_proxies(s, cf$archivo, tablas, fallidas, revisar, anotar)
+  if (!px$ok) return(omitir())
   pre <- revisar("configuraci\u00f3n",
                  .dl_config_de_tablas(s, cf$archivo, cf$causa, tablas, .dl_causas_config(carpeta, s, cf$causa),
-                                      carpeta),
+                                      carpeta, calibracion = px$calibracion),
                  function(pre) sprintf("%s: proyecto", rel))
   if (is.null(pre) || errores()) return(omitir())
   .dl_revisar_reglas(pre, anotar)
