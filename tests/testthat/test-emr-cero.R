@@ -285,9 +285,19 @@ test_that("dl_correr() de una carpeta con `prior: cero`: manifiesto, limitación
     expect_identical(man$params$emr_cota_origen, "cero")
     expect_null(man$params$emr_cota_k)
     expect_identical(man$params$engine, motor)
+    # la configuración usada se escribe sin la cota [0, 0] de los insumos (el manifiesto sí la declara, arriba): así
+    # config_usado.yaml sigue siendo una configuración del formato completo que dl_configuracion() lee
+    usada <- yaml::read_yaml(file.path(run$dir, "inputs", "config_usado.yaml"))
+    expect_identical(usada$emr_prior$tipo, "cero"); expect_null(usada$emr_prior$cota)
+    dc <- withr::local_tempdir()
+    file.copy(file.path(run$dir, "inputs", "config_usado.yaml"), file.path(dc, "9100.yaml"))
+    releida <- expect_no_error(suppressWarnings(dl_configuracion(9100, dc)))   # el aviso es el de la clave `origen`
+    expect_identical(releida$emr_prior$tipo, "cero")
     expect_identical(man$cascada$modo, "proxy"); expect_identical(man$cascada$truncados_emr, 0L)
     lim <- unlist(man$limitaciones)
-    expect_identical(sum(grepl("^mortalidad en exceso \\(EMR\\) fija en 0 \\(emr_prior.tipo cero\\) — no se estima", lim)), 1L)
+    expect_identical(sum(lim == paste("mortalidad en exceso (EMR) fija en 0 (emr_prior.tipo cero) — no se estima (sin nudos",
+                                      "de log f en el muestreo) y la causa no aporta muertes al modelo —",
+                                      "declarado en la configuración del proyecto")), 1L)
     expect_true(any(grepl("sin validación de amplitud \\(la mortalidad en exceso está fija en 0", lim)))
     mc <- data.table::fread(file.path(run$dir, "diagnostics", "mcmc.csv"))
     expect_true(nrow(mc) > 0L && all(grepl("^logi_", mc$parametro)))

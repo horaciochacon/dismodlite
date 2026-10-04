@@ -664,6 +664,9 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   # la configuración traducida al formato completo (sin la del proyecto, que va en contrato/config.yaml)
   usada <- cfg
   usada$origen$configuracion <- NULL
+  # con la EMR fija en cero, sin la cota [0, 0] que ponen los insumos (la declara el manifiesto): la configuración no
+  # la admite con ese prior, y así el archivo escrito se puede volver a leer con dl_configuracion()
+  if (.dl_emr_es_cero(cfg)) usada$emr_prior$cota <- NULL
   yaml::write_yaml(usada, file.path(inputs_dir, "config_usado.yaml"))
   # las tablas del contrato del proyecto (si los insumos vienen de uno) y su configuración tal como se leyó: con ellas
   # la corrida se repite sin la carpeta original, también cuando las tablas o la configuración se dieron en R. Cada
