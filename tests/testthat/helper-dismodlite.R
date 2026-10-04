@@ -261,3 +261,13 @@ ejemplo_calibrado <- function() {
   if (!dir.exists(d)) escribir_proxies_calibrados(dl_ejemplo(copiar_en = d))
   d
 }
+
+# El proyecto de ejemplo con la mortalidad en exceso fija en 0: en config/9100.yaml, `mortalidad_exceso: {prior: cero}`
+# en lugar de su techo, más las líneas `extra` al final. Una copia en una carpeta temporal (copia_ejemplo()). Conserva
+# los proxies y las betas del ejemplo: la cascada es por covariables.
+copia_emr_cero <- function(extra = character(), env = parent.frame()) {
+  cfg <- readLines(file.path(dl_ejemplo(), "config", "9100.yaml"), encoding = "UTF-8")
+  i <- which(cfg == "mortalidad_exceso:")
+  cfg <- c(cfg[seq_len(i - 1L)], "mortalidad_exceso:", "  prior: cero", cfg[-seq_len(i + 1L)], extra)
+  copia_ejemplo(`config/9100.yaml` = cfg, env = env)
+}

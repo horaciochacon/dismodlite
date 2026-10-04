@@ -434,6 +434,8 @@
   # ancla.error_maximo: sin la clave, la configuracion completa no declara el umbral (rige el del paquete);
   # suma_de_subtipos: una causa que se ajusta no es una suma, y no lo informa
   pd <- pd[!pd$clave %in% c("ancla.error_maximo", "suma_de_subtipos"), ]
+  # mortalidad_exceso.techo: con la mortalidad en exceso fija en 0 (prior: cero) no hay techo que tomar por defecto
+  if (identical(val("mortalidad_exceso.prior"), "cero")) pd <- pd[pd$clave != "mortalidad_exceso.techo", ]
   reglas <- c(nombre = contexto$nombre, ubicacion_gbd = paste(contexto$ubicacion_gbd, collapse = ", "),
               subnacional.modo = modo, nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
   # el año del ancla: el de ancla.anio o el que se estima y, si el ancla no lo trae, el último anterior
@@ -465,7 +467,7 @@
     sexos = sort(unique(.dl_codigos_sexo(val("sexos")))), edad_inicio = s[["edad_inicio"]], edad_inicio_fuente = proc,
     remision = list(valor = val("remision"), fuente = proc),
     emr_prior = c(list(tipo = voc("mortalidad_exceso.prior", prior)),
-                  if (prior == "plano") list(tipo_procedencia = proc),
+                  if (prior %in% c("plano", "cero")) list(tipo_procedencia = proc),
                   if (!is.null(techo)) list(cota = c(0, num(techo)), fuente_cota = proc),
                   if (!is.null(fa)) list(fraccion_aguda = list(valor = num(fa), procedencia = proc))),
     nudos_incidencia = nudos, sigma_suavidad = num(val("incidencia.suavidad")),

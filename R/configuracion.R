@@ -181,7 +181,9 @@
 #' Las claves con punto van dentro de su bloque (`ancla.peso` es `peso:` bajo `ancla:`). Las covariables actúan solo
 #' en la estimación subnacional: con sus valores por ubicación en la tabla `covariables`, la diferencia de log i (o de
 #' log f, con `efecto_sobre: mortalidad_exceso` en la tabla `betas`) de cada ubicación es `beta` por su diferencia con
-#' el valor nacional; el ajuste nacional no cambia. Si el proyecto trae `proxies_crudos`, leerlo la calibra para el
+#' el valor nacional; el ajuste nacional no cambia. Para una causa sin muertes, `mortalidad_exceso: {prior: cero}`
+#' fija la mortalidad en exceso en 0 y no la estima: no usa la mortalidad del ancla y no admite techo, fracción aguda
+#' ni datos de mortalidad en el ajuste. Si el proyecto trae `proxies_crudos`, leerlo la calibra para el
 #' año que se estima (`anio`, o el de `cambios`) con las claves `proxies.*` ([dl_calibrar_proxies()]). `avanzado:`
 #' pasa claves del formato completo tal cual y se aplica al final (para expertos). El bloque `subnacional` también se
 #' puede llamar `departamentos`, su nombre anterior. La carpeta del proyecto y sus archivos: ver [dl_proyecto()].
@@ -445,14 +447,29 @@ NULL
   # Tipo del prior de EMR: informativo_edad (un prior por banda a partir de csmr/prevalencia del ancla) o plano_cota
   # (sin prior informativo, solo el techo: el de emr_prior.cota o, si es null, el derivado de csmr/prevalencia).
   # plano_cota sirve para anclas cuya caída con la edad exige una EMR muy por encima de csmr/prevalencia, y exige
-  # tipo_procedencia.
+  # tipo_procedencia. cero fija la EMR en 0 fuera del muestreo (theta = log i en los nudos), para una causa que no
+  # aporta muertes al modelo: exige tipo_procedencia y no admite lo que ajusta un prior o un techo que no existen, ni
+  # datos de mortalidad en el ajuste (con f = 0 el modelo predice p f = 0 muertes y su verosimilitud es -Inf).
   tp <- cfg$emr_prior$tipo
-  if (!identical(tp, "informativo_edad") && !identical(tp, "plano_cota"))
-    p("emr_prior.tipo", "valores admitidos: informativo_edad o plano_cota")
-  if (identical(tp, "plano_cota") &&
+  if (!isTRUE(tp %in% c("informativo_edad", "plano_cota", "cero")))
+    p("emr_prior.tipo", "valores admitidos: informativo_edad, plano_cota o cero")
+  if (isTRUE(tp %in% c("plano_cota", "cero")) &&
       (is.null(cfg$emr_prior$tipo_procedencia) || !nzchar(cfg$emr_prior$tipo_procedencia)))
     p("emr_prior.tipo_procedencia",
-      "plano_cota exige procedencia (por qu\u00e9 no se usa el prior de mortalidad/prevalencia)")
+      sprintf("%s exige procedencia (por qu\u00e9 no se usa el prior de mortalidad/prevalencia)", tp))
+  if (identical(tp, "cero")) {
+    for (campo in c("cota", "fraccion_aguda", "factor_sd", "factor_techo"))
+      if (!is.null(cfg$emr_prior[[campo]]))
+        p("emr_prior.tipo", sprintf(paste0("cero fija la mortalidad en exceso en 0 y no admite emr_prior.%s (no hay ",
+                                           "prior ni techo que ajustar): quita la clave o usa otro prior"), campo))
+    if ("csmr" %in% unlist(cfg$medidas_entrada))
+      p("emr_prior.tipo", paste0("cero fija la mortalidad en exceso en 0 y no admite csmr en medidas_entrada (el ",
+                                 "modelo predice 0 muertes por la causa): quita csmr de medidas_entrada o usa otro ",
+                                 "prior"))
+    if (!is.null(cfg$sensibilidad$fraccion_aguda))
+      p("emr_prior.tipo", paste0("cero fija la mortalidad en exceso en 0 y no admite sensibilidad.fraccion_aguda ",
+                                 "(no hay prior de mortalidad en exceso que cambie): quita la clave o usa otro prior"))
+  }
   # Techo de EMR: [min, max] declarado, o null para que dl_insumos() lo derive del ancla (factor_techo por la EMR
   # máxima de csmr/prevalencia).
   ct <- cfg$emr_prior$cota

@@ -20,6 +20,10 @@
 # La constante de normalización del truncamiento a la cota no depende de theta y se omite. Con el prior plano
 # (emr_prior.tipo plano_cota) el término vale 0 y solo queda la cota.
 #
+# EMR fija en cero (emr_prior.tipo cero): f(a) = 0 en todas las edades, para una causa que no aporta muertes al
+# modelo. log f no se muestrea: theta = (log i en los nudos), la EDO corre con f = 0 exacto y la log-posterior no
+# tiene término de EMR ni cota. No usa el csmr del ancla ni tiene techo (cota = [0, 0], origen «cero»).
+#
 # Techo de EMR: f_max, la cota superior de f. Impreso en la configuración (emr_prior.cota = [f_min, f_max]) o
 # derivado del ancla:
 #   cota = [0, K_techo * max_b(csmr_b (1 - fraccion_aguda) / p_b)],   máximo sobre sexos y bandas b del ancla,
@@ -52,6 +56,9 @@
 
 # ---- Parámetros del prior en la configuración --------------------------------------------------------------------
 
+# EMR fija en cero (emr_prior.tipo cero): f = 0 exacto, fuera del muestreo.
+.dl_emr_es_cero <- function(cfg) identical(cfg$emr_prior$tipo, "cero")
+
 # fraccion_aguda: fracción de las muertes por la causa que ocurre en los primeros 28 días y pertenece al modelo
 # agudo; el prior crónico usa csmr (1 - fraccion_aguda). Sin el campo, 0: todo el csmr es crónico.
 .dl_fraccion_aguda <- function(cfg) as.numeric(cfg$emr_prior$fraccion_aguda$valor %||% 0)
@@ -80,7 +87,8 @@
 #' de la banda del ancla que lo contiene (un nudo fuera de las bandas, el de la más cercana, con el doble de
 #' desviación estándar) y log f queda truncado bajo el techo de la mortalidad en exceso (`mortalidad_exceso.techo` o,
 #' sin él, 3 veces el máximo de csmr / p del ancla). Con `mortalidad_exceso.prior: plano` el prior de log f es plano
-#' bajo el techo y esta tabla no se usa.
+#' bajo el techo y esta tabla no se usa. Con `mortalidad_exceso.prior: cero` la mortalidad en exceso está fija en 0,
+#' no hay prior y esta función se detiene con un error.
 #'
 #' @param insumos Insumos de [dl_insumos()] (con el ancla de mortalidad).
 #' @return Tabla (data.table) con una fila por sexo y banda del ancla: `sex_id`, `age_group_id`, `age_start`,
@@ -97,6 +105,8 @@
 #' @export
 dl_prior_emr <- function(insumos) {
   .dl_exigir_clase(insumos, "dl_bundle", "insumos", "dl_insumos()")
+  if (.dl_emr_es_cero(insumos$cfg))
+    .dl_stop("la mortalidad en exceso est\u00e1 fija en 0 (emr_prior.tipo cero): no tiene prior por edad")
   .dl_prior_emr_tabla(insumos$prior_gbd, insumos$cfg)
 }
 
@@ -125,10 +135,12 @@ dl_prior_emr <- function(insumos) {
 # .dl_bundle_con la recalcula si cambia la fracción aguda.
 #   impresa:  emr_prior.cota de la configuración;
 #   derivada: [0, K_techo * max(csmr (1 - fraccion_aguda) / p)], con max(exp(mu_log)) de dl_prior_emr sobre sexos
-#             y bandas, y K_techo = emr_prior.factor_techo (.DL_EMR_TECHO_K por defecto).
-# Devuelve list(cota, origen = "impreso" | "derivado", k, emr_max_ancla), que el manifiesto de la corrida declara
-# (k y emr_max_ancla son NA con el techo impreso).
+#             y bandas, y K_techo = emr_prior.factor_techo (.DL_EMR_TECHO_K por defecto);
+#   cero:     [0, 0] con la EMR fija en cero (emr_prior.tipo cero): no hay techo, f = 0.
+# Devuelve list(cota, origen = "impreso" | "derivado" | "cero", k, emr_max_ancla), que el manifiesto de la corrida
+# declara (k y emr_max_ancla son NA salvo con el techo derivado).
 .dl_techo_emr <- function(cfg, prior_gbd) {
+  if (.dl_emr_es_cero(cfg)) return(list(cota = c(0, 0), origen = "cero", k = NA_real_, emr_max_ancla = NA_real_))
   cota_impresa <- cfg$emr_prior$cota
   if (!is.null(cota_impresa))
     return(list(cota = as.numeric(unlist(cota_impresa)), origen = "impreso", k = NA_real_, emr_max_ancla = NA_real_))
