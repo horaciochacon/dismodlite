@@ -21,14 +21,16 @@ calculado en la sesión; \code{FALSE} vuelve a muestrear.}
 Objeto de clase \code{dl_fit}, una lista con:
 \itemize{
 \item \code{draws_par}: lista con una matriz por sexo (nombres \code{"1"} y \code{"2"}): una fila por simulación y una columna por
-parámetro (\verb{logi_<nudo>} y \verb{logf_<nudo>}: log i y log f en cada nudo).
+parámetro (\verb{logi_<nudo>} y \verb{logf_<nudo>}: log i y log f en cada nudo; con la mortalidad en exceso fija en 0,
+solo \verb{logi_<nudo>}).
 \item \code{draws_q}: tabla (data.table) con una fila por ubicación, sexo, simulación y edad entera: \code{location_id},
 \code{sex_id}, \code{draw}, \code{edad}, \code{p} (prevalencia), \code{i} (incidencia), \code{f} (mortalidad en exceso) e \code{ipop}
 (incidencia poblacional, i (1 - p): casos nuevos por persona-año de toda la población). Las tasas son por
 persona-año.
 \item \code{grid}: lista con \code{edades} (las edades enteras de \code{draws_q}) y \code{nudos}.
 \item \code{mcmc}: tabla con el R-hat (\code{rhat}) y el tamaño efectivo de muestra (\code{ess}) de cada \code{parametro} y sexo.
-\item \code{aceptacion}: tabla con la tasa de aceptación (\code{tasa}) de cada sexo, \code{cadena} y \code{bloque} (1: log i; 2: log f).
+\item \code{aceptacion}: tabla con la tasa de aceptación (\code{tasa}) de cada sexo, \code{cadena} y \code{bloque} (1: log i; 2: log f,
+que no existe con la mortalidad en exceso fija en 0).
 \item \code{bundle_hash}: el hash de los insumos.
 \item \code{seed}: la semilla.
 \item \code{prior_only}: \code{FALSE} (\code{TRUE} en \code{\link[=dl_ajustar_solo_prior]{dl_ajustar_solo_prior()}}).
@@ -50,6 +52,11 @@ prior de suavidad de log i (\code{incidencia.suavidad}), el prior de log f (\cod
 con \code{mortalidad_exceso.prior: plano}), la verosimilitud del ancla (con su peso \code{ancla.peso} y su correlación entre
 edades \code{ancla.correlacion_edad}) y la de los datos locales que entran al ajuste. La notación y las ecuaciones están
 en \code{vignette("el-modelo", package = "dismodlite")}.
+
+Con \code{mortalidad_exceso.prior: cero} la mortalidad en exceso queda fija en 0 y no se estima: los parámetros son
+solo log i en los nudos (un bloque del muestreador), la ecuación se resuelve con f = 0 y la log-posterior no tiene
+término de mortalidad en exceso. Sirve para una causa sin muertes: sin ella, log f no tendría información y sus
+cadenas no convergerían.
 
 Cada sexo se muestrea con cadenas de Metropolis-Hastings adaptativo por bloques (\code{\link[=dl_mh]{dl_mh()}}), con log i y log f
 en bloques separados. La semilla de un sexo es \code{semilla + sex_id} y la de cada cadena se deriva de ella: el

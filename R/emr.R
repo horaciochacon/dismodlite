@@ -154,8 +154,16 @@ dl_prior_emr <- function(insumos) {
 }
 
 # ---- Prior de f en los nudos --------------------------------------------------------------------------------------
-# Las dos funciones devuelven lo que .dl_ctx guarda en ctx$emr: list(mu_log, sd_log, cota, plano), con mu_log y
-# sd_log por nudo (en el orden de `nudos`), cota = [f_min, f_max] y plano = TRUE solo con el prior plano.
+# Las tres funciones devuelven lo que .dl_ctx guarda en ctx$emr: list(mu_log, sd_log, cota, plano), con mu_log y
+# sd_log por nudo (en el orden de `nudos`), cota = [f_min, f_max] y plano = TRUE sin término de EMR en la
+# log-posterior (prior plano o EMR fija en cero); la EMR fija en cero añade cero = TRUE.
+
+# EMR fija en cero (emr_prior.tipo cero): theta no trae log f, así que no hay mu_log ni sd_log por nudo; cota = [0, 0].
+# ctx$emr$cero es la bandera que leen la log-posterior, el punto inicial, los bloques del muestreador y el C++.
+.dl_emr_cero <- function() list(mu_log = numeric(), sd_log = numeric(), cota = c(0, 0), plano = TRUE, cero = TRUE)
+
+# TRUE si el contexto de un sexo (.dl_ctx) tiene la EMR fija en cero.
+.dl_ctx_emr_cero <- function(ctx) isTRUE(ctx$emr$cero)
 
 # Prior plano (emr_prior.tipo plano_cota): log f uniforme entre el piso y el techo,
 #   f_max = cota impresa superior,   f_min = max(cota impresa inferior, f_max / .DL_EMR_PLANO_RANGO),

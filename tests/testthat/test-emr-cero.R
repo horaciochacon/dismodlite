@@ -94,3 +94,117 @@ test_that("la plantilla de dl_nuevo_proyecto() y la ayuda de la configuración n
   expect_match(descripcion, "cero \\(la EMR queda fija en 0 y no se estima")
   expect_identical(names(.dl_vocabulario_simple("mortalidad_exceso.prior")), c("desde_ancla", "plano", "cero"))
 })
+
+# ---- Tarea 1.2: log-posterior y ajuste, en R y en C++ ----
+
+# Insumos del proyecto con la EMR fija en 0 y su ajuste de prueba con el motor `motor`, memorizados en la sesión.
+emr_cero_mini <- local({
+  x <- list()
+  function(motor = "mh") {
+    if (is.null(x$insumos)) x$insumos <<- suppressMessages(dl_insumos(dl_proyecto(copia_emr_cero(), causa = 9100)))
+    if (is.null(x[[motor]])) {
+      o <- dl_opciones_mcmc(simulaciones = 20L, cadenas = 2L, iteraciones = 800L, calentamiento = 400L, motor = motor)
+      x[[motor]] <<- dl_ajustar(x$insumos, o, semilla = 3L, cache = FALSE)
+    }
+    list(insumos = x$insumos, ajuste = x[[motor]])
+  }
+})
+
+test_that("EMR cero: theta solo trae log i, la EDO corre con f = 0 exacto y el término de EMR vale 0", {
+  b <- emr_cero_mini()$insumos
+  ctx <- .dl_ctx(b, 1L)
+  nk <- length(ctx$nudos)
+  expect_identical(ctx$emr, list(mu_log = numeric(), sd_log = numeric(), cota = c(0, 0), plano = TRUE, cero = TRUE))
+  th <- .dl_theta_inicial(ctx)
+  expect_identical(th, stats::setNames(rep(-6, nk), paste0("logi_", ctx$nudos)))
+  m <- .dl_log_tasas_media(th, ctx)
+  expect_identical(m$log_f, rep(-Inf, nrow(ctx$W)))
+  sol <- .dl_edo_ctx(th, ctx)
+  expect_identical(sol$f, numeric(length(ctx$anual))); expect_identical(sol$truncado, 0L)
+  expect_true(all(sol$p[-1] > 0) && all(sol$p < 1))
+  # la misma prevalencia que la EDO con f = 0 escrita a mano, y con r = 0, p = 1 - exp(-integral de i)
+  referencia <- dl_edo_resolver(exp(m$log_i), numeric(nrow(ctx$W)), ctx$r_media, 0, ctx$nsub)[ctx$idx_anual_malla]
+  expect_identical(sol$p, referencia)
+  expect_equal(sol$p, 1 - exp(-exp(-6) * (ctx$anual - ctx$edad_inicio)), tolerance = 1e-10)
+  lp <- .dl_lp_componentes(th, ctx)
+  expect_identical(names(lp), .DL_LP_NOMBRES)
+  expect_identical(unname(lp[["emr"]]), 0)
+  expect_true(is.finite(lp[["total"]]))
+  expect_equal(unname(lp[["total"]]), unname(lp[["suavidad"]] + lp[["ancla"]]), tolerance = 1e-12)
+  # los otros priores no cambian: theta sigue trayendo log i y log f
+  ctx_i <- .dl_ctx(dl_insumos(cfg9100(), rutas_nacional()), 1L)
+  expect_false(.dl_ctx_emr_cero(ctx_i))
+  expect_length(.dl_theta_inicial(ctx_i), 2L * length(ctx_i$nudos))
+})
+
+test_that("EMR cero: dl_ajustar() (motor mh) muestrea solo log i, en un bloque, y deja f = 0 en las simulaciones", {
+  x <- emr_cero_mini("mh"); f <- x$ajuste; b <- x$insumos
+  nudos <- as.numeric(unlist(b$cfg$nudos_incidencia))
+  expect_identical(colnames(f$draws_par[["1"]]), paste0("logi_", nudos))
+  expect_identical(f$mcmc$parametro, rep(paste0("logi_", nudos), 2L))
+  expect_identical(unique(f$aceptacion$bloque), 1L)
+  expect_true(all(f$draws_q$f == 0))
+  expect_true(all(f$draws_q$p > 0 | f$draws_q$edad == b$cfg$edad_inicio))
+  expect_output(print(f), "<dl_fit>")
+  # el ajuste solo con el ancla es el mismo (sin datos en el ajuste), y la mortalidad en exceso estimada es 0
+  f0 <- dl_ajustar_solo_prior(b, f$params, semilla = 3L, ajuste = f)
+  expect_true(f0$prior_only); expect_identical(f0$draws_par, f$draws_par)
+  emr <- dl_estimaciones(f, "mortalidad_exceso")
+  expect_true(all(emr$media == 0 & emr$inferior == 0 & emr$superior == 0))
+  # con la misma semilla, las mismas cadenas
+  otra <- dl_ajustar(b, f$params, semilla = 3L, cache = FALSE)
+  expect_identical(otra$draws_par, f$draws_par)
+})
+
+# Insumos del proyecto con la EMR fija en 0 y la incidencia nacional de la tabla datos en el ajuste (ancla.peso 0.5):
+# de las filas nacionales de datos quedan solo las de incidencia (las demás tendrían que entrar al ajuste o excluirse).
+insumos_emr_cero_incidencia <- function(env = parent.frame()) {
+  d <- copia_emr_cero(c("datos_en_ajuste: [incidencia]", "ancla:", "  peso: 0.5"), env = env)
+  datos <- leer_texto(file.path(d, "datos.csv"))
+  escribir_texto(datos[ubicacion != "123" | medida == "incidencia"], d, "datos.csv")
+  suppressMessages(dl_insumos(dl_proyecto(d, causa = 9100)))
+}
+
+test_that("EMR cero con datos de incidencia en el ajuste: el término de datos entra y el de EMR sigue en 0", {
+  b <- insumos_emr_cero_incidencia()
+  ctx <- .dl_ctx(b, 1L)
+  expect_gt(nrow(ctx$datos), 0L); expect_true(all(ctx$datos$tipo_dato == "incidencia"))
+  lp <- .dl_lp_componentes(.dl_theta_inicial(ctx), ctx)
+  expect_true(is.finite(lp[["datos_incidencia"]]) && lp[["datos_incidencia"]] != 0)
+  expect_identical(unname(lp[c("emr", "datos_csmr")]), c(0, 0))
+})
+
+# El gemelo en C++ (motor rcpp)
+
+test_that("EMR cero: la log-posterior en C++ coincide con la de R (1e-9) con theta solo de log i", {
+  skip_if_not_installed("Rcpp")
+  for (b in list(emr_cero_mini()$insumos, insumos_emr_cero_incidencia())) {
+    ctx <- .dl_ctx(b, 2L)
+    expect_true(.dl_ctx_cpp(ctx)$emr_cero)
+    lpr <- .dl_lp_rcpp(ctx)
+    th0 <- .dl_theta_inicial(ctx)
+    set.seed(5)
+    for (rep in 1:10) {
+      th <- th0 + rnorm(length(th0), 0, 0.3)
+      r <- .dl_lp_componentes(th, ctx)
+      cc <- lpr$componentes(th)
+      expect_identical(names(cc), names(r))
+      expect_equal(unname(cc), unname(r), tolerance = 1e-9)
+      expect_equal(lpr$total(th), unname(r[["total"]]), tolerance = 1e-9)
+      expect_identical(unname(cc[["emr"]]), 0)
+    }
+  }
+  # con los otros priores la bandera va apagada
+  expect_false(.dl_ctx_cpp(.dl_ctx(dl_insumos(cfg9100(), rutas_nacional()), 1L))$emr_cero)
+})
+
+test_that("EMR cero: dl_ajustar() con el motor rcpp da las mismas cadenas que con el motor mh (1e-9)", {
+  skip_if_not_installed("Rcpp")
+  mh <- emr_cero_mini("mh")$ajuste; cpp <- emr_cero_mini("rcpp")$ajuste
+  expect_identical(cpp$params$engine, "rcpp")
+  expect_identical(colnames(cpp$draws_par[["1"]]), colnames(mh$draws_par[["1"]]))
+  for (sexo in c("1", "2")) expect_equal(cpp$draws_par[[sexo]], mh$draws_par[[sexo]], tolerance = 1e-9)
+  expect_equal(cpp$draws_q$p, mh$draws_q$p, tolerance = 1e-9)
+  expect_true(all(cpp$draws_q$f == 0))
+  expect_identical(cpp$mcmc$parametro, mh$mcmc$parametro)
+})

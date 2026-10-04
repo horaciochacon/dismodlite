@@ -52,7 +52,8 @@
 # Contexto de .dl_ctx() aplanado para DlCtx (inst/cpp/dl_core.cpp): vectores simples con los mismos nombres que los
 # campos de DlCtx, índices en base 0 y los pesos de las bandas concatenados (los de la banda b van de off[b] a
 # off[b + 1] - 1). dato_familia: 0 binomial (FAMILIA_BINOMIAL en C++), 1 Poisson. Con el prior de EMR plano,
-# emr_sd_log es NA, como en R: emr_plano omite el término y C++ no la lee.
+# emr_sd_log es NA, como en R: emr_plano omite el término y C++ no la lee. Con la EMR fija en cero (emr_cero), theta
+# solo trae log i, emr_mu_log y emr_sd_log van vacíos y C++ no lee ni ellos ni la cota.
 .dl_ctx_cpp <- function(ctx) {
   aplanar <- function(pesos)
     list(idx = as.integer(unlist(lapply(pesos, function(pesos_banda) pesos_banda$idx - 1L))),
@@ -63,7 +64,7 @@
        idx_anual_malla = as.integer(ctx$idx_anual_malla - 1L), r_media = as.numeric(ctx$r_media),
        sigma_suavidad = as.numeric(ctx$sigma_suavidad),
        cota = as.numeric(ctx$emr$cota), emr_mu_log = as.numeric(ctx$emr$mu_log),
-       emr_sd_log = as.numeric(ctx$emr$sd_log), emr_plano = ctx$emr$plano,
+       emr_sd_log = as.numeric(ctx$emr$sd_log), emr_plano = ctx$emr$plano, emr_cero = .dl_ctx_emr_cero(ctx),
        chol_R = ctx$ancla$chol_R, lambda = as.numeric(ctx$ancla$lambda),
        ancla_val = as.numeric(ctx$ancla$bandas$val), ancla_sigma_log = as.numeric(ctx$ancla$bandas$sigma_log),
        ancla_idx = ancla_plana$idx, ancla_w = ancla_plana$w, ancla_off = ancla_plana$off,
