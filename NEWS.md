@@ -17,6 +17,17 @@
   `params.emr_cota_origen: cero` y una limitación; `diagnostics/mcmc.csv` no trae filas de log f.
 * Los proyectos con los otros priores (`desde_ancla`, `plano`) dan los mismos números que en la versión 2.2.0.
 
+## Cambios de comportamiento
+
+* El peso de un dato cuyo intervalo de edad cruza bandas de población con distinto número de edades reparte la
+  población de cada banda entre sus edades. El caso típico es un dato de todas las edades, de 0 a 125 años, sobre una
+  población por quinquenios con una banda abierta de 80 años y más: antes cada edad llevaba la población entera de su
+  banda y, con las edades del modelo hasta los 99 años, la banda abierta pesaba 4 veces de más frente a un quinquenio.
+  Cambian los resultados de los proyectos con datos así en el ajuste, y la validación de la mortalidad subnacional si
+  sus intervalos cruzan bandas de ese modo. Dentro de una banda, o entre bandas con el mismo número de edades (varios
+  quinquenios), los pesos son los de antes bit a bit: el ancla, los datos por banda y el arnés de compatibilidad no
+  cambian.
+
 # dismodlite 2.2.0
 
 Un proyecto se corre como se corre de verdad sin recetas propias: varios años con una sola configuración, el año que
