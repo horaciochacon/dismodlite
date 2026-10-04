@@ -6,7 +6,8 @@
 #    incidencia GBD del ancla de incidencia, reservada para validar. Cómo se interpreta depende del tipo de prior de
 #    EMR y queda declarado de antemano en la nota.
 #  - amplitud_csmr (con una cascada): el gradiente departamental predicho frente al csmr departamental reservado para
-#    validar (held-out), que nunca entra a la verosimilitud.
+#    validar (held-out), que nunca entra a la verosimilitud. Con la EMR fija en cero el modelo predice 0 muertes y la
+#    comprobación se omite, con su motivo.
 
 # Comprobación por banda: estadísticos del modelo por sexo y banda frente al valor de referencia `ref`.
 .dl_check_bandas <- function(draws_banda, ref, check, nota) {
@@ -118,7 +119,8 @@
 #' - `amplitud`: por sexo, la pendiente de log(observado / nacional) sobre log(predicho / nacional) en las
 #'   ubicaciones subnacionales con mortalidad reservada (cercana a 1 si la cascada reproduce el tamaño del
 #'   gradiente) y la correlación de rangos de Spearman (el orden de las ubicaciones). La mortalidad reservada nunca
-#'   entra al ajuste.
+#'   entra al ajuste. Con la mortalidad en exceso fija en 0 (`mortalidad_exceso.prior: cero`) el modelo no predice
+#'   muertes y esta comprobación se omite (el atributo `sin_amplitud` y el manifiesto de la corrida lo dicen).
 #'
 #' @inheritParams dl_ajustar
 #' @param ajuste Ajuste nacional de [dl_ajustar()].
@@ -173,6 +175,9 @@ dl_validar_ancla <- function(ajuste, insumos, rutas = insumos$rutas, cascada = N
     nota_inc <- if (identical(cfg$emr_prior$tipo, "informativo_edad"))
       paste0("incidencia reservada para validar: mide la consistencia interna del modelo GBD con r = 0 y la EMR de ",
              "csmr/prevalencia (interpretaci\u00f3n declarada de antemano)")
+    else if (.dl_emr_es_cero(cfg))
+      paste0("incidencia reservada para validar: con la EMR fija en 0 mide la consistencia de i con la remisi\u00f3n ",
+             "declarada (interpretaci\u00f3n declarada de antemano)")
     else paste0("incidencia reservada para validar: con una EMR no informativa mide adem\u00e1s la ",
                 "identificabilidad de i (interpretaci\u00f3n declarada de antemano)")
     # Fase aguda descontada: al modelo crónico entran los sobrevivientes a 28 días; con cfr_30d declarada, la
@@ -197,22 +202,28 @@ dl_validar_ancla <- function(ajuste, insumos, rutas = insumos$rutas, cascada = N
   # Sin ella, el motivo va en una nota y en el atributo sin_amplitud, que el manifiesto de la corrida declara.
   if (!is.null(cascada)) .dl_chequear_cascada(cascada, insumos)
   plana <- !is.null(cascada) && identical(cascada$modo, "plana")
-  am <- if (!is.null(cascada) && !plana) .dl_amplitud_csmr(cascada, insumos)
+  # Con la EMR fija en cero el modelo predice p f = 0 muertes en toda ubicación: no hay gradiente de mortalidad que
+  # comparar con la mortalidad subnacional reservada, y se declara como motivo.
+  emr_cero <- !is.null(cascada) && !plana && .dl_emr_es_cero(cfg) &&
+    nrow(insumos$datos[tipo_dato == "csmr" & location_level == 1L & outlier == FALSE]) > 0L
+  am <- if (!is.null(cascada) && !plana && !emr_cero) .dl_amplitud_csmr(cascada, insumos)
   if (!is.null(am)) {
     data.table::setattr(out, "amplitud", am)
     return(out)
   }
   # el motivo en palabras genéricas («subnacional»): el largo va al atributo sin_amplitud, que el manifiesto declara, y
   # el corto, al mensaje
-  k <- if (plana) 1L else if (!is.null(cascada)) 2L
+  k <- if (emr_cero) 5L else if (plana) 1L else if (!is.null(cascada)) 2L
        else if (nrow(insumos$datos[tipo_dato == "csmr" & location_level == 1L])) 3L else 4L
   motivo <- c("la cascada es plana (dX = 0) y la amplitud subnacional no est\u00e1 definida",
               "los datos no traen mortalidad subnacional de validaci\u00f3n",
               "los datos traen mortalidad subnacional de validaci\u00f3n, pero la validaci\u00f3n no tuvo la cascada",
-              "sin cascada ni mortalidad subnacional de validaci\u00f3n")[k]
+              "sin cascada ni mortalidad subnacional de validaci\u00f3n",
+              "la mortalidad en exceso est\u00e1 fija en 0 y el modelo no predice muertes por la causa")[k]
   .dl_message("se omite la validaci\u00f3n con la mortalidad subnacional reservada: %s",
               c("la cascada es plana, sin diferencias entre ubicaciones", "los datos no la traen",
-                "los datos la traen, pero la validaci\u00f3n no tuvo la cascada", "sin cascada ni datos")[k])
+                "los datos la traen, pero la validaci\u00f3n no tuvo la cascada", "sin cascada ni datos",
+                "la mortalidad en exceso est\u00e1 fija en 0")[k])
   data.table::setattr(out, "sin_amplitud", motivo)
   out
 }

@@ -49,7 +49,8 @@ externa: la incidencia del ancla no entra al ajuste.
 \item \code{amplitud}: por sexo, la pendiente de log(observado / nacional) sobre log(predicho / nacional) en las
 ubicaciones subnacionales con mortalidad reservada (cercana a 1 si la cascada reproduce el tamaño del
 gradiente) y la correlación de rangos de Spearman (el orden de las ubicaciones). La mortalidad reservada nunca
-entra al ajuste.
+entra al ajuste. Con la mortalidad en exceso fija en 0 (\code{mortalidad_exceso.prior: cero}) el modelo no predice
+muertes y esta comprobación se omite (el atributo \code{sin_amplitud} y el manifiesto de la corrida lo dicen).
 }
 }
 \examples{

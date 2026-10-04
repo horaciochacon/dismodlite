@@ -56,7 +56,8 @@ Para cada sexo, simulación y ubicación subnacional d:
 \item \code{dX}: la diferencia entre la covariable en d y la nacional, en la escala de su transformación (log, logit o
 lineal), con una simulación de cada una según su incertidumbre.
 \item En cada edad, log i (o log f, según \code{efecto_sobre}) de d es el nacional más \code{kappa} x beta x dX, sumado sobre
-las covariables; log f no pasa del techo de la mortalidad en exceso.
+las covariables; log f no pasa del techo de la mortalidad en exceso. Con la mortalidad en exceso fija en 0
+(\code{mortalidad_exceso.prior: cero}), f es 0 en toda ubicación y las covariables con \code{efecto_sobre: mortalidad_exceso} no tienen efecto.
 \item Con esas tasas se vuelve a resolver la ecuación de la prevalencia.
 \item Renormalización, por sexo, banda de población y simulación: la prevalencia (y la incidencia poblacional) de
 cada ubicación se multiplica por el factor que hace que su suma ponderada por población sea la nacional.

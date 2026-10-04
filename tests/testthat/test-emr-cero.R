@@ -208,3 +208,59 @@ test_that("EMR cero: dl_ajustar() con el motor rcpp da las mismas cadenas que co
   expect_true(all(cpp$draws_q$f == 0))
   expect_identical(cpp$mcmc$parametro, mh$mcmc$parametro)
 })
+
+# ---- Tarea 1.3: cascada, validación, AVD, etiquetas y sensibilidad ----
+
+test_that("EMR cero: la cascada por covariables mueve la incidencia y deja f = 0 en cada ubicación, en los dos motores", {
+  x <- emr_cero_mini("mh"); b <- x$insumos
+  expect_gt(nrow(b$cov_proxy), 0L)
+  casc <- dl_cascada(x$ajuste, b, semilla = 3L)
+  expect_s3_class(casc, "dl_cascade"); expect_identical(casc$modo, "proxy")
+  expect_identical(casc$truncados_emr, 0L)
+  expect_true(all(casc$draws_q$f == 0))
+  expect_length(casc$departamentos, 25L)
+  # hay gradiente subnacional (lo mueve la covariable de la incidencia) y la renormalización cierra con el nacional
+  p60 <- dl_estimaciones(casc)[location_id != b$loc_ancla & sex_id == 1L & edad == 60L]$media
+  expect_gt(max(p60) / min(p60), 1.05)
+  expect_true(all(is.finite(casc$renorm$factor) & casc$renorm$factor > 0))
+  # la beta del ejemplo que actúa sobre la mortalidad en exceso (haqi) no mueve nada: f = 0 en toda ubicación
+  expect_true("f" %in% .dl_proxies(b)$canal)
+  skip_if_not_installed("Rcpp")
+  cpp <- dl_cascada(emr_cero_mini("rcpp")$ajuste, b, semilla = 3L)
+  expect_equal(cpp$draws_q$p, casc$draws_q$p, tolerance = 1e-9)
+  expect_true(all(cpp$draws_q$f == 0))
+})
+
+test_that("EMR cero: cascada plana, validación, AVD, etiquetas y sensibilidad corren sobre el ajuste sin log f", {
+  x <- emr_cero_mini("mh"); b <- x$insumos; f <- x$ajuste
+  casc <- dl_cascada(f, b, semilla = 3L)
+  # validación: la nota de la incidencia dice cómo se lee con la EMR en 0, y la amplitud (mortalidad subnacional
+  # reservada, que el ejemplo trae) se omite con su motivo: el modelo no predice muertes
+  expect_message(v <- dl_validar_ancla(f, b, cascada = casc),
+                 "se omite la validación con la mortalidad subnacional reservada: la mortalidad en exceso está fija en 0")
+  expect_setequal(attr(v, "resumen")$check, c("anchor_identity", "implied_incidence"))
+  expect_match(unique(v[check == "implied_incidence"]$nota), "con la EMR fija en 0 mide la consistencia de i con la remisión")
+  expect_null(attr(v, "amplitud"))
+  expect_identical(attr(v, "sin_amplitud"),
+                   "la mortalidad en exceso está fija en 0 y el modelo no predice muertes por la causa")
+  y <- suppressWarnings(dl_avd(casc, b, dl_factor_comorbilidad(b), semilla = 3L))
+  expect_true(all(is.finite(y$draws_yld$yld) & y$draws_yld$yld >= 0))
+  res <- dl_resumir(list(fit = casc, yld = y, bundle = b))
+  expect_s3_class(res, "dl_resumen")
+  f0 <- dl_ajustar_solo_prior(b, f$params, semilla = 3L, ajuste = f)
+  et <- dl_etiquetas(f, f0, b, grilla_rho = b$cfg$anchor$rho_edad, semilla = 3L, cascada = casc)
+  expect_true(all(et$etiqueta == "prior-driven"))
+  s <- suppressWarnings(dl_sensibilidad(b, grilla = list(lambda = c(0.5, 1), rho = 0.5, kappa = 1), semilla = 3L,
+                                        opciones = f$params))
+  expect_identical(sort(unique(s$lambda)), c(0.5, 1)); expect_true(all(s$fraccion_aguda == 0))
+  # cascada plana: las tasas nacionales en cada ubicación, también con f = 0
+  d <- copia_emr_cero()
+  cfg <- readLines(file.path(d, "config", "9100.yaml"), encoding = "UTF-8")
+  i <- which(cfg == "subnacional:")
+  writeLines(enc2utf8(append(cfg, "  modo: plano", i)), file.path(d, "config", "9100.yaml"), useBytes = TRUE)
+  bp <- suppressMessages(dl_insumos(dl_proyecto(d, causa = 9100)))
+  fp <- dl_ajustar(bp, f$params, semilla = 3L, cache = FALSE)
+  expect_identical(fp$draws_par, f$draws_par)             # el ajuste nacional no depende del modo subnacional
+  plana <- dl_cascada(fp, bp, semilla = 3L)
+  expect_identical(plana$modo, "plana"); expect_true(all(plana$draws_q$f == 0))
+})

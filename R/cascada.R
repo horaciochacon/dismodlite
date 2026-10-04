@@ -25,6 +25,8 @@
 #        log f_d(a) = min(log f_nac(a) + suma de delta_c(a) sobre las covariables de canal f, log f_max)
 #      con (log i_nac, log f_nac) = W theta_k y f_max = emr_prior.cota[2], el techo de EMR (impreso en la
 #      configuración o derivado por dl_insumos()). El mínimo lo aplica .dl_edo_log_media (R/verosimilitud.R).
+#      Con la EMR fija en cero (emr_prior.tipo cero) theta_k solo trae log i y log f_nac = -Inf: f_d = 0 en toda
+#      ubicación, y las covariables de canal f no mueven nada (-Inf + delta = -Inf; f_max = 0 no trunca).
 #   3. Se vuelve a resolver dp/da = i (1 - p) - r p - f p (1 - p) con i_d y f_d (misma r, misma malla).
 #   4. Renormalización exacta (.dl_renormalizar), por sexo, banda de población y simulación, de q = p y q = ipop:
 #        factor = N_nac q_nac / sum_d N_d q_d,     q_d(a) <- q_d(a) * factor en cada edad a de la banda,
@@ -73,7 +75,9 @@
 #' 1. `dX`: la diferencia entre la covariable en d y la nacional, en la escala de su transformación (log, logit o
 #'    lineal), con una simulación de cada una según su incertidumbre.
 #' 2. En cada edad, log i (o log f, según `efecto_sobre`) de d es el nacional más `kappa` x beta x dX, sumado sobre
-#'    las covariables; log f no pasa del techo de la mortalidad en exceso.
+#'    las covariables; log f no pasa del techo de la mortalidad en exceso. Con la mortalidad en exceso fija en 0
+#'    (`mortalidad_exceso.prior: cero`), f es 0 en toda ubicación y las covariables con `efecto_sobre:
+#'    mortalidad_exceso` no tienen efecto.
 #' 3. Con esas tasas se vuelve a resolver la ecuación de la prevalencia.
 #' 4. Renormalización, por sexo, banda de población y simulación: la prevalencia (y la incidencia poblacional) de
 #'    cada ubicación se multiplica por el factor que hace que su suma ponderada por población sea la nacional.
@@ -167,7 +171,7 @@ dl_cascada <- function(ajuste, insumos, kappa = insumos$cfg$cascada$kappa, semil
   # Pasos 2 y 3, por sexo y departamento
   por_departamento <- unlist(lapply(sexos, function(sexo) {
     ctx <- ctxs[[as.character(sexo)]]
-    theta <- ajuste$draws_par[[as.character(sexo)]]                      # n x (log i y log f en los nudos)
+    theta <- ajuste$draws_par[[as.character(sexo)]]       # n x (log i y log f en los nudos; solo log i con EMR cero)
     log_nac <- lapply(seq_len(nrow(theta)), function(k) .dl_log_tasas_media(theta[k, ], ctx))   # W theta_k
     delta <- lapply(stats::setNames(nm = colnames(beta)), function(covariable)
       .dl_desplazamiento_log(dX[sex_id == sexo & covariate_name_short == covariable], P[[covariable]],
