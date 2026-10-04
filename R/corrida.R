@@ -107,6 +107,10 @@
       list(sprintf(paste("prior de la mortalidad en exceso (EMR) relajado \u2014 sd_log \u00d7 %g",
                          "(emr_prior.factor_sd) \u2014 %s"),
                    .dl_factor_sd_emr(cfg), .dl_texto_yaml(cfg$emr_prior$factor_sd$procedencia))),
+    if (.dl_emr_es_cero(cfg))
+      list(sprintf(paste("mortalidad en exceso (EMR) fija en 0 (emr_prior.tipo cero) \u2014 no se estima (sin nudos",
+                         "de log f en el muestreo) y la causa no aporta muertes al modelo \u2014 %s"),
+                   .dl_texto_yaml(cfg$emr_prior$tipo_procedencia))),
     if (length(cfg$remision$por_edad))
       list(sprintf("remisi\u00f3n por tramo de edad \u2014 %s (fuera de los tramos, remisi\u00f3n %g)",
                    paste(vapply(cfg$remision$por_edad, function(t)
@@ -345,7 +349,8 @@
                   emr_prior = cfg$emr_prior$tipo,
                   # fracción aguda del csmr descontada del prior de la EMR y de su techo
                   csmr_fraccion_aguda = .dl_fraccion_aguda(cfg),
-                  # techo de la EMR: el de la configuración («impreso») o derivado del ancla (k * max csmr/prev)
+                  # techo de la EMR: el de la configuración («impreso») o derivado del ancla (k * max csmr/prev);
+                  # con la EMR fija en cero, [0, 0] y origen «cero»
                   emr_cota = as.list(round(as.numeric(cfg$emr_prior$cota), 6)),
                   emr_cota_origen = b$techo_emr$origen %||% "impreso",
                   emr_cota_k = if (identical(b$techo_emr$origen, "derivado")) as.numeric(b$techo_emr$k) else NULL,

@@ -264,3 +264,40 @@ test_that("EMR cero: cascada plana, validación, AVD, etiquetas y sensibilidad c
   plana <- dl_cascada(fp, bp, semilla = 3L)
   expect_identical(plana$modo, "plana"); expect_true(all(plana$draws_q$f == 0))
 })
+
+# ---- Tarea 1.4: la corrida y su manifiesto ----
+
+test_that("dl_correr() de una carpeta con `prior: cero`: manifiesto, limitación y diagnósticos sin log f (mh y rcpp)", {
+  d <- copia_emr_cero(c("ancla:", "  error_maximo: 0.5"))    # el ancla del ejemplo se generó con f > 0: cadenas cortas
+  cfg <- readLines(file.path(d, "config", "9100.yaml"), encoding = "UTF-8")
+  cfg <- sub("  peso: [0.1, 0.5, 1.0]", "  peso: [1]\n  correlacion_edad: [0.5]\n  kappa: [1]", cfg, fixed = TRUE)
+  writeLines(enc2utf8(cfg), file.path(d, "config", "9100.yaml"), useBytes = TRUE)
+  motores <- c("mh", if (requireNamespace("Rcpp", quietly = TRUE)) "rcpp")
+  celdas <- list()
+  for (motor in motores) {
+    o <- dl_opciones_mcmc(simulaciones = 10L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L, motor = motor)
+    run <- suppressMessages(dl_correr(d, causa = 9100, semilla = 5L, rapido = TRUE, opciones = o,
+                                      carpeta_salida = file.path(d, "resultados", motor)))
+    expect_s3_class(run, "dl_run")
+    man <- yaml::read_yaml(file.path(run$dir, "manifest.yaml"))
+    expect_identical(man$params$emr_prior, "cero")
+    expect_identical(as.numeric(man$params$emr_cota), c(0, 0))
+    expect_identical(man$params$emr_cota_origen, "cero")
+    expect_null(man$params$emr_cota_k)
+    expect_identical(man$params$engine, motor)
+    expect_identical(man$cascada$modo, "proxy"); expect_identical(man$cascada$truncados_emr, 0L)
+    lim <- unlist(man$limitaciones)
+    expect_identical(sum(grepl("^mortalidad en exceso \\(EMR\\) fija en 0 \\(emr_prior.tipo cero\\) — no se estima", lim)), 1L)
+    expect_true(any(grepl("sin validación de amplitud \\(la mortalidad en exceso está fija en 0", lim)))
+    mc <- data.table::fread(file.path(run$dir, "diagnostics", "mcmc.csv"))
+    expect_true(nrow(mc) > 0L && all(grepl("^logi_", mc$parametro)))
+    ac <- data.table::fread(file.path(run$dir, "diagnostics", "aceptacion.csv"))
+    expect_identical(unique(ac$bloque), 1L)
+    for (f in c("diagnostics/sensibilidad.csv", "diagnostics/validacion.csv",
+                file.path("etiquetas", paste0(run$run_id, ".csv"))))
+      expect_true(file.exists(file.path(run$dir, f)), info = f)
+    expect_setequal(list.files(file.path(run$dir, "cause")), c("prevalence", "incidence", "yld"))
+    celdas[[motor]] <- data.table::fread(file.path(run$dir, "cause", "prevalence", paste0(run$run_id, ".csv")))$val
+  }
+  if (length(motores) == 2L) expect_equal(celdas$rcpp, celdas$mh, tolerance = 1e-8)
+})
