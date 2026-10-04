@@ -240,6 +240,11 @@ Además, $f$ está acotada por un **techo** $f_{max}$ (`mortalidad_exceso.techo`
 $\text{csmr}/p$ del ancla): fuera de la cota, la log-posterior es $-\infty$. Con `mortalidad_exceso.prior: plano`,
 $L_{emr} = 0$ y solo queda la cota, con $\log f$ uniforme entre $\log f_{max} - \log 1000$ y $\log f_{max}$.
 
+Para una causa que no aporta muertes, `mortalidad_exceso.prior: cero` fija $f(a) = 0$ y no la estima: $\theta$ es solo
+$\log i$ en los nudos, la ecuación se resuelve con $f = 0$ ($dp/da = i\,(1 - p) - r\,p$) y $L_{emr} = 0$, sin cota. No
+usa la mortalidad del ancla. Sin esta opción, una causa sin muertes dejaría $\log f$ sin información: sus cadenas
+recorrerían el prior y no convergerían. En la estimación subnacional, $f$ es 0 en toda ubicación.
+
 El prior del ejemplo, en muertes por 1000 personas-año con la enfermedad (`dl_prior_emr()`):
 
 ```{r}

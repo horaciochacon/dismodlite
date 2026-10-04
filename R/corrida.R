@@ -510,7 +510,9 @@
 #'   `proxies_crudos`, `proxies_series.csv`: las series de su calibración (el atributo `series` de
 #'   [dl_calibrar_proxies()]: el gradiente observado y el suavizado por ubicación y edición).
 #' - `inputs/`: los insumos congelados ([dl_congelar_insumos()]), la configuración usada (`config_usado.yaml`, en el
-#'   formato completo) y las descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con un
+#'   formato completo) y las descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con la
+#'   mortalidad en exceso fija en 0 (`emr_prior.tipo: cero`), `config_usado.yaml` va sin `emr_prior.cota` (el
+#'   manifiesto sí declara `params.emr_cota: [0, 0]`), y así se puede volver a leer con [dl_configuracion()]. Con un
 #'   proyecto de las tablas del contrato ([dl_proyecto()]), `inputs/contrato/` guarda las tablas que se usaron
 #'   (`<tabla>.csv`, con las covariables nacionales; los números escritos exactos) y la configuración del proyecto tal
 #'   como se leyó (`config.yaml`, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada

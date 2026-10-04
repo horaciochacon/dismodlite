@@ -55,8 +55,8 @@ en \code{vignette("el-modelo", package = "dismodlite")}.
 
 Con \code{mortalidad_exceso.prior: cero} la mortalidad en exceso queda fija en 0 y no se estima: los parámetros son
 solo log i en los nudos (un bloque del muestreador), la ecuación se resuelve con f = 0 y la log-posterior no tiene
-término de mortalidad en exceso. Sirve para una causa sin muertes: sin ella, log f no tendría información y sus
-cadenas no convergerían.
+término de mortalidad en exceso. Sirve para una causa sin muertes: sin esta opción, log f no tendría información
+y sus cadenas no convergerían.
 
 Cada sexo se muestrea con cadenas de Metropolis-Hastings adaptativo por bloques (\code{\link[=dl_mh]{dl_mh()}}), con log i y log f
 en bloques separados. La semilla de un sexo es \code{semilla + sex_id} y la de cada cadena se deriva de ella: el

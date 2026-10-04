@@ -311,3 +311,18 @@ test_that("dl_correr() de una carpeta con `prior: cero`: manifiesto, limitación
   }
   if (length(motores) == 2L) expect_equal(celdas$rcpp, celdas$mh, tolerance = 1e-8)
 })
+
+# ---- Tarea 1.5: guías y novedades ----
+
+test_that("las guías y NEWS explican el prior cero (solo desde el código fuente)", {
+  raiz <- raiz_fuente()
+  skip_if(is.null(raiz), "sin el árbol fuente (paquete instalado)")
+  leer <- function(...) paste(readLines(file.path(raiz, ...), encoding = "UTF-8", warn = FALSE), collapse = "\n")
+  expect_match(leer("vignettes", "el-modelo.qmd"), "`mortalidad_exceso.prior: cero` fija $f(a) = 0$", fixed = TRUE)
+  expect_match(leer("vignettes", "preparar-datos.qmd"), "`mortalidad_exceso.prior: cero`, si la causa no tiene muertes",
+               fixed = TRUE)
+  expect_match(leer("vignettes", "preparar-datos.qmd"), "con `prior: cero` no se usa", fixed = TRUE)
+  novedades <- leer("NEWS.md")
+  expect_match(novedades, "## Mortalidad en exceso fija en cero", fixed = TRUE)
+  expect_match(novedades, "`mortalidad_exceso: {prior: cero}`", fixed = TRUE)
+})

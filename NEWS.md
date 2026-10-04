@@ -1,3 +1,22 @@
+# dismodlite 2.3.0 (en desarrollo)
+
+## Mortalidad en exceso fija en cero
+
+* `mortalidad_exceso: {prior: cero}` (en el formato completo, `emr_prior.tipo: cero`) fija la mortalidad en exceso en
+  0 y no la estima, para una causa sin muertes. Los parámetros son solo log i en los nudos (un bloque del
+  muestreador), la ecuación se resuelve con f = 0 exacto, en R y en C++, y la log-posterior no tiene término de
+  mortalidad en exceso ni techo. Sin esta opción, log f de una causa sin muertes no tiene información y sus cadenas no
+  convergen.
+* No pide la `mortalidad` en la tabla `ancla` (si la trae, no se usa). No admite `mortalidad_exceso.techo`,
+  `mortalidad_exceso.fraccion_aguda`, `sensibilidad.fraccion_aguda` ni `mortalidad` en `datos_en_ajuste` (con f = 0
+  el modelo predice 0 muertes): la revisión del proyecto lo dice con la clave.
+* Vale en todo el recorrido de `dl_correr()`, con los dos motores: en la cascada, f es 0 en toda ubicación (una beta
+  con `efecto_sobre: mortalidad_exceso` no tiene efecto); la validación con la mortalidad subnacional reservada se
+  omite, con su motivo; `dl_estimaciones(x, "mortalidad_exceso")` da 0.
+* El manifiesto de la corrida lo declara: `params.emr_prior: cero`, `params.emr_cota: [0, 0]`,
+  `params.emr_cota_origen: cero` y una limitación; `diagnostics/mcmc.csv` no trae filas de log f.
+* Los proyectos con los otros priores (`desde_ancla`, `plano`) dan los mismos números que en la versión 2.2.0.
+
 # dismodlite 2.2.0
 
 Un proyecto se corre como se corre de verdad sin recetas propias: varios años con una sola configuración, el año que

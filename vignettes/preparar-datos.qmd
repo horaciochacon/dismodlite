@@ -175,7 +175,7 @@ lector las reconoce y las convierte (sección 6). También puede ser una tabla p
 | `medida` | Unidad | Para qué se usa | ¿Hace falta? |
 |---|---|---|---|
 | `prevalencia` | proporción | el término principal del ajuste | siempre |
-| `mortalidad` | por persona-año | el prior y el techo de la mortalidad en exceso | con el prior por defecto (`mortalidad_exceso.prior: desde_ancla`) |
+| `mortalidad` | por persona-año | el prior y el techo de la mortalidad en exceso | con el prior por defecto (`mortalidad_exceso.prior: desde_ancla`); con `prior: cero` no se usa |
 | `avd` | por persona-año | calibra los AVD del modelo a los del ancla | opcional |
 | `incidencia` | por persona-año | solo la validación | opcional |
 
@@ -501,7 +501,8 @@ knitr::kable(tabla, col.names = c("Clave", "Qué es", "Por defecto"))
 
 Cuándo cambiar las que no son obligatorias, en breve: `nudos`, si la incidencia cambia rápido en algún tramo de
 edad; `mortalidad_exceso.prior: plano`, si el ancla no trae muertes fiables, y `mortalidad_exceso.techo`, con un
-valor conocido para la causa; `ancla.correlacion_edad`, rara vez (la sensibilidad la explora); `subnacional.kappa`,
+valor conocido para la causa; `mortalidad_exceso.prior: cero`, si la causa no tiene muertes (la mortalidad en exceso
+queda fija en 0 y no se estima); `ancla.correlacion_edad`, rara vez (la sensibilidad la explora); `subnacional.kappa`,
 para atenuar diferencias entre ubicaciones poco creíbles. Y `notas`, siempre que se decida algo: por qué
 `ancla.peso` es 0.5, por qué ese techo.
 
