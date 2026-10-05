@@ -246,8 +246,9 @@ etiquetas <- dl_etiquetas(ajuste, ajuste_prior, insumos, semilla = 1,
 table(etiquetas$etiqueta[etiquetas$location_id == "123"])
 ```
 
-`opciones` fija las cadenas de los reajustes con cada ρ (sin él, 2 cadenas de 6000 iteraciones). Sin datos locales
-en el ajuste (`datos_en_ajuste` vacío, como en el ejemplo sin cambios), el ajuste solo con el ancla es el mismo
+`opciones` fija las cadenas de los reajustes con cada ρ (sin él, 2 cadenas de 6000 iteraciones y adelgazamiento
+10). Sin datos locales en el ajuste (`datos_en_ajuste` vacío, como en el ejemplo sin cambios), el ajuste solo con el
+ancla es el mismo
 ajuste y todas las celdas son `prior-driven`.
 
 ```{r}
@@ -272,6 +273,11 @@ par(op)
 Una barra alta en gris es una celda en que los datos redujeron la incertidumbre pero movieron la mediana menos de un
 5 % (d < 0.05): confirman la estimación de referencia y la etiqueta lo dice. Las etiquetas viajan con la corrida
 (`etiquetas/`) para que nadie lea como evidencia local lo que es, en realidad, la estimación de referencia.
+
+Sin `opciones` (así la llama `dl_correr()`), los reajustes de `dl_etiquetas()` usan cadenas cortas con un
+adelgazamiento fijo de 10, sea cual sea el del ajuste, y guardan a lo sumo 600 simulaciones (y a lo sumo las del
+ajuste): con un ajuste de cadenas largas y un adelgazamiento mayor (por ejemplo, 30), sus cuantiles salen de más
+simulaciones que si heredaran ese adelgazamiento. Con `opciones`, usa las que se le den.
 
 ## Sensibilidad a λ, ρ y κ
 
@@ -382,7 +388,7 @@ redondeados y varían de una medición a otra; en otra computadora cambian, pero
 | `opciones` | Corrida completa |
 |---|---|
 | `NULL`: motor `"mh"`, 1 núcleo (por defecto) | unos 5 min |
-| `dl_opciones_mcmc(nucleos = 4)` | unos 2.5 min |
+| `dl_opciones_mcmc(nucleos = 4)` | unos 2 min |
 | `dl_opciones_mcmc(motor = "rcpp")` | alrededor de 1 min |
 | `dl_opciones_mcmc(motor = "rcpp", nucleos = 4)` | alrededor de medio minuto |
 
@@ -406,8 +412,8 @@ cifras decimales, no bit a bit: por eso `"mh"` es el valor por defecto, y convie
 que se comparan entre sí. El manifiesto registra el motor de cada corrida (`params$engine`).
 
 **Varios núcleos.** `nucleos` reparte las cadenas del ajuste nacional entre procesos: con 4 cadenas y 2 sexos hay 8
-tareas, así que más de 8 núcleos no ayudan. En la sensibilidad, los mismos `nucleos` reparten los pares (λ, ρ) de la
-grilla, con un núcleo por ajuste. Funciona en macOS y Linux; en Windows se usa uno (con un aviso) y el resultado es
+tareas, así que más de 8 núcleos no lo acortan más. En la sensibilidad, los mismos `nucleos` reparten los pares
+(λ, ρ) de la grilla (9 en el ejemplo), con un núcleo por ajuste; cambian el tiempo, no los números. Funciona en macOS y Linux; en Windows se usa uno (con un aviso) y el resultado es
 el mismo, porque cada cadena tiene su propia semilla.
 
 **La sensibilidad por separado.** Para correrla con otras cadenas, otra grilla u otro número de procesos que los de

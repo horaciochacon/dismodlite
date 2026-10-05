@@ -182,11 +182,16 @@ población**:
 
 $$
 q = \sum_{a \in A} w_a\, x(a), \qquad A = \{a \text{ entera} : \text{inicio} \le a < \text{fin}\}, \qquad
-w_a = \frac{N_{b(a)}}{\sum_{a' \in A} N_{b(a')}},
+w_a = \frac{N_{b(a)} / n_{b(a)}}{\sum_{a' \in A} N_{b(a')} / n_{b(a')}},
 $$
 
-donde $N_{b(a)}$ es la población de la banda fina de la tabla de población que contiene la edad $a$. La cantidad
-$x(a)$ depende de lo que se compara:
+donde $N_{b(a)}$ es la población de la banda fina de la tabla de población que contiene la edad $a$ y $n_{b(a)}$,
+el número de edades del modelo que caen en esa banda (de todas las del modelo, no solo las del intervalo): cada edad
+lleva su parte de la población de su banda. Si el intervalo cabe en una sola banda, todas sus edades pesan igual; si
+cruza bandas con el mismo número de edades (varios quinquenios), $n_b$ se cancela y
+$w_a = N_{b(a)} / \sum_{a' \in A} N_{b(a')}$. Si cruza bandas con distinto número de edades (un dato de 60 años y
+más sobre bandas de cinco años y una de 80 y más), una banda completa cuenta por su población, no por su población
+multiplicada por su número de edades. La cantidad $x(a)$ depende de lo que se compara:
 
 | Medida | $x(a)$ | Qué es |
 |---|---|---|

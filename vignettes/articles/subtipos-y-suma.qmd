@@ -299,6 +299,15 @@ independientes de tres ajustes, que se compensan en parte. Si los subtipos compa
 encuesta, la misma definición de caso), el intervalo de la suma puede quedar corto; es una limitación que el
 manifiesto declara.
 
+Las tablas consolidadas piden la suma para toda causa que declara subtipos. Si lo que se reporta de una causa es su
+ajuste directo (se modeló entera y sus subtipos no se corren), se dice al consolidar, con
+`dl_consolidar(..., ajuste_directo = 9100)`, y el manifiesto del consolidado lo declara: ver
+[Corridas, versiones y tablas consolidadas](corridas-y-consolidado.html#ajuste-directo).
+
+La suma toma de cada subtipo sus tres medidas. Un subtipo cuya configuración dice `exportar: {incidencia: no}`
+escribe su incidencia igual y entra con ella en la suma; la suma no hereda la marca (ver
+[Una causa sin incidencia en el consolidado](corridas-y-consolidado.html#sin-incidencia)).
+
 ## Temas avanzados: severidad desde una partición y componentes
 
 Estos dos casos se declaran en la configuración, sin tablas nuevas. El ejemplo del paquete no los usa, así que aquí

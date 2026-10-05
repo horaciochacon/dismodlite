@@ -532,8 +532,11 @@ Cuándo cambiar las que no son obligatorias, en breve: `nudos`, si la incidencia
 edad; `mortalidad_exceso.prior: plano`, si el ancla no trae muertes fiables, y `mortalidad_exceso.techo`, con un
 valor conocido para la causa; `mortalidad_exceso.prior: cero`, si la causa no tiene muertes (la mortalidad en exceso
 queda fija en 0 y no se estima); `ancla.correlacion_edad`, rara vez (la sensibilidad la explora); `subnacional.kappa`,
-para atenuar diferencias entre ubicaciones poco creíbles. Y `notas`, siempre que se decida algo: por qué
-`ancla.peso` es 0.5, por qué ese techo.
+para atenuar diferencias entre ubicaciones poco creíbles; `subnacional.modo: razon`, si las diferencias entre
+ubicaciones salen de una razón ya calculada (la tabla `razones`) y no de covariables; `exportar: {incidencia: no}`,
+si la incidencia de la causa no se debe reportar (la corrida la escribe igual y las tablas consolidadas la omiten;
+ver [Corridas, versiones y tablas consolidadas](https://horaciochacon.github.io/dismodlite/articles/corridas-y-consolidado.html#sin-incidencia)).
+Y `notas`, siempre que se decida algo: por qué `ancla.peso` es 0.5, por qué ese techo.
 
 ### La puerta de R
 

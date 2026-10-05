@@ -21,6 +21,8 @@ knitr:
   tiene estimación de referencia.
 - Cómo correr todas las causas de un proyecto.
 - Qué es el registro de corridas y cómo se arman las tablas consolidadas con un perfil de columnas.
+- Cómo dejar la incidencia de una causa fuera de las tablas consolidadas y cómo consolidar una causa con subtipos
+  desde su propio ajuste.
 
 Todo el recorrido usa el proyecto de ejemplo, con datos sintéticos, y corridas de prueba (`rapido = TRUE`) que
 tardan segundos. Sus cadenas son cortas y no convergen: los números sirven para ver la forma de los resultados, no
@@ -361,6 +363,24 @@ as.data.frame(seleccion)[, c("cause_id", "year", "run_id")]
 Una causa que `master_gbd.csv` declara como la suma de sus subtipos (en el ejemplo, la 9100) debe venir de
 `dl_sumar_hijas()`, no de un ajuste directo; ver [Subtipos y suma](subtipos-y-suma.html).
 
+### Una causa con subtipos desde su propio ajuste {#ajuste-directo}
+
+La excepción a esa regla se declara al consolidar. Si una causa con subtipos se modeló entera, con un ajuste propio
+(por ejemplo, porque su estimación de referencia ya es la suma de los subtipos que se reportan y los demás no se
+modelan), se nombra en `ajuste_directo` y su corrida vigente se toma tal cual:
+
+```r
+seleccion <- dl_consolidado_seleccionar(registro, carpeta_corridas = raiz, rutas = rutas, ajuste_directo = 9100)
+consolidado <- dl_consolidar(registro, carpeta = raiz, perfil = perfil, maestro = maestro, rutas = rutas,
+                             ajuste_directo = 9100)
+```
+
+El bloque de esa causa en el manifiesto del consolidado lleva `ajuste_directo: true` y las limitaciones dicen que no
+es la suma de sus subtipos. El argumento se revisa: nombrar una causa que no está entre las que se consolidan, o cuya
+corrida vigente es una suma, es un error; nombrar una que el maestro no declara con subtipos da un aviso y no cambia
+nada. Si los subtipos de esa causa también están en el consolidado, sus filas no tienen por qué sumar las de la
+causa: cada una sale de su propio ajuste, y solo la suma (`dl_sumar_hijas()`) garantiza que las tablas sumen.
+
 ### El consolidado y el perfil de columnas
 
 `dl_consolidar()` arma la tabla canónica (las estimaciones de cada corrida elegida, en tasas, más sus conteos),
@@ -409,6 +429,29 @@ forma de tabla (otros nombres de columna, otras métricas), copia uno de los dos
 y las columnas, y pásalo a `dl_consolidar()`; `dl_perfil_cargar()` lo valida. Las métricas son 1 (número de casos), 2
 (porcentaje, como proporción) y 3 (tasa por 100 000). Los conteos se calculan con la población congelada en los
 insumos de cada corrida.
+
+### Una causa sin incidencia en el consolidado {#sin-incidencia}
+
+En algunas causas el modelo no identifica la incidencia: sin datos de incidencia ni de mortalidad, la fija la
+remisión que se declara, y reportarla sería reportar ese supuesto. La configuración de la causa lo dice así, con el
+motivo en `notas`:
+
+```yaml
+exportar:
+  incidencia: no
+
+notas:
+  - "incidencia fuera de las tablas consolidadas: la fija la remisión declarada, sin datos de incidencia"
+```
+
+La corrida no cambia: escribe la incidencia como siempre (`cause/incidence/` y `draws/`), porque la usan el
+diagnóstico y las sumas. Cambian dos cosas. Su manifiesto lleva `causa.exporta_incidencia: false` y una limitación
+que lo dice. Y `dl_consolidar()` toma de esa corrida la prevalencia y los AVD, no la incidencia: la tabla de
+incidencia del consolidado trae solo las demás causas, el bloque de la causa en su manifiesto lleva
+`incidencia_exportada: false` y sus limitaciones la nombran. `dl_revisar_proyecto()` lo muestra en la línea de la
+configuración. Una causa que es la suma de sus subtipos no hereda la marca: suma la incidencia de todos, también la
+de un subtipo que la deja fuera, y su incidencia sí llega al consolidado. Así, un consolidado puede traer la
+incidencia de la causa padre y no la de uno de sus subtipos.
 
 ## Siguientes pasos
 

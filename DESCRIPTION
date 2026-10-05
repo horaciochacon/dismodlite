@@ -1,6 +1,6 @@
 Package: dismodlite
 Title: Estimación de Carga de Enfermedad por Edad, Sexo y Ubicación Subnacional
-Version: 2.2.0
+Version: 2.3.0
 Authors@R: c(
     person("Horacio", "Chacón", email = "hchacont@u.washington.edu", role = c("aut", "cre")),
     person("University of Washington", role = "cph"))

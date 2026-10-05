@@ -1,12 +1,22 @@
-# dismodlite 2.3.0 (en desarrollo)
+# dismodlite 2.3.0
+
+Más causas caben en un proyecto sin recetas: las que no tienen mortalidad propia, las que se reparten entre
+ubicaciones con una razón ya calculada, las que no reportan su incidencia y las que se modelan enteras aunque tengan
+subtipos. Además, una corrección en el peso de los datos de bandas anchas y una corrida completa más rápida.
 
 ## Mortalidad en exceso fija en cero
 
 * `mortalidad_exceso: {prior: cero}` (en el formato completo, `emr_prior.tipo: cero`) fija la mortalidad en exceso en
-  0 y no la estima, para una causa sin muertes. Los parámetros son solo log i en los nudos (un bloque del
-  muestreador), la ecuación se resuelve con f = 0 exacto, en R y en C++, y la log-posterior no tiene término de
-  mortalidad en exceso ni techo. Sin esta opción, log f de una causa sin muertes no tiene información y sus cadenas no
-  convergen.
+  0 y no la estima, para una causa sin muertes (o cuyas muertes no se modelan). Los parámetros son solo log i en los
+  nudos (un bloque del muestreador en lugar de dos), la ecuación se resuelve con f = 0 exacto, en R y en C++ (los
+  motores `"mh"` y `"rcpp"`), y la log-posterior no tiene término de mortalidad en exceso ni techo. Sin esta opción,
+  log f de una causa sin muertes no tiene información y sus cadenas no convergen.
+
+  ```yaml
+  mortalidad_exceso:
+    prior: cero
+  ```
+
 * No pide la `mortalidad` en la tabla `ancla` (si la trae, no se usa). No admite `mortalidad_exceso.techo`,
   `mortalidad_exceso.fraccion_aguda`, `sensibilidad.fraccion_aguda` ni `mortalidad` en `datos_en_ajuste` (con f = 0
   el modelo predice 0 muertes): la revisión del proyecto lo dice con la clave.
@@ -25,6 +35,12 @@
   incidencia y los AVD. La razón es la misma en todas las edades y sexos, y el manifiesto lo declara como limitación.
   En un proyecto el modo se declara solo con `subnacional.modo`: `avanzado: {cascada: {modo: }}` no puede cambiarlo a
   `razon` ni desde `razon` (es un error de configuración).
+
+  ```yaml
+  subnacional:
+    modo: razon
+  ```
+
 * Tabla nueva del contrato de insumos, `razones` (la undécima; `?dl_tablas`): `ubicacion`, `anio`, `razon` y
   `error_log` (el error estándar del logaritmo de la razón), con `causa` y `fuente` opcionales. Una razón 0 deja la
   ubicación sin casos. `dl_plantilla("razones")` da su plantilla y `dl_nuevo_proyecto()` la escribe; su `LEEME.md`
@@ -46,16 +62,15 @@
 * La semilla del sorteo de las razones es la de la corrida; otra se fija con
   `avanzado: {cascada: {razon_semilla: <entero>}}`.
 
-## Cambios de comportamiento
+## Datos locales y ancla
 
-* El peso de un dato cuyo intervalo de edad cruza bandas de población con distinto número de edades reparte la
-  población de cada banda entre sus edades. El caso típico es un dato de todas las edades, de 0 a 125 años, sobre una
-  población por quinquenios con una banda abierta de 80 años y más: antes cada edad llevaba la población entera de su
-  banda y, con las edades del modelo hasta los 99 años, la banda abierta pesaba 4 veces de más frente a un quinquenio.
-  Cambian los resultados de los proyectos con datos así en el ajuste, y la validación de la mortalidad subnacional si
-  sus intervalos cruzan bandas de ese modo. Dentro de una banda, o entre bandas con el mismo número de edades (varios
-  quinquenios), los pesos son los de antes bit a bit: el ancla, los datos por banda y el arnés de compatibilidad no
-  cambian.
+* **Corrección.** El peso de un dato cuyo intervalo de edad cruza bandas de población con distinto número de edades
+  reparte la población de cada banda entre sus edades. El caso típico es un dato de todas las edades, de 0 a 125
+  años, sobre una población por quinquenios con una banda abierta de 80 años y más: antes cada edad llevaba la
+  población entera de su banda y, con las edades del modelo hasta los 99 años, la banda abierta pesaba 4 veces lo que
+  le corresponde frente a un quinquenio. Dentro de una banda, o entre bandas con el mismo número de edades (varios
+  quinquenios), los pesos son los de antes bit a bit: el ancla y las tablas de la corrida no cambian si sus bandas no
+  cruzan bandas de población con distinto número de edades.
 * El ancla puede ir a peso completo (`ancla.peso` 1) aunque la tabla `fuentes_gbd` (en el formato completo, la
   evidencia) traiga fuentes locales no fatales de la causa, si ningún dato local entra al ajuste (`datos_en_ajuste`
   vacío): sin datos en el ajuste no hay nada que contar dos veces. Antes era un error. `dl_insumos()` lo dice con un
@@ -63,16 +78,83 @@
   manifiesto («ancla a peso completo (lambda = 1) con N fuente(s) local(es) no fatal(es) en la evidencia…»), además
   de `params.fuentes_locales_no_fatales`. Con alguna medida en `datos_en_ajuste` sigue siendo un error, que ahora
   nombra las medidas; con mortalidad en el ajuste y causas de muerte en la evidencia, también.
+
+## Corridas y tablas consolidadas
+
+* `exportar: {incidencia: no}`: la incidencia de la causa no entra en las tablas consolidadas. La corrida no cambia:
+  la escribe igual (`cause/incidence/` y `draws/`), para el diagnóstico y las sumas; su manifiesto lleva
+  `causa.exporta_incidencia: false` y una limitación. `dl_consolidar()` y `dl_consolidado_canonico()` omiten la
+  incidencia de esas corridas (la prevalencia y los AVD entran); el bloque de la causa en el manifiesto del
+  consolidado lleva `incidencia_exportada: false` y sus limitaciones la nombran. Es para una causa cuya incidencia
+  el modelo no identifica (la fija la remisión declarada, sin datos de incidencia). En el formato completo,
+  `exportar.incidencia: {valor: false, procedencia: ...}`; solo el «no» llega al formato completo (sin la clave, o
+  con «sí», no hay bloque `exportar`). `dl_revisar_proyecto()` lo dice en la línea de la configuración. La suma de
+  subtipos no hereda la marca: suma la incidencia de todos sus subtipos, así que un consolidado puede traer la
+  incidencia de la causa padre y no la de uno de sus subtipos.
+
+  ```yaml
+  exportar:
+    incidencia: no
+  ```
+
+* `dl_consolidar(..., ajuste_directo = 1010)` y `dl_consolidado_seleccionar(..., ajuste_directo = )`: las causas
+  nombradas se consolidan desde su propio ajuste aunque `master_gbd.csv` les declare subtipos (sin el argumento, una
+  causa con subtipos debe venir de su suma, como antes). Para una causa que se modeló entera. El bloque de la causa
+  en el manifiesto del consolidado lleva `ajuste_directo: true` y las limitaciones lo dicen. Es un error nombrar una
+  causa que no está entre las que se consolidan o cuya corrida vigente es una suma; nombrar una sin subtipos en el
+  maestro da un aviso. Si los subtipos de esa causa también están en el consolidado, sus filas no tienen por qué
+  sumar las de la causa: cada una sale de su propio ajuste.
+
+## `dl_correr()` más rápida
+
 * `dl_correr()` corre la sensibilidad con el `motor` de sus `opciones` y usa sus `nucleos` como procesos, que
   reparten las combinaciones de la grilla; las cadenas siguen siendo las propias de la sensibilidad (200
   simulaciones, 2 cadenas de 6000 iteraciones con 3000 de calentamiento). Antes la corría siempre con el motor
-  `"mh"` en un proceso. Con las opciones por defecto (motor `"mh"`, 1 núcleo) nada cambia; con `motor = "rcpp"`,
-  `diagnostics/sensibilidad.csv` cambia en las últimas cifras decimales, como el resto de la corrida, y la corrida
-  de producción del ejemplo pasa de unos 2.5 minutos a alrededor de 1. Con `rapido = TRUE` todo sigue igual.
-* `dl_etiquetas()` hace sus reajustes por rho con adelgazamiento 10, no con el del ajuste: 2 cadenas de 6000
-  iteraciones con 3000 de calentamiento guardan 600 simulaciones. Con un ajuste de adelgazamiento 30 quedaban 200,
-  pocas para la varianza de cada celda. Las etiquetas de `dl_correr()` y de `dl_etiquetas()` sin `opciones` cambian
-  solo si el ajuste usa otro adelgazamiento que 10 (el valor por defecto) y la grilla de rho pide reajustes.
+  `"mh"` en un proceso. Los núcleos solo cambian el tiempo, no los números. La corrida de producción del ejemplo con
+  `motor = "rcpp"` pasa de unos 2.5 minutos a alrededor de 1, y con 4 núcleos además, a alrededor de medio minuto.
+  Con `rapido = TRUE` todo sigue igual.
+* `dl_etiquetas()` hace sus reajustes por rho con adelgazamiento 10, no con el del ajuste, cuando no recibe
+  `opciones` (así la llama `dl_correr()`): 2 cadenas de 6000 iteraciones con 3000 de calentamiento guardan 600
+  simulaciones, y los reajustes piden a lo sumo esas y a lo sumo las del ajuste. Con un ajuste de adelgazamiento 30
+  quedaban 200, pocas para la varianza de cada celda.
+
+## Cambios de comportamiento
+
+* El peso de los datos que cruzan bandas de población con distinto número de edades (arriba) cambia los resultados
+  de los proyectos con datos así en el ajuste, y la validación de la mortalidad subnacional si sus intervalos cruzan
+  bandas de ese modo. Un proyecto sin esos datos da lo mismo; el arnés de compatibilidad no cambia.
+* El ancla a peso completo con fuentes locales no fatales en `fuentes_gbd` y ningún dato en el ajuste era un error y
+  ahora corre, con un aviso y una limitación en el manifiesto.
+* Con `motor = "rcpp"` en las `opciones` de `dl_correr()`, `diagnostics/sensibilidad.csv` cambia en las últimas
+  cifras decimales respecto de la versión 2.2.0, como el resto de la corrida (el motor `"rcpp"` no coincide con
+  `"mh"` bit a bit). Con el motor por defecto (`"mh"`) no cambia, con cualquier número de núcleos.
+* Las etiquetas de `dl_correr()` y de `dl_etiquetas()` sin `opciones` cambian solo si el ajuste usa otro
+  adelgazamiento que 10 (el valor por defecto) y la grilla de rho pide reajustes. Con un adelgazamiento menor que
+  10, los reajustes pueden guardar menos simulaciones que antes.
+
+## Compatibilidad
+
+* Sin las claves, la tabla ni los argumentos nuevos, un proyecto que corría con la versión 2.2.0 da los mismos
+  insumos, las mismas salidas y los mismos manifiestos, salvo por los cambios de comportamiento de arriba. El arnés
+  de compatibilidad sigue reproduciendo la versión 0.2.2 bit a bit.
+* El argumento nuevo (`ajuste_directo`) va al final de las firmas. Los nombres anteriores de esas dos funciones
+  (`?dl_nombres_anteriores`) conservan los argumentos de la versión 0.2.2 y no lo tienen: para usarlo,
+  `dl_consolidar()` y `dl_consolidado_seleccionar()`.
+
+## Guías
+
+* «Preparar tus datos»: las once tablas, con `razones`, y cuándo usar `prior: cero`, `subnacional.modo: razon` y
+  `exportar: {incidencia: no}`.
+* «Estimación subnacional»: el modo `razon`, con su fórmula, un ejemplo y la semilla del sorteo.
+* «El modelo»: la mortalidad en exceso en cero, el peso de cada edad en un intervalo que cruza bandas y el reparto
+  por razón.
+* «Datos locales»: cuándo el ancla puede ir a peso completo con fuentes locales, y el peso de un dato de banda
+  ancha.
+* «Corridas, versiones y tablas consolidadas»: `diagnostics/razon.csv`, una causa sin incidencia en el consolidado y
+  `ajuste_directo`.
+* «Subtipos y suma»: la suma no hereda `exportar: {incidencia: no}`, y cuándo se consolida el ajuste directo.
+* «Diagnóstico y sensibilidad»: el motor y los núcleos de la sensibilidad de `dl_correr()`, los tiempos medidos de
+  nuevo y el adelgazamiento de los reajustes de las etiquetas.
 
 # dismodlite 2.2.0
 
