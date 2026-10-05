@@ -84,11 +84,16 @@ dl_consolidado_seleccionar <- function(registro, carpeta_corridas, causas = NULL
 }
 
 # Apila cause/<medida>/<run_id>.csv de cada corrida seleccionada: run_fuente = la corrida de origen; run_id = el del
-# consolidado.
+# consolidado. De una corrida que declara su incidencia fuera de los consolidados (causa.exporta_incidencia: false) no
+# se apila la incidencia: la corrida la conserva, el consolidado no la trae.
 #' Tabla canónica de un consolidado
 #'
 #' Apila las celdas de cada corrida seleccionada, con `run_fuente` (la corrida de origen) y `run_id` (el del
 #' consolidado).
+#'
+#' @details
+#' De una corrida cuya configuración dice `exportar: {incidencia: no}` (su manifiesto lleva
+#' `causa.exporta_incidencia: false`; ver [dl_configuracion()]) se apilan la prevalencia y los AVD, no la incidencia.
 #'
 #' @param seleccion Selección de [dl_consolidado_seleccionar()].
 #' @param id_consolidado Identificador (`run_id`) del consolidado, con la forma `<AAAA-MM-DD>_<nombre>_v<n>`.
@@ -105,9 +110,12 @@ dl_consolidado_seleccionar <- function(registro, carpeta_corridas, causas = NULL
 #' # table(canonica$measure_name, canonica$metric_name)
 #' @export
 dl_consolidado_canonico <- function(seleccion, id_consolidado) {
-  partes <- lapply(seq_len(nrow(seleccion)), function(i)
-    data.table::rbindlist(lapply(.DL_MEDIDAS_EXPORTA$slug, function(slug)
-      .dl_leer_particion_corrida(seleccion$dir[i], seleccion$run_id[i], slug)))[, run_fuente := seleccion$run_id[i]])
+  partes <- lapply(seq_len(nrow(seleccion)), function(i) {
+    slugs <- .DL_MEDIDAS_EXPORTA$slug
+    if (!.dl_man_exporta_incidencia(seleccion$manifest[[i]])) slugs <- setdiff(slugs, "incidence")
+    data.table::rbindlist(lapply(slugs, function(slug)
+      .dl_leer_particion_corrida(seleccion$dir[i], seleccion$run_id[i], slug)))[, run_fuente := seleccion$run_id[i]]
+  })
   ce <- data.table::rbindlist(partes)
   ce[, run_id := id_consolidado]
   ce
@@ -368,7 +376,7 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
 # Bloque del manifiesto por (causa, año): qué corrida alimenta sus celdas, con qué comprobaciones y sustituciones.
 .dl_consolidado_bloque <- function(fila) {
   man <- fila$manifest[[1]]
-  list(cause_id = fila$cause_id, year = fila$year, run_fuente = fila$run_id,
+  out <- list(cause_id = fila$cause_id, year = fila$year, run_fuente = fila$run_id,
        # año del ancla de la corrida: el propio año, salvo en una proyección declarada (years.ancla)
        anio_ancla = .dl_man_anio_ancla(man, fila$year),
        agregacion = if (is.na(fila$agregacion)) "fit" else fila$agregacion,
@@ -378,6 +386,9 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
        force = isTRUE(man$validacion$gates$force),
        gate_ancla = man$validacion$anchor_identity$gate_err_mediano %||% NA_real_,
        rhat_max = man$validacion$gates$rhat_max %||% NA_real_)
+  # la incidencia de la corrida queda fuera del consolidado (causa.exporta_incidencia: false); si entra, el bloque no
+  # gana la clave
+  if (.dl_man_exporta_incidencia(man)) out else c(out, list(incidencia_exportada = FALSE))
 }
 
 # Nombres en español de las causas: master_gbd.csv más, si existe, el archivo de las causas de nivel 4 (que no tienen
@@ -399,8 +410,9 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
 }
 
 # Limitaciones del manifiesto de un consolidado, armadas con los hechos de la selección (qué causas van por suma,
-# qué hijas quedaron fuera, qué años son proyección, qué corridas descontaron la fase aguda), sin texto fijo sobre
-# una causa o un país. Las limitaciones de cada corrida quedan en su propio manifiesto.
+# qué hijas quedaron fuera, de qué causas no se trae la incidencia, qué años son proyección, qué corridas descontaron
+# la fase aguda), sin texto fijo sobre una causa o un país. Las limitaciones de cada corrida quedan en su propio
+# manifiesto.
 .dl_consolidado_limitaciones <- function(sel, bloques, acq_pob) {
   lista <- function(x) paste(x, collapse = ", ")
   causas_suma <- sort(unique(sel[agregacion %in% "suma_de_hijas"]$cause_id))
@@ -408,6 +420,8 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
     vapply(b$hijas_omitidas, function(o) as.integer(o$cause_id), 0L)))))
   proyectados <- sort(unique(vapply(Filter(function(b) b$anio_ancla != b$year, bloques), function(b) b$year, 0L)))
   con_aguda <- sort(unique(sel$cause_id[vapply(sel$manifest, .dl_con_fraccion_aguda, logical(1))]))
+  sin_incidencia <- sort(unique(vapply(Filter(function(b) isFALSE(b$incidencia_exportada), bloques),
+                                       function(b) b$cause_id, 0L)))
   c(list(
     sprintf(paste0("conteos = tasa x poblaci\u00f3n congelada en los insumos de cada corrida (%s) \u2014 sin ",
                    "incertidumbre de poblaci\u00f3n; el intervalo de los conteos es el de la tasa escalada"),
@@ -416,6 +430,10 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
       "causa(s) %s como suma de sus hijas, simulaci\u00f3n a simulaci\u00f3n \u2014 ", .DL_LIMITACION_CORRELACION_HIJAS,
       "%s"), lista(causas_suma),
       if (length(omitidas)) sprintf("; hijas %s omitidas donde el bloque lo declara", lista(omitidas)) else "")),
+    if (length(sin_incidencia)) list(sprintf(paste0(
+      "causa(s) %s sin incidencia en el consolidado \u2014 su corrida la declara fuera (exportar.incidencia; ",
+      "bloques[].incidencia_exportada) y el motivo est\u00e1 en el manifiesto de cada run_fuente"),
+      lista(sin_incidencia))),
     if (length(proyectados)) list(sprintf(paste0(
       "a\u00f1o(s) %s proyectado(s) \u2014 el ancla es la de un a\u00f1o anterior reetiquetada ",
       "(bloques[].anio_ancla)"), lista(proyectados))),
@@ -450,6 +468,10 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
 #' valida en memoria antes de escribir, y la escritura va a una carpeta temporal que se renombra al final. El
 #' manifiesto declara el perfil (con su sha256), la procedencia de la población, un bloque por causa y año (la
 #' corrida de origen, si es una suma, sus compuertas) y las limitaciones del consolidado.
+#'
+#' La incidencia de una causa cuya configuración dice `exportar: {incidencia: no}` (ver [dl_configuracion()]) no entra:
+#' sus tablas de prevalencia y de AVD sí. El bloque de esa causa lleva `incidencia_exportada: false` y las limitaciones
+#' la nombran; la corrida conserva su incidencia.
 #'
 #' Usa el registro de corridas y la carpeta del registro de causas (`master_gbd.csv` y `etiquetas_es.csv`): la de un
 #' proyecto la arma [dl_proyecto()] (`dl_proyecto(...)$rutas$registry`); la de un proyecto en el formato completo es

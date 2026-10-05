@@ -66,6 +66,10 @@ valida en memoria antes de escribir, y la escritura va a una carpeta temporal qu
 manifiesto declara el perfil (con su sha256), la procedencia de la población, un bloque por causa y año (la
 corrida de origen, si es una suma, sus compuertas) y las limitaciones del consolidado.
 
+La incidencia de una causa cuya configuración dice \code{exportar: {incidencia: no}} (ver \code{\link[=dl_configuracion]{dl_configuracion()}}) no entra:
+sus tablas de prevalencia y de AVD sí. El bloque de esa causa lleva \code{incidencia_exportada: false} y las limitaciones
+la nombran; la corrida conserva su incidencia.
+
 Usa el registro de corridas y la carpeta del registro de causas (\code{master_gbd.csv} y \code{etiquetas_es.csv}): la de un
 proyecto la arma \code{\link[=dl_proyecto]{dl_proyecto()}} (\code{dl_proyecto(...)$rutas$registry}); la de un proyecto en el formato completo es
 su carpeta \code{registro}.

@@ -611,8 +611,32 @@ test_that("la limitación de la incidencia: la de siempre si se exporta sin refe
     l <- lim(cfg, sin_ancla)
     expect_length(l, 1L)
     expect_match(l, "^incidencia no exportada \\(exportar.incidencia\\) — la corrida la escribe")
+    # las carpetas de la corrida, por su nombre (con barra)
+    expect_match(l, "la corrida la escribe (cause/incidence/ y draws/) y un consolidado la omite", fixed = TRUE)
     expect_match(l, "nota \u2014 la fija la remisión")       # la procedencia, sin «: »
     expect_false(grepl(": ", l, fixed = TRUE))                    # el manifiesto la emite sin comillas
     expect_identical(grepl("se omite el chequeo implied_incidence", l), sin_ancla)
   }
+})
+
+# La combinación de uso: una causa sin muertes (mortalidad en exceso fija en 0) cuya incidencia queda fuera de los
+# consolidados. Cada hecho da su limitación, una sola vez y con su texto.
+test_that("con emr_prior.tipo cero y exportar.incidencia = false hay una limitación de cada una, con su texto", {
+  x <- corrida_mini(); b <- x$insumos; cfg <- b$cfg
+  res <- dl_resumir(list(fit = x$ajuste, yld = x$avd, bundle = b))
+  base <- unlist(dismodlite:::.dl_limitaciones_corrida(cfg, b, res, NULL, NULL, 0.05))
+  cfg$emr_prior$tipo <- "cero"; cfg$emr_prior$tipo_procedencia <- "prueba — causa sin muertes"
+  cfg$exportar <- list(incidencia = list(valor = FALSE, procedencia = "prueba — la fija la remisión"))
+  lim <- unlist(dismodlite:::.dl_limitaciones_corrida(cfg, b, res, NULL, NULL, 0.05))
+  incidencia <- paste0("incidencia no exportada (exportar.incidencia) — la corrida la escribe ",
+                       "(cause/incidence/ y draws/) y un consolidado la omite — prueba — la fija la remisión")
+  emr <- paste("mortalidad en exceso (EMR) fija en 0 (emr_prior.tipo cero) — no se estima (sin nudos",
+               "de log f en el muestreo) y la causa no aporta muertes al modelo — prueba — causa sin muertes")
+  expect_identical(sum(lim == incidencia), 1L)
+  expect_identical(sum(lim == emr), 1L)
+  expect_identical(sum(grepl("incidencia no exportada|incidencia exportada sin referencia", lim)), 1L)
+  expect_identical(sum(grepl("mortalidad en exceso (EMR) fija en 0", lim, fixed = TRUE)), 1L)
+  # las dos se suman a las de la corrida sin esas claves: ninguna otra cambia
+  expect_setequal(setdiff(lim, base), c(incidencia, emr))
+  expect_length(lim, length(base) + 2L)
 })

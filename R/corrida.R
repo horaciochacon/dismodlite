@@ -122,7 +122,7 @@
 .dl_limitacion_incidencia <- function(cfg, sin_incidencia_ancla) {
   if (!.dl_exporta_incidencia(cfg))
     return(sprintf(paste0("incidencia no exportada (exportar.incidencia) \u2014 la corrida la escribe ",
-                          "(cause/incidence y draws) y un consolidado la omite \u2014 %s%s"),
+                          "(cause/incidence/ y draws/) y un consolidado la omite \u2014 %s%s"),
                    .dl_texto_yaml(cfg$exportar$incidencia$procedencia),
                    if (sin_incidencia_ancla) paste0("; el ancla de incidencia no trae filas de la causa y se omite el ",
                                                     "chequeo implied_incidence") else ""))

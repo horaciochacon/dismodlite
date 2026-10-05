@@ -157,3 +157,100 @@ test_that("una causa y un año sin corrida vigente se nombran; permitir_huecos l
                                     rutas = x$rutas)
   expect_identical(nrow(attr(sel, "huecos")), 1L)
 })
+
+# ---- La incidencia que una corrida deja fuera, y una causa con hijas desde su propio ajuste ----
+
+# Corrida mínima de la causa `causa` del ejemplo (formato completo), exportada en `carpeta` y anotada en `reg`.
+# `cambios`: los de dl_configuracion() (por ejemplo exportar.incidencia).
+.corrida_minima <- function(causa, carpeta, reg, cambios = NULL) {
+  r <- dl_rutas_ejemplo(causa, datos = FALSE, proxies = FALSE, formato = "completo")
+  b <- suppressMessages(dl_insumos(dl_configuracion(causa, ejemplo_completo("config"), cambios = cambios), r))
+  o <- dl_opciones_mcmc(simulaciones = 10L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L)
+  f <- dl_ajustar(b, o, semilla = 3L)
+  f0 <- dl_ajustar_solo_prior(b, o, semilla = 3L, ajuste = f)
+  y <- dl_avd(f, b, semilla = 3L)
+  piezas <- list(resumen = dl_resumir(list(fit = f, yld = y, bundle = b)), fit = f, yld = y, bundle = b)
+  dl_exportar_corrida(piezas, sprintf("acs-%d", causa), carpeta = carpeta,
+                      etiquetas = dl_etiquetas(f, f0, b, grilla_rho = 0.5, semilla = 3L), forzar = TRUE,
+                      registro = reg)
+}
+
+# Una carpeta de corridas con las tres hijas de 9100 (la 9102 con exportar.incidencia = false), el ajuste de la causa
+# padre 9100 y la suma de las hijas, y tres registros: `hijas` (9101 y 9102), `ajuste` (las hijas y el ajuste de
+# 9100) y `suma` (las hijas y la suma de 9100). Memorizada en la sesión.
+corridas_acs <- local({
+  x <- NULL
+  function() {
+    if (is.null(x)) {
+      carpeta <- withr::local_tempdir(.local_envir = testthat::teardown_env())
+      reg <- function(nm) { f <- file.path(carpeta, paste0(nm, ".yaml")); writeLines("datasets: []", f); f }
+      todo <- reg("todo")
+      sin_incidencia <- list(exportar = list(incidencia = list(valor = FALSE, procedencia = "prueba: sin datos")))
+      hijas <- list(.corrida_minima(9101L, carpeta, todo), .corrida_minima(9102L, carpeta, todo, sin_incidencia),
+                    .corrida_minima(9103L, carpeta, todo))
+      ajuste <- .corrida_minima(9100L, carpeta, todo)
+      rutas <- dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo")
+      suma <- dl_sumar_hijas(vapply(hijas, function(h) h$dir, ""), 9100L, "acs-suma", carpeta = carpeta,
+                             registro = todo, rutas = rutas)
+      # un registro con solo las corridas `ids` del registro completo
+      entradas <- yaml::read_yaml(todo)$datasets
+      solo <- function(nm, ids) {
+        f <- file.path(carpeta, paste0(nm, ".yaml"))
+        yaml::write_yaml(list(datasets = Filter(function(d) d$run_id %in% ids, entradas)), f)
+        f
+      }
+      id <- function(l) vapply(l, function(h) h$run_id, "")
+      x <<- list(carpeta = carpeta, rutas = rutas, hijas = hijas, ajuste = ajuste, suma = suma,
+                 reg_hijas = solo("hijas", id(hijas[1:2])), reg_ajuste = solo("ajuste", c(id(hijas), ajuste$run_id)),
+                 reg_suma = solo("suma", c(id(hijas), suma$run_id)))
+    }
+    x
+  }
+})
+
+test_that("el consolidado omite la incidencia de la causa que la deja fuera y trae sus otras dos medidas", {
+  x <- corridas_acs()
+  maestro <- ejemplo_completo("registro", "master_gbd.csv")
+  sel <- dl_consolidado_seleccionar(x$reg_hijas, x$carpeta, rutas = x$rutas)
+  expect_identical(sel$cause_id, c(9101L, 9102L))
+  canon <- dl_consolidado_canonico(sel, "2026-01-01_prueba_v1")
+  expect_identical(nrow(canon[cause_id == 9102L & measure_id == 6L]), 0L)
+  expect_gt(nrow(canon[cause_id == 9101L & measure_id == 6L]), 0L)
+  # las otras dos medidas, de las dos causas, con las mismas celdas
+  for (m in c(5L, 3L))
+    expect_identical(nrow(canon[cause_id == 9102L & measure_id == m]), nrow(canon[cause_id == 9101L & measure_id == m]),
+                     info = m)
+  expect_setequal(unique(canon[cause_id == 9102L]$measure_id), c(5L, 3L))
+  cons <- dl_consolidar(x$reg_hijas, x$carpeta, perfil_paquete("v1"), maestro, rutas = x$rutas, nombre = "sin-inc")
+  leer <- function(medida) data.table::fread(file.path(cons$dir, "tablas", paste0(medida, ".csv")),
+                                             colClasses = list(character = "ubigeo"))
+  expect_identical(sort(unique(leer("incidence")$causa_gbd_id)), 9101L)
+  expect_identical(sort(unique(leer("prevalence")$causa_gbd_id)), c(9101L, 9102L))
+  expect_identical(sort(unique(leer("yld")$causa_gbd_id)), c(9101L, 9102L))
+  # el manifiesto lo declara en el bloque de la causa y en las limitaciones; el de la otra causa no gana la clave
+  man <- yaml::read_yaml(file.path(cons$dir, "manifest.yaml"))
+  bloque <- function(k) Filter(function(b) b$cause_id == k, man$bloques)[[1]]
+  expect_identical(bloque(9102L)$incidencia_exportada, FALSE)
+  expect_false("incidencia_exportada" %in% names(bloque(9101L)))
+  lim <- unlist(man$limitaciones)
+  expect_identical(sum(startsWith(lim, "causa(s) 9102 sin incidencia en el consolidado")), 1L)
+  # la corrida conserva su incidencia
+  expect_true(file.exists(file.path(x$hijas[[2]]$dir, "cause", "incidence", paste0(x$hijas[[2]]$run_id, ".csv"))))
+  # solo la causa sin incidencia: la tabla de incidencia queda con su encabezado y sin filas
+  cons2 <- dl_consolidar(x$reg_hijas, x$carpeta, perfil_paquete("v1"), maestro, rutas = x$rutas, causas = 9102L,
+                         nombre = "solo-sin-inc")
+  expect_identical(nrow(data.table::fread(file.path(cons2$dir, "tablas", "incidence.csv"))), 0L)
+  expect_gt(nrow(data.table::fread(file.path(cons2$dir, "tablas", "prevalence.csv"))), 0L)
+  # los nombres anteriores hacen lo mismo
+  expect_identical(dl_export_canonico(sel, "2026-01-01_prueba_v1"), canon)
+})
+
+test_that("la suma de hijas no hereda la marca: suma la incidencia de todas y el consolidado la trae", {
+  x <- corridas_acs()
+  expect_false("exporta_incidencia" %in% names(x$suma$manifest$causa))
+  expect_false(any(grepl("exportar.incidencia", unlist(x$suma$manifest$limitaciones), fixed = TRUE)))
+  sel <- dl_consolidado_seleccionar(x$reg_suma, x$carpeta, causas = 9100L, rutas = x$rutas)
+  expect_identical(sel$agregacion, "suma_de_hijas")
+  canon <- dl_consolidado_canonico(sel, "2026-01-01_prueba_v1")
+  expect_gt(nrow(canon[measure_id == 6L]), 0L)
+})
