@@ -336,7 +336,10 @@ tabla se declara la carpeta de la partición en la configuración (`severidad.pa
 
 Las fuentes (`nid`) que GBD ya usó para la causa y la ubicación, por componente (`no_fatal`, `causa_de_muerte`). Si
 un dato local que entra al ajuste viene de una de ellas, ya informó el ancla: con el ancla a peso completo
-(`ancla.peso` 1), los insumos se detienen para evitar el doble conteo. Se pone en `fuentes_gbd/` la lista de
+(`ancla.peso` 1) y alguna medida en `datos_en_ajuste`, los insumos se detienen para evitar el doble conteo. Si ningún
+dato local entra al ajuste (`datos_en_ajuste` vacío) no hay nada que contar dos veces: el ancla puede ir a peso
+completo, un mensaje dice cuántas fuentes locales trae la tabla y la corrida lo declara entre las limitaciones de su
+manifiesto. Se pone en `fuentes_gbd/` la lista de
 fuentes que exporta el GHDx (<https://ghdx.healthdata.org/>), tal cual: el lector toma 4 de sus columnas y las
 filas del país (su `location_id` de GBD, ver `ubicacion_gbd` en la sección 6), que quedan con el código nacional de
 `ubicaciones`; las fuentes de otras ubicaciones de GBD se descartan, con un aviso. La lista del GHDx repite cada

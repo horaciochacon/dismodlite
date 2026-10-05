@@ -76,6 +76,17 @@
                          else cfg$years$ancla$procedencia))
 }
 
+# Ancla a peso completo (lambda = 1) con fuentes locales no fatales en la evidencia: ningún dato local entra al ajuste
+# (si entrara, .dl_chequear_doble_conteo() habría detenido los insumos), así que no hay doble conteo; el manifiesto
+# dice cuántas fuentes son y cuáles. NULL con lambda < 1 o sin fuentes.
+.dl_limitacion_peso_completo <- function(cfg, b) {
+  nid <- b$fuentes_locales$nid_no_fatal %||% integer()
+  if (!length(nid) || as.numeric(cfg$anchor$lambda) < 1) return(NULL)
+  sprintf(paste("ancla a peso completo (lambda = 1) con %d fuente(s) local(es) no fatal(es) en la evidencia (nid %s)",
+                "\u2014 ning\u00fan dato local entra al ajuste, as\u00ed que no se cuentan dos veces"),
+          length(nid), paste(nid, collapse = ", "))
+}
+
 # Todas las limitaciones de una corrida, en el orden del manifiesto.
 .dl_limitaciones_corrida <- function(cfg, b, res, casc, validacion, gate_ancla) {
   # estados de severidad con beta de covariable: dl_avd() usa en ellos el valor nacional (dX = 0) en toda ubicación
@@ -94,6 +105,7 @@
     if (isTRUE(attr(validacion, "sin_incidencia_gbd")))
       list(paste0("incidencia exportada sin referencia \u2014 el ancla de incidencia no trae filas de la causa; se ",
                   "omite el chequeo implied_incidence")),
+    as.list(.dl_limitacion_peso_completo(cfg, b)),
     if (!is.null(b$componente))
       list(sprintf(paste0("componente de la causa \u2014 esta corrida cubre solo las secuelas %s (%s); prevalencia ",
                           "del ancla \u00d7 %.4f y AVD de referencia \u00d7 %.4f seg\u00fan la partici\u00f3n de ",
@@ -355,7 +367,8 @@
                   emr_cota_origen = b$techo_emr$origen %||% "impreso",
                   emr_cota_k = if (identical(b$techo_emr$origen, "derivado")) as.numeric(b$techo_emr$k) else NULL,
                   lambda = as.numeric(cfg$anchor$lambda),
-                  # fuentes locales no fatales que informaron el ancla (con alguna, lambda debe ser < 1)
+                  # fuentes locales no fatales que informaron el ancla (con alguna, lambda < 1 o ningún dato local
+                  # en el ajuste: .dl_chequear_doble_conteo)
                   fuentes_locales_no_fatales = as.list(b$fuentes_locales$nid_no_fatal %||% integer()),
                   rho = as.numeric(cfg$anchor$rho_edad),
                   kappa = if (is.null(casc)) NULL else as.numeric(casc$kappa),

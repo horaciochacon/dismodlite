@@ -27,6 +27,13 @@
   sus intervalos cruzan bandas de ese modo. Dentro de una banda, o entre bandas con el mismo número de edades (varios
   quinquenios), los pesos son los de antes bit a bit: el ancla, los datos por banda y el arnés de compatibilidad no
   cambian.
+* El ancla puede ir a peso completo (`ancla.peso` 1) aunque la tabla `fuentes_gbd` (en el formato completo, la
+  evidencia) traiga fuentes locales no fatales de la causa, si ningún dato local entra al ajuste (`datos_en_ajuste`
+  vacío): sin datos en el ajuste no hay nada que contar dos veces. Antes era un error. `dl_insumos()` lo dice con un
+  mensaje, que `dl_revisar_proyecto()` muestra como aviso, y la corrida lo declara entre las limitaciones de su
+  manifiesto («ancla a peso completo (lambda = 1) con N fuente(s) local(es) no fatal(es) en la evidencia…»), además
+  de `params.fuentes_locales_no_fatales`. Con alguna medida en `datos_en_ajuste` sigue siendo un error, que ahora
+  nombra las medidas; con mortalidad en el ajuste y causas de muerte en la evidencia, también.
 
 # dismodlite 2.2.0
 

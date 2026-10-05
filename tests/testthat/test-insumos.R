@@ -29,8 +29,9 @@ test_that("anti-doble-conteo: csmr en medidas_entrada + CoD peruana en el store 
   expect_error(dl_insumos(cfg, rutas_nacional_completo()), "doble conteo.*CoD")
 })
 
-test_that("fuente local no fatal en la evidencia: error con lambda = 1; con lambda < 1 pasa y declara el nid", {
-  d <- withr::local_tempdir()
+# Rutas del ejemplo completo con una fuente local no fatal de 9100 (nid 999002) agregada a la evidencia.
+rutas_con_fuente_no_fatal <- function(env = parent.frame()) {
+  d <- withr::local_tempdir(.local_envir = env)
   fx <- rutas_nacional_completo()$ghdx_store
   file.copy(list.files(fx, full.names = TRUE), d)
   lst <- data.table::fread(file.path(d, "list.csv"))
@@ -38,11 +39,52 @@ test_that("fuente local no fatal en la evidencia: error con lambda = 1; con lamb
   extra[, `:=`(cause_id = 9100L, component_id = 5L, location_id = 123L, nid = 999002L)]
   data.table::fwrite(rbind(lst, extra), file.path(d, "list.csv"))
   p <- rutas_nacional_completo(); p$ghdx_store <- d
-  expect_error(dl_insumos(cfg9100_completo(), p), "0 fuentes locales.*lambda < 1")
-  cfg <- cfg9100_completo(); cfg$anchor$lambda <- 0.5        # con fuentes locales, el ancla no va a peso completo
-  b <- dl_insumos(cfg, p)
+  p
+}
+
+test_that("lambda = 1 con fuentes locales no fatales y ningún dato en el ajuste: pasa, lo dice y lo declara", {
+  p <- rutas_con_fuente_no_fatal()
+  cfg <- cfg9100_completo()
+  expect_identical(cfg$anchor$lambda, 1)
+  expect_length(unlist(cfg$medidas_entrada), 0L)
+  m <- expect_message(b <- dl_insumos(cfg, p), class = "dl_mensaje_revision")
+  expect_match(conditionMessage(m), paste0("ancla a peso completo \\(anchor.lambda = 1\\) con 1 fuente\\(s\\) ",
+                                           "local\\(es\\) no fatal\\(es\\) en la evidencia \\(nid 999002\\): ",
+                                           "ningún dato local entra al ajuste \\(medidas_entrada vacío\\)"))
   expect_identical(b$fuentes_locales$nid_no_fatal, 999002L)
-  expect_identical(dl_insumos(cfg9100_completo(), rutas_nacional_completo())$fuentes_locales$nid_no_fatal, integer())
+  # la limitación que lleva el manifiesto de la corrida: cuántas fuentes y cuáles, sin «: »
+  lim <- .dl_limitacion_peso_completo(b$cfg, b)
+  expect_identical(lim, paste0("ancla a peso completo (lambda = 1) con 1 fuente(s) local(es) no fatal(es) en la ",
+                               "evidencia (nid 999002) \u2014 ningún dato local entra al ajuste, así que no se cuentan ",
+                               "dos veces"))
+  expect_false(grepl(": ", lim, fixed = TRUE))
+  # los insumos son los mismos que sin la fuente: la evidencia no entra en las tablas ni en el hash
+  expect_identical(b$hash, dl_insumos(cfg, rutas_nacional_completo())$hash)
+})
+
+test_that("lambda = 1 con fuentes locales no fatales y datos en el ajuste sigue siendo un error; lambda < 1 vale siempre", {
+  p <- rutas_con_fuente_no_fatal()
+  cfg <- cfg9100_completo(); cfg$medidas_entrada <- list("prev_estudio", "incidencia")
+  expect_error(dl_insumos(cfg, p),
+               paste0("exige 0 fuentes locales no fatales para la causa 9100 cuando entran datos locales al ajuste ",
+                      "\\(medidas_entrada: prev_estudio, incidencia\\), y la evidencia tiene 1 \\(nid 999002\\); ",
+                      "usa lambda < 1"))
+  # con lambda < 1 no hay error ni mensaje ni limitación, entren o no datos al ajuste; el nid queda declarado
+  cfg <- cfg9100_completo(); cfg$anchor$lambda <- 0.5
+  expect_no_message(b <- dl_insumos(cfg, p), class = "dl_mensaje_revision")
+  expect_identical(b$fuentes_locales$nid_no_fatal, 999002L)
+  expect_null(.dl_limitacion_peso_completo(b$cfg, b))
+  # sin fuentes locales en la evidencia: nada que declarar
+  b0 <- dl_insumos(cfg9100_completo(), rutas_nacional_completo())
+  expect_identical(b0$fuentes_locales$nid_no_fatal, integer())
+  expect_null(.dl_limitacion_peso_completo(b0$cfg, b0))
+})
+
+test_that("lambda = 1 con mortalidad en el ajuste y causas de muerte en la evidencia sigue siendo un error", {
+  # también con una fuente no fatal: el error de las fuentes no fatales llega primero
+  cfg <- cfg9100_completo(); cfg$medidas_entrada <- list("csmr")
+  expect_error(dl_insumos(cfg, rutas_nacional_completo()), "doble conteo.*CoD.*csmr est\u00e1 en medidas_entrada")
+  expect_error(dl_insumos(cfg, rutas_con_fuente_no_fatal()), "exige 0 fuentes locales no fatales.*medidas_entrada: csmr")
 })
 
 test_that("token_transformacion se aplica al materializar betas", {

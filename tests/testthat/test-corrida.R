@@ -557,3 +557,19 @@ test_that("la corrida de un proyecto con proxies_crudos registra la calibración
   # repetir desde inputs/contrato/ recalibra igual
   expect_identical(suppressMessages(dl_insumos(dl_proyecto(cong)))$hash, man$inputs$bundle_hash)
 })
+
+test_that("el ancla a peso completo con fuentes locales no fatales queda entre las limitaciones de la corrida", {
+  x <- corrida_mini(); b <- x$insumos; cfg <- b$cfg
+  res <- dl_resumir(list(fit = x$ajuste, yld = x$avd, bundle = b))
+  sin <- unlist(.dl_limitaciones_corrida(cfg, b, res, NULL, NULL, 0.05))
+  expect_false(any(grepl("peso completo", sin)))                   # el ejemplo no trae fuentes locales
+  con_fuentes <- b; con_fuentes$fuentes_locales <- list(nid_no_fatal = c(1001L, 1002L), n_cod = 0L)
+  con <- unlist(.dl_limitaciones_corrida(cfg, con_fuentes, res, NULL, NULL, 0.05))
+  expect_identical(setdiff(con, sin),
+                   paste0("ancla a peso completo (lambda = 1) con 2 fuente(s) local(es) no fatal(es) en la evidencia ",
+                          "(nid 1001, 1002) \u2014 ningún dato local entra al ajuste, así que no se cuentan dos veces"))
+  expect_length(con, length(sin) + 1L)
+  # con lambda < 1 no es una limitación: las fuentes quedan solo en params.fuentes_locales_no_fatales
+  cfg05 <- cfg; cfg05$anchor$lambda <- 0.5
+  expect_identical(unlist(.dl_limitaciones_corrida(cfg05, con_fuentes, res, NULL, NULL, 0.05)), sin)
+})

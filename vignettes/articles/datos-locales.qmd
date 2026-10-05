@@ -153,7 +153,11 @@ dl_insumos(dl_proyecto(solo_prevalencia, causa = 9100))
 Arriba, `dl_insumos()` avisó: con datos en el ajuste y el ancla a peso completo, la estimación de referencia puede
 incluir ya esos datos. El ancla entra al ajuste como un *power prior*: su término de la log-posterior se multiplica
 por λ = `ancla.peso`. Con λ = 1 el ancla pesa con su propia incertidumbre; con λ = 0.5 pesa como si su varianza fuera
-el doble, y los datos locales tienen más voz. La elección se anota en `notas`, que queda en el manifiesto de cada
+el doble, y los datos locales tienen más voz. Con la tabla `fuentes_gbd` (las fuentes que GBD ya usó; ver
+[Preparar tus datos](preparar-datos.html)) el aviso pasa a ser una regla: si trae fuentes no fatales del país, con
+`ancla.peso` 1 y alguna medida en `datos_en_ajuste`, `dl_insumos()` se detiene y pide bajar el peso. Sin datos en el
+ajuste no hay doble conteo: el ancla va a peso completo aunque la tabla traiga fuentes locales, y la corrida lo
+declara entre las limitaciones de su manifiesto. La elección se anota en `notas`, que queda en el manifiesto de cada
 corrida:
 
 ```{r}
