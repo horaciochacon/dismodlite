@@ -69,6 +69,10 @@
   `"mh"` en un proceso. Con las opciones por defecto (motor `"mh"`, 1 núcleo) nada cambia; con `motor = "rcpp"`,
   `diagnostics/sensibilidad.csv` cambia en las últimas cifras decimales, como el resto de la corrida, y la corrida
   de producción del ejemplo pasa de unos 2.5 minutos a alrededor de 1. Con `rapido = TRUE` todo sigue igual.
+* `dl_etiquetas()` hace sus reajustes por rho con adelgazamiento 10, no con el del ajuste: 2 cadenas de 6000
+  iteraciones con 3000 de calentamiento guardan 600 simulaciones. Con un ajuste de adelgazamiento 30 quedaban 200,
+  pocas para la varianza de cada celda. Las etiquetas de `dl_correr()` y de `dl_etiquetas()` sin `opciones` cambian
+  solo si el ajuste usa otro adelgazamiento que 10 (el valor por defecto) y la grilla de rho pide reajustes.
 
 # dismodlite 2.2.0
 

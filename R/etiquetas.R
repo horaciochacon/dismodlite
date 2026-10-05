@@ -26,6 +26,9 @@
 .DL_REAJUSTE_CADENAS <- 2L
 .DL_REAJUSTE_ITERACIONES <- 6000L
 .DL_REAJUSTE_CALENTAMIENTO <- 3000L
+# Adelgazamiento fijo, no el del ajuste: con 2 cadenas de 3000 iteraciones útiles guardan 600 simulaciones. Con el
+# adelgazamiento de un ajuste largo (30, por ejemplo) quedarían 200, pocas para una varianza por celda.
+.DL_REAJUSTE_ADELGAZAMIENTO <- 10L
 
 # Etiqueta de una celda a partir de su contracción c y su desplazamiento d (delta_logq).
 .dl_etiqueta <- function(contraccion, delta_logq) {
@@ -50,15 +53,15 @@
            contraccion = 1 - v_post / v_prior, delta = abs(med_post - med_prior))]
 }
 
-# Opciones de los reajustes por rho cuando dl_etiquetas() no recibe `opciones`: cadenas cortas con el adelgazamiento
-# y el motor de `ajuste`. Se piden a lo sumo las simulaciones que guardan esas cadenas (dl_ajustar() no puede dar
-# más), así dl_opciones_mcmc() no avisa.
+# Opciones de los reajustes por rho cuando dl_etiquetas() no recibe `opciones`: cadenas cortas con su propio
+# adelgazamiento (.DL_REAJUSTE_ADELGAZAMIENTO) y el motor de `ajuste`. Se piden a lo sumo las simulaciones que guardan
+# esas cadenas (dl_ajustar() no puede dar más), así dl_opciones_mcmc() no avisa: las de `ajuste`, hasta 600.
 .dl_opciones_reajuste <- function(ajuste) {
   corto <- list(chains = .DL_REAJUSTE_CADENAS, iter = .DL_REAJUSTE_ITERACIONES, warmup = .DL_REAJUSTE_CALENTAMIENTO,
-                thin = as.integer(ajuste$params$thin))
+                thin = .DL_REAJUSTE_ADELGAZAMIENTO)
   dl_opciones_mcmc(simulaciones = min(nrow(ajuste$draws_par[[1]]), .dl_simulaciones_guardadas(corto)),
                    cadenas = corto$chains, iteraciones = corto$iter, calentamiento = corto$warmup,
-                   adelgazamiento = ajuste$params$thin, nucleos = 1L, motor = ajuste$params$engine)
+                   adelgazamiento = corto$thin, nucleos = 1L, motor = ajuste$params$engine)
 }
 
 #' Etiquetas de cuánto informan los datos cada celda
@@ -88,7 +91,8 @@
 #' @param grilla_rho Valores de la correlación por edad del ancla (rho) con que se recalculan las etiquetas; por
 #'   defecto, la grilla `sensibilidad.correlacion_edad` de la configuración.
 #' @param opciones Opciones de [dl_opciones_mcmc()] de los reajustes por rho (por defecto, cadenas cortas: 2 de
-#'   6000 iteraciones con 3000 de calentamiento).
+#'   6000 iteraciones con 3000 de calentamiento y adelgazamiento 10, sea cual sea el del ajuste, con el motor del
+#'   ajuste; guardan 600 simulaciones).
 #' @param cascada Cascada de [dl_cascada()] (opcional): agrega las celdas subnacionales.
 #' @return Tabla (data.table) con una fila por ubicación, sexo y banda (`location_id`, `year`, `age_group_id`,
 #'   `sex_id`, `cause_id`): `etiqueta`, `contraccion` (c), `lambda_usado` (el peso del ancla), `rho_usado` (el rho

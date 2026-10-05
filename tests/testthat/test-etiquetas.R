@@ -75,3 +75,25 @@ test_that("argumentos inválidos: mensajes en español antes de reajustar", {
   # la rejilla puede venir como lista, como en el YAML
   expect_identical(dl_etiquetas(x$ajuste, x$ajuste_prior, b, grilla_rho = list(0.5), semilla = 7L), x$etiquetas)
 })
+
+test_that("los reajustes por rho usan adelgazamiento 10, sea cual sea el del ajuste", {
+  # lo que .dl_opciones_reajuste() mira de un ajuste: sus simulaciones, su adelgazamiento y su motor
+  ajuste_con <- function(adelgazamiento, simulaciones = 1000L, motor = "mh")
+    list(params = list(thin = adelgazamiento, engine = motor), draws_par = list(matrix(0, simulaciones, 2L)))
+  con_10 <- .dl_opciones_reajuste(ajuste_con(10L))
+  con_30 <- .dl_opciones_reajuste(ajuste_con(30L))
+  # 2 cadenas x (6000 - 3000) / 10 = 600 simulaciones, también con un ajuste de adelgazamiento 30 (antes, 200)
+  expect_identical(con_30, con_10)
+  expect_identical(con_30, dl_opciones_mcmc(simulaciones = 600L, cadenas = 2L, iteraciones = 6000L,
+                                            calentamiento = 3000L, adelgazamiento = 10L))
+  expect_identical(.DL_REAJUSTE_ADELGAZAMIENTO, formals(dl_opciones_mcmc)$adelgazamiento)
+  # con un ajuste de adelgazamiento 10 nada cambia respecto de la versión 2.2.0, que heredaba el del ajuste
+  expect_identical(con_10, dl_opciones_mcmc(simulaciones = min(1000L, 2L * ((6000L - 3000L) %/% 10L)), cadenas = 2L,
+                                            iteraciones = 6000L, calentamiento = 3000L, adelgazamiento = 10L,
+                                            nucleos = 1L, motor = "mh"))
+  # un ajuste con menos simulaciones que las que guardan las cadenas cortas pide las suyas; el motor es el del ajuste
+  corto <- .dl_opciones_reajuste(ajuste_con(30L, simulaciones = 40L, motor = "rcpp"))
+  expect_identical(corto$draws, 40L)
+  expect_identical(corto$engine, "rcpp")
+  expect_identical(corto$thin, 10L)
+})
