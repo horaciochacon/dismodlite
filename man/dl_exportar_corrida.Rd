@@ -21,7 +21,8 @@ dl_exportar_corrida(
 }
 \arguments{
 \item{piezas}{Lista con \code{resumen} (\code{\link[=dl_resumir]{dl_resumir()}}), \code{fit} (ajuste o cascada), \code{yld} (\code{\link[=dl_avd]{dl_avd()}}) y \code{bundle}
-(insumos), las mismas con que se hizo el resumen; también valen los nombres \code{ajuste}, \code{avd} e \code{insumos}.}
+(insumos), las mismas con que se hizo el resumen; también valen los nombres \code{ajuste}, \code{avd} e \code{insumos}. El
+reparto por razón (\code{\link[=dl_repartir_razon]{dl_repartir_razon()}}) va en el resumen: aquí no hace falta.}
 
 \item{nombre}{Nombre corto de la corrida: minúsculas sin tildes, números y guiones (por ejemplo
 \code{"acs-nacional"}).}
@@ -70,7 +71,9 @@ La carpeta de la corrida:
 \item \verb{diagnostics/}: \code{mcmc.csv} (R-hat y ESS), \code{aceptacion.csv}, \code{desplazamiento_splits.csv}, \code{validacion.csv}
 (\code{\link[=dl_validar_ancla]{dl_validar_ancla()}}), \code{sensibilidad.csv} (\code{\link[=dl_sensibilidad]{dl_sensibilidad()}}, si se da) y, con una cascada, \code{renorm.csv}
 (los factores de renormalización), \code{dx_bandas.csv} (la mediana y el intervalo de dX por ubicación, sexo,
-covariable y banda) y \code{amplitud.csv} (la validación de la amplitud, si se calculó). Con un proyecto que trae
+covariable y banda) y \code{amplitud.csv} (la validación de la amplitud, si se calculó). Con el reparto por razón
+(\code{subnacional.modo: razon}), \code{razon.csv}: la razón aplicada por ubicación (la tabla \code{razones} de
+\code{\link[=dl_repartir_razon]{dl_repartir_razon()}}). Con un proyecto que trae
 \code{proxies_crudos}, \code{proxies_series.csv}: las series de su calibración (el atributo \code{series} de
 \code{\link[=dl_calibrar_proxies]{dl_calibrar_proxies()}}: el gradiente observado y el suavizado por ubicación y edición).
 \item \verb{inputs/}: los insumos congelados (\code{\link[=dl_congelar_insumos]{dl_congelar_insumos()}}), la configuración usada (\code{config_usado.yaml}, en el
@@ -103,7 +106,9 @@ claves que tomaron su valor por defecto) y, si el proyecto trae \code{proxies_cr
 el método, la transformación, q, el borde de su intervalo en que quedó (si quedó en uno), las ediciones usadas y
 las excluidas, cada una con su \code{anio} y su \code{motivo}. En la cascada, \code{haqi_nacional} se conserva por compatibilidad con la versión 0.2.2: es \code{false} solo si la
 cascada aplicó un proxy subnacional de una covariable llamada \code{haqi}; si no (también en un proyecto sin esa
-covariable), es \code{true}.
+covariable), es \code{true}. Con el reparto por razón (\code{subnacional.modo: razon}), \code{cascada.modo} es \code{razon} y el
+bloque \code{razon} trae la semilla del sorteo, cuántas ubicaciones, el rango de las razones de la tabla, cuántas son
+cero, sus fuentes y la regla; las limitaciones declaran que la razón es la misma en todas las edades y sexos.
 
 \code{forzar = TRUE} salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 (error relativo mediano mayor que \code{anchor.gate_err_mediano}, 0.05 por defecto), la corrida no se escribe. Ese

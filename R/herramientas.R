@@ -640,10 +640,14 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' Los pasos, en orden:
 #' 1. los insumos ([dl_proyecto()] y [dl_insumos()]);
 #' 2. el ajuste nacional ([dl_ajustar()]) y el ajuste solo con el ancla ([dl_ajustar_solo_prior()]);
-#' 3. la cascada subnacional ([dl_cascada()]), si hay proxies del año que se estima o `subnacional.modo: plano`
-#'    (`cascada.modo: plana` en el formato completo); si no, un mensaje lo dice y la corrida es solo nacional;
+#' 3. la cascada subnacional ([dl_cascada()]), si hay proxies del año que se estima o `subnacional.modo` es `plano`
+#'    o `razon` (`cascada.modo: plana` o `razon` en el formato completo); si no, un mensaje lo dice y la corrida es
+#'    solo nacional;
 #' 4. la validación contra el ancla ([dl_validar_ancla()]);
-#' 5. el factor de comorbilidad ([dl_factor_comorbilidad()], si el ancla trae AVD) y los AVD ([dl_avd()]);
+#' 5. el factor de comorbilidad ([dl_factor_comorbilidad()], si el ancla trae AVD), los AVD ([dl_avd()]) y, con
+#'    `subnacional.modo: razon`, el reparto por razón ([dl_repartir_razon()]), con la semilla de la corrida o la de
+#'    `avanzado: {cascada: {razon_semilla: ...}}`: las tasas subnacionales de la corrida son las repartidas, y la
+#'    validación, las etiquetas y la sensibilidad son las del ajuste nacional;
 #' 6. las etiquetas de cuánto informan los datos ([dl_etiquetas()]), con la grilla de `sensibilidad.correlacion_edad`
 #'    de la configuración;
 #' 7. la sensibilidad ([dl_sensibilidad()]) con la grilla `sensibilidad` de la configuración, si
@@ -899,6 +903,9 @@ print.dl_corridas <- function(x, ...) {
     .dl_message("causa %d: insumos", cfg$cause_id)
     b <- dl_insumos(p)
     .dl_exigir_severidad(b$severidad, cfg$cause_id)
+    # con el reparto por razón, la tabla razones se comprueba antes de ajustar
+    razon <- identical(b$cfg$cascada$modo$valor, "razon")
+    if (razon) .dl_razones_reparto(b)
 
     .dl_message("ajuste nacional: %d cadena(s) de %d iteraciones por sexo (motor %s)", o$chains, o$iter, o$engine)
     f <- dl_ajustar(b, o, semilla = semilla)
@@ -913,7 +920,7 @@ print.dl_corridas <- function(x, ...) {
                          "(validacion.gates.force)"), convergencia$rhat_max, convergencia$ess_min, format(ess_minimo))
     f0 <- dl_ajustar_solo_prior(b, o, semilla = semilla, ajuste = f)
     casc <- NULL
-    if (nrow(b$cov_proxy) > 0L || identical(b$cfg$cascada$modo$valor, "plana")) {
+    if (nrow(b$cov_proxy) > 0L || identical(b$cfg$cascada$modo$valor, "plana") || razon) {
       .dl_message("cascada subnacional")
       casc <- dl_cascada(f, b, semilla = semilla)
     } else {
@@ -934,6 +941,12 @@ print.dl_corridas <- function(x, ...) {
     if (is.null(comorbilidad))
       .dl_message("el ancla no trae AVD: los AVD no se corrigen por comorbilidad (el manifiesto lo declara)")
     avd <- dl_avd(ajuste, b, comorbilidad, semilla = semilla)
+    reparto <- NULL
+    if (razon) {
+      .dl_message("reparto subnacional por raz\u00f3n (tabla razones)")
+      reparto <- dl_repartir_razon(list(fit = casc, yld = avd, bundle = b),
+                                   semilla = b$cfg$cascada$razon_semilla %||% semilla)
+    }
 
     .dl_message("etiquetas de cu\u00e1nto informan los datos")
     etiquetas <- if (rapido) dl_etiquetas(f, f0, b, grilla_rho = b$cfg$anchor$rho_edad, semilla = semilla,
@@ -945,7 +958,7 @@ print.dl_corridas <- function(x, ...) {
       sens <- if (rapido) dl_sensibilidad(b, semilla = semilla, opciones = o) else dl_sensibilidad(b, semilla = semilla)
     }
 
-    resumen <- dl_resumir(list(fit = ajuste, yld = avd, bundle = b))
+    resumen <- dl_resumir(c(list(fit = ajuste, yld = avd, bundle = b), if (razon) list(reparto = reparto)))
     run <- dl_exportar_corrida(list(resumen = resumen, fit = ajuste, yld = avd, bundle = b),
                                nombre = nombre,
                                carpeta = carpeta_salida, etiquetas = etiquetas, validacion = validacion,

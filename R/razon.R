@@ -57,6 +57,11 @@
       .dl_stop("el reparto por raz\u00f3n no tiene la poblaci\u00f3n o las simulaciones de la celda sexo %s, banda %s",
                sx, ag)
     m <- .dl_razon_celda(x$val, N_nac, N_sub, R)
+    # denominador 0 (las ubicaciones con razón > 0 sin población en la celda) o una razón sorteada que desborda
+    if (!all(is.finite(m)))
+      .dl_stop(paste0("el reparto por raz\u00f3n no da tasas finitas en la celda sexo %s, banda %s: las ubicaciones ",
+                      "con raz\u00f3n mayor que 0 no tienen poblaci\u00f3n en esa celda (o el error_log de la ",
+                      "tabla razones es desmedido)"), sx, ag)
     data.table::data.table(location_id = rep(ubicaciones, times = ncol(R)), sex_id = sx, age_group_id = ag,
                            draw = rep(x$draw, each = nrow(R)), val = as.vector(m))
   }))
@@ -198,7 +203,7 @@ dl_repartir_razon <- function(piezas, semilla = NULL) {
   if (nrow(mayor))
     .dl_stop(paste0("la prevalencia repartida pasa de 1 en %d simulaci\u00f3n(es) de la(s) ubicaci\u00f3n(es) %s ",
                     "(m\u00e1ximo %.3f): la raz\u00f3n no cabe en una proporci\u00f3n; revisa la tabla razones"),
-             nrow(mayor), .dl_unos(mayor$location_id), max(mayor$val))
+             data.table::uniqueN(mayor$draw), .dl_unos(mayor$location_id), max(mayor$val))
   cuantil <- function(p) apply(R, 1L, stats::quantile, probs = p, names = FALSE)
   razones <- data.table::data.table(location_id = razones$location_id, razon = razones$razon,
                                     error_log = razones$error_log, razon_media = rowMeans(R),

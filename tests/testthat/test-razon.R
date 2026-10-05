@@ -238,6 +238,29 @@ test_that("el reparto de una medida usa la misma matriz en todas las celdas y no
   expect_equal(cociente$A / cociente$C, rep(R["A", ] / R["C", ], times = 4L), tolerance = 1e-13)
 })
 
+test_that("una celda sin población en las ubicaciones con razón mayor que 0 es un error que nombra el sexo y la banda", {
+  n <- 4L
+  R <- .dl_razon_simular(c(1.5, 0, 0.8), c(0.1, 0.3, 0), n, 42L)
+  rownames(R) <- c("A", "B", "C")
+  celdas <- data.table::CJ(sex_id = 1:2, age_group_id = c(13L, 14L))
+  nac <- celdas[, list(location_id = "999", draw = 1:n, val = 0.01 * sex_id + 0.001 * age_group_id),
+                by = list(sex_id, age_group_id)]
+  pob <- data.table::CJ(location_id = c("A", "B", "C"), sex_id = 1:2, age_group_id = c(13L, 14L))
+  pob[, pob := c(A = 1000, B = 500, C = 2500)[location_id] * sex_id + age_group_id]
+  # en la celda sexo 2, banda 14 solo tiene población B, la de razón 0: el denominador del reparto es 0
+  pob[sex_id == 2L & age_group_id == 14L & location_id != "B", pob := 0]
+  pob <- rbind(pob, pob[, list(location_id = "999", pob = sum(pob)), by = list(sex_id, age_group_id)])
+  expect_error(.dl_razon_repartir(nac, pob, R, "999"),
+               paste0("el reparto por razón no da tasas finitas en la celda sexo 2, banda 14: las ubicaciones con ",
+                      "razón mayor que 0 no tienen población en esa celda"), class = "dl_error")
+  # un error_log desmedido desborda la exponencial: el mismo error, en la primera celda
+  R2 <- .dl_razon_simular(c(1.5, 0, 0.8), c(1e4, 0.3, 0), n, 42L)
+  rownames(R2) <- c("A", "B", "C")
+  pob[location_id != "999" & sex_id == 2L & age_group_id == 14L, pob := 100]
+  expect_error(.dl_razon_repartir(nac, pob, R2, "999"),
+               "el reparto por razón no da tasas finitas en la celda sexo 1, banda 13", class = "dl_error")
+})
+
 # La corrida mínima del país ficticio en modo razón (cadenas cortas), memorizada en la sesión: insumos, ajuste,
 # ajuste solo con el ancla, cascada (la plana), AVD y reparto.
 corrida_razon <- local({
@@ -337,9 +360,14 @@ test_that("una prevalencia repartida mayor que 1 es un error que nombra la ubica
   rz <- data.table::copy(b$contrato$razones)
   rz[, razon := c(A = 0, B = 0, C = 1)[ubicacion]]
   b$contrato$razones <- rz
+  e <- expect_error(dl_repartir_razon(list(ajuste = m$cascada, avd = m$avd, insumos = b)),
+                    paste0("la prevalencia repartida pasa de 1 en [0-9]+ simulación\\(es\\) de la\\(s\\) ",
+                           "ubicación\\(es\\) C \\(máximo [0-9.]+\\)"))
+  # el conteo es de simulaciones, no de valores: con la región C casi sin población, su prevalencia pasa de 1 en
+  # todas las celdas (2 sexos x 9 bandas) de las 40 simulaciones, y el mensaje dice 40
+  b$poblacion <- data.table::copy(b$poblacion)[location_id == "C", val := val * 1e-4]
   expect_error(dl_repartir_razon(list(ajuste = m$cascada, avd = m$avd, insumos = b)),
-               paste0("la prevalencia repartida pasa de 1 en [0-9]+ simulación\\(es\\) de la\\(s\\) ubicación\\(es\\) C ",
-                      "\\(máximo [0-9.]+\\)"))
+               "la prevalencia repartida pasa de 1 en 40 simulación\\(es\\) de la\\(s\\) ubicación\\(es\\) C ")
 })
 
 test_that("dl_resumir() con la pieza reparto da las celdas subnacionales repartidas; sin ella, en modo razon, un error", {
@@ -371,4 +399,178 @@ test_that("dl_resumir() con la pieza reparto da las celdas subnacionales reparti
                                reparto = m$reparto)),
                "la pieza `reparto` solo va con subnacional.modo: razon")
   expect_error(dl_resumir(c(piezas, list(reparto = m$avd))), "`piezas\\$reparto` debe venir de dl_repartir_razon\\(\\)")
+})
+
+# ---- La corrida ----
+
+# Cierre de las simulaciones guardadas de la corrida `run` (año `anio`) con la población congelada en inputs/: por
+# medida, la diferencia relativa máxima entre los casos de las ubicaciones subnacionales y los nacionales.
+cierre_corrida <- function(run, anio, nacional = "999") {
+  pob <- data.table::fread(file.path(run$dir, "inputs", "poblacion.csv"), colClasses = list(character = "location_id"))
+  vapply(c("prevalence", "incidence", "yld"), function(s) {
+    x <- data.table::melt(.dl_leer_draws(run$dir, s, anio), id.vars = c("location_id", "sex_id", "age_group_id"))
+    x <- merge(x, pob[, list(location_id, sex_id, age_group_id, N = val)],
+               by = c("location_id", "sex_id", "age_group_id"))
+    casos <- x[, list(sub = sum(value[location_id != nacional] * N[location_id != nacional]),
+                      nac = value[location_id == nacional] * N[location_id == nacional]),
+               by = list(sex_id, age_group_id, variable)]
+    max(abs(casos$sub - casos$nac) / casos$nac)
+  }, 0)
+}
+
+test_that("dl_exportar_corrida() escribe la corrida repartida: manifiesto, limitación y diagnostics/razon.csv", {
+  m <- corrida_razon()
+  piezas <- list(ajuste = m$cascada, avd = m$avd, insumos = m$insumos)
+  res <- dl_resumir(c(piezas, list(reparto = m$reparto)))
+  et <- dl_etiquetas(m$ajuste, m$ajuste_prior, m$insumos, grilla_rho = 0.5, semilla = 5L, cascada = m$cascada)
+  v <- suppressMessages(dl_validar_ancla(m$ajuste, m$insumos, cascada = m$cascada))
+  run <- dl_exportar_corrida(c(piezas, list(resumen = res)), nombre = "razon", carpeta = withr::local_tempdir(),
+                             etiquetas = et, validacion = v, forzar = TRUE)
+  expect_output(print(run), "\\(reparto subnacional por razón\\)")
+  man <- run$manifest
+  # el manifiesto: el modo, el bloque de la razón y su limitación (en lugar de la de la cascada plana)
+  expect_identical(man$cascada$modo, "razon")
+  expect_identical(man$cascada$departamentos, 3L)
+  expect_identical(man$razon[c("semilla", "ubicaciones", "razon_min", "razon_max", "razones_cero")],
+                   list(semilla = 5L, ubicaciones = 3L, razon_min = 0, razon_max = 1.4, razones_cero = 1L))
+  expect_identical(unlist(man$razon$fuente), "indicador inventado")
+  expect_length(man$razon$regla, 3L)
+  lim <- unlist(man$limitaciones)
+  expect_match(lim, "^reparto subnacional por razón declarado .* \\(tabla razones; fuente indicador inventado\\)",
+               all = FALSE)
+  expect_match(lim, "la misma razón en todas las edades y sexos \\(supuesto declarado\\)", all = FALSE)
+  expect_false(any(grepl("cascada plana declarada|^sin cascada", lim)))
+  escrito <- yaml::read_yaml(file.path(run$dir, "manifest.yaml"))
+  expect_identical(escrito$cascada$modo, "razon")
+  expect_identical(escrito$razon$semilla, 5L)
+  # la tabla de la razón aplicada
+  rz <- data.table::fread(file.path(run$dir, "diagnostics", "razon.csv"), colClasses = list(character = "location_id"))
+  expect_identical(names(rz),
+                   c("location_id", "razon", "error_log", "razon_media", "razon_lower", "razon_upper", "fuente"))
+  expect_identical(rz$location_id, c("A", "B", "C"))
+  expect_identical(rz$razon, c(1.4, 0.7, 0))
+  # draws/ y cause/: las ubicaciones subnacionales son las repartidas (15 cifras en disco) y cierran en el nacional
+  guardadas <- .dl_leer_draws(run$dir, "prevalence", 2023L)
+  expect_equal(guardadas, .dl_draws_ancho(m$reparto$draws$prevalence), tolerance = 1e-13, ignore_attr = TRUE)
+  expect_true(all(cierre_corrida(run, 2023L) < 1e-12))
+  celdas <- data.table::fread(file.path(run$dir, "cause", "yld", paste0(run$run_id, ".csv")),
+                              colClasses = list(character = "location_id"))
+  media <- m$reparto$draws$yld[, list(val = 1e5 * mean(val)), by = list(location_id, sex_id, age_group_id)]
+  x <- merge(celdas, media, by = c("location_id", "sex_id", "age_group_id"))
+  expect_identical(nrow(x), nrow(celdas))
+  expect_equal(x$val.x, x$val.y, tolerance = 1e-12)
+  # la validación y las etiquetas son las del ajuste nacional; cada ubicación hereda la etiqueta nacional
+  expect_true(file.exists(file.path(run$dir, "diagnostics", "validacion.csv")))
+  etq <- data.table::fread(file.path(run$dir, "etiquetas", paste0(run$run_id, ".csv")),
+                           colClasses = list(character = "location_id"))
+  expect_setequal(etq$location_id, c("999", "A", "B", "C"))
+  expect_identical(etq[location_id == "A"]$etiqueta, etq[location_id == "999"]$etiqueta)
+  # la tabla razones queda congelada con el proyecto: inputs/contrato/ repite la corrida
+  expect_true("razones" %in% unlist(lapply(man$inputs$contrato, `[[`, "tabla")))
+  p <- dl_proyecto(file.path(run$dir, "inputs", "contrato"))
+  expect_identical(p$configuracion$cascada$modo$valor, "razon")
+  expect_identical(suppressMessages(dl_insumos(p))$hash, m$insumos$hash)
+})
+
+test_that("dl_correr() en modo razon escribe una sola corrida por año, ya repartida, con el nivel nacional del ajuste", {
+  d <- proyecto_razon(anios = 2023:2024, anios_poblacion = 2023:2024)
+  salida <- withr::local_tempdir()
+  reg <- file.path(salida, "corridas.yaml")
+  writeLines("datasets: []", reg)
+  correr <- function(proyecto, ...) dl_correr(proyecto, semilla = 3, rapido = TRUE, sensibilidad = FALSE, ...)
+  mensajes <- testthat::capture_messages(
+    runs <- correr(d, carpeta_salida = salida, registro = reg, anios = 2023:2024))
+  expect_match(mensajes, "reparto subnacional por razón \\(tabla razones\\)", all = FALSE)
+  expect_s3_class(runs, "dl_corridas")
+  expect_length(list.dirs(file.path(salida, "mod", "dismod_lite"), recursive = FALSE), 2L)   # una corrida por año
+  for (a in c("2023", "2024")) {
+    man <- runs[[a]]$manifest
+    expect_identical(man$cascada$modo, "razon", info = a)
+    expect_identical(man$razon$semilla, 3L, info = a)              # sin otra, la semilla de la corrida
+    expect_true(file.exists(file.path(runs[[a]]$dir, "diagnostics", "razon.csv")), info = a)
+    expect_true(all(cierre_corrida(runs[[a]], as.integer(a)) < 1e-12), info = a)
+  }
+  # 2024 se proyecta desde 2023: de 2024 son la población y las razones
+  expect_match(unlist(runs[["2024"]]$manifest$limitaciones),
+               "del 2024 son solo la población \\(poblacion\\) y las razones del reparto subnacional", all = FALSE)
+  # el nivel nacional es el del ajuste: el mismo proyecto en modo plano, con la misma semilla, da las mismas
+  # simulaciones nacionales; las subnacionales del plano son las nacionales y las del reparto no
+  plano <- proyecto_razon()
+  cfg <- readLines(file.path(plano, "config.yaml"))
+  writeLines(sub("modo: razon", "modo: plano", cfg), file.path(plano, "config.yaml"))
+  rp <- suppressWarnings(suppressMessages(correr(plano, carpeta_salida = withr::local_tempdir())))
+  expect_identical(rp$manifest$cascada$modo, "plana")
+  expect_null(rp$manifest$razon)
+  for (s in c("prevalence", "incidence", "yld")) {
+    a <- .dl_leer_draws(runs[["2023"]]$dir, s, 2023L); b <- .dl_leer_draws(rp$dir, s, 2023L)
+    expect_identical(a[location_id == "999"], b[location_id == "999"], info = s)
+    expect_false(isTRUE(all.equal(a[location_id == "A"], b[location_id == "A"])), info = s)
+  }
+  # la semilla del sorteo declarada en avanzado: el mismo nivel nacional, otro sorteo de las razones
+  d2 <- proyecto_razon(config = c("avanzado:", "  cascada:", "    razon_semilla: 20261002"))
+  r2 <- suppressMessages(correr(d2, carpeta_salida = withr::local_tempdir()))
+  expect_identical(r2$manifest$razon$semilla, 20261002L)
+  expect_identical(r2$manifest$params$seed, 3L)
+  a <- .dl_leer_draws(runs[["2023"]]$dir, "prevalence", 2023L); b <- .dl_leer_draws(r2$dir, "prevalence", 2023L)
+  expect_identical(a[location_id == "999"], b[location_id == "999"])
+  expect_false(isTRUE(all.equal(a[location_id == "A"], b[location_id == "A"])))
+
+  # lo que se hace con las corridas sigue funcionando: el re-resumen conserva el modo y el bloque de la razón
+  p <- suppressMessages(dl_proyecto(d))
+  nueva <- dl_reresumir_corrida(runs[["2023"]]$dir, carpeta = salida, rutas = p$rutas)
+  expect_identical(nueva$manifest$cascada$modo, "razon")
+  expect_identical(nueva$manifest$razon, runs[["2023"]]$manifest$razon)
+  celdas_de <- function(run) data.table::fread(file.path(run$dir, "cause", "prevalence", paste0(run$run_id, ".csv")))
+  viejas <- celdas_de(runs[["2023"]])
+  nuevas <- celdas_de(nueva)
+  expect_equal(nuevas$val, viejas$val, tolerance = 1e-12)
+  # el consolidado toma las dos corridas y declara el modo de cada una
+  cons <- suppressMessages(dl_consolidar(reg, salida, system.file("perfiles", "perfil_v2.yaml", package = "dismodlite"),
+                                         file.path(p$rutas$registry, "master_gbd.csv"), rutas = p$rutas, causas = 7001))
+  expect_identical(vapply(cons$manifest$bloques, `[[`, "", "cascada_modo"), c("razon", "razon"))
+  prev <- data.table::fread(file.path(cons$dir, "tablas", "prevalencia.csv"), encoding = "UTF-8",
+                            colClasses = c(ubigeo = "character"))
+  expect_setequal(prev$ubigeo, c("999", "A", "B", "C"))
+  expect_true(all(prev[ubigeo == "C"]$valor == 0))
+})
+
+test_that("en el formato completo el modo razon no tiene tabla: dl_correr() lo dice antes de ajustar", {
+  raiz <- withr::local_tempdir()
+  file.copy(ejemplo_completo(), raiz, recursive = TRUE)
+  d <- file.path(raiz, basename(ejemplo_completo()))
+  f <- file.path(d, "config", "9100.yaml")
+  cfg <- readLines(f, encoding = "UTF-8")
+  writeLines(enc2utf8(append(cfg, "  modo: {valor: razon, procedencia: prueba}", match("cascada:", cfg))), f,
+             useBytes = TRUE)
+  mensajes <- character()
+  e <- withCallingHandlers(
+    expect_error(dl_correr(d, 9100, semilla = 1, rapido = TRUE, carpeta_salida = withr::local_tempdir()),
+                 "los insumos no traen la tabla razones: el reparto por razón es de un proyecto con las tablas"),
+    message = function(m) { mensajes <<- c(mensajes, conditionMessage(m)); invokeRestart("muffleMessage") })
+  expect_false(any(grepl("ajuste nacional", mensajes)))
+})
+
+test_that("una causa que es la suma de sus subtipos suma las corridas repartidas de un subtipo en modo razon", {
+  d <- proyecto_razon()
+  dir.create(file.path(d, "config"))
+  file.rename(file.path(d, "config.yaml"), file.path(d, "config", "7001.yaml"))
+  writeLines(enc2utf8(c("causa: 7000", "nombre: Suma inventada", "anio: 2023", "subtipos: [7001]",
+                        "suma_de_subtipos: sí")), file.path(d, "config", "7000.yaml"), useBytes = TRUE)
+  salida <- withr::local_tempdir()
+  hija <- suppressMessages(dl_correr(d, 7001, semilla = 3, rapido = TRUE, sensibilidad = FALSE,
+                                     carpeta_salida = salida))
+  expect_identical(hija$manifest$cascada$modo, "razon")
+  suma <- suppressMessages(dl_correr(d, 7000, rapido = TRUE, carpeta_salida = salida))
+  expect_identical(suma$manifest$causa$agregacion, "suma_de_hijas")
+  for (s in c("prevalence", "incidence", "yld"))
+    expect_identical(.dl_leer_draws(suma$dir, s, 2023L), .dl_leer_draws(hija$dir, s, 2023L), info = s)
+})
+
+test_that("la sensibilidad de un proyecto en modo razon es la del ajuste nacional: kappa no aplica, como en plano", {
+  m <- corrida_razon()
+  s <- suppressMessages(dl_sensibilidad(m$insumos, grilla = list(lambda = 1, rho = 0.5, kappa = 1), semilla = 5L,
+                                        opciones = m$opciones))
+  expect_true(all(is.na(s$kappa)))
+  expect_identical(unique(s$nota), "sin proxies subnacionales: la cascada no aplica")
+  expect_identical(nrow(attr(s, "departamental")), 0L)
 })
