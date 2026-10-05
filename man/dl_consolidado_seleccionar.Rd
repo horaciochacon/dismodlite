@@ -10,7 +10,8 @@ dl_consolidado_seleccionar(
   causas = NULL,
   anios = NULL,
   permitir_huecos = FALSE,
-  rutas = dl_rutas()
+  rutas = dl_rutas(),
+  ajuste_directo = integer()
 )
 }
 \arguments{
@@ -24,15 +25,20 @@ dl_consolidado_seleccionar(
 
 \item{rutas}{Rutas de \code{\link[=dl_rutas]{dl_rutas()}}; se usa el registro (la carpeta de tablas de referencia con
 \code{master_gbd.csv}, no el registro de corridas).}
+
+\item{ajuste_directo}{Causas con hijas en \code{master_gbd.csv} que se toman de su propio ajuste y no de la suma de
+sus hijas: un vector de \code{cause_id} (por defecto, ninguna).}
 }
 \value{
 Tabla (data.table) con una fila por (causa, año): \code{cause_id}, \code{year}, \code{run_id} (la corrida elegida),
 \code{dir} (su carpeta), \code{agregacion} (\code{"suma_de_hijas"} en una suma; \code{NA} en un ajuste) y \code{manifest} (su
-manifiesto, como lista). Atributo \code{huecos}: los pares (\code{cause_id}, \code{year}) pedidos sin corrida.
+manifiesto, como lista). Atributo \code{huecos}: los pares (\code{cause_id}, \code{year}) pedidos sin corrida. Con
+\code{ajuste_directo}, el atributo \code{ajuste_directo}: las causas con hijas que se tomaron de su ajuste.
 }
 \description{
 Entre las corridas activas del registro elige, por causa y año, la más reciente (fecha y versión del
-\code{run_id}). Las causas que \code{master_gbd.csv} declara como suma de hijas deben venir de \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}.
+\code{run_id}). Las causas que \code{master_gbd.csv} declara como suma de hijas deben venir de \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}, salvo
+las que se nombran en \code{ajuste_directo}.
 }
 \details{
 Es el primer paso de \code{\link[=dl_consolidar]{dl_consolidar()}}, que lo hace todo en una llamada; las funciones de cada paso sirven para
@@ -40,12 +46,20 @@ mirar o cambiar uno. El registro de corridas es un YAML con la lista \code{datas
 \verb{datasets: []}. Las corridas se anotan en él con el argumento \code{registro} de \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}},
 \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} o \code{\link[=dl_reresumir_corrida]{dl_reresumir_corrida()}}. Las corridas superadas siguen activas en el registro: no se
 marcan, solo no se eligen.
+
+\code{ajuste_directo} es para una causa que el maestro declara con hijas y que se modeló entera, con un ajuste propio
+(por ejemplo, con un ancla que ya es la suma de las hijas que se reportan): sin el argumento, su corrida de ajuste
+se rechaza, porque el maestro pide la suma. Cada causa nombrada debe estar entre las que se seleccionan y su
+corrida vigente debe ser un ajuste (si es una suma, es un error: el argumento sobra o falta registrar el ajuste).
+Una causa nombrada que el maestro no declara con hijas da un aviso y se selecciona como siempre.
 }
 \examples{
 # El ejemplo de ?dl_consolidar arma un registro de corridas y corre todos los pasos. Este es
 # el primero:
 # sel <- dl_consolidado_seleccionar(registro, salida, rutas = rutas)
 # sel[, c("cause_id", "year", "run_id", "agregacion")]
+# una causa con hijas en el maestro, desde su propio ajuste:
+# sel <- dl_consolidado_seleccionar(registro, salida, rutas = rutas, ajuste_directo = 9100)
 }
 \seealso{
 \code{\link[=dl_consolidar]{dl_consolidar()}}, \code{\link[=dl_consolidado_canonico]{dl_consolidado_canonico()}} (el paso siguiente).

@@ -254,3 +254,67 @@ test_that("la suma de hijas no hereda la marca: suma la incidencia de todas y el
   canon <- dl_consolidado_canonico(sel, "2026-01-01_prueba_v1")
   expect_gt(nrow(canon[measure_id == 6L]), 0L)
 })
+
+test_that("una causa con hijas en el maestro se consolida desde su ajuste solo con ajuste_directo, y lo declara", {
+  x <- corridas_acs()
+  maestro <- ejemplo_completo("registro", "master_gbd.csv")
+  # sin el argumento: el error de siempre
+  expect_error(dl_consolidado_seleccionar(x$reg_ajuste, x$carpeta, rutas = x$rutas),
+               paste0("^dl_consolidado_seleccionar\\(\\): la causa 9100 se reporta como la suma de sus hijas .*",
+                      "la corrida vigente .*_acs-9100_v1 es un ajuste"))
+  expect_error(dl_consolidar(x$reg_ajuste, x$carpeta, perfil_paquete("v1"), maestro, rutas = x$rutas),
+               "^dl_consolidar\\(\\): la causa 9100 se reporta como la suma de sus hijas")
+  # con el argumento: la corrida de su ajuste, y la selección lo anota
+  sel <- dl_consolidado_seleccionar(x$reg_ajuste, x$carpeta, rutas = x$rutas, ajuste_directo = 9100)
+  expect_identical(sel[cause_id == 9100L]$run_id, x$ajuste$run_id)
+  expect_true(is.na(sel[cause_id == 9100L]$agregacion))
+  expect_identical(attr(sel, "ajuste_directo"), 9100L)
+  cons <- dl_consolidar(x$reg_ajuste, x$carpeta, perfil_paquete("v1"), maestro, rutas = x$rutas, nombre = "directo",
+                        ajuste_directo = 9100L)
+  man <- yaml::read_yaml(file.path(cons$dir, "manifest.yaml"))
+  bloque <- function(k) Filter(function(b) b$cause_id == k, man$bloques)[[1]]
+  expect_identical(bloque(9100L)$ajuste_directo, TRUE)
+  expect_identical(bloque(9100L)$agregacion, "fit")
+  expect_identical(bloque(9100L)$run_fuente, x$ajuste$run_id)
+  expect_false("ajuste_directo" %in% names(bloque(9101L)))
+  lim <- unlist(man$limitaciones)
+  expect_identical(sum(startsWith(lim, "causa(s) 9100 con hijas en master_gbd.csv consolidada(s) desde su propio")),
+                   1L)
+  expect_false(any(grepl("como suma de sus hijas", lim)))
+  prev <- data.table::fread(file.path(cons$dir, "tablas", "prevalence.csv"), colClasses = list(character = "ubigeo"))
+  expect_true(all(prev[causa_gbd_id == 9100L]$run_origen == x$ajuste$run_id))
+  # sin el argumento nada cambia: la selección de las hijas no gana el atributo ni sus bloques la clave
+  sel_h <- dl_consolidado_seleccionar(x$reg_hijas, x$carpeta, rutas = x$rutas)
+  expect_null(attr(sel_h, "ajuste_directo"))
+  expect_identical(dl_consolidado_seleccionar(x$reg_hijas, x$carpeta, rutas = x$rutas, ajuste_directo = integer()),
+                   sel_h)
+})
+
+test_that("ajuste_directo se valida: causas enteras, entre las pedidas, con hijas, y con un ajuste vigente", {
+  x <- corridas_acs()
+  sel <- function(reg, ...) dl_consolidado_seleccionar(reg, x$carpeta, rutas = x$rutas, ...)
+  # la corrida vigente de la causa es una suma: error
+  expect_error(sel(x$reg_suma, ajuste_directo = 9100L),
+               paste0("`ajuste_directo` nombra la causa 9100 y su corrida vigente .*_acs-suma_v1 es una suma de hijas, ",
+                      "no un ajuste"))
+  expect_error(dl_consolidar(x$reg_suma, x$carpeta, perfil_paquete("v1"), ejemplo_completo("registro", "master_gbd.csv"),
+                             rutas = x$rutas, ajuste_directo = 9100L),
+               "^dl_consolidar\\(\\): `ajuste_directo` nombra la causa 9100 .* es una suma de hijas")
+  # no son causas
+  for (malo in list("9100", 9100.5, c(9100, NA), c(9100L, 9100L), -1, list(9100L)))
+    expect_error(sel(x$reg_ajuste, ajuste_directo = malo), "`ajuste_directo` debe ser un vector de causas")
+  # no está entre las pedidas, o no tiene corrida entre las seleccionadas
+  expect_error(sel(x$reg_ajuste, causas = c(9101L, 9102L), ajuste_directo = 9100L),
+               "`ajuste_directo` nombra la\\(s\\) causa\\(s\\) 9100, que no está\\(n\\) en `causas` \\(9101, 9102\\)")
+  expect_error(sel(x$reg_hijas, ajuste_directo = 9100L),
+               "`ajuste_directo` nombra la\\(s\\) causa\\(s\\) 9100, que no está\\(n\\) entre las causas con corrida")
+  # una causa sin hijas en el maestro: aviso, y la selección es la de siempre (sin el atributo)
+  expect_warning(s <- sel(x$reg_hijas, ajuste_directo = 9101L),
+                 "`ajuste_directo` nombra la\\(s\\) causa\\(s\\) 9101, que master_gbd.csv no declara con hijas")
+  expect_identical(s, sel(x$reg_hijas))
+  # NULL vale por ninguna
+  expect_identical(sel(x$reg_hijas, ajuste_directo = NULL), sel(x$reg_hijas))
+  # los nombres anteriores conservan los argumentos de la versión 0.2.2: no tienen este
+  expect_false("fit_directo" %in% names(formals(dl_export_seleccionar)))
+  expect_false("fit_directo" %in% names(formals(dl_export_cdc)))
+})
