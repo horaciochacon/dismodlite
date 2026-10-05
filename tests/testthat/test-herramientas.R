@@ -1174,3 +1174,38 @@ test_that("dl_correr() pasa a la sensibilidad el motor del ajuste y sus núcleos
   expect_identical(visto$opciones, .dl_opciones_sensibilidad("rcpp"))
   expect_identical(visto$opciones$cores, 1L)
 })
+
+# ---- exportar.incidencia ----
+
+test_that("dl_correr() con exportar: {incidencia: no} escribe la incidencia y la marca; la revisión lo dice", {
+  d <- copia_ejemplo()
+  f <- file.path(d, "config", "9101.yaml")
+  cat("exportar:\n  incidencia: no\n", file = f, append = TRUE)
+  # la línea en orden del paso «configuración» de una revisión
+  linea_config <- function(r) r$detalle[r$paso == "configuración" & r$estado == "ok"]
+  r <- revisar_callado(d, causa = 9101)
+  expect_identical(sum(r$estado == "error"), 0L)
+  expect_match(linea_config(r),
+               "^config/9101.yaml: proyecto; la incidencia no entra en los consolidados \\(exportar.incidencia: no\\)")
+  # un proyecto ya leído se revisa igual
+  expect_identical(linea_config(revisar_callado(dl_proyecto(d, 9101))), sub("^config/", "", linea_config(r)))
+  run <- suppressMessages(dl_correr(d, causa = 9101, semilla = 3, rapido = TRUE, sensibilidad = FALSE))
+  expect_true(file.exists(file.path(run$dir, "cause", "incidence", paste0(run$run_id, ".csv"))))
+  expect_true(file.exists(file.path(run$dir, "draws", "incidence_2023.csv.gz")))
+  expect_identical(run$manifest$causa$exporta_incidencia, FALSE)
+  expect_true(any(startsWith(unlist(run$manifest$limitaciones), "incidencia no exportada (exportar.incidencia)")))
+  expect_false("exportar.incidencia" %in% names(run$manifest$configuracion$por_defecto))
+  # la configuración congelada conserva la clave: la corrida se repite desde inputs/contrato/
+  expect_identical(dismodlite:::.dl_si_no(yaml::read_yaml(file.path(run$dir, "inputs", "contrato", "config.yaml"),
+                                                           handlers = dismodlite:::.DL_YAML_LOGICOS)$exportar$incidencia),
+                   FALSE)
+  # sin la clave: la otra causa del proyecto no gana nada en su manifiesto, y su revisión dice lo de siempre
+  expect_identical(linea_config(revisar_callado(d, causa = 9102)), "config/9102.yaml: proyecto")
+  # un valor que no es sí ni no, o una clave que el bloque no tiene: un error de la configuración
+  writeLines(sub("incidencia: no", "incidencia: a veces", readLines(f, encoding = "UTF-8")), f, useBytes = TRUE)
+  expect_error(dl_proyecto(d, 9101), "exportar[.]incidencia: debe ser sí o no")
+  # una suma de subtipos no usa la clave: la revisión avisa
+  ds <- copia_con_suma(c("exportar:", "  incidencia: no"))
+  rs <- revisar_callado(ds, causa = 9200)
+  expect_match(rs$detalle[rs$estado == "aviso"], "no se usa\\(n\\) la\\(s\\) clave\\(s\\) exportar$")
+})

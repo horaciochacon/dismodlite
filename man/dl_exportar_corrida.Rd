@@ -110,6 +110,12 @@ covariable), es \code{true}. Con el reparto por razón (\code{subnacional.modo: 
 bloque \code{razon} trae la semilla del sorteo, cuántas ubicaciones, el rango de las razones de la tabla, cuántas son
 cero, sus fuentes y la regla; las limitaciones declaran que la razón es la misma en todas las edades y sexos.
 
+Si la configuración dice que la incidencia de la causa no se reporta (en un proyecto, \code{exportar: {incidencia: no}};
+en el formato completo, \verb{exportar: \{incidencia: \{valor: false, procedencia\}\}}), la corrida escribe la incidencia
+igual, en \verb{cause/incidence/} y en \verb{draws/}, y el manifiesto lleva \code{causa.exporta_incidencia: false} y una
+limitación con la procedencia: \code{\link[=dl_consolidar]{dl_consolidar()}} omite la incidencia de esa corrida. Sin la clave, el manifiesto
+no cambia.
+
 \code{forzar = TRUE} salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 (error relativo mediano mayor que \code{anchor.gate_err_mediano}, 0.05 por defecto), la corrida no se escribe. Ese
 máximo se declara en la configuración (en un proyecto, \code{ancla: {error_maximo: ...}}; en el formato completo,

@@ -573,3 +573,46 @@ test_that("el ancla a peso completo con fuentes locales no fatales queda entre l
   cfg05 <- cfg; cfg05$anchor$lambda <- 0.5
   expect_identical(unlist(.dl_limitaciones_corrida(cfg05, con_fuentes, res, NULL, NULL, 0.05)), sin)
 })
+
+# exportar.incidencia = false: la corrida escribe la incidencia igual (celdas y simulaciones), su manifiesto la marca
+# (causa.exporta_incidencia: false) y la limitación dice por qué. Sin el campo, el manifiesto no gana la clave ni la
+# limitación.
+test_that("una corrida con exportar.incidencia = false escribe la incidencia y la marca en el manifiesto", {
+  x <- corrida_mini(); d <- withr::local_tempdir()
+  piezas <- .piezas_mini(x)
+  piezas$bundle$cfg$exportar <- list(incidencia = list(valor = FALSE,
+                                                       procedencia = "incidencia fijada por la remisión declarada"))
+  run <- dl_exportar_corrida(piezas, "sin-incidencia", carpeta = d, etiquetas = x$etiquetas, forzar = TRUE)
+  expect_true(file.exists(file.path(run$dir, "cause", "incidence", paste0(run$run_id, ".csv"))))
+  expect_true(file.exists(file.path(run$dir, "draws", "incidence_2023.csv.gz")))
+  man <- yaml::read_yaml(file.path(run$dir, "manifest.yaml"))
+  expect_identical(man$causa$exporta_incidencia, FALSE)
+  lim <- unlist(man$limitaciones)
+  expect_identical(sum(startsWith(lim, "incidencia no exportada (exportar.incidencia)")), 1L)
+  expect_match(lim[startsWith(lim, "incidencia no exportada")], "incidencia fijada por la remisión declarada$")
+  # sin el campo: ni la clave ni la limitación, y lo demás del manifiesto es lo mismo
+  run0 <- dl_exportar_corrida(.piezas_mini(x), "con-incidencia", carpeta = d, etiquetas = x$etiquetas, forzar = TRUE)
+  man0 <- yaml::read_yaml(file.path(run0$dir, "manifest.yaml"))
+  expect_false("exporta_incidencia" %in% names(man0$causa))
+  expect_false(any(grepl("incidencia no exportada", unlist(man0$limitaciones))))
+  expect_identical(setdiff(lim, unlist(man0$limitaciones)), lim[startsWith(lim, "incidencia no exportada")])
+  expect_identical(man$params, man0$params)
+  expect_identical(man$causa[names(man0$causa)], man0$causa)
+})
+
+test_that("la limitación de la incidencia: la de siempre si se exporta sin referencia; una sola si no se exporta", {
+  lim <- dismodlite:::.dl_limitacion_incidencia
+  cfg <- corrida_mini()$insumos$cfg
+  expect_null(lim(cfg, FALSE))
+  expect_identical(lim(cfg, TRUE), paste0("incidencia exportada sin referencia — el ancla de incidencia no trae ",
+                                          "filas de la causa; se omite el chequeo implied_incidence"))
+  cfg$exportar <- list(incidencia = list(valor = FALSE, procedencia = "nota: la fija la remisión"))
+  for (sin_ancla in c(TRUE, FALSE)) {
+    l <- lim(cfg, sin_ancla)
+    expect_length(l, 1L)
+    expect_match(l, "^incidencia no exportada \\(exportar.incidencia\\) — la corrida la escribe")
+    expect_match(l, "nota \u2014 la fija la remisión")       # la procedencia, sin «: »
+    expect_false(grepl(": ", l, fixed = TRUE))                    # el manifiesto la emite sin comillas
+    expect_identical(grepl("se omite el chequeo implied_incidence", l), sin_ancla)
+  }
+})

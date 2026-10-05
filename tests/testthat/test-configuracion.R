@@ -451,3 +451,61 @@ test_that("anchor.agrupar_bandas_finas es lógica y vale TRUE por defecto en el 
                                         cambios = list(anchor = list(agrupar_bandas_finas = "si"))),
                "agrupar_bandas_finas")
 })
+
+# exportar.incidencia: la incidencia de la causa fuera de los consolidados. En un proyecto, `exportar: {incidencia:
+# no}`; en el formato completo, exportar.incidencia = {valor: false, procedencia}. Sin la clave (o con sí) la
+# configuración no gana el bloque: es lo de siempre.
+test_that("exportar.incidencia de un proyecto: solo el «no» llega a la configuración completa, con su procedencia", {
+  base <- list(causa = 501L, anio = 2020L, edad_inicio = 40L)
+  ctx <- list(ubicacion = "999", nombre = "x", subnacional = FALSE)
+  simple <- function(...) .dl_config_simple(c(base, list(...)), "config.yaml", 501L, ctx)
+  sin_origen <- function(cfg) unclass(cfg)[setdiff(names(cfg), "origen")]
+  cfg0 <- simple()
+  expect_null(cfg0$exportar)
+  expect_true(.dl_exporta_incidencia(cfg0))
+  expect_false("exportar.incidencia" %in% names(cfg0$origen$por_defecto))
+  no <- simple(exportar = list(incidencia = "no"))
+  expect_identical(no$exportar, list(incidencia = list(valor = FALSE, procedencia = .DL_PROCEDENCIA_SIMPLE)))
+  expect_false(.dl_exporta_incidencia(no))
+  expect_identical(simple(exportar = list(incidencia = FALSE))$exportar, no$exportar)      # false de YAML
+  # lo demás de la configuración no cambia, y con «sí» tampoco gana el bloque
+  expect_identical(sin_origen(no)[names(sin_origen(cfg0))], sin_origen(cfg0))
+  expect_identical(sin_origen(simple(exportar = list(incidencia = "sí"))), sin_origen(cfg0))
+  expect_error(simple(exportar = list(incidencia = "quizás")), "exportar[.]incidencia: debe ser sí o no")
+  expect_error(simple(exportar = list(prevalencia = "no")), "exportar[.]prevalencia: clave desconocida")
+  expect_error(simple(exportar = "no"), "exportar: es un bloque con claves \\(incidencia\\)")
+  # la clave está en la tabla de claves, con su destino, y en la ayuda
+  t <- .dl_claves_simple()
+  expect_identical(t$destino[t$clave == "exportar.incidencia"], "exportar.incidencia")
+  expect_true(all(c("exportar", "exportar.incidencia", "exportar.incidencia.valor",
+                    "exportar.incidencia.procedencia") %in% .DL_CLAVES_CONFIG))
+  expect_match(paste(.dl_rd_config_simple(), collapse = "\n"), "\\code{exportar.incidencia}", fixed = TRUE)
+})
+
+test_that("exportar.incidencia en el formato completo: true o false; false exige procedencia; sin el campo, nada", {
+  cfg <- dl_configuracion(9100L, carpeta_config = config_dir_ejemplo())
+  expect_null(cfg$exportar)
+  expect_true(.dl_exporta_incidencia(cfg))
+  ok <- config_mut(function(y) { y$exportar <- list(incidencia = list(valor = FALSE, procedencia = "prueba")); y })
+  expect_no_warning(cfg_no <- dl_configuracion(9100L, ok))
+  expect_identical(cfg_no$exportar$incidencia, list(valor = FALSE, procedencia = "prueba"))
+  expect_false(.dl_exporta_incidencia(cfg_no))
+  # el valor suelto vale; true no exige procedencia
+  d <- config_mut(function(y) { y$exportar <- list(incidencia = TRUE); y })
+  expect_identical(dl_configuracion(9100L, d)$exportar$incidencia, list(valor = TRUE))
+  d <- config_mut(function(y) { y$exportar <- list(incidencia = FALSE); y })
+  expect_error(dl_configuracion(9100L, d), "config[.]exportar[.]incidencia[.]procedencia: false exige procedencia")
+  d <- config_mut(function(y) { y$exportar <- list(incidencia = list(valor = "no", procedencia = "x")); y })
+  expect_error(dl_configuracion(9100L, d), "config[.]exportar[.]incidencia: valores admitidos: true .* o false")
+  d <- config_mut(function(y) { y$exportar <- "no"; y })
+  expect_error(dl_configuracion(9100L, d), "config[.]exportar: es un bloque con claves")
+  # una clave que el bloque no tiene avisa, como cualquier clave desconocida del formato completo
+  d <- config_mut(function(y) { y$exportar <- list(prevalencia = FALSE); y })
+  expect_warning(dl_configuracion(9100L, d), "la clave `exportar.prevalencia` de la configuración no existe")
+  # con `cambios`, también con el valor suelto sobre un bloque
+  expect_identical(dl_configuracion(9100L, ok, cambios = list(exportar = list(incidencia = TRUE)))$exportar$incidencia,
+                   list(valor = TRUE))
+  expect_identical(dl_configuracion(9100L, config_dir_ejemplo(), cambios = list(exportar = list(
+    incidencia = list(valor = FALSE, procedencia = "prueba"))))$exportar$incidencia,
+    list(valor = FALSE, procedencia = "prueba"))
+})

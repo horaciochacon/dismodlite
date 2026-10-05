@@ -347,6 +347,18 @@ claves:
       padre la declara en `subtipos`, la relación sale sola y las dos deben decir la misma causa (ver ?dl_proyecto).
     error: debe ser un entero positivo, el cause_id de la causa padre (distinto de la propia causa)
 
+  - clave: exportar.incidencia
+    tipo: sí o no
+    destino: exportar.incidencia
+    valor: sí
+    ejemplo: "no"
+    descripcion: >-
+      Con no, la incidencia de la causa no entra en las tablas consolidadas (dl_consolidar()): la corrida la escribe
+      igual (cause/incidence/ y draws/), para el diagnóstico y las sumas, y su manifiesto lo declara. Sirve para una
+      causa cuya incidencia el modelo no identifica (la fija la remisión declarada, sin datos de incidencia). Anota
+      el motivo en `notas`.
+    error: debe ser sí o no
+
   - clave: notas
     tipo: lista de textos
     destino: decisiones

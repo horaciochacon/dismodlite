@@ -450,8 +450,9 @@
   # proxies.*: sin destino en el formato completo; su valor por defecto lo informa la calibracion de los proxies
   pd <- pd[!startsWith(pd$clave, "proxies."), ]
   # ancla.error_maximo: sin la clave, la configuracion completa no declara el umbral (rige el del paquete);
-  # suma_de_subtipos: una causa que se ajusta no es una suma, y no lo informa
-  pd <- pd[!pd$clave %in% c("ancla.error_maximo", "suma_de_subtipos"), ]
+  # suma_de_subtipos: una causa que se ajusta no es una suma, y no lo informa; exportar.incidencia: sin la clave, la
+  # configuracion completa no gana el bloque `exportar` (la incidencia se exporta, como siempre)
+  pd <- pd[!pd$clave %in% c("ancla.error_maximo", "suma_de_subtipos", "exportar.incidencia"), ]
   # mortalidad_exceso.techo: con la mortalidad en exceso fija en 0 (prior: cero) no hay techo que tomar por defecto
   if (identical(val("mortalidad_exceso.prior"), "cero")) pd <- pd[pd$clave != "mortalidad_exceso.techo", ]
   reglas <- c(nombre = contexto$nombre, ubicacion_gbd = paste(contexto$ubicacion_gbd, collapse = ", "),
@@ -529,6 +530,9 @@
                      if (!is.null(dado("sensibilidad.fraccion_aguda")))
                        list(fraccion_aguda = num(dado("sensibilidad.fraccion_aguda")))),
     decisiones = if (length(s[["notas"]])) as.character(unlist(s[["notas"]])),
+    # exportar.incidencia: solo el «no» llega a la configuración completa (el «sí» es lo de siempre: sin bloque)
+    exportar = if (isFALSE(.dl_si_no(dado("exportar.incidencia"))))
+      list(incidencia = list(valor = FALSE, procedencia = proc)),
     # `configuracion`: la configuración del proyecto tal como se leyó, con los nombres de clave de ahora (la corrida
     # la congela en inputs/contrato/config.yaml, para repetirla)
     origen = list(formato = "simple", archivo = archivo, nombre = s[["nombre"]] %||% contexto$nombre,

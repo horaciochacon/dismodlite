@@ -343,6 +343,13 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   list(ok = !is.null(cal), calibracion = cal)
 }
 
+# La línea en orden del paso «configuración»: el archivo `nombre` y su formato; si la configuración `cfg` deja la
+# incidencia fuera de los consolidados (exportar.incidencia: no), lo dice.
+.dl_linea_config <- function(nombre, cfg)
+  sprintf("%s: proyecto%s", nombre,
+          if (.dl_exporta_incidencia(cfg)) ""
+          else "; la incidencia no entra en los consolidados (exportar.incidencia: no) y la corrida la escribe igual")
+
 # Lo propio de una suma de subtipos (.dl_es_suma) en la revisión, con su configuración `s`. En «configuración», un
 # aviso con las claves que no se usan (las del modelo: la causa no se ajusta).
 .dl_avisar_claves_suma <- function(s, anotar) {
@@ -417,8 +424,8 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   else .dl_avisar_proxies_sin_crudos(cfg$origen$configuracion, anotar)
   if (!suma) .dl_avisar_avanzado(cfg$origen$configuracion, anotar)
   archivo <- cfg$origen$archivo
-  anotar("configuraci\u00f3n", "ok", sprintf("%s: proyecto", if (identical(archivo, "configuracion"))
-    "la configuraci\u00f3n dada como lista" else basename(archivo)))
+  anotar("configuraci\u00f3n", "ok", .dl_linea_config(if (identical(archivo, "configuracion"))
+    "la configuraci\u00f3n dada como lista" else basename(archivo), cfg))
   causas <- if (!is.null(p$carpeta)) .dl_causas_config(p$carpeta, NULL, cfg$cause_id)
   .dl_revisar_reglas(list(tablas = p$tablas, tablas_modelo = .dl_tablas_modelo(p$tablas, p$calibracion), cfg = cfg,
                           causas = causas), anotar)
@@ -470,7 +477,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   pre <- revisar("configuraci\u00f3n",
                  .dl_config_de_tablas(s, cf$archivo, cf$causa, tablas, .dl_causas_config(carpeta, s, cf$causa),
                                       carpeta, calibracion = px$calibracion),
-                 function(pre) sprintf("%s: proyecto", rel))
+                 function(pre) .dl_linea_config(rel, pre$cfg))
   if (is.null(pre) || errores()) return(omitir())
   .dl_revisar_reglas(pre, anotar)
   if (suma) .dl_revisar_subtipos(s, pre$causas, anotar)

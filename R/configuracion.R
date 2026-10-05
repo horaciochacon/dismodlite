@@ -18,6 +18,11 @@
 # La misma regla del año del ancla, leída del manifiesto de una corrida ya escrita (params.anio_ancla; sin el campo,
 # el año de la corrida).
 .dl_man_anio_ancla <- function(man, anio) as.integer(man$params$anio_ancla %||% anio)
+# ¿La incidencia de la corrida entra en un consolidado? Sí, salvo que la configuración declare
+# exportar.incidencia = {valor: false, procedencia}. Sin el campo, sí (y la configuración no gana la clave).
+.dl_exporta_incidencia <- function(cfg) !isFALSE(cfg$exportar$incidencia$valor)
+# La misma regla, leída del manifiesto de una corrida ya escrita (causa.exporta_incidencia; sin el campo, sí).
+.dl_man_exporta_incidencia <- function(man) !isFALSE(man$causa$exporta_incidencia)
 
 # Umbral por defecto de anchor_identity: error relativo mediano máximo entre la prevalencia posterior y la del ancla
 # para escribir la corrida. Relajarlo exige anchor.gate_err_mediano con procedencia.
@@ -51,11 +56,14 @@
   "cascada.modo", "cascada.modo.valor", "cascada.modo.procedencia", "cascada.razon_semilla",
   "severidad", "severidad.fuente", "severidad.procedencia", "severidad.run_id", "severidad.padre",
   "sensibilidad", "sensibilidad.lambda", "sensibilidad.rho", "sensibilidad.kappa", "sensibilidad.fraccion_aguda",
-  "suma", "suma.omitidas", "extraction", "extraction.cause_id", "extraction.motivo")
+  "suma", "suma.omitidas", "extraction", "extraction.cause_id", "extraction.motivo",
+  "exportar", "exportar.incidencia", "exportar.incidencia.valor", "exportar.incidencia.procedencia")
 
-# Opciones de la cascada con la forma {valor, procedencia} que también aceptan el valor suelto (cascada.modo: plana
-# equivale a cascada.modo: {valor: plana}); ver `opcion` en dl_configuracion().
-.DL_CLAVES_VALOR_SUELTO <- c("cascada.dx_fuera_de_banda", "cascada.dx_interpolacion", "cascada.modo")
+# Opciones con la forma {valor, procedencia} que también aceptan el valor suelto (cascada.modo: plana equivale a
+# cascada.modo: {valor: plana}; exportar.incidencia: true, a exportar.incidencia: {valor: true}); ver `opcion` y
+# exportar.incidencia en .dl_validar_config().
+.DL_CLAVES_VALOR_SUELTO <- c("cascada.dx_fuera_de_banda", "cascada.dx_interpolacion", "cascada.modo",
+                             "exportar.incidencia")
 
 # Funde `cambios` sobre la configuración leída del YAML, antes de validar: así la única regla de validación es la de
 # dl_configuracion(). Por ejemplo, list(years = list(ajuste = 2024L, ancla = list(valor = 2023L, procedencia = "...")))
@@ -640,6 +648,26 @@ NULL
     else cfg$cascada$razon_semilla <- as.integer(rs)
     if (!identical(cfg$cascada$modo$valor, "razon"))
       p("cascada.razon_semilla", "solo se usa con cascada.modo: razon (subnacional.modo: razon en un proyecto)")
+  }
+  # Incidencia fuera de los consolidados: en una causa cuya incidencia el modelo no identifica (la fija la remisión
+  # declarada, sin datos de incidencia), la corrida la escribe igual (sumas y diagnóstico), su manifiesto lo declara
+  # y dl_consolidar() la omite. {valor: true | false, procedencia}, o el valor suelto; false exige procedencia. Sin
+  # el campo rige true y la configuración no gana la clave.
+  ex <- cfg$exportar
+  if (!is.null(ex) && (!is.list(ex) || is.null(names(ex))))
+    p("exportar", "es un bloque con claves, por ejemplo exportar: {incidencia: {valor: false, procedencia: ...}}")
+  else if (!is.null(ex$incidencia)) {
+    ei <- ex$incidencia
+    if (isTRUE(ei) || isFALSE(ei)) ei <- list(valor = ei)
+    if (!is.list(ei) || !(isTRUE(ei$valor) || isFALSE(ei$valor)))
+      p("exportar.incidencia", paste0("valores admitidos: true (por defecto: la incidencia de la corrida entra en los ",
+                                      "consolidados) o false (no entra; exige procedencia)"))
+    else {
+      if (isFALSE(ei$valor) && !(.dl_es_texto1(ei$procedencia) && nzchar(trimws(ei$procedencia))))
+        p("exportar.incidencia.procedencia",
+          "false exige procedencia (por qu\u00e9 la incidencia de la causa no se reporta)")
+      cfg$exportar$incidencia <- ei
+    }
   }
   # Sustitución declarada del valor nacional de referencia: la beta puede ser de una covariable por edad sin un
   # valor nacional único, y el proxy departamental se ancla entonces en la covariable hermana estandarizada por

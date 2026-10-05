@@ -116,6 +116,21 @@
                     "tasa_dj = tasa_nac_j R_dj N_nac / sum_d R_dj N_d (cierre exacto en el nacional)"))
 }
 
+# La incidencia en las limitaciones. Con exportar.incidencia = false: no entra en los consolidados, con la
+# procedencia como motivo (y, si además el ancla no trae incidencia de la causa, que se omitió su comprobación). Si se
+# exporta y el ancla no trae incidencia de la causa: la limitación de siempre. Una sola limitación, o ninguna.
+.dl_limitacion_incidencia <- function(cfg, sin_incidencia_ancla) {
+  if (!.dl_exporta_incidencia(cfg))
+    return(sprintf(paste0("incidencia no exportada (exportar.incidencia) \u2014 la corrida la escribe ",
+                          "(cause/incidence y draws) y un consolidado la omite \u2014 %s%s"),
+                   .dl_texto_yaml(cfg$exportar$incidencia$procedencia),
+                   if (sin_incidencia_ancla) paste0("; el ancla de incidencia no trae filas de la causa y se omite el ",
+                                                    "chequeo implied_incidence") else ""))
+  if (!sin_incidencia_ancla) return(NULL)
+  paste0("incidencia exportada sin referencia \u2014 el ancla de incidencia no trae filas de la causa; se ",
+         "omite el chequeo implied_incidence")
+}
+
 # Todas las limitaciones de una corrida, en el orden del manifiesto.
 .dl_limitaciones_corrida <- function(cfg, b, res, casc, validacion, gate_ancla) {
   # estados de severidad con beta de covariable: dl_avd() usa en ellos el valor nacional (dX = 0) en toda ubicación
@@ -131,9 +146,7 @@
     as.list(.dl_limitacion_fraccion_aguda(cfg)),
     as.list(.dl_limitacion_heldout(cfg, validacion)),
     as.list(.dl_limitacion_ancla(cfg, b, casc, res$reparto)),
-    if (isTRUE(attr(validacion, "sin_incidencia_gbd")))
-      list(paste0("incidencia exportada sin referencia \u2014 el ancla de incidencia no trae filas de la causa; se ",
-                  "omite el chequeo implied_incidence")),
+    as.list(.dl_limitacion_incidencia(cfg, isTRUE(attr(validacion, "sin_incidencia_gbd")))),
     as.list(.dl_limitacion_peso_completo(cfg, b)),
     if (!is.null(b$componente))
       list(sprintf(paste0("componente de la causa \u2014 esta corrida cubre solo las secuelas %s (%s); prevalencia ",
@@ -366,7 +379,7 @@
   casc <- if (inherits(f, "dl_cascade")) f else NULL
   amplitud <- attr(validacion, "amplitud")
   c(.dl_manifiesto_base(celdas$run_id[1], .DL_METODO_DISMOD_LITE, as.character(celdas$round[1])), list(
-    causa = list(cause_id = as.integer(cfg$cause_id), cause_name = celdas$cause_name[1],
+    causa = c(list(cause_id = as.integer(cfg$cause_id), cause_name = celdas$cause_name[1],
                  # causa de la extracción de las betas (extraction.cause_id) cuando no es la causa modelada (por
                  # ejemplo, un subtipo con la extracción de su causa padre)
                  extraction_cause_id = as.integer(cfg$extraction$cause_id %||% cfg$cause_id),
@@ -376,6 +389,9 @@
                    sequela_ids = as.list(as.integer(b$componente$sequela_ids)),
                    fraccion_prevalencia = round(as.numeric(b$componente$fraccion_prevalencia), 6),
                    fraccion_yld = round(as.numeric(b$componente$fraccion_yld), 6)) else NULL),
+               # la incidencia queda fuera de los consolidados (exportar.incidencia = false); sin el campo, el
+               # manifiesto no gana la clave
+               if (!.dl_exporta_incidencia(cfg)) list(exporta_incidencia = FALSE)),
     params = c(list(seed = as.integer(f$seed), draws = as.integer(f$params$draws),
                   chains = as.integer(f$params$chains), iter = as.integer(f$params$iter),
                   warmup = as.integer(f$params$warmup), thin = as.integer(f$params$thin),
@@ -590,6 +606,12 @@
 #' covariable), es `true`. Con el reparto por razón (`subnacional.modo: razon`), `cascada.modo` es `razon` y el
 #' bloque `razon` trae la semilla del sorteo, cuántas ubicaciones, el rango de las razones de la tabla, cuántas son
 #' cero, sus fuentes y la regla; las limitaciones declaran que la razón es la misma en todas las edades y sexos.
+#'
+#' Si la configuración dice que la incidencia de la causa no se reporta (en un proyecto, `exportar: {incidencia: no}`;
+#' en el formato completo, `exportar: {incidencia: {valor: false, procedencia}}`), la corrida escribe la incidencia
+#' igual, en `cause/incidence/` y en `draws/`, y el manifiesto lleva `causa.exporta_incidencia: false` y una
+#' limitación con la procedencia: [dl_consolidar()] omite la incidencia de esa corrida. Sin la clave, el manifiesto
+#' no cambia.
 #'
 #' `forzar = TRUE` salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 #' (error relativo mediano mayor que `anchor.gate_err_mediano`, 0.05 por defecto), la corrida no se escribe. Ese
