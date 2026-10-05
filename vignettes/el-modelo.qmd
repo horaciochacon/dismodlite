@@ -366,7 +366,14 @@ cada sexo y cada simulación $k$:
    de modo que la suma ponderada por población de las ubicaciones es exactamente la nacional. Si algún $p_d$ queda
    fuera de $[0, 1]$, es un error.
 
-Con `subnacional.modo: plano`, cada ubicación recibe las tasas nacionales. Los datos subnacionales de la tabla `datos` del
+Con `subnacional.modo: plano`, cada ubicación recibe las tasas nacionales. Con `subnacional.modo: razon` también, y
+después de los AVD cada medida $q$ (prevalencia, incidencia y AVD por banda) se reparte con la razón de cada ubicación
+(tabla `razones`): con $R_{dj} = \text{razon}_d \exp(\text{error\_log}_d\, z_{dj})$ y $z_{dj} \sim N(0, 1)$, una
+vez por ubicación $d$ y simulación $j$ (la misma en todas las edades, los dos sexos y las tres medidas),
+$$
+q_{dj} = q_{nac,j}\, \frac{R_{dj}\, N_{nac}}{\sum_d R_{dj}\, N_d},
+$$
+de modo que la suma ponderada por población de las ubicaciones es exactamente la nacional (`dl_repartir_razon()`). Los datos subnacionales de la tabla `datos` del
 año `subnacional.anio_validacion` no entran al ajuste: los de mortalidad sirven para validar la estimación
 subnacional (`dl_validar_ancla()`).
 

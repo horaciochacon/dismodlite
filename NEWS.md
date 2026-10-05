@@ -17,6 +17,35 @@
   `params.emr_cota_origen: cero` y una limitación; `diagnostics/mcmc.csv` no trae filas de log f.
 * Los proyectos con los otros priores (`desde_ancla`, `plano`) dan los mismos números que en la versión 2.2.0.
 
+## Reparto subnacional por razón
+
+* Modo subnacional nuevo, `subnacional: {modo: razon}` (`cascada.modo: razon` en el formato completo), para una causa
+  cuyo patrón entre ubicaciones sale de una razón ya calculada y no de covariables: cada ubicación recibe la tasa
+  nacional por su razón, simulación a simulación y con cierre exacto en el valor nacional, en la prevalencia, la
+  incidencia y los AVD. La razón es la misma en todas las edades y sexos, y el manifiesto lo declara como limitación.
+  En un proyecto el modo se declara solo con `subnacional.modo`: `avanzado: {cascada: {modo: }}` no puede cambiarlo a
+  `razon` ni desde `razon` (es un error de configuración).
+* Tabla nueva del contrato de insumos, `razones` (la undécima; `?dl_tablas`): `ubicacion`, `anio`, `razon` y
+  `error_log` (el error estándar del logaritmo de la razón), con `causa` y `fuente` opcionales. Una razón 0 deja la
+  ubicación sin casos. `dl_plantilla("razones")` da su plantilla y `dl_nuevo_proyecto()` la escribe; su `LEEME.md`
+  dice cuándo llenarla.
+* `dl_proyecto()` y `dl_revisar_proyecto()` comprueban que, en el año que se estima, la tabla traiga la razón de cada
+  ubicación subnacional de la población y de ninguna otra (tampoco de la nacional), con números finitos y alguna
+  razón mayor que 0; el modo exige la tabla y no admite valores subnacionales de covariables (ni `proxies_crudos`).
+  Con `dl_correr(anios = )`, un año sin razones detiene la corrida antes de correr el primero. Una tabla `razones`
+  sin el modo es un aviso.
+* `dl_repartir_razon()` es el paso nuevo, después de `dl_avd()`; su resultado es la pieza `reparto` de
+  `dl_resumir()`. Con el modo `razon`, `dl_cascada()` da la cascada plana. `dl_correr()` hace todos los pasos y
+  escribe una sola corrida, ya repartida: `cascada.modo: razon` y el bloque `razon` en el manifiesto (la semilla del
+  sorteo, cuántas ubicaciones, el rango de las razones, cuántas son cero y sus fuentes) y `diagnostics/razon.csv`
+  (la razón aplicada por ubicación). El nivel nacional, la validación contra el ancla, los factores de
+  renormalización (`renorm.csv`), las etiquetas y la sensibilidad son los del ajuste nacional (la cascada plana).
+* El reparto se detiene con un error que nombra el sexo y la banda de edad si en una celda las tasas repartidas no
+  son finitas (por ejemplo, si las ubicaciones con razón mayor que 0 no tienen población en esa celda), y con otro,
+  que nombra las ubicaciones, si una prevalencia repartida pasa de 1.
+* La semilla del sorteo de las razones es la de la corrida; otra se fija con
+  `avanzado: {cascada: {razon_semilla: <entero>}}`.
+
 ## Cambios de comportamiento
 
 * El peso de un dato cuyo intervalo de edad cruza bandas de población con distinto número de edades reparte la

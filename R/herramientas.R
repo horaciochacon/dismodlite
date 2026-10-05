@@ -103,9 +103,12 @@
                    "`proxies_crudos.csv` (un indicador de encuesta, que se calibra al leer; ver ",
                    "`?dl_calibrar_proxies`) o una tabla en `covariables/` con los proxies ya calibrados."),
             url$ghdx$url),
-    "5. Llena las dem\u00e1s tablas que uses (`severidad.csv`, para los AVD; `datos.csv`; ...).",
-    sprintf("6. Revisa el proyecto: `dl_revisar_proyecto(\"%s\")`.", ruta),
-    sprintf(paste0("7. Pru\u00e9balo con `dl_correr(\"%s\", semilla = 1, rapido = TRUE)`; la corrida final, con ",
+    paste0("5. Si repartes por raz\u00f3n (`subnacional: {modo: razon}` en la configuraci\u00f3n), llena ",
+           "`razones.csv`: la raz\u00f3n de cada ubicaci\u00f3n subnacional respecto de la nacional y el error de ",
+           "su logaritmo, en el a\u00f1o que se estima. Ese modo no lleva valores subnacionales de covariables."),
+    "6. Llena las dem\u00e1s tablas que uses (`severidad.csv`, para los AVD; `datos.csv`; ...).",
+    sprintf("7. Revisa el proyecto: `dl_revisar_proyecto(\"%s\")`.", ruta),
+    sprintf(paste0("8. Pru\u00e9balo con `dl_correr(\"%s\", semilla = 1, rapido = TRUE)`; la corrida final, con ",
                    "`rapido = FALSE`."), ruta))
 }
 

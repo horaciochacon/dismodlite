@@ -60,6 +60,8 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada y las plantil
     expect_match(leeme, f, fixed = TRUE)
   expect_match(leeme, .dl_schema_estimates()$sources$gbd$url, fixed = TRUE)
   expect_match(leeme, .dl_schema_estimates()$sources$ghdx$url, fixed = TRUE)
+  # el paso del reparto por razón: cuándo se llena razones.csv
+  expect_match(leeme, "Si repartes por razón (`subnacional: {modo: razon}`", fixed = TRUE)
   # otra llamada no toca lo que ya existe
   writeLines(c("causa: 501", "anio: 2021", "edad_inicio: 40"), file.path(d, "config.yaml"))
   expect_message(dl_nuevo_proyecto(d, causa = 501), "archivos nuevos: ninguno\n.*ya existían \\(no se tocaron\\): LEEME.md")

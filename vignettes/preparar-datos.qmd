@@ -1,7 +1,7 @@
 ---
 title: "Preparar tus datos"
 description: >
-  Las tablas que necesita un proyecto, para cualquier país y causa: el eje común y la regla de omisión, las diez
+  Las tablas que necesita un proyecto, para cualquier país y causa: el eje común y la regla de omisión, las once
   tablas con sus columnas y sus fuentes, la carpeta y la puerta de R, cómo revisarlas, las bandas de edad del ancla,
   qué bajar de GBD y cómo se organiza la carpeta de un proyecto de modelación.
 vignette: >
@@ -23,7 +23,7 @@ Los insumos de dismodlite son unas pocas tablas, el **contrato de insumos**, y u
 explica:
 
 1. el **eje**: las seis columnas que comparten todas las tablas, y la regla para omitir las que no varían;
-2. las **diez tablas**: para qué sirve cada una, qué columnas exige y de dónde suele salir;
+2. las **once tablas**: para qué sirve cada una, qué columnas exige y de dónde suele salir;
 3. las dos formas de pasarlas al paquete: **la carpeta** del proyecto y **la puerta de R** (`data.frame`);
 4. cómo revisar una tabla con `dl_tabla()` y el proyecto entero con `dl_revisar_proyecto()`;
 5. las **bandas de edad** del ancla y de la población, y cuándo hace falta `poblacion_detalle`;
@@ -93,7 +93,7 @@ Las tablas son CSV en UTF-8, separados por comas y con punto decimal (en Excel, 
 Los nombres de columna no distinguen mayúsculas y algunos sinónimos fijos se aceptan (`year` por `anio`, `tipo` por
 `medida`...); las columnas de más se ignoran.
 
-## 2. Las diez tablas
+## 2. Las once tablas
 
 | Tabla | ¿Hace falta? | Qué aporta | De dónde suele salir |
 |---|---|---|---|
@@ -107,6 +107,7 @@ Los nombres de columna no distinguen mayúsculas y algunos sinónimos fijos se a
 | `fuentes_gbd` | opcional | las fuentes que GBD ya usó (doble conteo) | GHDx |
 | `poblacion_detalle` | si el ancla tiene bandas más finas que la población (80 y más, menores de 5) | la población nacional con más detalle de edad | GBD o la ONU |
 | `proxies_crudos` | opcional, en lugar de los proxies de `covariables` | un indicador de encuesta por ubicación subnacional y edición, que el paquete calibra | encuestas de hogares y similares |
+| `razones` | con `subnacional.modo: razon` | la razón entre la tasa de cada ubicación subnacional y la nacional, con su error | una encuesta, la población en riesgo, casos notificados |
 
 Con las tres obligatorias (y la configuración) ya se estima la causa en el país y, si hay ubicaciones subnacionales,
 en cada una con las tasas nacionales. Cada tabla, con sus columnas (la definición es la misma que usa el validador;
@@ -406,6 +407,30 @@ columnas("proxies_crudos")
 head(proyecto$tablas$proxies_crudos, 3)
 ```
 
+### `razones` {#razones}
+
+Para el reparto por razón (`subnacional: {modo: razon}` en la configuración): la tasa de cada ubicación subnacional
+dividida por la nacional, ya calculada fuera del paquete (con una encuesta, la población en riesgo, los casos
+notificados...), y el error estándar de su logaritmo. Una fila por ubicación subnacional y año: en el año que se
+estima deben estar todas las ubicaciones subnacionales de la población, y solo ellas (la nacional no lleva fila).
+`razon` y `error_log` son números finitos y no negativos, con alguna razón mayor que 0. Una razón 0 deja la ubicación
+sin casos; con `error_log` 0 la razón no se sortea. La razón vale para todas las edades y los dos sexos. Con varias
+causas en el proyecto, la columna `causa` dice de cuál es cada fila. La tabla solo se usa en ese modo, que no admite
+valores subnacionales de covariables; la guía
+[Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html#modo-razon)
+explica el cálculo y `?dl_repartir_razon`, el detalle.
+
+```{r}
+#| label: col-razones
+#| echo: false
+columnas("razones")
+```
+
+```{r}
+#| label: ej-razones
+dl_plantilla("razones")
+```
+
 `dl_plantilla()` da la plantilla de cualquier tabla: sus columnas y una fila de ejemplo. Con `archivo`, la escribe
 como CSV.
 
@@ -429,6 +454,7 @@ mi_proyecto/
   fuentes_gbd/
   poblacion_detalle.csv
   proxies_crudos.csv     un indicador de encuesta por ubicación y edición, que se calibra al leer
+  razones.csv            la razón de cada ubicación subnacional (con subnacional.modo: razon)
   particion/<corrida>/   opcional: la partición de severidad (severidad.particion)
 ```
 
