@@ -15,6 +15,16 @@
 # Paralelismo: `procesos` reparte las combinaciones y opciones$cores las cadenas de cada ajuste. El resultado no
 # depende del reparto: cada cadena deriva su semilla de `semilla` (R/muestreador.R), no del proceso que la corre.
 
+# Cadenas de cada ajuste de la grilla: las de `opciones` por defecto de dl_sensibilidad() (una prueba comprueba que
+# coinciden con su firma). dl_correr() las usa con el motor del ajuste nacional.
+.DL_OPCIONES_SENSIBILIDAD <- list(simulaciones = 200L, cadenas = 2L, iteraciones = 6000L, calentamiento = 3000L)
+
+# Opciones de la sensibilidad de una corrida de producción de dl_correr(): las cadenas propias de la sensibilidad con
+# el motor `motor` (el del ajuste nacional) y 1 núcleo por ajuste, porque los procesos reparten las combinaciones.
+# Con motor = "mh" es el valor por defecto de `opciones` de dl_sensibilidad().
+.dl_opciones_sensibilidad <- function(motor)
+  do.call(dl_opciones_mcmc, c(.DL_OPCIONES_SENSIBILIDAD, list(motor = motor)))
+
 #' Sensibilidad a lambda, rho y kappa
 #'
 #' Recorre una grilla de pesos del ancla (lambda), correlaciones por edad (rho) y fracciones del gradiente

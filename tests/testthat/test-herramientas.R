@@ -1119,3 +1119,58 @@ test_that("el paso «proxies» muestra el borde inferior de q, los avisos y los 
   expect_match(x$detalle[x$paso == "proxies" & x$estado == "error"], "error_estandar debe ser mayor que 0")
   expect_identical(x$estado[x$paso %in% c("configuración", "proyecto")], c("omitido", "omitido"))
 })
+
+# ---- dl_correr(): la sensibilidad con el motor y los núcleos del ajuste ----
+
+# Corre una corrida de producción corta de 9101 (forzada, sin reajustes de etiquetas) con `opciones` y devuelve los
+# argumentos con que dl_correr() llamó a dl_sensibilidad(): una espía con su misma firma (y sus mismos valores por
+# defecto) que no ajusta nada y devuelve NULL.
+sensibilidad_pedida <- function(opciones, env = parent.frame()) {
+  d <- copia_ejemplo(env = env)
+  cfg <- readLines(file.path(d, "config", "9101.yaml"), encoding = "UTF-8")
+  cfg <- sub("  peso: [0.1, 0.5, 1.0]", "  peso: [1]\n  correlacion_edad: [0.5]\n  kappa: [1]", cfg, fixed = TRUE)
+  writeLines(enc2utf8(cfg), file.path(d, "config", "9101.yaml"), useBytes = TRUE)
+  visto <- NULL
+  espia <- dl_sensibilidad
+  body(espia) <- quote({
+    visto <<- list(opciones = opciones, procesos = procesos, semilla = semilla)
+    NULL
+  })
+  environment(espia) <- environment()
+  local_mocked_bindings(dl_sensibilidad = espia)
+  run <- suppressMessages(dl_correr(d, 9101, semilla = 1, opciones = opciones, forzar = TRUE))
+  expect_false(file.exists(file.path(run$dir, "diagnostics", "sensibilidad.csv")))    # la espía devolvió NULL
+  visto
+}
+
+test_that("las cadenas propias de la sensibilidad son las de la firma de dl_sensibilidad()", {
+  expect_identical(.dl_opciones_sensibilidad("mh"), eval(formals(dl_sensibilidad)$opciones))
+  expect_identical(.dl_opciones_sensibilidad("mh")[c("draws", "chains", "iter", "warmup", "thin", "cores")],
+                   list(draws = 200L, chains = 2L, iter = 6000L, warmup = 3000L, thin = 10L, cores = 1L))
+})
+
+test_that("dl_correr() con el motor por defecto y 1 núcleo pide la sensibilidad de siempre", {
+  o <- dl_opciones_mcmc(simulaciones = 100L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L,
+                        adelgazamiento = 1L)
+  visto <- sensibilidad_pedida(o)
+  # los argumentos de dl_sensibilidad(b, semilla = semilla), la llamada de la versión 2.2.0: las opciones por defecto
+  # de su firma (motor "mh", 1 núcleo) y un proceso. Con los mismos argumentos, el resultado es el mismo bit a bit
+  expect_identical(visto$opciones, dl_opciones_mcmc(simulaciones = 200L, cadenas = 2L, iteraciones = 6000L,
+                                                    calentamiento = 3000L))
+  expect_identical(visto$procesos, 1L)
+  expect_identical(visto$semilla, 1)
+})
+
+test_that("dl_correr() pasa a la sensibilidad el motor del ajuste y sus núcleos como procesos", {
+  skip_if_not_installed("Rcpp")
+  skip_on_cran()
+  skip_on_os("windows")                                  # allí `nucleos` > 1 avisa y usa un proceso
+  o <- dl_opciones_mcmc(simulaciones = 100L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L,
+                        adelgazamiento = 1L, nucleos = 2L, motor = "rcpp")
+  visto <- sensibilidad_pedida(o)
+  expect_identical(visto$opciones$engine, "rcpp")
+  expect_identical(visto$procesos, 2L)
+  # las cadenas siguen siendo las de la sensibilidad, no las del ajuste, con 1 núcleo por ajuste
+  expect_identical(visto$opciones, .dl_opciones_sensibilidad("rcpp"))
+  expect_identical(visto$opciones$cores, 1L)
+})

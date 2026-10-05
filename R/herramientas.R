@@ -659,7 +659,11 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #'    con `registro`, la corrida queda además en el registro de corridas.
 #'
 #' Por defecto las cadenas son las de producción de [dl_opciones_mcmc()]: 1000 simulaciones, 4 cadenas de 50 000
-#' iteraciones con 10 000 de calentamiento, motor `"mh"`; la sensibilidad usa las de [dl_sensibilidad()].
+#' iteraciones con 10 000 de calentamiento, motor `"mh"`. La sensibilidad usa sus propias cadenas, las de
+#' [dl_sensibilidad()] (200 simulaciones, 2 cadenas de 6000 iteraciones con 3000 de calentamiento), con el `motor` de
+#' `opciones` y con sus `nucleos` como `procesos`: reparten las combinaciones de la grilla, y el resultado no depende
+#' de cuántos sean. Las etiquetas hacen sus reajustes con las cadenas cortas de [dl_etiquetas()] y el motor del
+#' ajuste.
 #'
 #' La corrida no se escribe en dos casos, que `dl_correr()` comprueba en cuanto puede, con las mismas compuertas que
 #' [dl_exportar_corrida()]. Si las cadenas no convergieron (R-hat < 1.01 y ESS >= 400), justo después del ajuste:
@@ -727,7 +731,7 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #'   (`diagnostics/sensibilidad.csv`); `FALSE` lo omite.
 #' @param opciones Opciones de [dl_opciones_mcmc()] del ajuste nacional; `NULL` (por defecto) usa las de producción
 #'   o, con `rapido = TRUE`, las cortas. Con `rapido = TRUE`, las `opciones` que se den reemplazan a las cortas y la
-#'   corrida sigue siendo una prueba.
+#'   corrida sigue siendo una prueba. Su `motor` y sus `nucleos` valen también para la sensibilidad (ver Detalles).
 #' @param registro Archivo YAML del registro de corridas, que ya existe (uno nuevo es un archivo con la línea
 #'   `datasets: []`): la corrida se agrega al final. Se comprueba antes de ajustar. `NULL` (por defecto) no registra.
 #' @param forzar `TRUE` escribe la corrida aunque las cadenas no hayan convergido (queda declarado en el manifiesto;
@@ -958,7 +962,12 @@ print.dl_corridas <- function(x, ...) {
     sens <- NULL
     if (sensibilidad) {
       .dl_message("sensibilidad (grilla `sensibilidad` de la configuraci\u00f3n)")
-      sens <- if (rapido) dl_sensibilidad(b, semilla = semilla, opciones = o) else dl_sensibilidad(b, semilla = semilla)
+      # de prueba: las cadenas cortas de la corrida, en un proceso. De producción: las cadenas propias de la
+      # sensibilidad con el motor del ajuste nacional, y sus núcleos como procesos (reparten las combinaciones de la
+      # grilla). Con el motor "mh" y 1 núcleo es dl_sensibilidad(b, semilla = semilla).
+      sens <- if (rapido) dl_sensibilidad(b, semilla = semilla, opciones = o)
+              else dl_sensibilidad(b, semilla = semilla, opciones = .dl_opciones_sensibilidad(o$engine),
+                                   procesos = o$cores)
     }
 
     resumen <- dl_resumir(c(list(fit = ajuste, yld = avd, bundle = b), if (razon) list(reparto = reparto)))

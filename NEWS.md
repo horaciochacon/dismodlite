@@ -63,6 +63,12 @@
   manifiesto («ancla a peso completo (lambda = 1) con N fuente(s) local(es) no fatal(es) en la evidencia…»), además
   de `params.fuentes_locales_no_fatales`. Con alguna medida en `datos_en_ajuste` sigue siendo un error, que ahora
   nombra las medidas; con mortalidad en el ajuste y causas de muerte en la evidencia, también.
+* `dl_correr()` corre la sensibilidad con el `motor` de sus `opciones` y usa sus `nucleos` como procesos, que
+  reparten las combinaciones de la grilla; las cadenas siguen siendo las propias de la sensibilidad (200
+  simulaciones, 2 cadenas de 6000 iteraciones con 3000 de calentamiento). Antes la corría siempre con el motor
+  `"mh"` en un proceso. Con las opciones por defecto (motor `"mh"`, 1 núcleo) nada cambia; con `motor = "rcpp"`,
+  `diagnostics/sensibilidad.csv` cambia en las últimas cifras decimales, como el resto de la corrida, y la corrida
+  de producción del ejemplo pasa de unos 2.5 minutos a alrededor de 1. Con `rapido = TRUE` todo sigue igual.
 
 # dismodlite 2.2.0
 
