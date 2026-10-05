@@ -9,7 +9,8 @@ dl_resumir(piezas, nivel = 0.95, rutas = NULL)
 \arguments{
 \item{piezas}{Lista con \code{fit} (el ajuste de \code{\link[=dl_ajustar]{dl_ajustar()}} o la cascada de \code{\link[=dl_cascada]{dl_cascada()}}), \code{yld} (resultado de
 \code{\link[=dl_avd]{dl_avd()}} con ese mismo ajuste o cascada) y \code{bundle} (los insumos); también valen los nombres \code{ajuste}, \code{avd} e
-\code{insumos}.}
+\code{insumos}. Con \code{subnacional.modo: razon} y una cascada, además \code{reparto} (el de \code{\link[=dl_repartir_razon]{dl_repartir_razon()}} con esas
+mismas piezas): las celdas y las simulaciones subnacionales son entonces las repartidas.}
 
 \item{nivel}{Nivel del intervalo de incertidumbre, entre 0 y 1 (0.95: cuantiles 2.5 \% y 97.5 \%). Para exportar
 la corrida con \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} debe ser 0.95, el que fija el contrato de las corridas.}
@@ -33,6 +34,8 @@ subnacional), \code{year}, \code{age_group_id}, \code{age_group_name}, \code{sex
 \item \code{desplazamiento_splits} y \code{como_aplicado}: los de \code{\link[=dl_avd]{dl_avd()}}.
 \item \code{bundle_hash}, \code{huella_ajuste} y \code{huella_avd}: identifican los insumos, el ajuste y los AVD del resumen;
 \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} comprueba que sean las mismas piezas.
+\item \code{reparto}: solo con la pieza \code{reparto}, la razón aplicada (\code{razones}, \code{semilla}, \code{ubicaciones} y \code{anio} de
+\code{\link[=dl_repartir_razon]{dl_repartir_razon()}}), que \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} lleva al manifiesto y a \code{diagnostics/razon.csv}.
 }
 }
 \description{

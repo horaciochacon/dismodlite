@@ -49,6 +49,8 @@ incidencia y la mortalidad en exceso de cada simulación según la diferencia en
 la ubicación (su proxy) y el nacional, por su beta; vuelve a resolver la ecuación de la prevalencia en cada
 ubicación y renormaliza para que la suma ponderada por población de las ubicaciones sea igual al valor nacional.
 Con la estimación subnacional plana (\code{subnacional.modo: plano}), cada ubicación recibe las tasas nacionales.
+Con el reparto por razón (\code{subnacional.modo: razon}) la cascada es también la plana, y \code{\link[=dl_repartir_razon]{dl_repartir_razon()}}
+reemplaza las tasas subnacionales después de los AVD.
 }
 \details{
 Para cada sexo, simulación y ubicación subnacional d:
@@ -88,5 +90,8 @@ rango_60(dl_cascada(f, b, kappa = 0.5, semilla = 1))
 \seealso{
 \code{\link[=dl_ajustar]{dl_ajustar()}} (el paso anterior), \code{\link[=dl_estimaciones]{dl_estimaciones()}}, \code{\link[=dl_avd]{dl_avd()}} y \code{\link[=dl_validar_ancla]{dl_validar_ancla()}} (los pasos
 siguientes) y \code{\link[=dl_proyecto]{dl_proyecto()}} (los proxies y su requisito de cierre en el valor nacional).
+
+Estimación subnacional:
+\code{\link{dl_repartir_razon}()}
 }
 \concept{subnacional}

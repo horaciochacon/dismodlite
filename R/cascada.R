@@ -69,6 +69,8 @@
 #' la ubicación (su proxy) y el nacional, por su beta; vuelve a resolver la ecuación de la prevalencia en cada
 #' ubicación y renormaliza para que la suma ponderada por población de las ubicaciones sea igual al valor nacional.
 #' Con la estimación subnacional plana (`subnacional.modo: plano`), cada ubicación recibe las tasas nacionales.
+#' Con el reparto por razón (`subnacional.modo: razon`) la cascada es también la plana, y [dl_repartir_razon()]
+#' reemplaza las tasas subnacionales después de los AVD.
 #'
 #' @details
 #' Para cada sexo, simulación y ubicación subnacional d:
@@ -140,7 +142,9 @@ dl_cascada <- function(ajuste, insumos, kappa = insumos$cfg$cascada$kappa, semil
     .dl_stop("`kappa` (por defecto, cascada.kappa de la configuraci\u00f3n) debe ser un n\u00famero en %s, pero es %s",
              dominio_kappa$texto, .dl_describir_objeto(kappa))
   motor <- .dl_elegir_motor(motor)
-  if (identical(insumos$cfg$cascada$modo$valor, "plana")) return(.dl_cascada_plana(ajuste, insumos, kappa, semilla))
+  # con el modo razon la cascada es también la plana: dl_repartir_razon() reemplaza después las tasas subnacionales
+  if (isTRUE(insumos$cfg$cascada$modo$valor %in% c("plana", "razon")))
+    return(.dl_cascada_plana(ajuste, insumos, kappa, semilla))
 
   # Paso 1: proxies, dX y betas (los únicos sorteos; su orden está en la cabecera del archivo)
   proxies <- .dl_proxies(insumos)
