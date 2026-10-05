@@ -96,6 +96,15 @@
                          fuente = .dl_col(r, "fuente", NA_character_))
 }
 
+# Huella de la tabla razones de los insumos `b`: el sha256 de la tabla tal como la corrida la congela en
+# inputs/contrato/razones.csv (.dl_congelar_contrato: es el que declara el manifiesto). La tabla no entra en el hash
+# de los insumos, así que es lo que liga un reparto a la tabla que lo produjo (.dl_reparto_del_resumen).
+.dl_huella_razones <- function(b) {
+  dir <- tempfile("razones")
+  on.exit(unlink(dir, recursive = TRUE), add = TRUE)
+  .dl_congelar_contrato(list(razones = b$contrato$razones), dir)$razones
+}
+
 #' Reparto subnacional por razón
 #'
 #' Con `subnacional.modo: razon`, da a cada ubicación subnacional la tasa nacional por la razón de la ubicación (la
@@ -140,6 +149,9 @@
 #'   - `semilla` (la del sorteo), `ubicaciones` (los códigos, en el orden del sorteo) y `anio`.
 #'   - `bundle_hash`, `huella_ajuste` y `huella_avd`: identifican los insumos, la cascada y los AVD de donde sale;
 #'     [dl_resumir()] los compara.
+#'   - `huella_razones`: el sha256 de la tabla `razones` de los insumos (el mismo que el manifiesto de la corrida
+#'     declara para `inputs/contrato/razones.csv`). La tabla no entra en el hash de los insumos: [dl_resumir()]
+#'     compara esta huella con la de la tabla de los insumos que recibe y rechaza un reparto hecho con otra.
 #' @seealso [dl_tablas] (la tabla `razones`), [dl_configuracion()] (`subnacional.modo`), [dl_cascada()] y [dl_avd()]
 #'   (los pasos anteriores), [dl_resumir()] (el paso siguiente) y [dl_correr()] (todos los pasos en una llamada).
 #' @family subnacional
@@ -211,7 +223,8 @@ dl_repartir_razon <- function(piezas, semilla = NULL) {
                                     fuente = razones$fuente)
   structure(list(draws = draws, razones = razones, semilla = as.integer(semilla),
                  ubicaciones = razones$location_id, anio = .dl_anio_ajuste(cfg), bundle_hash = b$hash,
-                 huella_ajuste = .dl_huella_ajuste(f), huella_avd = .dl_huella_avd(y)),
+                 huella_ajuste = .dl_huella_ajuste(f), huella_avd = .dl_huella_avd(y),
+                 huella_razones = .dl_huella_razones(b)),
             class = "dl_reparto")
 }
 

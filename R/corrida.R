@@ -576,7 +576,7 @@
 #' - `inputs/`: los insumos congelados ([dl_congelar_insumos()]), la configuración usada (`config_usado.yaml`, en el
 #'   formato completo) y las descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con la
 #'   mortalidad en exceso fija en 0 (`emr_prior.tipo: cero`), `config_usado.yaml` va sin `emr_prior.cota` (el
-#'   manifiesto sí declara `params.emr_cota: [0, 0]`), y así se puede volver a leer con [dl_configuracion()]. Con un
+#'   manifiesto sí declara `params.emr_cota: [0, 0]`): [dl_configuracion()] no admite esa clave con ese prior. Con un
 #'   proyecto de las tablas del contrato ([dl_proyecto()]), `inputs/contrato/` guarda las tablas que se usaron
 #'   (`<tabla>.csv`, con las covariables nacionales; los números escritos exactos) y la configuración del proyecto tal
 #'   como se leyó (`config.yaml`, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada
@@ -742,7 +742,7 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   usada <- cfg
   usada$origen$configuracion <- NULL
   # con la EMR fija en cero, sin la cota [0, 0] que ponen los insumos (la declara el manifiesto): la configuración no
-  # la admite con ese prior, y así el archivo escrito se puede volver a leer con dl_configuracion()
+  # admite emr_prior.cota con ese prior
   if (.dl_emr_es_cero(cfg)) usada$emr_prior$cota <- NULL
   yaml::write_yaml(usada, file.path(inputs_dir, "config_usado.yaml"))
   # las tablas del contrato del proyecto (si los insumos vienen de uno) y su configuración tal como se leyó: con ellas

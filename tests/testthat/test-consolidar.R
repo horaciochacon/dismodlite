@@ -315,6 +315,6 @@ test_that("ajuste_directo se valida: causas enteras, entre las pedidas, con hija
   # NULL vale por ninguna
   expect_identical(sel(x$reg_hijas, ajuste_directo = NULL), sel(x$reg_hijas))
   # los nombres anteriores conservan los argumentos de la versión 0.2.2: no tienen este
-  expect_false("fit_directo" %in% names(formals(dl_export_seleccionar)))
-  expect_false("fit_directo" %in% names(formals(dl_export_cdc)))
+  expect_false("ajuste_directo" %in% names(formals(dl_export_seleccionar)))
+  expect_false("ajuste_directo" %in% names(formals(dl_export_cdc)))
 })

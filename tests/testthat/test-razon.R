@@ -87,6 +87,42 @@ test_that("subnacional.modo y avanzado: cascada: modo no pueden discrepar respec
   expect_identical(completa$cascada$modo$valor, "razon")
 })
 
+test_that("el modo razon declarado no se puede quitar: un cascada.modo nulo en avanzado o en cambios es el mismo error", {
+  remedio <- function(donde)
+    paste0("declara el modo en `subnacional.modo`; `", donde, "` no puede cambiarlo a/desde `razon`")
+  # antes el fundido quitaba la clave, el validador ponía proxy y el proyecto se leía con origen$subnacional = razon
+  d <- proyecto_razon(config = c("avanzado:", "  cascada:", "    modo: ~"))
+  e <- expect_error(dl_proyecto(d), class = "dl_error")
+  expect_identical(e$problemas, paste0("subnacional.modo: es razon y `avanzado: cascada: modo` es nulo (sin modo): ",
+                                       remedio("avanzado: cascada: modo")))
+  d <- proyecto_razon()
+  e <- expect_error(dl_configuracion(7001L, d, cambios = list(cascada = list(modo = NULL))), class = "dl_error")
+  expect_identical(e$problemas, paste0("subnacional.modo: es razon y `cambios: cascada: modo` es nulo (sin modo): ",
+                                       remedio("cambios: cascada: modo")))
+  # sin el modo razon, un cascada.modo nulo sigue valiendo (el modo por defecto del formato completo)
+  cfg <- readLines(file.path(d, "config.yaml"))
+  writeLines(sub("^  modo: razon", "  modo: no", cfg), file.path(d, "config.yaml"))
+  unlink(file.path(d, "razones.csv"))
+  expect_s3_class(dl_configuracion(7001L, d, cambios = list(cascada = list(modo = NULL))), "dl_config")
+})
+
+test_that("`cambios` tampoco puede cambiar el modo a razon ni desde razon: el error nombra cambios: cascada: modo", {
+  remedio <- "declara el modo en `subnacional.modo`; `cambios: cascada: modo` no puede cambiarlo a/desde `razon`"
+  d <- proyecto_razon()
+  e <- expect_error(dl_configuracion(7001L, d, cambios = list(cascada = list(modo = list(valor = "plana",
+                                                                                         procedencia = "x")))),
+                    class = "dl_error")
+  expect_identical(e$problemas, paste0("subnacional.modo: es razon y `cambios: cascada: modo` es plana: ", remedio))
+  # la inversa: un proyecto plano y razon por `cambios`
+  cfg <- readLines(file.path(d, "config.yaml"))
+  writeLines(sub("^  modo: razon", "  modo: plano", cfg), file.path(d, "config.yaml"))
+  unlink(file.path(d, "razones.csv"))
+  e <- expect_error(dl_configuracion(7001L, d, cambios = list(cascada = list(modo = list(valor = "razon",
+                                                                                         procedencia = "x")))),
+                    class = "dl_error")
+  expect_identical(e$problemas, paste0("subnacional.modo: es plano y `cambios: cascada: modo` es razon: ", remedio))
+})
+
 test_that("la tabla razones debe traer todas las ubicaciones subnacionales del año, y solo ellas", {
   d <- proyecto_razon()
   rz <- razones_de(d)
@@ -401,6 +437,55 @@ test_that("dl_resumir() con la pieza reparto da las celdas subnacionales reparti
   expect_error(dl_resumir(c(piezas, list(reparto = m$avd))), "`piezas\\$reparto` debe venir de dl_repartir_razon\\(\\)")
 })
 
+test_that("el reparto queda ligado a la tabla razones que lo produjo: dl_resumir() rechaza el de otra tabla", {
+  m <- corrida_razon()
+  piezas <- list(ajuste = m$cascada, avd = m$avd, insumos = m$insumos)
+  # la huella es la de la tabla razones de los insumos (un sha256); el reparto normal pasa
+  expect_match(m$reparto$huella_razones, "^[0-9a-f]{64}$")
+  expect_identical(m$reparto$huella_razones, .dl_huella_razones(m$insumos))
+  expect_s3_class(dl_resumir(c(piezas, list(reparto = m$reparto))), "dl_resumen")
+  # otra tabla razones sobre los mismos insumos (no entra en su hash): mismo ajuste, mismos AVD, otro reparto
+  otros <- m$insumos
+  rz <- data.table::copy(otros$contrato$razones)
+  rz[, razon := c(A = 1.2, B = 0.9, C = 0)[ubicacion]]
+  otros$contrato$razones <- rz
+  expect_identical(otros$hash, m$insumos$hash)
+  otro <- dl_repartir_razon(list(ajuste = m$cascada, avd = m$avd, insumos = otros))
+  expect_false(identical(otro$huella_razones, m$reparto$huella_razones))
+  expect_error(dl_resumir(c(piezas, list(reparto = otro))),
+               "el `reparto` no se hizo con la tabla razones de estos insumos")
+  # y al revés: con los insumos de la otra tabla, su reparto pasa y el primero no
+  piezas_otras <- list(ajuste = m$cascada, avd = m$avd, insumos = otros)
+  expect_s3_class(dl_resumir(c(piezas_otras, list(reparto = otro))), "dl_resumen")
+  expect_error(dl_resumir(c(piezas_otras, list(reparto = m$reparto))),
+               "el `reparto` no se hizo con la tabla razones de estos insumos")
+})
+
+test_that("en modo razon la amplitud se omite con su propio motivo, y la limitación del manifiesto lo repite", {
+  m <- corrida_razon()
+  motivo <- paste0("el reparto subnacional es por razón y no hay un gradiente por covariables que comparar con la ",
+                   "mortalidad subnacional de validación")
+  expect_message(v <- dl_validar_ancla(m$ajuste, m$insumos, cascada = m$cascada),
+                 paste0("se omite la validación con la mortalidad subnacional reservada: el reparto subnacional es ",
+                        "por razón, sin un gradiente por covariables que comparar"), fixed = TRUE)
+  expect_null(attr(v, "amplitud"))
+  expect_identical(attr(v, "sin_amplitud"), motivo)
+  # la limitación (solo con mortalidad reservada de otro año) lleva ese motivo, no el de la cascada plana
+  cfg <- m$insumos$cfg
+  cfg$cascada$heldout_anio <- list(valor = 2019L, procedencia = "año de la mortalidad reservada")
+  lim <- .dl_limitacion_heldout(cfg, v)
+  expect_match(lim, paste0("declarada de 2019 para una corrida de 2023 — sin validación de amplitud (", motivo, ")"),
+               fixed = TRUE)
+  expect_false(grepl("cascada es plana", lim))
+  # los demás modos no cambian: una cascada plana declarada conserva su motivo
+  plana <- m$insumos
+  plana$cfg$cascada$modo$valor <- "plana"
+  expect_message(vp <- dl_validar_ancla(m$ajuste, plana, cascada = m$cascada),
+                 "la cascada es plana, sin diferencias entre ubicaciones")
+  expect_identical(attr(vp, "sin_amplitud"),
+                   "la cascada es plana (dX = 0) y la amplitud subnacional no está definida")
+})
+
 # ---- La corrida ----
 
 # Cierre de las simulaciones guardadas de la corrida `run` (año `anio`) con la población congelada en inputs/: por
@@ -467,6 +552,9 @@ test_that("dl_exportar_corrida() escribe la corrida repartida: manifiesto, limit
   expect_identical(etq[location_id == "A"]$etiqueta, etq[location_id == "999"]$etiqueta)
   # la tabla razones queda congelada con el proyecto: inputs/contrato/ repite la corrida
   expect_true("razones" %in% unlist(lapply(man$inputs$contrato, `[[`, "tabla")))
+  # y la huella del reparto es el sha256 que el manifiesto declara para esa tabla
+  de_razones <- Filter(function(t) identical(t$tabla, "razones"), man$inputs$contrato)[[1L]]
+  expect_identical(m$reparto$huella_razones, de_razones$sha256)
   p <- dl_proyecto(file.path(run$dir, "inputs", "contrato"))
   expect_identical(p$configuracion$cascada$modo$valor, "razon")
   expect_identical(suppressMessages(dl_insumos(p))$hash, m$insumos$hash)

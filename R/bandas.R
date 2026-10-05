@@ -29,7 +29,7 @@
 # se cancela y w_a = N_b(a) / sum N_b(a'): ese caso se calcula así, sin dividir, y no cambia ni un bit respecto de la
 # versión 2.2.0. Solo cuando A cruza bandas con distinto n_b (un dato de todas las edades sobre quinquenios y una
 # banda abierta de 80 años y más, que en la malla 0..99 tiene 20 edades) se divide por n_b; hasta la versión 2.2.0 no
-# se dividía y esa banda abierta pesaba 4 veces de más frente a un quinquenio.
+# se dividía y esa banda abierta pesaba 4 veces lo que le corresponde frente a un quinquenio (20 edades frente a 5).
 # Un intervalo sin edades de la malla, o con una edad sin banda fina, es un error; nunca un cero.
 # Es una cuadratura por rectángulos con paso de 1 año y x evaluada en la edad exacta a (el cumpleaños), no a mitad
 # del año de edad: el promedio de [inicio, fin) usa x(inicio), ..., x(fin - 1), cuya edad promedio es medio año

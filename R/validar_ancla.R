@@ -120,8 +120,9 @@
 #'   ubicaciones subnacionales con mortalidad reservada (cercana a 1 si la cascada reproduce el tamaño del
 #'   gradiente) y la correlación de rangos de Spearman (el orden de las ubicaciones). La mortalidad reservada nunca
 #'   entra al ajuste. Con la mortalidad en exceso fija en 0 (`mortalidad_exceso.prior: cero`) el modelo no predice
-#'   muertes y esta comprobación se omite: el atributo `sin_amplitud` dice el motivo, y el manifiesto de la corrida lo
-#'   repite solo cuando la mortalidad reservada es de un año distinto del de la corrida.
+#'   muertes y esta comprobación se omite; también con el reparto por razón (`subnacional.modo: razon`), que no tiene
+#'   un gradiente por covariables que comparar. El atributo `sin_amplitud` dice el motivo, y el manifiesto de la
+#'   corrida lo repite solo cuando la mortalidad reservada es de un año distinto del de la corrida.
 #'
 #' @inheritParams dl_ajustar
 #' @param ajuste Ajuste nacional de [dl_ajustar()].
@@ -203,6 +204,9 @@ dl_validar_ancla <- function(ajuste, insumos, rutas = insumos$rutas, cascada = N
   # Sin ella, el motivo va en una nota y en el atributo sin_amplitud, que el manifiesto de la corrida declara.
   if (!is.null(cascada)) .dl_chequear_cascada(cascada, insumos)
   plana <- !is.null(cascada) && identical(cascada$modo, "plana")
+  # Con el reparto por razón la cascada es la plana, pero la corrida sí tiene diferencias entre ubicaciones (las de
+  # la razón): el motivo es propio, no hay un gradiente por covariables que comparar.
+  por_razon <- plana && identical(cfg$cascada$modo$valor, "razon")
   # Con la EMR fija en cero el modelo predice p f = 0 muertes en toda ubicación: no hay gradiente de mortalidad que
   # comparar con la mortalidad subnacional reservada, y se declara como motivo.
   emr_cero <- !is.null(cascada) && !plana && .dl_emr_es_cero(cfg) &&
@@ -214,17 +218,20 @@ dl_validar_ancla <- function(ajuste, insumos, rutas = insumos$rutas, cascada = N
   }
   # el motivo en palabras genéricas («subnacional»): el largo va al atributo sin_amplitud, que el manifiesto declara, y
   # el corto, al mensaje
-  k <- if (emr_cero) 5L else if (plana) 1L else if (!is.null(cascada)) 2L
+  k <- if (emr_cero) 5L else if (por_razon) 6L else if (plana) 1L else if (!is.null(cascada)) 2L
        else if (nrow(insumos$datos[tipo_dato == "csmr" & location_level == 1L])) 3L else 4L
   motivo <- c("la cascada es plana (dX = 0) y la amplitud subnacional no est\u00e1 definida",
               "los datos no traen mortalidad subnacional de validaci\u00f3n",
               "los datos traen mortalidad subnacional de validaci\u00f3n, pero la validaci\u00f3n no tuvo la cascada",
               "sin cascada ni mortalidad subnacional de validaci\u00f3n",
-              "la mortalidad en exceso est\u00e1 fija en 0 y el modelo no predice muertes por la causa")[k]
+              "la mortalidad en exceso est\u00e1 fija en 0 y el modelo no predice muertes por la causa",
+              paste("el reparto subnacional es por raz\u00f3n y no hay un gradiente por covariables que comparar con",
+                    "la mortalidad subnacional de validaci\u00f3n"))[k]
   .dl_message("se omite la validaci\u00f3n con la mortalidad subnacional reservada: %s",
               c("la cascada es plana, sin diferencias entre ubicaciones", "los datos no la traen",
                 "los datos la traen, pero la validaci\u00f3n no tuvo la cascada", "sin cascada ni datos",
-                "la mortalidad en exceso est\u00e1 fija en 0")[k])
+                "la mortalidad en exceso est\u00e1 fija en 0",
+                "el reparto subnacional es por raz\u00f3n, sin un gradiente por covariables que comparar")[k])
   data.table::setattr(out, "sin_amplitud", motivo)
   out
 }

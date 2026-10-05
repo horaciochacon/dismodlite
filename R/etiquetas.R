@@ -92,7 +92,7 @@
 #'   defecto, la grilla `sensibilidad.correlacion_edad` de la configuración.
 #' @param opciones Opciones de [dl_opciones_mcmc()] de los reajustes por rho (por defecto, cadenas cortas: 2 de
 #'   6000 iteraciones con 3000 de calentamiento y adelgazamiento 10, sea cual sea el del ajuste, con el motor del
-#'   ajuste; guardan 600 simulaciones).
+#'   ajuste; guardan 600 simulaciones, y de ellas se toman a lo sumo las del ajuste).
 #' @param cascada Cascada de [dl_cascada()] (opcional): agrega las celdas subnacionales.
 #' @return Tabla (data.table) con una fila por ubicación, sexo y banda (`location_id`, `year`, `age_group_id`,
 #'   `sex_id`, `cause_id`): `etiqueta`, `contraccion` (c), `lambda_usado` (el peso del ancla), `rho_usado` (el rho

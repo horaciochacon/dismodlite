@@ -231,6 +231,14 @@ test_that("EMR cero: la cascada por covariables mueve la incidencia y deja f = 0
   expect_true(all(cpp$draws_q$f == 0))
 })
 
+test_that("EMR cero: dl_sensibilidad() no admite el eje fraccion_aguda en la grilla, como la configuración", {
+  x <- emr_cero_mini("mh")
+  expect_error(dl_sensibilidad(x$insumos, grilla = list(lambda = 1, rho = 0.5, kappa = 1, fraccion_aguda = c(0, 0.3)),
+                               semilla = 3L, opciones = x$ajuste$params),
+               paste0("cero fija la mortalidad en exceso en 0 y no admite `fraccion_aguda` en la grilla \\(no hay ",
+                      "prior de mortalidad en exceso que cambie\\): quita el eje o usa otro prior"))
+})
+
 test_that("EMR cero: cascada plana, validación, AVD, etiquetas y sensibilidad corren sobre el ajuste sin log f", {
   x <- emr_cero_mini("mh"); b <- x$insumos; f <- x$ajuste
   casc <- dl_cascada(f, b, semilla = 3L)

@@ -79,7 +79,7 @@ covariable y banda) y \code{amplitud.csv} (la validación de la amplitud, si se 
 \item \verb{inputs/}: los insumos congelados (\code{\link[=dl_congelar_insumos]{dl_congelar_insumos()}}), la configuración usada (\code{config_usado.yaml}, en el
 formato completo) y las descargas de covariables (\verb{ghdx_cov/}, solo con los insumos del formato completo). Con la
 mortalidad en exceso fija en 0 (\code{emr_prior.tipo: cero}), \code{config_usado.yaml} va sin \code{emr_prior.cota} (el
-manifiesto sí declara \verb{params.emr_cota: [0, 0]}), y así se puede volver a leer con \code{\link[=dl_configuracion]{dl_configuracion()}}. Con un
+manifiesto sí declara \verb{params.emr_cota: [0, 0]}): \code{\link[=dl_configuracion]{dl_configuracion()}} no admite esa clave con ese prior. Con un
 proyecto de las tablas del contrato (\code{\link[=dl_proyecto]{dl_proyecto()}}), \verb{inputs/contrato/} guarda las tablas que se usaron
 (\verb{<tabla>.csv}, con las covariables nacionales; los números escritos exactos) y la configuración del proyecto tal
 como se leyó (\code{config.yaml}, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada

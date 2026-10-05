@@ -26,6 +26,9 @@ sorteadas) y \code{fuente}.
 \item \code{semilla} (la del sorteo), \code{ubicaciones} (los códigos, en el orden del sorteo) y \code{anio}.
 \item \code{bundle_hash}, \code{huella_ajuste} y \code{huella_avd}: identifican los insumos, la cascada y los AVD de donde sale;
 \code{\link[=dl_resumir]{dl_resumir()}} los compara.
+\item \code{huella_razones}: el sha256 de la tabla \code{razones} de los insumos (el mismo que el manifiesto de la corrida
+declara para \code{inputs/contrato/razones.csv}). La tabla no entra en el hash de los insumos: \code{\link[=dl_resumir]{dl_resumir()}}
+compara esta huella con la de la tabla de los insumos que recibe y rechaza un reparto hecho con otra.
 }
 }
 \description{

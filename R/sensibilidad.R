@@ -36,7 +36,8 @@
 #' [dl_configuracion()]). Cada combinación (lambda, rho) es un ajuste completo con `opciones`, así que la grilla
 #' entera tarda varias veces lo que un ajuste; `procesos` reparte las combinaciones entre procesos. El eje opcional
 #' `fraccion_aguda` cambia la fracción de las muertes por la causa que se descuenta del prior de la mortalidad en
-#' exceso. Una combinación con la que la cascada falla (por ejemplo, prevalencias subnacionales mayores que 1 con
+#' exceso; con la mortalidad en exceso fija en 0 (`mortalidad_exceso.prior: cero`) no hay prior que cambie y el eje
+#' es un error. Una combinación con la que la cascada falla (por ejemplo, prevalencias subnacionales mayores que 1 con
 #' un lambda pequeño) no detiene las demás: su fila lo explica en `nota`.
 #'
 #' Lo que se mira: cuánto cambia la prevalencia nacional (y su etiqueta) de una combinación a otra y cuánto se abre
@@ -83,6 +84,11 @@ dl_sensibilidad <- function(insumos, grilla = insumos$cfg$sensibilidad, semilla,
     .dl_stop("`procesos` debe ser un entero >= 1; es %s", .dl_describir_objeto(procesos))
   con_cascada <- nrow(insumos$cov_proxy) > 0L
   .dl_exigir_grilla(grilla, con_cascada, revisar_nombres = !missing(grilla))
+  # Con la EMR fija en cero no hay prior de mortalidad en exceso que la fracción aguda cambie: el eje daría filas
+  # idénticas. Mismo error que el de la configuración (sensibilidad.fraccion_aguda, .dl_validar_config).
+  if (.dl_emr_es_cero(insumos$cfg) && length(grilla$fraccion_aguda))
+    .dl_stop(paste0("emr_prior.tipo: cero fija la mortalidad en exceso en 0 y no admite `fraccion_aguda` en la ",
+                    "grilla (no hay prior de mortalidad en exceso que cambie): quita el eje o usa otro prior"))
   # Motor rcpp: el núcleo C++ se compila antes de repartir las combinaciones entre procesos.
   if (opciones$engine == "rcpp") .dl_rcpp()
 

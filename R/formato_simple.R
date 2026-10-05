@@ -560,12 +560,18 @@
 # El modo razón tiene una sola fuente en un proyecto: subnacional.modo (el declarado o el deducido, origen$subnacional),
 # que es quien exige la tabla razones y decide si corren sus reglas (.dl_regla_razones). Error si, fundidas las claves
 # del formato completo de `donde` («avanzado: cascada: modo» o «cambios: cascada: modo»), cascada.modo (con la forma
-# {valor, procedencia} o el valor suelto) es razon y subnacional.modo no, o al revés.
+# {valor, procedencia} o el valor suelto) es razon y subnacional.modo no, o al revés. Un cascada.modo ausente (lo
+# quitó un nulo de `donde`; el validador pondría proxy) cuenta como «no razon»: con subnacional.modo razon, el mismo
+# error.
 .dl_exigir_modo_razon_coherente <- function(cfg, archivo, donde) {
   m <- cfg$cascada$modo
   efectivo <- as.character(unlist(if (is.list(m)) m$valor else m))
-  if (length(efectivo) != 1L) return(invisible())      # sin modo (proxy) o con una forma que el validador rechaza
+  if (length(efectivo) > 1L) return(invisible())       # una forma que el validador rechaza
   declarado <- cfg$origen$subnacional
+  if (!length(efectivo)) {
+    if (!identical(declarado, "razon")) return(invisible())      # sin modo (proxy), y el declarado no es razon
+    efectivo <- "nulo (sin modo)"
+  }
   if (identical(efectivo, "razon") != identical(declarado, "razon"))
     .dl_stop_config_simple(archivo, sprintf(paste0(
       "subnacional.modo: es %s y `%s` es %s: declara el modo en `subnacional.modo`; `%s` no puede cambiarlo ",

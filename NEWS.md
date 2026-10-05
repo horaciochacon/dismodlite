@@ -19,7 +19,8 @@ subtipos. Además, una corrección en el peso de los datos de bandas anchas y un
 
 * No pide la `mortalidad` en la tabla `ancla` (si la trae, no se usa). No admite `mortalidad_exceso.techo`,
   `mortalidad_exceso.fraccion_aguda`, `sensibilidad.fraccion_aguda` ni `mortalidad` en `datos_en_ajuste` (con f = 0
-  el modelo predice 0 muertes): la revisión del proyecto lo dice con la clave.
+  el modelo predice 0 muertes): la revisión del proyecto lo dice con la clave. `dl_sensibilidad()` tampoco admite el
+  eje `fraccion_aguda` en su grilla con este prior.
 * Vale en todo el recorrido de `dl_correr()`, con los dos motores: en la cascada, f es 0 en toda ubicación (una beta
   con `efecto_sobre: mortalidad_exceso` no tiene efecto); la validación con la mortalidad subnacional reservada se
   omite, con su motivo; `dl_estimaciones(x, "mortalidad_exceso")` da 0.
@@ -34,7 +35,7 @@ subtipos. Además, una corrección en el peso de los datos de bandas anchas y un
   nacional por su razón, simulación a simulación y con cierre exacto en el valor nacional, en la prevalencia, la
   incidencia y los AVD. La razón es la misma en todas las edades y sexos, y el manifiesto lo declara como limitación.
   En un proyecto el modo se declara solo con `subnacional.modo`: `avanzado: {cascada: {modo: }}` no puede cambiarlo a
-  `razon` ni desde `razon` (es un error de configuración).
+  `razon` ni desde `razon`, ni quitarlo con un nulo (es un error de configuración).
 
   ```yaml
   subnacional:
@@ -56,6 +57,9 @@ subtipos. Además, una corrección en el peso de los datos de bandas anchas y un
   sorteo, cuántas ubicaciones, el rango de las razones, cuántas son cero y sus fuentes) y `diagnostics/razon.csv`
   (la razón aplicada por ubicación). El nivel nacional, la validación contra el ancla, los factores de
   renormalización (`renorm.csv`), las etiquetas y la sensibilidad son los del ajuste nacional (la cascada plana).
+  La validación con la mortalidad subnacional reservada se omite, con su motivo: no hay un gradiente por covariables
+  que comparar. El reparto lleva la huella de la tabla `razones` que lo produjo (`huella_razones`), y `dl_resumir()`
+  rechaza uno hecho con otra tabla.
 * El reparto se detiene con un error que nombra el sexo y la banda de edad si en una celda las tasas repartidas no
   son finitas (por ejemplo, si las ubicaciones con razón mayor que 0 no tienen población en esa celda), y con otro,
   que nombra las ubicaciones, si una prevalencia repartida pasa de 1.
@@ -97,7 +101,7 @@ subtipos. Además, una corrección en el peso de los datos de bandas anchas y un
     incidencia: no
   ```
 
-* `dl_consolidar(..., ajuste_directo = 1010)` y `dl_consolidado_seleccionar(..., ajuste_directo = )`: las causas
+* `dl_consolidar(..., ajuste_directo = 9100)` y `dl_consolidado_seleccionar(..., ajuste_directo = )`: las causas
   nombradas se consolidan desde su propio ajuste aunque `master_gbd.csv` les declare subtipos (sin el argumento, una
   causa con subtipos debe venir de su suma, como antes). Para una causa que se modeló entera. El bloque de la causa
   en el manifiesto del consolidado lleva `ajuste_directo: true` y las limitaciones lo dicen. Es un error nombrar una

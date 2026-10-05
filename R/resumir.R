@@ -120,7 +120,8 @@
 
 # El reparto por razón de un resumen (la pieza `reparto`, o NULL). Con cascada.modo razon y una cascada en `f`, es
 # obligatorio: sin él las celdas subnacionales serían las de la cascada plana. Debe salir de las mismas piezas (los
-# insumos `b`, la cascada `f` y los AVD `y`); sin ese modo, o con un ajuste solo nacional, no se admite.
+# insumos `b`, con su tabla razones, la cascada `f` y los AVD `y`); sin ese modo, o con un ajuste solo nacional, no
+# se admite.
 .dl_reparto_del_resumen <- function(reparto, f, y, b) {
   razon <- identical(b$cfg$cascada$modo$valor, "razon") && inherits(f, "dl_cascade")
   if (is.null(reparto)) {
@@ -136,6 +137,10 @@
   if (!identical(reparto$huella_ajuste, .dl_huella_ajuste(f)) || !identical(reparto$huella_avd, .dl_huella_avd(y)))
     .dl_stop(paste0("el `reparto` no se hizo con este `fit` y este `yld`: vuelve a correr dl_repartir_razon() con ",
                     "las mismas piezas"))
+  # la tabla razones no entra en el hash de los insumos: el reparto lleva la huella de la que lo produjo
+  if (!identical(reparto$huella_razones, .dl_huella_razones(b)))
+    .dl_stop(paste0("el `reparto` no se hizo con la tabla razones de estos insumos: vuelve a correr ",
+                    "dl_repartir_razon() con los mismos insumos"))
   reparto
 }
 
