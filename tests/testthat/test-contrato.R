@@ -1,7 +1,7 @@
-test_that("la definición del contrato tiene las diez tablas y el eje en cada una", {
+test_that("la definición del contrato tiene las once tablas y el eje en cada una", {
   ref <- dismodlite:::.dl_tablas_ref()
   expect_setequal(unique(ref$tabla), dismodlite:::.DL_TABLAS)
-  expect_length(dismodlite:::.DL_TABLAS, 10L)
+  expect_length(dismodlite:::.DL_TABLAS, 11L)
   expect_true(all(ref$columna[ref$rol == "eje"] %in% dismodlite:::.DL_EJE))
   expect_identical(dismodlite:::.dl_columnas_contrato("poblacion", "exigidas"),
                    c("ubicacion", "anio", "sexo", "edad_inicio", "edad_fin", "poblacion"))
@@ -174,4 +174,34 @@ test_that("proxies_crudos: tabla del contrato con su plantilla y sus reglas", {
   expect_s3_class(dl_tabla("proxies_crudos", d), "dl_tabla")
   d <- dl_plantilla("proxies_crudos"); d$anio[2] <- d$anio[1]
   expect_error(dl_tabla("proxies_crudos", d), "repetidas")
+})
+
+test_that("razones: la undécima tabla del contrato, con su plantilla y sus reglas", {
+  expect_identical(utils::tail(dismodlite:::.DL_TABLAS, 1L), "razones")
+  expect_identical(dismodlite:::.dl_columnas_contrato("razones", "exigidas"),
+                   c("ubicacion", "anio", "razon", "error_log"))
+  expect_identical(names(dl_plantilla("razones")), c("causa", "ubicacion", "anio", "razon", "error_log", "fuente"))
+  expect_s3_class(dl_tabla("razones", dl_plantilla("razones")), "dl_tabla")
+  # sin las opcionales (causa y fuente); la razón 0 y el error 0 valen; location_id y year son alias
+  d <- data.frame(location_id = c("01", "02"), year = 2023, razon = c(0, 1.3), error_log = c(0, 0.1))
+  t <- dl_tabla("razones", d)
+  expect_identical(names(t), c("ubicacion", "anio", "razon", "error_log"))
+  expect_identical(t$razon, c(0, 1.3))
+  expect_identical(t$anio, c(2023L, 2023L))
+  # una razón o un error negativos, una columna que falta y una fila repetida son problemas de la tabla
+  e <- expect_error(dl_tabla("razones", data.frame(ubicacion = "01", anio = 2023, razon = -1, error_log = -0.1)),
+                    class = "dl_error")
+  expect_identical(e$problemas, c("razon: hay valores menores que 0 (fila(s) 1 del data.frame)",
+                                  "error_log: hay valores menores que 0 (fila(s) 1 del data.frame)"))
+  expect_error(dl_tabla("razones", data.frame(ubicacion = "01", anio = 2023, razon = 1)),
+               "faltan las columnas error_log")
+  d <- data.frame(causa = 1L, ubicacion = "01", anio = 2023, razon = c(1, 2), error_log = 0)
+  expect_error(dl_tabla("razones", d), "filas repetidas en causa, ubicacion, anio")
+})
+
+test_that("razones: una ubicación que no está en ubicaciones es un problema entre tablas", {
+  rz <- data.frame(ubicacion = c("01", "99"), anio = 2023, razon = 1, error_log = 0)
+  e <- expect_error(suppressWarnings(dl_proyecto(dl_ejemplo(), 9101, razones = rz)), class = "dl_error")
+  expect_match(e$problemas, "^razones: la\\(s\\) ubicación\\(es\\) 99 no está\\(n\\) en la tabla ubicaciones",
+               all = FALSE)
 })

@@ -8,7 +8,7 @@
 
 # Las tablas del contrato, en el orden en que se documentan.
 .DL_TABLAS <- c("ubicaciones", "poblacion", "ancla", "covariables", "betas", "datos", "severidad", "fuentes_gbd",
-                "poblacion_detalle", "proxies_crudos")
+                "poblacion_detalle", "proxies_crudos", "razones")
 
 # El eje: las dimensiones que comparten las tablas. Una columna del eje ausente en una tabla significa que la tabla
 # no varía en esa dimensión (sin causa: todas; sin ubicacion: la nacional; sin anio: todos; sin sexo: ambos; sin
@@ -307,7 +307,9 @@ dl_plantilla <- function(tabla, archivo = NULL) {
   poblacion_detalle = list(anio = 2023L, sexo = "mujeres", edad_inicio = 80, edad_fin = 85, poblacion = 30500),
   proxies_crudos = list(ubicacion = c("R01", "R01"), anio = c(2023L, 2024L), covariable = c("haqi", "haqi"),
                         indicador = c("indicador de ejemplo", "indicador de ejemplo"), valor = c(61.2, 62.5),
-                        error_estandar = c(1.4, 1.5)))
+                        error_estandar = c(1.4, 1.5)),
+  razones = list(causa = 1234L, ubicacion = "R01", anio = 2023L, razon = 1.15, error_log = 0.08,
+                 fuente = "indicador de ejemplo"))
 
 #' El contrato de insumos
 #'
@@ -495,10 +497,11 @@ NULL
     if (length(repetidos)) sprintf("ubicaciones: c\u00f3digos repetidos: %s", .dl_unos(repetidos)))
 }
 
-# Toda ubicación de poblacion, covariables, datos y fuentes_gbd está en ubicaciones.
+# Toda ubicación de poblacion, covariables, datos, fuentes_gbd y razones está en ubicaciones.
 .dl_regla_ubicaciones_conocidas <- function(tablas) {
   codigos <- tablas$ubicaciones$ubicacion
-  unlist(lapply(intersect(c("poblacion", "covariables", "datos", "fuentes_gbd"), names(tablas)), function(t) {
+  con_ubicacion <- c("poblacion", "covariables", "datos", "fuentes_gbd", "razones")
+  unlist(lapply(intersect(con_ubicacion, names(tablas)), function(t) {
     x <- setdiff(stats::na.omit(.dl_col(tablas[[t]], "ubicacion", NA_character_)), codigos)
     if (length(x))
       sprintf(paste0("%s: la(s) ubicaci\u00f3n(es) %s no est\u00e1(n) en la tabla ubicaciones: ",

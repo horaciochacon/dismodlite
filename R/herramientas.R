@@ -69,7 +69,7 @@
 # Las tablas con plantilla en un proyecto nuevo (solo el encabezado: una tabla opcional sin filas es como si no
 # estuviera) y las carpetas para las descargas tal cual.
 .DL_PLANTILLAS_NUEVO <- c("ubicaciones", "poblacion", "betas", "datos", "severidad", "poblacion_detalle",
-                          "proxies_crudos")
+                          "proxies_crudos", "razones")
 .DL_CARPETAS_NUEVO <- c("ancla", "covariables", "fuentes_gbd")
 
 # LEEME.md de un proyecto nuevo: la carpeta del proyecto (la de ?dl_proyecto), los pasos, con las direcciones de GBD
@@ -91,6 +91,7 @@
     "fuentes_gbd/           # la lista de fuentes del GHDx que GBD ya us\u00f3",
     "poblacion_detalle.csv  # poblaci\u00f3n nacional con m\u00e1s detalle de edad, si el ancla es m\u00e1s fina",
     "proxies_crudos.csv     # un indicador de encuesta por ubicaci\u00f3n y edici\u00f3n (se calibra al leer)",
+    "razones.csv            # la raz\u00f3n de cada ubicaci\u00f3n subnacional (con subnacional.modo: razon)",
     "particion/<corrida>/   # (opcional) la partici\u00f3n de severidad que nombra severidad.particion",
     "```", "",
     "Una tabla con solo el encabezado no se usa: las obligatorias son `ubicaciones`, `poblacion` y `ancla`.", "",
@@ -122,9 +123,9 @@
 #'   valor dado o vacías; `nombre`, si se da, también. Las demás van comentadas con su valor por defecto o, si no
 #'   tienen un valor fijo, con un ejemplo. Para usar otro valor se quita el `#` de la línea (y el de su
 #'   bloque, como `ancla:` para `ancla.peso`).
-#' - `ubicaciones.csv`, `poblacion.csv`, `betas.csv`, `datos.csv`, `severidad.csv`, `poblacion_detalle.csv` y
-#'   `proxies_crudos.csv`, con solo el encabezado (las columnas de [dl_plantilla()]). Una tabla con solo el
-#'   encabezado es como si no estuviera: las opcionales que no se llenan no se usan.
+#' - `ubicaciones.csv`, `poblacion.csv`, `betas.csv`, `datos.csv`, `severidad.csv`, `poblacion_detalle.csv`,
+#'   `proxies_crudos.csv` y `razones.csv`, con solo el encabezado (las columnas de [dl_plantilla()]). Una tabla con
+#'   solo el encabezado es como si no estuviera: las opcionales que no se llenan no se usan.
 #' - `ancla/`, `covariables/` y `fuentes_gbd/`, vacías: ahí van las descargas de GBD Results y del GHDx, sin editar
 #'   (o las tablas del contrato).
 #' - `LEEME.md`: la carpeta del proyecto, los pasos, de dónde se descarga cada archivo y cómo revisar y correr el

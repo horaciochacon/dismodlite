@@ -678,6 +678,7 @@
 #'   fuentes_gbd/
 #'   poblacion_detalle.csv
 #'   proxies_crudos.csv   # un indicador de encuesta por ubicación y edición: se calibra al leer
+#'   razones.csv          # la razón de cada ubicación subnacional respecto de la nacional (subnacional.modo: razon)
 #'   particion/<corrida>/ # opcional: la partición de severidad que nombra severidad.particion
 #' ```
 #' Cada tabla es `<tabla>.csv` o una carpeta `<tabla>/` cuyos CSV se juntan (cada uno pasa por su lector), como
@@ -744,8 +745,8 @@
 #'   las tablas).
 #' @param causa Causa (`cause_id`, un entero); `NULL` si el proyecto tiene una sola o la configuración la declara.
 #' @param ... Tablas del contrato por su nombre (ver [dl_tablas]: `ubicaciones`, `poblacion`, `ancla`, `covariables`,
-#'   `betas`, `datos`, `severidad`, `fuentes_gbd`, `poblacion_detalle`, `proxies_crudos`): un `data.frame` o la ruta
-#'   de un CSV o de una carpeta. Reemplazan a las de la carpeta.
+#'   `betas`, `datos`, `severidad`, `fuentes_gbd`, `poblacion_detalle`, `proxies_crudos`, `razones`): un `data.frame`
+#'   o la ruta de un CSV o de una carpeta. Reemplazan a las de la carpeta.
 #' @param configuracion Ruta del YAML de la configuración o una lista con sus claves (opcional; por defecto, la de la
 #'   carpeta).
 #' @param anio Año que se estima (un entero), en lugar del `anio` de la configuración; `NULL` (por defecto) deja el

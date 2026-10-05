@@ -19,8 +19,8 @@ las tablas).}
 \item{causa}{Causa (\code{cause_id}, un entero); \code{NULL} si el proyecto tiene una sola o la configuración la declara.}
 
 \item{...}{Tablas del contrato por su nombre (ver \link{dl_tablas}: \code{ubicaciones}, \code{poblacion}, \code{ancla}, \code{covariables},
-\code{betas}, \code{datos}, \code{severidad}, \code{fuentes_gbd}, \code{poblacion_detalle}, \code{proxies_crudos}): un \code{data.frame} o la ruta
-de un CSV o de una carpeta. Reemplazan a las de la carpeta.}
+\code{betas}, \code{datos}, \code{severidad}, \code{fuentes_gbd}, \code{poblacion_detalle}, \code{proxies_crudos}, \code{razones}): un \code{data.frame}
+o la ruta de un CSV o de una carpeta. Reemplazan a las de la carpeta.}
 
 \item{configuracion}{Ruta del YAML de la configuración o una lista con sus claves (opcional; por defecto, la de la
 carpeta).}
@@ -123,6 +123,7 @@ puede leer en un proyecto (sí en el formato completo, con sus catálogos).
   fuentes_gbd/
   poblacion_detalle.csv
   proxies_crudos.csv   # un indicador de encuesta por ubicación y edición: se calibra al leer
+  razones.csv          # la razón de cada ubicación subnacional respecto de la nacional (subnacional.modo: razon)
   particion/<corrida>/ # opcional: la partición de severidad que nombra severidad.particion
 }\if{html}{\out{</div>}}
 

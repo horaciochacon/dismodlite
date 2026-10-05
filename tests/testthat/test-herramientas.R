@@ -14,11 +14,11 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada y las plantil
                                    edad_inicio = 40),
                  "^dl_nuevo_proyecto\\(\\): proyecto de la causa 501")
   for (f in c("config.yaml", "LEEME.md", "ubicaciones.csv", "poblacion.csv", "betas.csv", "datos.csv",
-              "severidad.csv", "poblacion_detalle.csv", "proxies_crudos.csv"))
+              "severidad.csv", "poblacion_detalle.csv", "proxies_crudos.csv", "razones.csv"))
     expect_true(file.exists(file.path(d, f)), info = f)
   for (f in c("ancla", "covariables", "fuentes_gbd")) expect_true(dir.exists(file.path(d, f)), info = f)
   # las plantillas: solo el encabezado, las columnas de dl_plantilla()
-  for (t in c("ubicaciones", "betas", "severidad", "proxies_crudos"))
+  for (t in c("ubicaciones", "betas", "severidad", "proxies_crudos", "razones"))
     expect_identical(readLines(file.path(d, paste0(t, ".csv"))), paste(names(dl_plantilla(t)), collapse = ","))
   # sin comentar, solo lo dado; cada clave de la tabla aparece con su descripción, su símbolo y su valor por defecto
   y <- yaml::read_yaml(file.path(d, "config.yaml"))
@@ -56,7 +56,7 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada y las plantil
   # del contrato estimates/v1)
   leeme <- paste(readLines(file.path(d, "LEEME.md"), encoding = "UTF-8"), collapse = "\n")
   expect_match(leeme, "?dl_tablas", fixed = TRUE)
-  for (f in c("ubicaciones.csv", "poblacion_detalle.csv", "proxies_crudos.csv", "fuentes_gbd/"))
+  for (f in c("ubicaciones.csv", "poblacion_detalle.csv", "proxies_crudos.csv", "razones.csv", "fuentes_gbd/"))
     expect_match(leeme, f, fixed = TRUE)
   expect_match(leeme, .dl_schema_estimates()$sources$gbd$url, fixed = TRUE)
   expect_match(leeme, .dl_schema_estimates()$sources$ghdx$url, fixed = TRUE)
