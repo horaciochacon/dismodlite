@@ -396,9 +396,10 @@
 # Configuración completa (sin validar) desde la simple `s` de `archivo` y lo que se toma del proyecto (`contexto`):
 #   ubicacion (el código nacional), nombre, betas (la tabla betas de la causa, ya resuelta para un subtipo),
 #   anios_ancla (los años con prevalencia de la causa en el ancla: de ellos sale years.ancla, .dl_anio_ancla_leido),
-#   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es) e
-#   ids_covariable (covariable -> covariate_id, para valor_nacional_de); y ancla_declarado (el ancla.anio del archivo
-#   cuando el argumento `anio` de dl_proyecto() lo bajó al año que se estima: la procedencia de years.ancla lo dice).
+#   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es), razones
+#   (si el proyecto trae la tabla razones) e ids_covariable (covariable -> covariate_id, para valor_nacional_de); y
+#   ancla_declarado (el ancla.anio del archivo cuando el argumento `anio` de dl_proyecto() lo bajó al año que se
+#   estima: la procedencia de years.ancla lo dice).
 # `origen`: formato, archivo, nombre, modo subnacional, betas y claves tomadas por defecto (con su valor); y las
 # unidades: «contrato», las de las tablas del proyecto (proporción o por persona-año, sin conversión; .dl_metrica_std).
 .dl_traducir_config_simple <- function(s, archivo, contexto) {
@@ -417,6 +418,23 @@
   if (modo == "plano" && identical(contexto$subnacional, FALSE))
     .dl_stop_config_simple(archivo, paste0("subnacional.modo: es plano y la tabla poblacion no trae ubicaciones ",
                                            "subnacionales: agr\u00e9galas o usa subnacional.modo: no"))
+  if (modo == "razon") {
+    # el reparto por razón: exige la tabla razones y ubicaciones subnacionales, y no admite valores subnacionales de
+    # covariables (ni calibrados de proxies_crudos): la razón ya es todo el patrón entre ubicaciones
+    sub <- contexto$covariables_subnacionales
+    pr <- c(if (!isTRUE(contexto$razones))
+              paste0("subnacional.modo: es razon y el proyecto no trae la tabla razones (razones.csv: ubicacion, anio, ",
+                     "razon y error_log de cada ubicaci\u00f3n subnacional): agr\u00e9gala o usa subnacional.modo: plano"),
+            if (identical(contexto$subnacional, FALSE))
+              paste0("subnacional.modo: es razon y la tabla poblacion no trae ubicaciones subnacionales: ",
+                     "agr\u00e9galas o usa subnacional.modo: no"),
+            if (length(sub))
+              sprintf(paste0("subnacional.modo: es razon y el proyecto trae valores subnacionales de la(s) ",
+                             "covariable(s) %s (en la tabla covariables o calibrados de proxies_crudos): el reparto por ",
+                             "raz\u00f3n no usa covariables; quita esas filas o usa subnacional.modo: covariables"),
+                      .dl_lista(sub)))
+    if (length(pr)) .dl_stop_config_simple(archivo, pr)
+  }
   if (modo != "covariables") con_proxy <- integer()
   else if (!length(con_proxy))
     .dl_stop_config_simple(archivo, sprintf(paste0(
@@ -485,7 +503,8 @@
     cascada = c(list(kappa = num(val("subnacional.kappa")), escala = "natural", cota_warning = 0.5),
                 if (!is.null(dado("subnacional.anio_validacion")))
                   list(heldout_anio = list(valor = dado("subnacional.anio_validacion"), procedencia = proc)),
-                if (modo == "plano") list(modo = list(valor = "plana", procedencia = proc))),
+                if (modo == "plano") list(modo = list(valor = "plana", procedencia = proc)),
+                if (modo == "razon") list(modo = list(valor = "razon", procedencia = proc))),
     # la transformaci\u00f3n la declara la tabla betas: la regla que la busca en el nombre publicado no aplica; la escala
     # es 1 si la fila no la trae (solo interviene con la transformaci\u00f3n lineal)
     transformaciones = lapply(seq_along(nombres), function(k) c(list(

@@ -466,9 +466,9 @@ NULL
                 .dl_regla_poblacion(tablas, cfg), .dl_regla_ancla(tablas, cfg, n_causas),
                 .dl_regla_bandas_ancla(tablas, cfg), .dl_regla_betas(tablas, cfg),
                 .dl_regla_proxies_incompletos(tablas, cfg), .dl_regla_intervalo_nacional(tablas, cfg),
-                .dl_regla_severidad(tablas, cfg)),
+                .dl_regla_severidad(tablas, cfg), .dl_regla_razones(tablas, cfg)),
   avisos = c(.dl_regla_covariables_sin_beta(tablas, cfg), .dl_regla_ubicaciones_sin_proxy(tablas, cfg),
-             .dl_regla_unidades_datos(tablas, cfg)))
+             .dl_regla_unidades_datos(tablas, cfg), .dl_regla_razones_sin_uso(tablas, cfg)))
 
 # Los sexos del modelo (cfg$sexos) en palabras del contrato: «hombres», «mujeres».
 .dl_sexos_modelo <- function(cfg) unname(.DL_SEXOS_CONTRATO[as.character(unlist(cfg$sexos))])
@@ -697,6 +697,67 @@ NULL
             format(signif(suma[[mal[1L]]], 6L)), if (length(por)) sprintf(" en %s %s", paste(por, collapse = ", "),
                                                                            names(suma)[mal[1L]]) else "")
   else character()
+}
+
+# Las razones de la causa de `cfg` en el año que se estima (filas de la tabla razones; sin la columna causa, todas).
+.dl_razones_del_anio <- function(razones, cfg) {
+  r <- .dl_filas_de_causa(razones, cfg$cause_id)
+  r[r$anio == .dl_anio_ajuste(cfg)]
+}
+
+# Las ubicaciones subnacionales de la población del año que se estima, en el orden de sus códigos (el del locale C:
+# el mismo en toda plataforma). Es el orden de las filas de la matriz de razones del reparto (R/razon.R).
+.dl_subnacionales_poblacion <- function(tablas, cfg) {
+  p <- tablas$poblacion
+  sort(unique(p$ubicacion[p$anio == .dl_anio_ajuste(cfg) & p$ubicacion != .dl_ubicacion_nacional(tablas)]),
+       method = "radix")
+}
+
+# razones (solo con subnacional.modo: razon): la causa trae, en el año que se estima, una razón por cada ubicación
+# subnacional de la población de ese año y de ninguna otra (la nacional sobra: el reparto cierra en ella); razon y
+# error_log son finitos (el problema dice qué columna no lo es en qué ubicación) y alguna razón es mayor que 0 (con
+# todas en 0 no hay nada que repartir). Sin el modo razon la tabla no se usa y nada de esto se comprueba.
+.dl_regla_razones <- function(tablas, cfg) {
+  if (!identical(cfg$origen$subnacional, "razon") || is.null(tablas$razones)) return(character())
+  anio <- .dl_anio_ajuste(cfg)
+  r <- .dl_razones_del_anio(tablas$razones, cfg)
+  if (!nrow(r))
+    return(sprintf(paste0("razones: no trae las razones de la causa %d de %d (el a\u00f1o que se estima; a\u00f1os ",
+                          "que trae: %s)"),
+                   cfg$cause_id, anio, .dl_lista(.dl_filas_de_causa(tablas$razones, cfg$cause_id)$anio)))
+  subs <- .dl_subnacionales_poblacion(tablas, cfg)
+  faltan <- setdiff(subs, r$ubicacion)
+  sobran <- setdiff(r$ubicacion, subs)
+  repetidas <- unique(r$ubicacion[duplicated(r$ubicacion)])
+  # cuál de las dos columnas no es finita en cada ubicación («razon en A; error_log en B»): la tabla sola deja
+  # pasar Inf
+  columnas <- c("razon", "error_log")
+  malas <- lapply(stats::setNames(columnas, columnas), function(k) r$ubicacion[!is.finite(r[[k]])])
+  no_finitas <- unique(unlist(malas, use.names = FALSE))
+  cuales <- vapply(columnas[lengths(malas) > 0L], function(k) sprintf("%s en %s", k, .dl_unos(malas[[k]])), "")
+  c(if (length(faltan))
+      sprintf(paste0("razones: falta la raz\u00f3n de %d de la(s) ubicaci\u00f3n(es) subnacional(es) %s: el reparto ",
+                     "necesita la de todas las de la poblaci\u00f3n de ese a\u00f1o"), anio, .dl_unos(faltan)),
+    if (length(sobran))
+      sprintf(paste0("razones: trae la raz\u00f3n de %d de %s, que no es/son ubicaci\u00f3n(es) subnacional(es) de ",
+                     "la poblaci\u00f3n de ese a\u00f1o: qu\u00edtala(s)"), anio, .dl_unos(sobran)),
+    if (length(repetidas))
+      sprintf(paste0("razones: m\u00e1s de una raz\u00f3n de %d para la(s) ubicaci\u00f3n(es) %s (una fila con la ",
+                     "causa %d y otra sin causa): deja una por ubicaci\u00f3n"), anio, .dl_unos(repetidas),
+              cfg$cause_id),
+    if (length(no_finitas))
+      sprintf("razones: razon y error_log deben ser n\u00fameros finitos (ubicaci\u00f3n(es) %s): %s",
+              .dl_unos(no_finitas), paste(cuales, collapse = "; ")),
+    if (!length(no_finitas) && all(r$razon == 0))
+      sprintf(paste0("razones: todas las razones de %d son 0: no hay casos que repartir; al menos una ubicaci\u00f3n ",
+                     "lleva una raz\u00f3n mayor que 0"), anio))
+}
+
+# Aviso: la tabla razones solo se usa con subnacional.modo: razon.
+.dl_regla_razones_sin_uso <- function(tablas, cfg) {
+  if (is.null(tablas$razones) || identical(cfg$origen$subnacional, "razon")) return(character())
+  sprintf(paste0("razones: la tabla no se usa: subnacional.modo es %s; para repartir por raz\u00f3n, ",
+                 "subnacional: {modo: razon}"), cfg$origen$subnacional)
 }
 
 # proxies_crudos y covariables: las filas subnacionales de una covariable vienen de una sola de las dos tablas (las de

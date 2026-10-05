@@ -524,10 +524,13 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #'    en el año del ancla (el suyo o, con `valor_nacional_de` y valores subnacionales de la covariable, el de la
 #'    covariable que nombra) y que `escala` vaya solo con la transformación lineal; que cada ubicación subnacional
 #'    con proxies los traiga de todas las covariables y que el valor nacional en que se anclan traiga su intervalo
-#'    (`inferior` y `superior`); que las proporciones de `severidad` sumen 1. Avisa (`!`) de una covariable con
+#'    (`inferior` y `superior`); que las proporciones de `severidad` sumen 1; con `subnacional.modo: razon`, que la
+#'    tabla `razones` traiga, en el año que se estima, la razón de cada ubicación subnacional de la población y de
+#'    ninguna otra, con números finitos y alguna razón mayor que 0. Avisa (`!`) de una covariable con
 #'    proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
-#'    subnacional) y de valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por persona-año
-#'    (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+#'    subnacional), de una tabla `razones` sin el modo `razon` (no se usa) y de valores de mortalidad de `datos` que
+#'    parecen tasas por 100 000 en vez de por persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla
+#'    en la misma causa, año, sexo y banda);
 #' 4. `insumos`: si nada falló, los insumos completos ([dl_insumos()]), con las reglas que necesitan todo armado: que
 #'    la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
 #'    población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la

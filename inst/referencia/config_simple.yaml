@@ -220,11 +220,12 @@ claves:
     defecto: >-
       covariables si alguna covariable de la tabla betas tiene filas subnacionales en la tabla covariables; si no, plano
       si la población trae otras ubicaciones; si no, no
-    vocabulario: [covariables, plano, "no"]
+    vocabulario: [covariables, plano, razon, "no"]
     ejemplo: plano
     descripcion: >-
       Estimación subnacional: covariables (gradiente por las covariables de la tabla betas), plano (las tasas nacionales en cada
-      ubicación) o no (sin estimación subnacional).
+      ubicación), razon (las tasas nacionales por la razón de cada ubicación, de la tabla razones, con cierre en el
+      nacional) o no (sin estimación subnacional).
 
   - clave: subnacional.kappa
     tipo: número

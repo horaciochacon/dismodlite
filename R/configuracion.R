@@ -48,7 +48,7 @@
   "cascada.heldout_anio", "cascada.heldout_anio.valor", "cascada.heldout_anio.procedencia",
   "cascada.dx_fuera_de_banda", "cascada.dx_fuera_de_banda.valor", "cascada.dx_fuera_de_banda.procedencia",
   "cascada.dx_interpolacion", "cascada.dx_interpolacion.valor", "cascada.dx_interpolacion.procedencia",
-  "cascada.modo", "cascada.modo.valor", "cascada.modo.procedencia",
+  "cascada.modo", "cascada.modo.valor", "cascada.modo.procedencia", "cascada.razon_semilla",
   "severidad", "severidad.fuente", "severidad.procedencia", "severidad.run_id", "severidad.padre",
   "sensibilidad", "sensibilidad.lambda", "sensibilidad.rho", "sensibilidad.kappa", "sensibilidad.fraccion_aguda",
   "suma", "suma.omitidas", "extraction", "extraction.cause_id", "extraction.motivo")
@@ -203,7 +203,7 @@
 #'   `anchor`, `medidas_entrada`, `cascada`, `transformaciones`, `covariables`, `severidad`, `sensibilidad`,
 #'   `decisiones` y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave del
 #'   proyecto sale cada una). La de un proyecto trae además `origen`: `formato` (`"simple"`), `archivo`, `nombre`
-#'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano` o `no`), `unidades`
+#'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano`, `razon` o `no`), `unidades`
 #'   (`"contrato"`: las tablas del proyecto ya vienen en las unidades del modelo), `betas` (la tabla `betas` de la
 #'   causa), `por_defecto` (las claves tomadas por defecto, con su valor, como texto) y `configuracion` (la
 #'   configuración del proyecto tal como se leyó, con los nombres de clave de ahora: la que la corrida congela en
@@ -373,7 +373,9 @@ NULL
     "la traducci\u00f3n al formato completo: la clave que citan los errores y que se puede ajustar en",
     "`avanzado`, con la forma del formato completo",
     "(`emr_prior.cota` es `[0, techo]`; `years.ancla` y `cascada.heldout_anio` son `{valor, procedencia}`;",
-    "`cascada.modo` solo admite `plana`), o el archivo de la traducci\u00f3n donde queda.")
+    "`cascada.modo` admite `plana` y `razon`), o el archivo de la traducci\u00f3n donde queda. La semilla del",
+    "sorteo de las razones (`subnacional.modo: razon`) es la de la corrida; otra se fija con",
+    "`avanzado: {cascada: {razon_semilla: <entero>}}`.")
   c("@section Claves de la configuraci\u00f3n de un proyecto:", rd(guia), "", "\\ifelse{html}{", tabla, "}{", lista, "}")
 }
 
@@ -620,13 +622,24 @@ NULL
     cfg$cascada$dx_interpolacion, "cascada.dx_interpolacion", c("lineal", "escalon"),
     paste0("valores admitidos: lineal (por defecto: la diferencia con el valor nacional, interpolada entre los ",
            "puntos medios de las bandas) o escalon (constante por banda; exige procedencia)"))
-  # Modo de la cascada: `proxy` (gradiente departamental por los proxies declarados) o `plana` (las tasas nacionales
+  # Modo de la cascada: `proxy` (gradiente departamental por los proxies declarados), `plana` (las tasas nacionales
   # por edad y sexo en cada departamento, dX = 0 en todas las covariables; los conteos cambian solo por la
-  # población). La plana es para causas cuyo ancla no tiene ninguna covariable con un proxy departamental defendible,
-  # y el manifiesto de la corrida la declara como limitación.
-  cfg$cascada$modo <- opcion(cfg$cascada$modo, "cascada.modo", c("proxy", "plana"),
-    paste0("valores admitidos: proxy (por defecto: gradiente por los proxies declarados) o plana (tasas nacionales en ",
-           "cada ubicaci\u00f3n subnacional; exige procedencia)"))
+  # población) o `razon` (la cascada plana y, después de los AVD, el reparto por la razón de cada ubicación de la
+  # tabla razones del proyecto: R/razon.R). La plana es para causas cuyo ancla no tiene ninguna covariable con un
+  # proxy departamental defendible; el manifiesto de la corrida declara la plana y la razón como limitación.
+  cfg$cascada$modo <- opcion(cfg$cascada$modo, "cascada.modo", c("proxy", "plana", "razon"),
+    paste0("valores admitidos: proxy (por defecto: gradiente por los proxies declarados), plana (tasas nacionales en ",
+           "cada ubicaci\u00f3n subnacional; exige procedencia) o razon (tasas nacionales por la raz\u00f3n de cada ",
+           "ubicaci\u00f3n de la tabla razones; exige procedencia)"))
+  # Semilla del sorteo de las razones (modo razon); sin ella, la de la cascada (la de la corrida en dl_correr()).
+  rs <- cfg$cascada$razon_semilla
+  if (!is.null(rs)) {
+    if (!.dl_es_entero1(rs) || rs < 0 || rs > .Machine$integer.max)
+      p("cascada.razon_semilla", "debe ser un entero no negativo: la semilla del sorteo de las razones")
+    else cfg$cascada$razon_semilla <- as.integer(rs)
+    if (!identical(cfg$cascada$modo$valor, "razon"))
+      p("cascada.razon_semilla", "solo se usa con cascada.modo: razon (subnacional.modo: razon en un proyecto)")
+  }
   # Sustitución declarada del valor nacional de referencia: la beta puede ser de una covariable por edad sin un
   # valor nacional único, y el proxy departamental se ancla entonces en la covariable hermana estandarizada por
   # edad. Con la beta en escala log el valor nacional se cancela en dX, así que la sustitución no mueve el
