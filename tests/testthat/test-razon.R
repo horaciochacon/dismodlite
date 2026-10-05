@@ -50,6 +50,43 @@ test_that("modo razon sin la tabla razones, o con covariables subnacionales, es 
   expect_match(e$problemas, "el reparto por razón no usa covariables")
 })
 
+test_that("subnacional.modo y avanzado: cascada: modo no pueden discrepar respecto de razon", {
+  remedio <- "declara el modo en `subnacional.modo`; `avanzado: cascada: modo` no puede cambiarlo a/desde `razon`"
+  # plano en subnacional.modo y razon por avanzado (sin la tabla razones): antes se leía sin error ni aviso
+  d <- proyecto_razon(config = c("avanzado:", "  cascada:", "    modo: {valor: razon, procedencia: x}",
+                                 "    razon_semilla: 7"))
+  cfg <- readLines(file.path(d, "config.yaml"))
+  writeLines(sub("^  modo: razon", "  modo: plano", cfg), file.path(d, "config.yaml"))
+  unlink(file.path(d, "razones.csv"))
+  e <- expect_error(dl_proyecto(d), class = "dl_error")
+  expect_identical(e$problemas, paste0("subnacional.modo: es plano y `avanzado: cascada: modo` es razon: ", remedio))
+  r <- revisar_callado(d)
+  expect_match(r$detalle[r$paso == "configuración" & r$estado == "error"],
+               "subnacional.modo: es plano y `avanzado: cascada: modo` es razon")
+  # el modo deducido (sin subnacional.modo) tampoco puede cambiarse a razon, ni con el valor suelto
+  writeLines(c("causa: 7001", "anio: 2023", "edad_inicio: 40", "avanzado:", "  cascada:", "    modo: razon"),
+             file.path(d, "config.yaml"))
+  e <- expect_error(dl_proyecto(d), class = "dl_error")
+  expect_identical(e$problemas, paste0("subnacional.modo: es plano y `avanzado: cascada: modo` es razon: ", remedio))
+  # al revés: razon en subnacional.modo y plana por avanzado
+  d <- proyecto_razon(config = c("avanzado:", "  cascada:", "    modo: {valor: plana, procedencia: x}"))
+  e <- expect_error(dl_proyecto(d), class = "dl_error")
+  expect_identical(e$problemas, paste0("subnacional.modo: es razon y `avanzado: cascada: modo` es plana: ", remedio))
+  r <- revisar_callado(d)
+  expect_match(r$detalle[r$paso == "configuración" & r$estado == "error"],
+               "subnacional.modo: es razon y `avanzado: cascada: modo` es plana")
+  # coherente: razon en subnacional.modo, la semilla por avanzado (y el mismo modo repetido en avanzado)
+  d <- proyecto_razon(config = c("avanzado:", "  cascada:", "    modo: {valor: razon, procedencia: x}",
+                                 "    razon_semilla: 7"))
+  p <- dl_proyecto(d)
+  expect_identical(p$configuracion$cascada$modo$valor, "razon")
+  expect_identical(p$configuracion$cascada$razon_semilla, 7L)
+  # el formato completo no cambia: cascada.modo: razon sigue siendo un valor admitido
+  completa <- dl_configuracion(9100L, file.path(ruta_acs(), "config"), cambios = list(
+    cascada = list(modo = list(valor = "razon", procedencia = "x"), razon_semilla = 7)))
+  expect_identical(completa$cascada$modo$valor, "razon")
+})
+
 test_that("la tabla razones debe traer todas las ubicaciones subnacionales del año, y solo ellas", {
   d <- proyecto_razon()
   rz <- razones_de(d)
@@ -87,6 +124,10 @@ test_that("la tabla razones debe traer todas las ubicaciones subnacionales del a
   # las razones de otra causa no cuentan: la causa se queda sin razones del año
   expect_match(problemas(data.table::copy(rz)[, causa := "7002"]),
                "^razones: no trae las razones de la causa 7001 de 2023 .*años que trae: ninguno\\)$")
+  # sin la población del año que se estima la regla calla: el problema es de la población, no «quítala(s)»
+  d2 <- proyecto_razon(anios = 2024L, anios_poblacion = 2023L)
+  e <- expect_error(suppressMessages(dl_proyecto(d2, anio = 2024)), class = "dl_error")
+  expect_match(e$problemas, "^poblacion: ", all = TRUE)
   # la revisión lo dice en el paso «proyecto», sin detenerse
   escribir_texto(rz[ubicacion != "B"], d, "razones.csv")
   r <- revisar_callado(d)

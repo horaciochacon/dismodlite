@@ -83,7 +83,7 @@ Todas las claves, con su valor por defecto, están en la tabla de la sección si
 
 \section{Claves de la configuración de un proyecto}{
 
-Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es el valor de la clave cuando la configuración no la trae; «Formato completo», dónde queda el valor en la traducción al formato completo: la clave que citan los errores y que se puede ajustar en \code{avanzado}, con la forma del formato completo (\code{emr_prior.cota} es \code{[0, techo]}; \code{years.ancla} y \code{cascada.heldout_anio} son \code{\{valor, procedencia\}}; \code{cascada.modo} admite \code{plana} y \code{razon}), o el archivo de la traducción donde queda. La semilla del sorteo de las razones (\code{subnacional.modo: razon}) es la de la corrida; otra se fija con \code{avanzado: \{cascada: \{razon_semilla: <entero>\}\}}.
+Entre paréntesis, el símbolo del parámetro en el modelo. «Por defecto» es el valor de la clave cuando la configuración no la trae; «Formato completo», dónde queda el valor en la traducción al formato completo: la clave que citan los errores y que se puede ajustar en \code{avanzado}, con la forma del formato completo (\code{emr_prior.cota} es \code{[0, techo]}; \code{years.ancla} y \code{cascada.heldout_anio} son \code{\{valor, procedencia\}}; \code{cascada.modo} solo admite \code{plana}), o el archivo de la traducción donde queda. El reparto por razón se declara solo con \code{subnacional.modo: razon}: \code{avanzado: \{cascada: \{modo: \}\}} no puede cambiar el modo a \code{razon} ni desde \code{razon}. La semilla del sorteo de las razones es la de la corrida; otra se fija con \code{avanzado: \{cascada: \{razon_semilla: <entero>\}\}}.
 
 \ifelse{html}{
 \tabular{lllll}{

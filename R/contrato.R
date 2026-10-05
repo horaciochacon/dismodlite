@@ -716,7 +716,8 @@ NULL
 # razones (solo con subnacional.modo: razon): la causa trae, en el año que se estima, una razón por cada ubicación
 # subnacional de la población de ese año y de ninguna otra (la nacional sobra: el reparto cierra en ella); razon y
 # error_log son finitos (el problema dice qué columna no lo es en qué ubicación) y alguna razón es mayor que 0 (con
-# todas en 0 no hay nada que repartir). Sin el modo razon la tabla no se usa y nada de esto se comprueba.
+# todas en 0 no hay nada que repartir). Sin el modo razon la tabla no se usa y nada de esto se comprueba; tampoco si
+# la población no trae ubicaciones subnacionales de ese año (eso lo dice la regla de la población).
 .dl_regla_razones <- function(tablas, cfg) {
   if (!identical(cfg$origen$subnacional, "razon") || is.null(tablas$razones)) return(character())
   anio <- .dl_anio_ajuste(cfg)
@@ -726,6 +727,9 @@ NULL
                           "que trae: %s)"),
                    cfg$cause_id, anio, .dl_lista(.dl_filas_de_causa(tablas$razones, cfg$cause_id)$anio)))
   subs <- .dl_subnacionales_poblacion(tablas, cfg)
+  # sin ubicaciones subnacionales en la población de ese año no hay con qué comparar: el problema es de la
+  # población (.dl_regla_poblacion lo dice), no de las filas de razones
+  if (!length(subs)) return(character())
   faltan <- setdiff(subs, r$ubicacion)
   sobran <- setdiff(r$ubicacion, subs)
   repetidas <- unique(r$ubicacion[duplicated(r$ubicacion)])

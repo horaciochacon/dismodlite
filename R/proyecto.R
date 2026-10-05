@@ -257,10 +257,9 @@
 # Lo que la traducción de la configuración de `causa` toma de las tablas (.dl_traducir_config_simple): la ubicación
 # nacional (la que no tiene padre en ubicaciones), las betas de la causa (las de `padre` si es un subtipo sin betas
 # propias), las covariables con filas subnacionales, si hay ubicaciones subnacionales, si está la tabla razones, el
-# nombre de la causa en el
-# ancla, la causa padre, los años con prevalencia de la causa en el ancla (para el año del ancla), las causas con filas
-# en la tabla betas, el covariate_id de cada covariable (para valor_nacional_de) y los location_id de GBD que los
-# lectores tomaron como el país (ubicacion_gbd; vacío si ninguna tabla vino de una descarga).
+# nombre de la causa en el ancla, la causa padre, los años con prevalencia de la causa en el ancla (para el año del
+# ancla), las causas con filas en la tabla betas, el covariate_id de cada covariable (para valor_nacional_de) y los
+# location_id de GBD que los lectores tomaron como el país (ubicacion_gbd; vacío si ninguna tabla vino de una descarga).
 .dl_contexto_tablas <- function(tablas, causa, padre = NULL) {
   nacional <- .dl_ubicacion_nacional(tablas)
   betas <- .dl_betas_de_causa(tablas$betas, causa, padre)

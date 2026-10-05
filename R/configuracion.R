@@ -373,8 +373,9 @@ NULL
     "la traducci\u00f3n al formato completo: la clave que citan los errores y que se puede ajustar en",
     "`avanzado`, con la forma del formato completo",
     "(`emr_prior.cota` es `[0, techo]`; `years.ancla` y `cascada.heldout_anio` son `{valor, procedencia}`;",
-    "`cascada.modo` admite `plana` y `razon`), o el archivo de la traducci\u00f3n donde queda. La semilla del",
-    "sorteo de las razones (`subnacional.modo: razon`) es la de la corrida; otra se fija con",
+    "`cascada.modo` solo admite `plana`), o el archivo de la traducci\u00f3n donde queda. El reparto por raz\u00f3n",
+    "se declara solo con `subnacional.modo: razon`: `avanzado: {cascada: {modo: }}` no puede cambiar el modo a",
+    "`razon` ni desde `razon`. La semilla del sorteo de las razones es la de la corrida; otra se fija con",
     "`avanzado: {cascada: {razon_semilla: <entero>}}`.")
   c("@section Claves de la configuraci\u00f3n de un proyecto:", rd(guia), "", "\\ifelse{html}{", tabla, "}{", lista, "}")
 }
@@ -622,11 +623,11 @@ NULL
     cfg$cascada$dx_interpolacion, "cascada.dx_interpolacion", c("lineal", "escalon"),
     paste0("valores admitidos: lineal (por defecto: la diferencia con el valor nacional, interpolada entre los ",
            "puntos medios de las bandas) o escalon (constante por banda; exige procedencia)"))
-  # Modo de la cascada: `proxy` (gradiente departamental por los proxies declarados), `plana` (las tasas nacionales
-  # por edad y sexo en cada departamento, dX = 0 en todas las covariables; los conteos cambian solo por la
+  # Modo de la cascada: `proxy` (gradiente subnacional por los proxies declarados), `plana` (las tasas nacionales
+  # por edad y sexo en cada ubicación subnacional, dX = 0 en todas las covariables; los conteos cambian solo por la
   # población) o `razon` (la cascada plana y, después de los AVD, el reparto por la razón de cada ubicación de la
   # tabla razones del proyecto: R/razon.R). La plana es para causas cuyo ancla no tiene ninguna covariable con un
-  # proxy departamental defendible; el manifiesto de la corrida declara la plana y la razón como limitación.
+  # proxy subnacional defendible; el manifiesto de la corrida declara la plana y la razón como limitación.
   cfg$cascada$modo <- opcion(cfg$cascada$modo, "cascada.modo", c("proxy", "plana", "razon"),
     paste0("valores admitidos: proxy (por defecto: gradiente por los proxies declarados), plana (tasas nacionales en ",
            "cada ubicaci\u00f3n subnacional; exige procedencia) o razon (tasas nacionales por la raz\u00f3n de cada ",

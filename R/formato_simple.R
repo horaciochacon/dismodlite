@@ -553,6 +553,22 @@
   s
 }
 
+# El modo razón tiene una sola fuente en un proyecto: subnacional.modo (el declarado o el deducido, origen$subnacional),
+# que es quien exige la tabla razones y decide si corren sus reglas (.dl_regla_razones). Error si, fundidas las claves
+# del formato completo de `donde` («avanzado: cascada: modo» o «cambios: cascada: modo»), cascada.modo (con la forma
+# {valor, procedencia} o el valor suelto) es razon y subnacional.modo no, o al revés.
+.dl_exigir_modo_razon_coherente <- function(cfg, archivo, donde) {
+  m <- cfg$cascada$modo
+  efectivo <- as.character(unlist(if (is.list(m)) m$valor else m))
+  if (length(efectivo) != 1L) return(invisible())      # sin modo (proxy) o con una forma que el validador rechaza
+  declarado <- cfg$origen$subnacional
+  if (identical(efectivo, "razon") != identical(declarado, "razon"))
+    .dl_stop_config_simple(archivo, sprintf(paste0(
+      "subnacional.modo: es %s y `%s` es %s: declara el modo en `subnacional.modo`; `%s` no puede cambiarlo ",
+      "a/desde `razon`"), declarado, donde, efectivo, donde))
+  invisible()
+}
+
 # Configuración simple `s` (de `archivo`) -> dl_config, con lo que toma de las tablas del proyecto (`contexto`, ver
 # .dl_traducir_config_simple), validado por el validador completo con los errores citados por la clave simple.
 # `cambios` (claves del formato completo) van después de `avanzado`.
@@ -562,7 +578,9 @@
   cfg <- .dl_traducir_config_simple(s, archivo, contexto)
   cfg <- tryCatch(.dl_fundir_cambios(cfg, s[["avanzado"]]),
                   dl_error = function(e) .dl_stop_config_simple(archivo, paste("avanzado:", .dl_detalle(e))))
+  .dl_exigir_modo_razon_coherente(cfg, archivo, "avanzado: cascada: modo")
   cfg <- .dl_fundir_cambios(cfg, cambios)
+  .dl_exigir_modo_razon_coherente(cfg, archivo, "cambios: cascada: modo")
   v <- .dl_validar_config(cfg, causa)
   if (length(v$problemas))
     .dl_stop_config_simple(archivo, .dl_problema_en_simple(v$campos, v$mensajes, s))
