@@ -37,7 +37,7 @@ la suma de sus subtipos no se ajusta y no la usa.}
 
 \item{opciones}{Opciones de \code{\link[=dl_opciones_mcmc]{dl_opciones_mcmc()}} del ajuste nacional; \code{NULL} (por defecto) usa las de producción
 o, con \code{rapido = TRUE}, las cortas. Con \code{rapido = TRUE}, las \code{opciones} que se den reemplazan a las cortas y la
-corrida sigue siendo una prueba.}
+corrida sigue siendo una prueba. Su \code{motor} y sus \code{nucleos} valen también para la sensibilidad (ver Detalles).}
 
 \item{registro}{Archivo YAML del registro de corridas, que ya existe (uno nuevo es un archivo con la línea
 \verb{datasets: []}): la corrida se agrega al final. Se comprueba antes de ajustar. \code{NULL} (por defecto) no registra.}
@@ -72,10 +72,14 @@ Los pasos, en orden:
 \enumerate{
 \item los insumos (\code{\link[=dl_proyecto]{dl_proyecto()}} y \code{\link[=dl_insumos]{dl_insumos()}});
 \item el ajuste nacional (\code{\link[=dl_ajustar]{dl_ajustar()}}) y el ajuste solo con el ancla (\code{\link[=dl_ajustar_solo_prior]{dl_ajustar_solo_prior()}});
-\item la cascada subnacional (\code{\link[=dl_cascada]{dl_cascada()}}), si hay proxies del año que se estima o \code{subnacional.modo: plano}
-(\code{cascada.modo: plana} en el formato completo); si no, un mensaje lo dice y la corrida es solo nacional;
+\item la cascada subnacional (\code{\link[=dl_cascada]{dl_cascada()}}), si hay proxies del año que se estima o \code{subnacional.modo} es \code{plano}
+o \code{razon} (\code{cascada.modo: plana} o \code{razon} en el formato completo); si no, un mensaje lo dice y la corrida es
+solo nacional;
 \item la validación contra el ancla (\code{\link[=dl_validar_ancla]{dl_validar_ancla()}});
-\item el factor de comorbilidad (\code{\link[=dl_factor_comorbilidad]{dl_factor_comorbilidad()}}, si el ancla trae AVD) y los AVD (\code{\link[=dl_avd]{dl_avd()}});
+\item el factor de comorbilidad (\code{\link[=dl_factor_comorbilidad]{dl_factor_comorbilidad()}}, si el ancla trae AVD), los AVD (\code{\link[=dl_avd]{dl_avd()}}) y, con
+\code{subnacional.modo: razon}, el reparto por razón (\code{\link[=dl_repartir_razon]{dl_repartir_razon()}}), con la semilla de la corrida o la de
+\code{avanzado: {cascada: {razon_semilla: ...}}}: las tasas subnacionales de la corrida son las repartidas, y la
+validación, las etiquetas y la sensibilidad son las del ajuste nacional;
 \item las etiquetas de cuánto informan los datos (\code{\link[=dl_etiquetas]{dl_etiquetas()}}), con la grilla de \code{sensibilidad.correlacion_edad}
 de la configuración;
 \item la sensibilidad (\code{\link[=dl_sensibilidad]{dl_sensibilidad()}}) con la grilla \code{sensibilidad} de la configuración, si
@@ -85,7 +89,11 @@ con \code{registro}, la corrida queda además en el registro de corridas.
 }
 
 Por defecto las cadenas son las de producción de \code{\link[=dl_opciones_mcmc]{dl_opciones_mcmc()}}: 1000 simulaciones, 4 cadenas de 50 000
-iteraciones con 10 000 de calentamiento, motor \code{"mh"}; la sensibilidad usa las de \code{\link[=dl_sensibilidad]{dl_sensibilidad()}}.
+iteraciones con 10 000 de calentamiento, motor \code{"mh"}. La sensibilidad usa sus propias cadenas, las de
+\code{\link[=dl_sensibilidad]{dl_sensibilidad()}} (200 simulaciones, 2 cadenas de 6000 iteraciones con 3000 de calentamiento), con el \code{motor} de
+\code{opciones} y con sus \code{nucleos} como \code{procesos}: reparten las combinaciones de la grilla, y el resultado no depende
+de cuántos sean. Las etiquetas hacen sus reajustes con las cadenas cortas de \code{\link[=dl_etiquetas]{dl_etiquetas()}} y el motor del
+ajuste.
 
 La corrida no se escribe en dos casos, que \code{dl_correr()} comprueba en cuanto puede, con las mismas compuertas que
 \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}. Si las cadenas no convergieron (R-hat < 1.01 y ESS >= 400), justo después del ajuste:

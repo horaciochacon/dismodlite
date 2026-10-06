@@ -31,7 +31,8 @@ donde sigma_p y sigma_csmr son las desviaciones estándar en log del ancla (sigm
 de la banda del ancla que lo contiene (un nudo fuera de las bandas, el de la más cercana, con el doble de
 desviación estándar) y log f queda truncado bajo el techo de la mortalidad en exceso (\code{mortalidad_exceso.techo} o,
 sin él, 3 veces el máximo de csmr / p del ancla). Con \code{mortalidad_exceso.prior: plano} el prior de log f es plano
-bajo el techo y esta tabla no se usa.
+bajo el techo y esta tabla no se usa. Con \code{mortalidad_exceso.prior: cero} la mortalidad en exceso está fija en 0,
+no hay prior y esta función se detiene con un error.
 }
 \examples{
 b <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))

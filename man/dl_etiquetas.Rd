@@ -27,7 +27,8 @@ defecto, la grilla \code{sensibilidad.correlacion_edad} de la configuración.}
 \item{semilla}{Semilla (entero), obligatoria: el resultado es reproducible con la misma semilla.}
 
 \item{opciones}{Opciones de \code{\link[=dl_opciones_mcmc]{dl_opciones_mcmc()}} de los reajustes por rho (por defecto, cadenas cortas: 2 de
-6000 iteraciones con 3000 de calentamiento).}
+6000 iteraciones con 3000 de calentamiento y adelgazamiento 10, sea cual sea el del ajuste, con el motor del
+ajuste; guardan 600 simulaciones, y de ellas se toman a lo sumo las del ajuste).}
 
 \item{cascada}{Cascada de \code{\link[=dl_cascada]{dl_cascada()}} (opcional): agrega las celdas subnacionales.}
 }

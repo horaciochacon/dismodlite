@@ -187,6 +187,7 @@ dl_validar_tabla <- function(datos, tabla, esquema = dl_esquema(), contexto = li
   dl_fit = "un ajuste (de dl_ajustar())",
   dl_yld = "un resultado de dl_avd()",
   dl_resumen = "un resumen (de dl_resumir())",
+  dl_reparto = "un reparto por raz\u00f3n (de dl_repartir_razon())",
   dl_run = "una corrida (de dl_exportar_corrida())",
   dl_schema = "un esquema (de dl_esquema())")
 

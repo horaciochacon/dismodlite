@@ -182,11 +182,16 @@ población**:
 
 $$
 q = \sum_{a \in A} w_a\, x(a), \qquad A = \{a \text{ entera} : \text{inicio} \le a < \text{fin}\}, \qquad
-w_a = \frac{N_{b(a)}}{\sum_{a' \in A} N_{b(a')}},
+w_a = \frac{N_{b(a)} / n_{b(a)}}{\sum_{a' \in A} N_{b(a')} / n_{b(a')}},
 $$
 
-donde $N_{b(a)}$ es la población de la banda fina de la tabla de población que contiene la edad $a$. La cantidad
-$x(a)$ depende de lo que se compara:
+donde $N_{b(a)}$ es la población de la banda fina de la tabla de población que contiene la edad $a$ y $n_{b(a)}$,
+el número de edades del modelo que caen en esa banda (de todas las del modelo, no solo las del intervalo): cada edad
+lleva su parte de la población de su banda. Si el intervalo cabe en una sola banda, todas sus edades pesan igual; si
+cruza bandas con el mismo número de edades (varios quinquenios), $n_b$ se cancela y
+$w_a = N_{b(a)} / \sum_{a' \in A} N_{b(a')}$. Si cruza bandas con distinto número de edades (un dato de 60 años y
+más sobre bandas de cinco años y una de 80 y más), una banda completa cuenta por su población, no por su población
+multiplicada por su número de edades. La cantidad $x(a)$ depende de lo que se compara:
 
 | Medida | $x(a)$ | Qué es |
 |---|---|---|
@@ -239,6 +244,11 @@ $$
 Además, $f$ está acotada por un **techo** $f_{max}$ (`mortalidad_exceso.techo`; por defecto, 3 veces la mayor
 $\text{csmr}/p$ del ancla): fuera de la cota, la log-posterior es $-\infty$. Con `mortalidad_exceso.prior: plano`,
 $L_{emr} = 0$ y solo queda la cota, con $\log f$ uniforme entre $\log f_{max} - \log 1000$ y $\log f_{max}$.
+
+Para una causa que no aporta muertes, `mortalidad_exceso.prior: cero` fija $f(a) = 0$ y no la estima: $\theta$ es solo
+$\log i$ en los nudos, la ecuación se resuelve con $f = 0$ ($dp/da = i\,(1 - p) - r\,p$) y $L_{emr} = 0$, sin cota. No
+usa la mortalidad del ancla. Sin esta opción, una causa sin muertes dejaría $\log f$ sin información: sus cadenas
+recorrerían el prior y no convergerían. En la estimación subnacional, $f$ es 0 en toda ubicación.
 
 El prior del ejemplo, en muertes por 1000 personas-año con la enfermedad (`dl_prior_emr()`):
 
@@ -361,7 +371,14 @@ cada sexo y cada simulación $k$:
    de modo que la suma ponderada por población de las ubicaciones es exactamente la nacional. Si algún $p_d$ queda
    fuera de $[0, 1]$, es un error.
 
-Con `subnacional.modo: plano`, cada ubicación recibe las tasas nacionales. Los datos subnacionales de la tabla `datos` del
+Con `subnacional.modo: plano`, cada ubicación recibe las tasas nacionales. Con `subnacional.modo: razon` también, y
+después de los AVD cada medida $q$ (prevalencia, incidencia y AVD por banda) se reparte con la razón de cada ubicación
+(tabla `razones`): con $R_{dj} = \text{razon}_d \exp(\text{error\_log}_d\, z_{dj})$ y $z_{dj} \sim N(0, 1)$, una
+vez por ubicación $d$ y simulación $j$ (la misma en todas las edades, los dos sexos y las tres medidas),
+$$
+q_{dj} = q_{nac,j}\, \frac{R_{dj}\, N_{nac}}{\sum_d R_{dj}\, N_d},
+$$
+de modo que la suma ponderada por población de las ubicaciones es exactamente la nacional (`dl_repartir_razon()`). Los datos subnacionales de la tabla `datos` del
 año `subnacional.anio_validacion` no entran al ajuste: los de mortalidad sirven para validar la estimación
 subnacional (`dl_validar_ancla()`).
 

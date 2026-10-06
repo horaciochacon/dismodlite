@@ -321,6 +321,30 @@ falta); con detalle de \code{ambos}, se agrupan como las de cada sexo.
 }
 }
 
+\section{Tabla \code{razones}}{
+
+\ifelse{html}{
+\tabular{llll}{
+\strong{columna} \tab \strong{tipo} \tab \strong{exige} \tab \strong{qué es}\cr
+\code{causa} \tab entero \tab no \tab Causa; sin la columna, todas\cr
+\code{ubicacion} \tab texto \tab sí \tab Ubicación subnacional\cr
+\code{anio} \tab entero \tab sí \tab Año que se estima\cr
+\code{razon} \tab número \tab sí \tab Razón entre la tasa de la ubicación y la nacional (0: la ubicación queda sin casos)\cr
+\code{error_log} \tab número \tab sí \tab Error estándar del logaritmo de la razón (0: la razón no se sortea)\cr
+\code{fuente} \tab texto \tab no \tab De dónde sale la razón\cr
+}
+}{
+\describe{
+\item{\code{causa}}{Causa; sin la columna, todas. Entero, opcional.}
+\item{\code{ubicacion}}{Ubicación subnacional. Texto, obligatoria.}
+\item{\code{anio}}{Año que se estima. Entero, obligatoria.}
+\item{\code{razon}}{Razón entre la tasa de la ubicación y la nacional (0: la ubicación queda sin casos). Número, obligatoria.}
+\item{\code{error_log}}{Error estándar del logaritmo de la razón (0: la razón no se sortea). Número, obligatoria.}
+\item{\code{fuente}}{De dónde sale la razón. Texto, opcional.}
+}
+}
+}
+
 \seealso{
 \code{\link[=dl_tabla]{dl_tabla()}}, \code{\link[=dl_plantilla]{dl_plantilla()}}, \code{\link[=dl_proyecto]{dl_proyecto()}}.
 

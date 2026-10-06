@@ -2,7 +2,8 @@
 #
 #   log posterior(theta) = L_suavidad + L_emr + L_ancla + L_datos  (+ constantes omitidas)
 #
-#   theta = (log i en los nudos, log f en los nudos); q = cantidad del modelo promediada en una banda de edad:
+#   theta = (log i en los nudos, log f en los nudos); con la EMR fija en cero (emr_prior.tipo cero), theta = (log i
+#   en los nudos) y f = 0. q = cantidad del modelo promediada en una banda de edad:
 #   promedio de la cantidad anual (p, i (1 - p) o p f) en las edades enteras de [inicio, fin), ponderado por la
 #   población de cada edad (.dl_pesos_intervalo y .dl_q_intervalos en R/bandas.R): una cuadratura por rectángulos
 #   de paso 1 año con la cantidad en la edad exacta a, no a mitad del año de edad (ver la cabecera de R/bandas.R).
@@ -20,6 +21,7 @@
 #   pendiente de log i entre nudos, porque solo penaliza la curvatura; la posterior es propia por el ancla. log f:
 #   normal por nudo truncada a [cota_min, cota_max] (prior informativo) o plana en log f dentro de la cota
 #   (plano_cota). Como las filas de W son no negativas y suman 1, la cota en los nudos acota f en toda la malla h/2.
+#   Con la EMR fija en cero no hay log f: L_emr = 0, sin truncamiento, y la EDO corre con f = 0 exacto.
 #
 # Constantes omitidas porque no dependen de theta (el cociente de Metropolis-Hastings no las ve): la de
 # normalización del truncamiento del prior de EMR, lchoose(n, x) de la binomial y -lgamma(x + 1) de la Poisson.
@@ -97,11 +99,13 @@
 # superior con R = U'U.
 .dl_chol_ar1 <- function(n, rho) chol(rho^abs(outer(seq_len(n), seq_len(n), "-")))
 
-# Prior de EMR en los nudos (R/emr.R): plano dentro del techo (emr_prior.tipo plano_cota) o informativo,
-# log(csmr / prevalencia) del ancla por banda. list(mu_log, sd_log, cota = c(mínimo, máximo), plano).
+# Prior de EMR en los nudos (R/emr.R): fija en cero (emr_prior.tipo cero, sin log f en theta), plano dentro del techo
+# (plano_cota) o informativo, log(csmr / prevalencia) del ancla por banda. list(mu_log, sd_log,
+# cota = c(mínimo, máximo), plano), y cero = TRUE con la EMR fija en cero.
 .dl_ctx_emr <- function(b, sexo, nudos) {
   cfg <- b$cfg
-  if (identical(cfg$emr_prior$tipo, "plano_cota")) .dl_emr_plano(nudos, cfg$emr_prior$cota)
+  if (.dl_emr_es_cero(cfg)) .dl_emr_cero()
+  else if (identical(cfg$emr_prior$tipo, "plano_cota")) .dl_emr_plano(nudos, cfg$emr_prior$cota)
   else .dl_emr_en_nudos(.dl_prior_emr_tabla(b$prior_gbd, cfg)[sex_id == sexo], nudos, cfg$emr_prior$cota)
 }
 
@@ -128,7 +132,7 @@
 #   ancla = list(bandas, chol_R, lambda)   bandas del ancla, chol de su correlación AR(1) y peso lambda (power prior)
 #   pesos_ancla, pesos_datos               pesos de población (la de la ubicación del ancla) de cada banda del ancla
 #                                          y de cada dato
-#   emr                                    prior de EMR en los nudos y su cota
+#   emr                                    prior de EMR en los nudos y su cota (emr$cero: EMR fija en cero)
 #   r_media                                r en la malla h/2 (.dl_remision_por_edad)
 #   sigma_suavidad                         escala del prior de suavidad
 #   datos, datos_por_tipo                  datos locales (.dl_datos_verosimilitud) y los mismos separados por tipo
@@ -164,11 +168,14 @@
 # ---- Solución de la EDO en un contexto ----
 
 # theta -> log i, log f en la malla h/2:  log i = W theta_i,  log f = W theta_f  (W de .dl_base_interp).
+# Con la EMR fija en cero theta solo trae log i y log f = -Inf en toda la malla: f = exp(-Inf) = 0 exacto, y ni un
+# desplazamiento de la cascada (-Inf + delta = -Inf) ni su techo (-Inf nunca lo supera) la mueven.
 # Devuelve list(log_i, log_f). Gemela en C++: el producto por W de tasas_media().
 .dl_log_tasas_media <- function(theta, ctx) {
   n_nudos <- length(ctx$nudos)
-  list(log_i = as.vector(ctx$W %*% theta[seq_len(n_nudos)]),
-       log_f = as.vector(ctx$W %*% theta[n_nudos + seq_len(n_nudos)]))
+  log_i <- as.vector(ctx$W %*% theta[seq_len(n_nudos)])
+  if (.dl_ctx_emr_cero(ctx)) return(list(log_i = log_i, log_f = rep(-Inf, length(log_i))))
+  list(log_i = log_i, log_f = as.vector(ctx$W %*% theta[n_nudos + seq_len(n_nudos)]))
 }
 
 # log i, log f en la malla h/2 -> p, i, f en las edades enteras, con la malla y r del contexto:
@@ -276,18 +283,23 @@
 # log posterior(theta) por términos, con los nombres de .DL_LP_NOMBRES:
 #   total = suavidad + emr + ancla + datos (en ese orden); datos = suma de los términos por tipo.
 #   Algún f de los nudos fuera de la cota => todos -Inf (truncamiento del prior de EMR).
+#   Con la EMR fija en cero (ctx$emr$cero) theta no trae log f: no hay truncamiento y emr = 0.
 #   Algún q del ancla no finito o <= 0 (p no finito por desborde de exp con priors casi planos) => ancla, datos,
 #   total y datos por tipo -Inf: el candidato se rechaza sin error. q >= 1 en la binomial (p > 1 por inestabilidad
 #   de RK4 con i h grande) da NaN en datos y en total: sin control (ver .dl_lp_datos).
 # Gemela en C++: dl_lp_core().
 .dl_lp_componentes <- function(theta, ctx) {
   n_nudos <- length(ctx$nudos)
-  log_i_nudos <- theta[seq_len(n_nudos)]; log_f_nudos <- theta[n_nudos + seq_len(n_nudos)]
-  if (.dl_f_fuera_de_cota(log_f_nudos, ctx$emr$cota))
-    return(stats::setNames(rep(-Inf, length(.DL_LP_NOMBRES)), .DL_LP_NOMBRES))
+  emr_cero <- .dl_ctx_emr_cero(ctx)
+  log_i_nudos <- theta[seq_len(n_nudos)]
+  if (!emr_cero) {
+    log_f_nudos <- theta[n_nudos + seq_len(n_nudos)]
+    if (.dl_f_fuera_de_cota(log_f_nudos, ctx$emr$cota))
+      return(stats::setNames(rep(-Inf, length(.DL_LP_NOMBRES)), .DL_LP_NOMBRES))
+  }
   sol <- .dl_edo_ctx(theta, ctx)
   lp_suav <- .dl_lp_suavidad(log_i_nudos, ctx$sigma_suavidad)
-  lp_emr <- .dl_lp_prior_emr(log_f_nudos, ctx$emr)
+  lp_emr <- if (emr_cero) 0 else .dl_lp_prior_emr(log_f_nudos, ctx$emr)
   q_ancla <- .dl_q_intervalos(sol$p, ctx$pesos_ancla)
   if (any(!is.finite(q_ancla)) || any(q_ancla <= 0))
     return(stats::setNames(c(lp_suav, lp_emr, rep(-Inf, length(.DL_LP_NOMBRES) - 2L)), .DL_LP_NOMBRES))
@@ -302,8 +314,11 @@
 .dl_log_post <- function(theta, ctx) unname(.dl_lp_componentes(theta, ctx)["total"])
 
 # Punto inicial de las cadenas: log i = .DL_LOG_I_INICIAL en todos los nudos y log f = la media del prior de EMR,
-# pero al menos .DL_MARGEN_LOG_F_INICIAL bajo log(techo). Nombres logi_<nudo> y logf_<nudo>.
+# pero al menos .DL_MARGEN_LOG_F_INICIAL bajo log(techo). Nombres logi_<nudo> y logf_<nudo>. Con la EMR fija en cero,
+# solo log i (logi_<nudo>).
 .dl_theta_inicial <- function(ctx) {
+  if (.dl_ctx_emr_cero(ctx))
+    return(stats::setNames(rep(.DL_LOG_I_INICIAL, length(ctx$nudos)), paste0("logi_", ctx$nudos)))
   log_f0 <- pmin(ctx$emr$mu_log, log(ctx$emr$cota[2]) - .DL_MARGEN_LOG_F_INICIAL)
   theta0 <- c(rep(.DL_LOG_I_INICIAL, length(ctx$nudos)), log_f0)
   names(theta0) <- c(paste0("logi_", ctx$nudos), paste0("logf_", ctx$nudos))

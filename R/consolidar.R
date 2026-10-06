@@ -10,14 +10,34 @@
   a$fecha > b$fecha || (a$fecha == b$fecha && a$v > b$v)
 }
 
+# `ajuste_directo` de dl_consolidado_seleccionar() y dl_consolidar(): causas (enteros positivos, sin repetir) que
+# están entre las `causas` pedidas, si se piden. Devuelve los enteros (ninguno: integer()).
+.dl_exigir_ajuste_directo <- function(ajuste_directo, causas = NULL) {
+  x <- ajuste_directo
+  if (is.null(x) || (is.atomic(x) && !length(x))) return(integer())
+  if (!is.numeric(x) || anyNA(x) || any(x != round(x)) || any(x < 1) || anyDuplicated(x))
+    .dl_stop(paste0("`ajuste_directo` debe ser un vector de causas (cause_id enteros, sin repetir), por ejemplo ",
+                    "ajuste_directo = c(1010, 1020); es %s"),
+             if (is.numeric(x) && length(x) > 1L) sprintf("c(%s)", paste(format(x), collapse = ", "))
+             else .dl_describir_objeto(x))
+  x <- as.integer(x)
+  fuera <- if (!is.null(causas)) setdiff(x, as.integer(causas))
+  if (length(fuera))
+    .dl_stop("`ajuste_directo` nombra la(s) causa(s) %s, que no est\u00e1(n) en `causas` (%s)",
+             paste(fuera, collapse = ", "), paste(causas, collapse = ", "))
+  x
+}
+
 # Corridas activas de dismod_lite en el registro -> la vigente por (causa, año). Las superadas siguen activas: no se
 # marcan, solo no se eligen. Atributo `huecos` = (causa, año) sin corrida vigente. anios = NULL: todos los años con
 # alguna corrida activa. Las causas que se reportan como suma de hijas son las que declaran hijas en master_gbd.csv
-# (la misma fuente que usa dl_sumar_hijas()).
+# (la misma fuente que usa dl_sumar_hijas()), salvo las de `ajuste_directo`, que se toman de su propio ajuste
+# (atributo `ajuste_directo`, solo si hay alguna).
 #' Seleccionar las corridas vigentes del registro
 #'
 #' Entre las corridas activas del registro elige, por causa y año, la más reciente (fecha y versión del
-#' `run_id`). Las causas que `master_gbd.csv` declara como suma de hijas deben venir de [dl_sumar_hijas()].
+#' `run_id`). Las causas que `master_gbd.csv` declara como suma de hijas deben venir de [dl_sumar_hijas()], salvo
+#' las que se nombran en `ajuste_directo`.
 #'
 #' @details
 #' Es el primer paso de [dl_consolidar()], que lo hace todo en una llamada; las funciones de cada paso sirven para
@@ -26,15 +46,24 @@
 #' [dl_sumar_hijas()] o [dl_reresumir_corrida()]. Las corridas superadas siguen activas en el registro: no se
 #' marcan, solo no se eligen.
 #'
+#' `ajuste_directo` es para una causa que el maestro declara con hijas y que se modeló entera, con un ajuste propio
+#' (por ejemplo, con un ancla que ya es la suma de las hijas que se reportan): sin el argumento, su corrida de ajuste
+#' se rechaza, porque el maestro pide la suma. Cada causa nombrada debe estar entre las que se seleccionan y su
+#' corrida vigente debe ser un ajuste (si es una suma, es un error: el argumento sobra o falta registrar el ajuste).
+#' Una causa nombrada que el maestro no declara con hijas da un aviso y se selecciona como siempre.
+#'
 #' @param registro Archivo YAML del registro de corridas.
 #' @param carpeta_corridas Carpeta raíz donde están las corridas.
 #' @param causas,anios Causas y años a seleccionar (`NULL`: todos los del registro).
 #' @param permitir_huecos `TRUE` acepta pares (causa, año) sin corrida y los declara (atributo `huecos`).
 #' @param rutas Rutas de [dl_rutas()]; se usa el registro (la carpeta de tablas de referencia con
 #'   `master_gbd.csv`, no el registro de corridas).
+#' @param ajuste_directo Causas con hijas en `master_gbd.csv` que se toman de su propio ajuste y no de la suma de
+#'   sus hijas: un vector de `cause_id` (por defecto, ninguna).
 #' @return Tabla (data.table) con una fila por (causa, año): `cause_id`, `year`, `run_id` (la corrida elegida),
 #'   `dir` (su carpeta), `agregacion` (`"suma_de_hijas"` en una suma; `NA` en un ajuste) y `manifest` (su
-#'   manifiesto, como lista). Atributo `huecos`: los pares (`cause_id`, `year`) pedidos sin corrida.
+#'   manifiesto, como lista). Atributo `huecos`: los pares (`cause_id`, `year`) pedidos sin corrida. Con
+#'   `ajuste_directo`, el atributo `ajuste_directo`: las causas con hijas que se tomaron de su ajuste.
 #' @seealso [dl_consolidar()], [dl_consolidado_canonico()] (el paso siguiente).
 #' @family consolidado
 #' @examples
@@ -42,13 +71,18 @@
 #' # el primero:
 #' # sel <- dl_consolidado_seleccionar(registro, salida, rutas = rutas)
 #' # sel[, c("cause_id", "year", "run_id", "agregacion")]
+#' # una causa con hijas en el maestro, desde su propio ajuste:
+#' # sel <- dl_consolidado_seleccionar(registro, salida, rutas = rutas, ajuste_directo = 9100)
 #' @export
 dl_consolidado_seleccionar <- function(registro, carpeta_corridas, causas = NULL, anios = NULL,
-                                       permitir_huecos = FALSE, rutas = dl_rutas()) {
+                                       permitir_huecos = FALSE, rutas = dl_rutas(), ajuste_directo = integer()) {
+  ajuste_directo <- .dl_exigir_ajuste_directo(ajuste_directo, causas)
   rutas <- .dl_resolver_rutas(rutas)
   activos <- Filter(function(d) identical(d$method, .DL_METODO_DISMOD_LITE) && identical(d$status, "active") &&
                       !is.null(d$run_id), .dl_registry_leer(registro))
-  sumas <- .dl_master_leer(rutas)[nzchar(hijos)]$cause_id
+  con_hijas <- .dl_master_leer(rutas)[nzchar(hijos)]$cause_id
+  # las de ajuste_directo no deben venir de una suma; sin el argumento, `sumas` son todas las que tienen hijas
+  sumas <- setdiff(con_hijas, ajuste_directo)
   mejor <- list()
   for (d in activos) {
     dir_run <- .dl_dir_corrida(carpeta_corridas, d$run_id)
@@ -73,6 +107,23 @@ dl_consolidado_seleccionar <- function(registro, carpeta_corridas, causas = NULL
     .dl_stop(paste0("la causa %d se reporta como la suma de sus hijas (master_gbd.csv declara sus hijas) y la ",
                     "corrida vigente %s es un ajuste: s\u00famala con dl_sumar_hijas()"), malos$cause_id[1],
              malos$run_id[1])
+  if (length(ajuste_directo)) {
+    fuera <- setdiff(ajuste_directo, sel$cause_id)
+    if (length(fuera))
+      .dl_stop(paste0("`ajuste_directo` nombra la(s) causa(s) %s, que no est\u00e1(n) entre las causas con corrida ",
+                      "vigente que se seleccionan (%s)"), paste(fuera, collapse = ", "),
+               paste(unique(sel$cause_id), collapse = ", "))
+    de_suma <- sel[cause_id %in% ajuste_directo & agregacion %in% "suma_de_hijas"]
+    if (nrow(de_suma))
+      .dl_stop(paste0("`ajuste_directo` nombra la causa %d y su corrida vigente %s es una suma de hijas, no un ",
+                      "ajuste: quita la causa de `ajuste_directo` o registra la corrida de su ajuste"),
+               de_suma$cause_id[1], de_suma$run_id[1])
+    sin_hijas <- setdiff(ajuste_directo, con_hijas)
+    if (length(sin_hijas))
+      .dl_warn(paste0("`ajuste_directo` nombra la(s) causa(s) %s, que master_gbd.csv no declara con hijas: se ",
+                      "consolida(n) desde su ajuste, como siempre, y el argumento no cambia nada para ella(s)"),
+               paste(sin_hijas, collapse = ", "))
+  }
   esperado <- data.table::CJ(cause_id = causas %||% unique(sel$cause_id),
                              year = as.integer(anios %||% unique(sel$year)))
   huecos <- esperado[!sel, on = c("cause_id", "year")]
@@ -80,15 +131,23 @@ dl_consolidado_seleccionar <- function(registro, carpeta_corridas, causas = NULL
     .dl_stop(paste0("no hay corrida vigente para estas causas/a\u00f1os: %s (permitir_huecos = TRUE los declara como ",
                     "huecos en el manifiesto)"), paste(sprintf("%d/%d", huecos$cause_id, huecos$year), collapse = ", "))
   data.table::setattr(sel, "huecos", huecos)
+  # solo si alguna causa con hijas se tomó de su ajuste: sin el argumento, la selección es la de siempre
+  directas <- intersect(ajuste_directo, con_hijas)
+  if (length(directas)) data.table::setattr(sel, "ajuste_directo", sort(directas))
   sel
 }
 
 # Apila cause/<medida>/<run_id>.csv de cada corrida seleccionada: run_fuente = la corrida de origen; run_id = el del
-# consolidado.
+# consolidado. De una corrida que declara su incidencia fuera de los consolidados (causa.exporta_incidencia: false) no
+# se apila la incidencia: la corrida la conserva, el consolidado no la trae.
 #' Tabla canónica de un consolidado
 #'
 #' Apila las celdas de cada corrida seleccionada, con `run_fuente` (la corrida de origen) y `run_id` (el del
 #' consolidado).
+#'
+#' @details
+#' De una corrida cuya configuración dice `exportar: {incidencia: no}` (su manifiesto lleva
+#' `causa.exporta_incidencia: false`; ver [dl_configuracion()]) se apilan la prevalencia y los AVD, no la incidencia.
 #'
 #' @param seleccion Selección de [dl_consolidado_seleccionar()].
 #' @param id_consolidado Identificador (`run_id`) del consolidado, con la forma `<AAAA-MM-DD>_<nombre>_v<n>`.
@@ -105,9 +164,12 @@ dl_consolidado_seleccionar <- function(registro, carpeta_corridas, causas = NULL
 #' # table(canonica$measure_name, canonica$metric_name)
 #' @export
 dl_consolidado_canonico <- function(seleccion, id_consolidado) {
-  partes <- lapply(seq_len(nrow(seleccion)), function(i)
-    data.table::rbindlist(lapply(.DL_MEDIDAS_EXPORTA$slug, function(slug)
-      .dl_leer_particion_corrida(seleccion$dir[i], seleccion$run_id[i], slug)))[, run_fuente := seleccion$run_id[i]])
+  partes <- lapply(seq_len(nrow(seleccion)), function(i) {
+    slugs <- .DL_MEDIDAS_EXPORTA$slug
+    if (!.dl_man_exporta_incidencia(seleccion$manifest[[i]])) slugs <- setdiff(slugs, "incidence")
+    data.table::rbindlist(lapply(slugs, function(slug)
+      .dl_leer_particion_corrida(seleccion$dir[i], seleccion$run_id[i], slug)))[, run_fuente := seleccion$run_id[i]]
+  })
   ce <- data.table::rbindlist(partes)
   ce[, run_id := id_consolidado]
   ce
@@ -366,9 +428,10 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
 # ---- Orquestador: mod/consolidado/<run_id>/{canonico/, tablas/, manifest.yaml} y registro ----
 
 # Bloque del manifiesto por (causa, año): qué corrida alimenta sus celdas, con qué comprobaciones y sustituciones.
-.dl_consolidado_bloque <- function(fila) {
+# `directo`: la causa tiene hijas en el maestro y se tomó de su propio ajuste (ajuste_directo).
+.dl_consolidado_bloque <- function(fila, directo = FALSE) {
   man <- fila$manifest[[1]]
-  list(cause_id = fila$cause_id, year = fila$year, run_fuente = fila$run_id,
+  out <- list(cause_id = fila$cause_id, year = fila$year, run_fuente = fila$run_id,
        # año del ancla de la corrida: el propio año, salvo en una proyección declarada (years.ancla)
        anio_ancla = .dl_man_anio_ancla(man, fila$year),
        agregacion = if (is.na(fila$agregacion)) "fit" else fila$agregacion,
@@ -378,6 +441,11 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
        force = isTRUE(man$validacion$gates$force),
        gate_ancla = man$validacion$anchor_identity$gate_err_mediano %||% NA_real_,
        rhat_max = man$validacion$gates$rhat_max %||% NA_real_)
+  # la incidencia de la corrida queda fuera del consolidado (causa.exporta_incidencia: false); si entra, el bloque no
+  # gana la clave
+  if (!.dl_man_exporta_incidencia(man)) out <- c(out, list(incidencia_exportada = FALSE))
+  # la causa tiene hijas en el maestro y viene de su ajuste, no de la suma; si no, el bloque no gana la clave
+  if (directo) c(out, list(ajuste_directo = TRUE)) else out
 }
 
 # Nombres en español de las causas: master_gbd.csv más, si existe, el archivo de las causas de nivel 4 (que no tienen
@@ -399,8 +467,9 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
 }
 
 # Limitaciones del manifiesto de un consolidado, armadas con los hechos de la selección (qué causas van por suma,
-# qué hijas quedaron fuera, qué años son proyección, qué corridas descontaron la fase aguda), sin texto fijo sobre
-# una causa o un país. Las limitaciones de cada corrida quedan en su propio manifiesto.
+# qué hijas quedaron fuera, de qué causas no se trae la incidencia, qué años son proyección, qué corridas descontaron
+# la fase aguda), sin texto fijo sobre una causa o un país. Las limitaciones de cada corrida quedan en su propio
+# manifiesto.
 .dl_consolidado_limitaciones <- function(sel, bloques, acq_pob) {
   lista <- function(x) paste(x, collapse = ", ")
   causas_suma <- sort(unique(sel[agregacion %in% "suma_de_hijas"]$cause_id))
@@ -408,6 +477,9 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
     vapply(b$hijas_omitidas, function(o) as.integer(o$cause_id), 0L)))))
   proyectados <- sort(unique(vapply(Filter(function(b) b$anio_ancla != b$year, bloques), function(b) b$year, 0L)))
   con_aguda <- sort(unique(sel$cause_id[vapply(sel$manifest, .dl_con_fraccion_aguda, logical(1))]))
+  sin_incidencia <- sort(unique(vapply(Filter(function(b) isFALSE(b$incidencia_exportada), bloques),
+                                       function(b) b$cause_id, 0L)))
+  directas <- sort(unique(vapply(Filter(function(b) isTRUE(b$ajuste_directo), bloques), function(b) b$cause_id, 0L)))
   c(list(
     sprintf(paste0("conteos = tasa x poblaci\u00f3n congelada en los insumos de cada corrida (%s) \u2014 sin ",
                    "incertidumbre de poblaci\u00f3n; el intervalo de los conteos es el de la tasa escalada"),
@@ -416,6 +488,13 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
       "causa(s) %s como suma de sus hijas, simulaci\u00f3n a simulaci\u00f3n \u2014 ", .DL_LIMITACION_CORRELACION_HIJAS,
       "%s"), lista(causas_suma),
       if (length(omitidas)) sprintf("; hijas %s omitidas donde el bloque lo declara", lista(omitidas)) else "")),
+    if (length(sin_incidencia)) list(sprintf(paste0(
+      "causa(s) %s sin incidencia en el consolidado \u2014 su corrida la declara fuera (exportar.incidencia; ",
+      "bloques[].incidencia_exportada) y el motivo est\u00e1 en el manifiesto de cada run_fuente"),
+      lista(sin_incidencia))),
+    if (length(directas)) list(sprintf(paste0(
+      "causa(s) %s con hijas en master_gbd.csv consolidada(s) desde su propio ajuste (ajuste_directo; ",
+      "bloques[].ajuste_directo) \u2014 no es la suma de las corridas de sus hijas"), lista(directas))),
     if (length(proyectados)) list(sprintf(paste0(
       "a\u00f1o(s) %s proyectado(s) \u2014 el ancla es la de un a\u00f1o anterior reetiquetada ",
       "(bloques[].anio_ancla)"), lista(proyectados))),
@@ -451,6 +530,14 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
 #' manifiesto declara el perfil (con su sha256), la procedencia de la población, un bloque por causa y año (la
 #' corrida de origen, si es una suma, sus compuertas) y las limitaciones del consolidado.
 #'
+#' La incidencia de una causa cuya configuración dice `exportar: {incidencia: no}` (ver [dl_configuracion()]) no entra:
+#' sus tablas de prevalencia y de AVD sí. El bloque de esa causa lleva `incidencia_exportada: false` y las limitaciones
+#' la nombran; la corrida conserva su incidencia.
+#'
+#' Una causa que el maestro declara con hijas debe venir de su suma ([dl_sumar_hijas()]). Si se modeló entera, con
+#' un ajuste propio, se nombra en `ajuste_directo` y se consolida desde ese ajuste: su bloque lleva
+#' `ajuste_directo: true` y las limitaciones lo dicen (ver [dl_consolidado_seleccionar()]).
+#'
 #' Usa el registro de corridas y la carpeta del registro de causas (`master_gbd.csv` y `etiquetas_es.csv`): la de un
 #' proyecto la arma [dl_proyecto()] (`dl_proyecto(...)$rutas$registry`); la de un proyecto en el formato completo es
 #' su carpeta `registro`.
@@ -471,6 +558,8 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
 #' @param registro_salida Archivo YAML del registro donde se anota el consolidado (opcional).
 #' @param carpeta_corridas Carpeta raíz donde están las corridas (por defecto, `carpeta`).
 #' @param nombres_nivel4 Archivo con los nombres en español de las causas de nivel 4 (opcional).
+#' @param ajuste_directo Causas con hijas en `master_gbd.csv` que se consolidan desde su propio ajuste y no desde la
+#'   suma de sus hijas: un vector de `cause_id` (por defecto, ninguna).
 #' @return Objeto de clase `dl_run` del consolidado, con `run_id`, `dir` (su carpeta), `manifest` (el contenido de
 #'   `manifest.yaml`) y `files` (las tablas de `canonico/`, con su ruta, su sha256 y su número de filas).
 #' @seealso [dl_sumar_hijas()] (las sumas que exige), [dl_exportar_corrida()] (su argumento `registro`) y
@@ -521,7 +610,8 @@ dl_perfil_proyectar <- function(celdas, perfil, master, etiquetas = NULL) {
 dl_consolidar <- function(registro, carpeta, perfil, maestro, rutas = dl_rutas(), causas = NULL, anios = NULL,
                           permitir_huecos = FALSE, registrar = !is.null(registro_salida), nombre = "consolidado",
                           registro_salida = NULL, carpeta_corridas = carpeta,
-                          nombres_nivel4 = file.path(dirname(maestro), "causas_nivel4_es.csv")) {
+                          nombres_nivel4 = file.path(dirname(maestro), "causas_nivel4_es.csv"),
+                          ajuste_directo = integer()) {
   .dl_exigir_registro(registrar, registro_salida, "registro_salida")
   .dl_exigir_nombre(nombre)
   .dl_exigir_carpeta(carpeta, "la carpeta donde se escribe el consolidado")
@@ -530,7 +620,8 @@ dl_consolidar <- function(registro, carpeta, perfil, maestro, rutas = dl_rutas()
   master <- .dl_consolidado_nombres_es(maestro, nombres_nivel4)
   etiquetas <- .dl_etiquetas_es(rutas)
   sel <- dl_consolidado_seleccionar(registro, carpeta_corridas, causas = causas, anios = anios,
-                                    permitir_huecos = permitir_huecos, rutas = rutas)
+                                    permitir_huecos = permitir_huecos, rutas = rutas, ajuste_directo = ajuste_directo)
+  directas <- attr(sel, "ajuste_directo") %||% integer()
   run_id <- .dl_run_id(carpeta, nombre, method = .DL_METODO_CONSOLIDADO)
   celdas <- dl_consolidado_conteos(dl_consolidado_canonico(sel, run_id), sel)
   acq_pob <- attr(celdas, "poblacion_acquisition_id")
@@ -538,7 +629,7 @@ dl_consolidar <- function(registro, carpeta, perfil, maestro, rutas = dl_rutas()
   dl_validar_estimaciones(canon, rutas)
   tablas <- dl_perfil_proyectar(celdas, perf, master, etiquetas)
   huecos <- attr(sel, "huecos")
-  bloques <- lapply(seq_len(nrow(sel)), function(i) .dl_consolidado_bloque(sel[i]))
+  bloques <- lapply(seq_len(nrow(sel)), function(i) .dl_consolidado_bloque(sel[i], sel$cause_id[i] %in% directas))
   man <- c(.dl_manifiesto_base(run_id, .DL_METODO_CONSOLIDADO, as.character(celdas$round[1])), list(
     # el archivo, no su ruta: una ruta larga con espacios no cabe en una línea del manifiesto
     perfil = list(id = perf$id, archivo = basename(perf$path), sha256 = perf$sha256),

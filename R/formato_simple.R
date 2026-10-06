@@ -396,9 +396,10 @@
 # Configuración completa (sin validar) desde la simple `s` de `archivo` y lo que se toma del proyecto (`contexto`):
 #   ubicacion (el código nacional), nombre, betas (la tabla betas de la causa, ya resuelta para un subtipo),
 #   anios_ancla (los años con prevalencia de la causa en el ancla: de ellos sale years.ancla, .dl_anio_ancla_leido),
-#   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es) e
-#   ids_covariable (covariable -> covariate_id, para valor_nacional_de); y ancla_declarado (el ancla.anio del archivo
-#   cuando el argumento `anio` de dl_proyecto() lo bajó al año que se estima: la procedencia de years.ancla lo dice).
+#   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es), razones
+#   (si el proyecto trae la tabla razones) e ids_covariable (covariable -> covariate_id, para valor_nacional_de); y
+#   ancla_declarado (el ancla.anio del archivo cuando el argumento `anio` de dl_proyecto() lo bajó al año que se
+#   estima: la procedencia de years.ancla lo dice).
 # `origen`: formato, archivo, nombre, modo subnacional, betas y claves tomadas por defecto (con su valor); y las
 # unidades: «contrato», las de las tablas del proyecto (proporción o por persona-año, sin conversión; .dl_metrica_std).
 .dl_traducir_config_simple <- function(s, archivo, contexto) {
@@ -417,6 +418,23 @@
   if (modo == "plano" && identical(contexto$subnacional, FALSE))
     .dl_stop_config_simple(archivo, paste0("subnacional.modo: es plano y la tabla poblacion no trae ubicaciones ",
                                            "subnacionales: agr\u00e9galas o usa subnacional.modo: no"))
+  if (modo == "razon") {
+    # el reparto por razón: exige la tabla razones y ubicaciones subnacionales, y no admite valores subnacionales de
+    # covariables (ni calibrados de proxies_crudos): la razón ya es todo el patrón entre ubicaciones
+    sub <- contexto$covariables_subnacionales
+    pr <- c(if (!isTRUE(contexto$razones))
+              paste0("subnacional.modo: es razon y el proyecto no trae la tabla razones (razones.csv: ubicacion, anio, ",
+                     "razon y error_log de cada ubicaci\u00f3n subnacional): agr\u00e9gala o usa subnacional.modo: plano"),
+            if (identical(contexto$subnacional, FALSE))
+              paste0("subnacional.modo: es razon y la tabla poblacion no trae ubicaciones subnacionales: ",
+                     "agr\u00e9galas o usa subnacional.modo: no"),
+            if (length(sub))
+              sprintf(paste0("subnacional.modo: es razon y el proyecto trae valores subnacionales de la(s) ",
+                             "covariable(s) %s (en la tabla covariables o calibrados de proxies_crudos): el reparto por ",
+                             "raz\u00f3n no usa covariables; quita esas filas o usa subnacional.modo: covariables"),
+                      .dl_lista(sub)))
+    if (length(pr)) .dl_stop_config_simple(archivo, pr)
+  }
   if (modo != "covariables") con_proxy <- integer()
   else if (!length(con_proxy))
     .dl_stop_config_simple(archivo, sprintf(paste0(
@@ -432,8 +450,11 @@
   # proxies.*: sin destino en el formato completo; su valor por defecto lo informa la calibracion de los proxies
   pd <- pd[!startsWith(pd$clave, "proxies."), ]
   # ancla.error_maximo: sin la clave, la configuracion completa no declara el umbral (rige el del paquete);
-  # suma_de_subtipos: una causa que se ajusta no es una suma, y no lo informa
-  pd <- pd[!pd$clave %in% c("ancla.error_maximo", "suma_de_subtipos"), ]
+  # suma_de_subtipos: una causa que se ajusta no es una suma, y no lo informa; exportar.incidencia: sin la clave, la
+  # configuracion completa no gana el bloque `exportar` (la incidencia se exporta, como siempre)
+  pd <- pd[!pd$clave %in% c("ancla.error_maximo", "suma_de_subtipos", "exportar.incidencia"), ]
+  # mortalidad_exceso.techo: con la mortalidad en exceso fija en 0 (prior: cero) no hay techo que tomar por defecto
+  if (identical(val("mortalidad_exceso.prior"), "cero")) pd <- pd[pd$clave != "mortalidad_exceso.techo", ]
   reglas <- c(nombre = contexto$nombre, ubicacion_gbd = paste(contexto$ubicacion_gbd, collapse = ", "),
               subnacional.modo = modo, nudos = sprintf("[%s]", paste(nudos, collapse = ", ")))
   # el año del ancla: el de ancla.anio o el que se estima y, si el ancla no lo trae, el último anterior
@@ -465,7 +486,7 @@
     sexos = sort(unique(.dl_codigos_sexo(val("sexos")))), edad_inicio = s[["edad_inicio"]], edad_inicio_fuente = proc,
     remision = list(valor = val("remision"), fuente = proc),
     emr_prior = c(list(tipo = voc("mortalidad_exceso.prior", prior)),
-                  if (prior == "plano") list(tipo_procedencia = proc),
+                  if (prior %in% c("plano", "cero")) list(tipo_procedencia = proc),
                   if (!is.null(techo)) list(cota = c(0, num(techo)), fuente_cota = proc),
                   if (!is.null(fa)) list(fraccion_aguda = list(valor = num(fa), procedencia = proc))),
     nudos_incidencia = nudos, sigma_suavidad = num(val("incidencia.suavidad")),
@@ -483,7 +504,8 @@
     cascada = c(list(kappa = num(val("subnacional.kappa")), escala = "natural", cota_warning = 0.5),
                 if (!is.null(dado("subnacional.anio_validacion")))
                   list(heldout_anio = list(valor = dado("subnacional.anio_validacion"), procedencia = proc)),
-                if (modo == "plano") list(modo = list(valor = "plana", procedencia = proc))),
+                if (modo == "plano") list(modo = list(valor = "plana", procedencia = proc)),
+                if (modo == "razon") list(modo = list(valor = "razon", procedencia = proc))),
     # la transformaci\u00f3n la declara la tabla betas: la regla que la busca en el nombre publicado no aplica; la escala
     # es 1 si la fila no la trae (solo interviene con la transformaci\u00f3n lineal)
     transformaciones = lapply(seq_along(nombres), function(k) c(list(
@@ -508,6 +530,9 @@
                      if (!is.null(dado("sensibilidad.fraccion_aguda")))
                        list(fraccion_aguda = num(dado("sensibilidad.fraccion_aguda")))),
     decisiones = if (length(s[["notas"]])) as.character(unlist(s[["notas"]])),
+    # exportar.incidencia: solo el «no» llega a la configuración completa (el «sí» es lo de siempre: sin bloque)
+    exportar = if (isFALSE(.dl_si_no(dado("exportar.incidencia"))))
+      list(incidencia = list(valor = FALSE, procedencia = proc)),
     # `configuracion`: la configuración del proyecto tal como se leyó, con los nombres de clave de ahora (la corrida
     # la congela en inputs/contrato/config.yaml, para repetirla)
     origen = list(formato = "simple", archivo = archivo, nombre = s[["nombre"]] %||% contexto$nombre,
@@ -532,6 +557,28 @@
   s
 }
 
+# El modo razón tiene una sola fuente en un proyecto: subnacional.modo (el declarado o el deducido, origen$subnacional),
+# que es quien exige la tabla razones y decide si corren sus reglas (.dl_regla_razones). Error si, fundidas las claves
+# del formato completo de `donde` («avanzado: cascada: modo» o «cambios: cascada: modo»), cascada.modo (con la forma
+# {valor, procedencia} o el valor suelto) es razon y subnacional.modo no, o al revés. Un cascada.modo ausente (lo
+# quitó un nulo de `donde`; el validador pondría proxy) cuenta como «no razon»: con subnacional.modo razon, el mismo
+# error.
+.dl_exigir_modo_razon_coherente <- function(cfg, archivo, donde) {
+  m <- cfg$cascada$modo
+  efectivo <- as.character(unlist(if (is.list(m)) m$valor else m))
+  if (length(efectivo) > 1L) return(invisible())       # una forma que el validador rechaza
+  declarado <- cfg$origen$subnacional
+  if (!length(efectivo)) {
+    if (!identical(declarado, "razon")) return(invisible())      # sin modo (proxy), y el declarado no es razon
+    efectivo <- "nulo (sin modo)"
+  }
+  if (identical(efectivo, "razon") != identical(declarado, "razon"))
+    .dl_stop_config_simple(archivo, sprintf(paste0(
+      "subnacional.modo: es %s y `%s` es %s: declara el modo en `subnacional.modo`; `%s` no puede cambiarlo ",
+      "a/desde `razon`"), declarado, donde, efectivo, donde))
+  invisible()
+}
+
 # Configuración simple `s` (de `archivo`) -> dl_config, con lo que toma de las tablas del proyecto (`contexto`, ver
 # .dl_traducir_config_simple), validado por el validador completo con los errores citados por la clave simple.
 # `cambios` (claves del formato completo) van después de `avanzado`.
@@ -541,7 +588,9 @@
   cfg <- .dl_traducir_config_simple(s, archivo, contexto)
   cfg <- tryCatch(.dl_fundir_cambios(cfg, s[["avanzado"]]),
                   dl_error = function(e) .dl_stop_config_simple(archivo, paste("avanzado:", .dl_detalle(e))))
+  .dl_exigir_modo_razon_coherente(cfg, archivo, "avanzado: cascada: modo")
   cfg <- .dl_fundir_cambios(cfg, cambios)
+  .dl_exigir_modo_razon_coherente(cfg, archivo, "cambios: cascada: modo")
   v <- .dl_validar_config(cfg, causa)
   if (length(v$problemas))
     .dl_stop_config_simple(archivo, .dl_problema_en_simple(v$campos, v$mensajes, s))

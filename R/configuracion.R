@@ -18,6 +18,11 @@
 # La misma regla del año del ancla, leída del manifiesto de una corrida ya escrita (params.anio_ancla; sin el campo,
 # el año de la corrida).
 .dl_man_anio_ancla <- function(man, anio) as.integer(man$params$anio_ancla %||% anio)
+# ¿La incidencia de la corrida entra en un consolidado? Sí, salvo que la configuración declare
+# exportar.incidencia = {valor: false, procedencia}. Sin el campo, sí (y la configuración no gana la clave).
+.dl_exporta_incidencia <- function(cfg) !isFALSE(cfg$exportar$incidencia$valor)
+# La misma regla, leída del manifiesto de una corrida ya escrita (causa.exporta_incidencia; sin el campo, sí).
+.dl_man_exporta_incidencia <- function(man) !isFALSE(man$causa$exporta_incidencia)
 
 # Umbral por defecto de anchor_identity: error relativo mediano máximo entre la prevalencia posterior y la del ancla
 # para escribir la corrida. Relajarlo exige anchor.gate_err_mediano con procedencia.
@@ -48,14 +53,17 @@
   "cascada.heldout_anio", "cascada.heldout_anio.valor", "cascada.heldout_anio.procedencia",
   "cascada.dx_fuera_de_banda", "cascada.dx_fuera_de_banda.valor", "cascada.dx_fuera_de_banda.procedencia",
   "cascada.dx_interpolacion", "cascada.dx_interpolacion.valor", "cascada.dx_interpolacion.procedencia",
-  "cascada.modo", "cascada.modo.valor", "cascada.modo.procedencia",
+  "cascada.modo", "cascada.modo.valor", "cascada.modo.procedencia", "cascada.razon_semilla",
   "severidad", "severidad.fuente", "severidad.procedencia", "severidad.run_id", "severidad.padre",
   "sensibilidad", "sensibilidad.lambda", "sensibilidad.rho", "sensibilidad.kappa", "sensibilidad.fraccion_aguda",
-  "suma", "suma.omitidas", "extraction", "extraction.cause_id", "extraction.motivo")
+  "suma", "suma.omitidas", "extraction", "extraction.cause_id", "extraction.motivo",
+  "exportar", "exportar.incidencia", "exportar.incidencia.valor", "exportar.incidencia.procedencia")
 
-# Opciones de la cascada con la forma {valor, procedencia} que también aceptan el valor suelto (cascada.modo: plana
-# equivale a cascada.modo: {valor: plana}); ver `opcion` en dl_configuracion().
-.DL_CLAVES_VALOR_SUELTO <- c("cascada.dx_fuera_de_banda", "cascada.dx_interpolacion", "cascada.modo")
+# Opciones con la forma {valor, procedencia} que también aceptan el valor suelto (cascada.modo: plana equivale a
+# cascada.modo: {valor: plana}; exportar.incidencia: true, a exportar.incidencia: {valor: true}); ver `opcion` y
+# exportar.incidencia en .dl_validar_config().
+.DL_CLAVES_VALOR_SUELTO <- c("cascada.dx_fuera_de_banda", "cascada.dx_interpolacion", "cascada.modo",
+                             "exportar.incidencia")
 
 # Funde `cambios` sobre la configuración leída del YAML, antes de validar: así la única regla de validación es la de
 # dl_configuracion(). Por ejemplo, list(years = list(ajuste = 2024L, ancla = list(valor = 2023L, procedencia = "...")))
@@ -181,7 +189,9 @@
 #' Las claves con punto van dentro de su bloque (`ancla.peso` es `peso:` bajo `ancla:`). Las covariables actúan solo
 #' en la estimación subnacional: con sus valores por ubicación en la tabla `covariables`, la diferencia de log i (o de
 #' log f, con `efecto_sobre: mortalidad_exceso` en la tabla `betas`) de cada ubicación es `beta` por su diferencia con
-#' el valor nacional; el ajuste nacional no cambia. Si el proyecto trae `proxies_crudos`, leerlo la calibra para el
+#' el valor nacional; el ajuste nacional no cambia. Para una causa sin muertes, `mortalidad_exceso: {prior: cero}`
+#' fija la mortalidad en exceso en 0 y no la estima: no usa la mortalidad del ancla y no admite techo, fracción aguda
+#' ni datos de mortalidad en el ajuste. Si el proyecto trae `proxies_crudos`, leerlo la calibra para el
 #' año que se estima (`anio`, o el de `cambios`) con las claves `proxies.*` ([dl_calibrar_proxies()]). `avanzado:`
 #' pasa claves del formato completo tal cual y se aplica al final (para expertos). El bloque `subnacional` también se
 #' puede llamar `departamentos`, su nombre anterior. La carpeta del proyecto y sus archivos: ver [dl_proyecto()].
@@ -201,7 +211,7 @@
 #'   `anchor`, `medidas_entrada`, `cascada`, `transformaciones`, `covariables`, `severidad`, `sensibilidad`,
 #'   `decisiones` y las demás que declare; la columna «Formato completo» de la tabla de claves dice de qué clave del
 #'   proyecto sale cada una). La de un proyecto trae además `origen`: `formato` (`"simple"`), `archivo`, `nombre`
-#'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano` o `no`), `unidades`
+#'   (el de la causa), `subnacional` (el modo subnacional: `covariables`, `plano`, `razon` o `no`), `unidades`
 #'   (`"contrato"`: las tablas del proyecto ya vienen en las unidades del modelo), `betas` (la tabla `betas` de la
 #'   causa), `por_defecto` (las claves tomadas por defecto, con su valor, como texto) y `configuracion` (la
 #'   configuración del proyecto tal como se leyó, con los nombres de clave de ahora: la que la corrida congela en
@@ -371,7 +381,10 @@ NULL
     "la traducci\u00f3n al formato completo: la clave que citan los errores y que se puede ajustar en",
     "`avanzado`, con la forma del formato completo",
     "(`emr_prior.cota` es `[0, techo]`; `years.ancla` y `cascada.heldout_anio` son `{valor, procedencia}`;",
-    "`cascada.modo` solo admite `plana`), o el archivo de la traducci\u00f3n donde queda.")
+    "`cascada.modo` solo admite `plana`), o el archivo de la traducci\u00f3n donde queda. El reparto por raz\u00f3n",
+    "se declara solo con `subnacional.modo: razon`: `avanzado: {cascada: {modo: }}` no puede cambiar el modo a",
+    "`razon` ni desde `razon`. La semilla del sorteo de las razones es la de la corrida; otra se fija con",
+    "`avanzado: {cascada: {razon_semilla: <entero>}}`.")
   c("@section Claves de la configuraci\u00f3n de un proyecto:", rd(guia), "", "\\ifelse{html}{", tabla, "}{", lista, "}")
 }
 
@@ -445,14 +458,29 @@ NULL
   # Tipo del prior de EMR: informativo_edad (un prior por banda a partir de csmr/prevalencia del ancla) o plano_cota
   # (sin prior informativo, solo el techo: el de emr_prior.cota o, si es null, el derivado de csmr/prevalencia).
   # plano_cota sirve para anclas cuya caída con la edad exige una EMR muy por encima de csmr/prevalencia, y exige
-  # tipo_procedencia.
+  # tipo_procedencia. cero fija la EMR en 0 fuera del muestreo (theta = log i en los nudos), para una causa que no
+  # aporta muertes al modelo: exige tipo_procedencia y no admite lo que ajusta un prior o un techo que no existen, ni
+  # datos de mortalidad en el ajuste (con f = 0 el modelo predice p f = 0 muertes y su verosimilitud es -Inf).
   tp <- cfg$emr_prior$tipo
-  if (!identical(tp, "informativo_edad") && !identical(tp, "plano_cota"))
-    p("emr_prior.tipo", "valores admitidos: informativo_edad o plano_cota")
-  if (identical(tp, "plano_cota") &&
+  if (!isTRUE(tp %in% c("informativo_edad", "plano_cota", "cero")))
+    p("emr_prior.tipo", "valores admitidos: informativo_edad, plano_cota o cero")
+  if (isTRUE(tp %in% c("plano_cota", "cero")) &&
       (is.null(cfg$emr_prior$tipo_procedencia) || !nzchar(cfg$emr_prior$tipo_procedencia)))
     p("emr_prior.tipo_procedencia",
-      "plano_cota exige procedencia (por qu\u00e9 no se usa el prior de mortalidad/prevalencia)")
+      sprintf("%s exige procedencia (por qu\u00e9 no se usa el prior de mortalidad/prevalencia)", tp))
+  if (identical(tp, "cero")) {
+    for (campo in c("cota", "fraccion_aguda", "factor_sd", "factor_techo"))
+      if (!is.null(cfg$emr_prior[[campo]]))
+        p("emr_prior.tipo", sprintf(paste0("cero fija la mortalidad en exceso en 0 y no admite emr_prior.%s (no hay ",
+                                           "prior ni techo que ajustar): quita la clave o usa otro prior"), campo))
+    if ("csmr" %in% unlist(cfg$medidas_entrada))
+      p("emr_prior.tipo", paste0("cero fija la mortalidad en exceso en 0 y no admite csmr en medidas_entrada (el ",
+                                 "modelo predice 0 muertes por la causa): quita csmr de medidas_entrada o usa otro ",
+                                 "prior"))
+    if (!is.null(cfg$sensibilidad$fraccion_aguda))
+      p("emr_prior.tipo", paste0("cero fija la mortalidad en exceso en 0 y no admite sensibilidad.fraccion_aguda ",
+                                 "(no hay prior de mortalidad en exceso que cambie): quita la clave o usa otro prior"))
+  }
   # Techo de EMR: [min, max] declarado, o null para que dl_insumos() lo derive del ancla (factor_techo por la EMR
   # máxima de csmr/prevalencia).
   ct <- cfg$emr_prior$cota
@@ -603,13 +631,44 @@ NULL
     cfg$cascada$dx_interpolacion, "cascada.dx_interpolacion", c("lineal", "escalon"),
     paste0("valores admitidos: lineal (por defecto: la diferencia con el valor nacional, interpolada entre los ",
            "puntos medios de las bandas) o escalon (constante por banda; exige procedencia)"))
-  # Modo de la cascada: `proxy` (gradiente departamental por los proxies declarados) o `plana` (las tasas nacionales
-  # por edad y sexo en cada departamento, dX = 0 en todas las covariables; los conteos cambian solo por la
-  # población). La plana es para causas cuyo ancla no tiene ninguna covariable con un proxy departamental defendible,
-  # y el manifiesto de la corrida la declara como limitación.
-  cfg$cascada$modo <- opcion(cfg$cascada$modo, "cascada.modo", c("proxy", "plana"),
-    paste0("valores admitidos: proxy (por defecto: gradiente por los proxies declarados) o plana (tasas nacionales en ",
-           "cada ubicaci\u00f3n subnacional; exige procedencia)"))
+  # Modo de la cascada: `proxy` (gradiente subnacional por los proxies declarados), `plana` (las tasas nacionales
+  # por edad y sexo en cada ubicación subnacional, dX = 0 en todas las covariables; los conteos cambian solo por la
+  # población) o `razon` (la cascada plana y, después de los AVD, el reparto por la razón de cada ubicación de la
+  # tabla razones del proyecto: R/razon.R). La plana es para causas cuyo ancla no tiene ninguna covariable con un
+  # proxy subnacional defendible; el manifiesto de la corrida declara la plana y la razón como limitación.
+  cfg$cascada$modo <- opcion(cfg$cascada$modo, "cascada.modo", c("proxy", "plana", "razon"),
+    paste0("valores admitidos: proxy (por defecto: gradiente por los proxies declarados), plana (tasas nacionales en ",
+           "cada ubicaci\u00f3n subnacional; exige procedencia) o razon (tasas nacionales por la raz\u00f3n de cada ",
+           "ubicaci\u00f3n de la tabla razones; exige procedencia)"))
+  # Semilla del sorteo de las razones (modo razon); sin ella, la de la cascada (la de la corrida en dl_correr()).
+  rs <- cfg$cascada$razon_semilla
+  if (!is.null(rs)) {
+    if (!.dl_es_entero1(rs) || rs < 0 || rs > .Machine$integer.max)
+      p("cascada.razon_semilla", "debe ser un entero no negativo: la semilla del sorteo de las razones")
+    else cfg$cascada$razon_semilla <- as.integer(rs)
+    if (!identical(cfg$cascada$modo$valor, "razon"))
+      p("cascada.razon_semilla", "solo se usa con cascada.modo: razon (subnacional.modo: razon en un proyecto)")
+  }
+  # Incidencia fuera de los consolidados: en una causa cuya incidencia el modelo no identifica (la fija la remisión
+  # declarada, sin datos de incidencia), la corrida la escribe igual (sumas y diagnóstico), su manifiesto lo declara
+  # y dl_consolidar() la omite. {valor: true | false, procedencia}, o el valor suelto; false exige procedencia. Sin
+  # el campo rige true y la configuración no gana la clave.
+  ex <- cfg$exportar
+  if (!is.null(ex) && (!is.list(ex) || is.null(names(ex))))
+    p("exportar", "es un bloque con claves, por ejemplo exportar: {incidencia: {valor: false, procedencia: ...}}")
+  else if (!is.null(ex$incidencia)) {
+    ei <- ex$incidencia
+    if (isTRUE(ei) || isFALSE(ei)) ei <- list(valor = ei)
+    if (!is.list(ei) || !(isTRUE(ei$valor) || isFALSE(ei$valor)))
+      p("exportar.incidencia", paste0("valores admitidos: true (por defecto: la incidencia de la corrida entra en los ",
+                                      "consolidados) o false (no entra; exige procedencia)"))
+    else {
+      if (isFALSE(ei$valor) && !(.dl_es_texto1(ei$procedencia) && nzchar(trimws(ei$procedencia))))
+        p("exportar.incidencia.procedencia",
+          "false exige procedencia (por qu\u00e9 la incidencia de la causa no se reporta)")
+      cfg$exportar$incidencia <- ei
+    }
+  }
   # Sustitución declarada del valor nacional de referencia: la beta puede ser de una covariable por edad sin un
   # valor nacional único, y el proxy departamental se ancla entonces en la covariable hermana estandarizada por
   # edad. Con la beta en escala log el valor nacional se cancela en dX, así que la sustitución no mueve el

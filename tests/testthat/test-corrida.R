@@ -557,3 +557,86 @@ test_that("la corrida de un proyecto con proxies_crudos registra la calibración
   # repetir desde inputs/contrato/ recalibra igual
   expect_identical(suppressMessages(dl_insumos(dl_proyecto(cong)))$hash, man$inputs$bundle_hash)
 })
+
+test_that("el ancla a peso completo con fuentes locales no fatales queda entre las limitaciones de la corrida", {
+  x <- corrida_mini(); b <- x$insumos; cfg <- b$cfg
+  res <- dl_resumir(list(fit = x$ajuste, yld = x$avd, bundle = b))
+  sin <- unlist(.dl_limitaciones_corrida(cfg, b, res, NULL, NULL, 0.05))
+  expect_false(any(grepl("peso completo", sin)))                   # el ejemplo no trae fuentes locales
+  con_fuentes <- b; con_fuentes$fuentes_locales <- list(nid_no_fatal = c(1001L, 1002L), n_cod = 0L)
+  con <- unlist(.dl_limitaciones_corrida(cfg, con_fuentes, res, NULL, NULL, 0.05))
+  expect_identical(setdiff(con, sin),
+                   paste0("ancla a peso completo (lambda = 1) con 2 fuente(s) local(es) no fatal(es) en la evidencia ",
+                          "(nid 1001, 1002) \u2014 ningún dato local entra al ajuste, así que no se cuentan dos veces"))
+  expect_length(con, length(sin) + 1L)
+  # con lambda < 1 no es una limitación: las fuentes quedan solo en params.fuentes_locales_no_fatales
+  cfg05 <- cfg; cfg05$anchor$lambda <- 0.5
+  expect_identical(unlist(.dl_limitaciones_corrida(cfg05, con_fuentes, res, NULL, NULL, 0.05)), sin)
+})
+
+# exportar.incidencia = false: la corrida escribe la incidencia igual (celdas y simulaciones), su manifiesto la marca
+# (causa.exporta_incidencia: false) y la limitación dice por qué. Sin el campo, el manifiesto no gana la clave ni la
+# limitación.
+test_that("una corrida con exportar.incidencia = false escribe la incidencia y la marca en el manifiesto", {
+  x <- corrida_mini(); d <- withr::local_tempdir()
+  piezas <- .piezas_mini(x)
+  piezas$bundle$cfg$exportar <- list(incidencia = list(valor = FALSE,
+                                                       procedencia = "incidencia fijada por la remisión declarada"))
+  run <- dl_exportar_corrida(piezas, "sin-incidencia", carpeta = d, etiquetas = x$etiquetas, forzar = TRUE)
+  expect_true(file.exists(file.path(run$dir, "cause", "incidence", paste0(run$run_id, ".csv"))))
+  expect_true(file.exists(file.path(run$dir, "draws", "incidence_2023.csv.gz")))
+  man <- yaml::read_yaml(file.path(run$dir, "manifest.yaml"))
+  expect_identical(man$causa$exporta_incidencia, FALSE)
+  lim <- unlist(man$limitaciones)
+  expect_identical(sum(startsWith(lim, "incidencia no exportada (exportar.incidencia)")), 1L)
+  expect_match(lim[startsWith(lim, "incidencia no exportada")], "incidencia fijada por la remisión declarada$")
+  # sin el campo: ni la clave ni la limitación, y lo demás del manifiesto es lo mismo
+  run0 <- dl_exportar_corrida(.piezas_mini(x), "con-incidencia", carpeta = d, etiquetas = x$etiquetas, forzar = TRUE)
+  man0 <- yaml::read_yaml(file.path(run0$dir, "manifest.yaml"))
+  expect_false("exporta_incidencia" %in% names(man0$causa))
+  expect_false(any(grepl("incidencia no exportada", unlist(man0$limitaciones))))
+  expect_identical(setdiff(lim, unlist(man0$limitaciones)), lim[startsWith(lim, "incidencia no exportada")])
+  expect_identical(man$params, man0$params)
+  expect_identical(man$causa[names(man0$causa)], man0$causa)
+})
+
+test_that("la limitación de la incidencia: la de siempre si se exporta sin referencia; una sola si no se exporta", {
+  lim <- dismodlite:::.dl_limitacion_incidencia
+  cfg <- corrida_mini()$insumos$cfg
+  expect_null(lim(cfg, FALSE))
+  expect_identical(lim(cfg, TRUE), paste0("incidencia exportada sin referencia — el ancla de incidencia no trae ",
+                                          "filas de la causa; se omite el chequeo implied_incidence"))
+  cfg$exportar <- list(incidencia = list(valor = FALSE, procedencia = "nota: la fija la remisión"))
+  for (sin_ancla in c(TRUE, FALSE)) {
+    l <- lim(cfg, sin_ancla)
+    expect_length(l, 1L)
+    expect_match(l, "^incidencia no exportada \\(exportar.incidencia\\) — la corrida la escribe")
+    # las carpetas de la corrida, por su nombre (con barra)
+    expect_match(l, "la corrida la escribe (cause/incidence/ y draws/) y un consolidado la omite", fixed = TRUE)
+    expect_match(l, "nota \u2014 la fija la remisión")       # la procedencia, sin «: »
+    expect_false(grepl(": ", l, fixed = TRUE))                    # el manifiesto la emite sin comillas
+    expect_identical(grepl("se omite el chequeo implied_incidence", l), sin_ancla)
+  }
+})
+
+# La combinación de uso: una causa sin muertes (mortalidad en exceso fija en 0) cuya incidencia queda fuera de los
+# consolidados. Cada hecho da su limitación, una sola vez y con su texto.
+test_that("con emr_prior.tipo cero y exportar.incidencia = false hay una limitación de cada una, con su texto", {
+  x <- corrida_mini(); b <- x$insumos; cfg <- b$cfg
+  res <- dl_resumir(list(fit = x$ajuste, yld = x$avd, bundle = b))
+  base <- unlist(dismodlite:::.dl_limitaciones_corrida(cfg, b, res, NULL, NULL, 0.05))
+  cfg$emr_prior$tipo <- "cero"; cfg$emr_prior$tipo_procedencia <- "prueba — causa sin muertes"
+  cfg$exportar <- list(incidencia = list(valor = FALSE, procedencia = "prueba — la fija la remisión"))
+  lim <- unlist(dismodlite:::.dl_limitaciones_corrida(cfg, b, res, NULL, NULL, 0.05))
+  incidencia <- paste0("incidencia no exportada (exportar.incidencia) — la corrida la escribe ",
+                       "(cause/incidence/ y draws/) y un consolidado la omite — prueba — la fija la remisión")
+  emr <- paste("mortalidad en exceso (EMR) fija en 0 (emr_prior.tipo cero) — no se estima (sin nudos",
+               "de log f en el muestreo) y la causa no aporta muertes al modelo — prueba — causa sin muertes")
+  expect_identical(sum(lim == incidencia), 1L)
+  expect_identical(sum(lim == emr), 1L)
+  expect_identical(sum(grepl("incidencia no exportada|incidencia exportada sin referencia", lim)), 1L)
+  expect_identical(sum(grepl("mortalidad en exceso (EMR) fija en 0", lim, fixed = TRUE)), 1L)
+  # las dos se suman a las de la corrida sin esas claves: ninguna otra cambia
+  expect_setequal(setdiff(lim, base), c(incidencia, emr))
+  expect_length(lim, length(base) + 2L)
+})

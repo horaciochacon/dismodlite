@@ -69,7 +69,7 @@
 # Las tablas con plantilla en un proyecto nuevo (solo el encabezado: una tabla opcional sin filas es como si no
 # estuviera) y las carpetas para las descargas tal cual.
 .DL_PLANTILLAS_NUEVO <- c("ubicaciones", "poblacion", "betas", "datos", "severidad", "poblacion_detalle",
-                          "proxies_crudos")
+                          "proxies_crudos", "razones")
 .DL_CARPETAS_NUEVO <- c("ancla", "covariables", "fuentes_gbd")
 
 # LEEME.md de un proyecto nuevo: la carpeta del proyecto (la de ?dl_proyecto), los pasos, con las direcciones de GBD
@@ -91,6 +91,7 @@
     "fuentes_gbd/           # la lista de fuentes del GHDx que GBD ya us\u00f3",
     "poblacion_detalle.csv  # poblaci\u00f3n nacional con m\u00e1s detalle de edad, si el ancla es m\u00e1s fina",
     "proxies_crudos.csv     # un indicador de encuesta por ubicaci\u00f3n y edici\u00f3n (se calibra al leer)",
+    "razones.csv            # la raz\u00f3n de cada ubicaci\u00f3n subnacional (con subnacional.modo: razon)",
     "particion/<corrida>/   # (opcional) la partici\u00f3n de severidad que nombra severidad.particion",
     "```", "",
     "Una tabla con solo el encabezado no se usa: las obligatorias son `ubicaciones`, `poblacion` y `ancla`.", "",
@@ -102,9 +103,12 @@
                    "`proxies_crudos.csv` (un indicador de encuesta, que se calibra al leer; ver ",
                    "`?dl_calibrar_proxies`) o una tabla en `covariables/` con los proxies ya calibrados."),
             url$ghdx$url),
-    "5. Llena las dem\u00e1s tablas que uses (`severidad.csv`, para los AVD; `datos.csv`; ...).",
-    sprintf("6. Revisa el proyecto: `dl_revisar_proyecto(\"%s\")`.", ruta),
-    sprintf(paste0("7. Pru\u00e9balo con `dl_correr(\"%s\", semilla = 1, rapido = TRUE)`; la corrida final, con ",
+    paste0("5. Si repartes por raz\u00f3n (`subnacional: {modo: razon}` en la configuraci\u00f3n), llena ",
+           "`razones.csv`: la raz\u00f3n de cada ubicaci\u00f3n subnacional respecto de la nacional y el error de ",
+           "su logaritmo, en el a\u00f1o que se estima. Ese modo no lleva valores subnacionales de covariables."),
+    "6. Llena las dem\u00e1s tablas que uses (`severidad.csv`, para los AVD; `datos.csv`; ...).",
+    sprintf("7. Revisa el proyecto: `dl_revisar_proyecto(\"%s\")`.", ruta),
+    sprintf(paste0("8. Pru\u00e9balo con `dl_correr(\"%s\", semilla = 1, rapido = TRUE)`; la corrida final, con ",
                    "`rapido = FALSE`."), ruta))
 }
 
@@ -122,9 +126,9 @@
 #'   valor dado o vacías; `nombre`, si se da, también. Las demás van comentadas con su valor por defecto o, si no
 #'   tienen un valor fijo, con un ejemplo. Para usar otro valor se quita el `#` de la línea (y el de su
 #'   bloque, como `ancla:` para `ancla.peso`).
-#' - `ubicaciones.csv`, `poblacion.csv`, `betas.csv`, `datos.csv`, `severidad.csv`, `poblacion_detalle.csv` y
-#'   `proxies_crudos.csv`, con solo el encabezado (las columnas de [dl_plantilla()]). Una tabla con solo el
-#'   encabezado es como si no estuviera: las opcionales que no se llenan no se usan.
+#' - `ubicaciones.csv`, `poblacion.csv`, `betas.csv`, `datos.csv`, `severidad.csv`, `poblacion_detalle.csv`,
+#'   `proxies_crudos.csv` y `razones.csv`, con solo el encabezado (las columnas de [dl_plantilla()]). Una tabla con
+#'   solo el encabezado es como si no estuviera: las opcionales que no se llenan no se usan.
 #' - `ancla/`, `covariables/` y `fuentes_gbd/`, vacías: ahí van las descargas de GBD Results y del GHDx, sin editar
 #'   (o las tablas del contrato).
 #' - `LEEME.md`: la carpeta del proyecto, los pasos, de dónde se descarga cada archivo y cómo revisar y correr el
@@ -339,6 +343,13 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   list(ok = !is.null(cal), calibracion = cal)
 }
 
+# La línea en orden del paso «configuración»: el archivo `nombre` y su formato; si la configuración `cfg` deja la
+# incidencia fuera de los consolidados (exportar.incidencia: no), lo dice.
+.dl_linea_config <- function(nombre, cfg)
+  sprintf("%s: proyecto%s", nombre,
+          if (.dl_exporta_incidencia(cfg)) ""
+          else "; la incidencia no entra en los consolidados (exportar.incidencia: no) y la corrida la escribe igual")
+
 # Lo propio de una suma de subtipos (.dl_es_suma) en la revisión, con su configuración `s`. En «configuración», un
 # aviso con las claves que no se usan (las del modelo: la causa no se ajusta).
 .dl_avisar_claves_suma <- function(s, anotar) {
@@ -413,8 +424,8 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   else .dl_avisar_proxies_sin_crudos(cfg$origen$configuracion, anotar)
   if (!suma) .dl_avisar_avanzado(cfg$origen$configuracion, anotar)
   archivo <- cfg$origen$archivo
-  anotar("configuraci\u00f3n", "ok", sprintf("%s: proyecto", if (identical(archivo, "configuracion"))
-    "la configuraci\u00f3n dada como lista" else basename(archivo)))
+  anotar("configuraci\u00f3n", "ok", .dl_linea_config(if (identical(archivo, "configuracion"))
+    "la configuraci\u00f3n dada como lista" else basename(archivo), cfg))
   causas <- if (!is.null(p$carpeta)) .dl_causas_config(p$carpeta, NULL, cfg$cause_id)
   .dl_revisar_reglas(list(tablas = p$tablas, tablas_modelo = .dl_tablas_modelo(p$tablas, p$calibracion), cfg = cfg,
                           causas = causas), anotar)
@@ -466,7 +477,7 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
   pre <- revisar("configuraci\u00f3n",
                  .dl_config_de_tablas(s, cf$archivo, cf$causa, tablas, .dl_causas_config(carpeta, s, cf$causa),
                                       carpeta, calibracion = px$calibracion),
-                 function(pre) sprintf("%s: proyecto", rel))
+                 function(pre) .dl_linea_config(rel, pre$cfg))
   if (is.null(pre) || errores()) return(omitir())
   .dl_revisar_reglas(pre, anotar)
   if (suma) .dl_revisar_subtipos(s, pre$causas, anotar)
@@ -523,10 +534,13 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #'    en el año del ancla (el suyo o, con `valor_nacional_de` y valores subnacionales de la covariable, el de la
 #'    covariable que nombra) y que `escala` vaya solo con la transformación lineal; que cada ubicación subnacional
 #'    con proxies los traiga de todas las covariables y que el valor nacional en que se anclan traiga su intervalo
-#'    (`inferior` y `superior`); que las proporciones de `severidad` sumen 1. Avisa (`!`) de una covariable con
+#'    (`inferior` y `superior`); que las proporciones de `severidad` sumen 1; con `subnacional.modo: razon`, que la
+#'    tabla `razones` traiga, en el año que se estima, la razón de cada ubicación subnacional de la población y de
+#'    ninguna otra, con números finitos y alguna razón mayor que 0. Avisa (`!`) de una covariable con
 #'    proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
-#'    subnacional) y de valores de mortalidad de `datos` que parecen tasas por 100 000 en vez de por persona-año
-#'    (mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+#'    subnacional), de una tabla `razones` sin el modo `razon` (no se usa) y de valores de mortalidad de `datos` que
+#'    parecen tasas por 100 000 en vez de por persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla
+#'    en la misma causa, año, sexo y banda);
 #' 4. `insumos`: si nada falló, los insumos completos ([dl_insumos()]), con las reglas que necesitan todo armado: que
 #'    la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
 #'    población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la
@@ -636,10 +650,14 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' Los pasos, en orden:
 #' 1. los insumos ([dl_proyecto()] y [dl_insumos()]);
 #' 2. el ajuste nacional ([dl_ajustar()]) y el ajuste solo con el ancla ([dl_ajustar_solo_prior()]);
-#' 3. la cascada subnacional ([dl_cascada()]), si hay proxies del año que se estima o `subnacional.modo: plano`
-#'    (`cascada.modo: plana` en el formato completo); si no, un mensaje lo dice y la corrida es solo nacional;
+#' 3. la cascada subnacional ([dl_cascada()]), si hay proxies del año que se estima o `subnacional.modo` es `plano`
+#'    o `razon` (`cascada.modo: plana` o `razon` en el formato completo); si no, un mensaje lo dice y la corrida es
+#'    solo nacional;
 #' 4. la validación contra el ancla ([dl_validar_ancla()]);
-#' 5. el factor de comorbilidad ([dl_factor_comorbilidad()], si el ancla trae AVD) y los AVD ([dl_avd()]);
+#' 5. el factor de comorbilidad ([dl_factor_comorbilidad()], si el ancla trae AVD), los AVD ([dl_avd()]) y, con
+#'    `subnacional.modo: razon`, el reparto por razón ([dl_repartir_razon()]), con la semilla de la corrida o la de
+#'    `avanzado: {cascada: {razon_semilla: ...}}`: las tasas subnacionales de la corrida son las repartidas, y la
+#'    validación, las etiquetas y la sensibilidad son las del ajuste nacional;
 #' 6. las etiquetas de cuánto informan los datos ([dl_etiquetas()]), con la grilla de `sensibilidad.correlacion_edad`
 #'    de la configuración;
 #' 7. la sensibilidad ([dl_sensibilidad()]) con la grilla `sensibilidad` de la configuración, si
@@ -648,7 +666,11 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #'    con `registro`, la corrida queda además en el registro de corridas.
 #'
 #' Por defecto las cadenas son las de producción de [dl_opciones_mcmc()]: 1000 simulaciones, 4 cadenas de 50 000
-#' iteraciones con 10 000 de calentamiento, motor `"mh"`; la sensibilidad usa las de [dl_sensibilidad()].
+#' iteraciones con 10 000 de calentamiento, motor `"mh"`. La sensibilidad usa sus propias cadenas, las de
+#' [dl_sensibilidad()] (200 simulaciones, 2 cadenas de 6000 iteraciones con 3000 de calentamiento), con el `motor` de
+#' `opciones` y con sus `nucleos` como `procesos`: reparten las combinaciones de la grilla, y el resultado no depende
+#' de cuántos sean. Las etiquetas hacen sus reajustes con las cadenas cortas de [dl_etiquetas()] y el motor del
+#' ajuste.
 #'
 #' La corrida no se escribe en dos casos, que `dl_correr()` comprueba en cuanto puede, con las mismas compuertas que
 #' [dl_exportar_corrida()]. Si las cadenas no convergieron (R-hat < 1.01 y ESS >= 400), justo después del ajuste:
@@ -716,7 +738,7 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #'   (`diagnostics/sensibilidad.csv`); `FALSE` lo omite.
 #' @param opciones Opciones de [dl_opciones_mcmc()] del ajuste nacional; `NULL` (por defecto) usa las de producción
 #'   o, con `rapido = TRUE`, las cortas. Con `rapido = TRUE`, las `opciones` que se den reemplazan a las cortas y la
-#'   corrida sigue siendo una prueba.
+#'   corrida sigue siendo una prueba. Su `motor` y sus `nucleos` valen también para la sensibilidad (ver Detalles).
 #' @param registro Archivo YAML del registro de corridas, que ya existe (uno nuevo es un archivo con la línea
 #'   `datasets: []`): la corrida se agrega al final. Se comprueba antes de ajustar. `NULL` (por defecto) no registra.
 #' @param forzar `TRUE` escribe la corrida aunque las cadenas no hayan convergido (queda declarado en el manifiesto;
@@ -895,6 +917,9 @@ print.dl_corridas <- function(x, ...) {
     .dl_message("causa %d: insumos", cfg$cause_id)
     b <- dl_insumos(p)
     .dl_exigir_severidad(b$severidad, cfg$cause_id)
+    # con el reparto por razón, la tabla razones se comprueba antes de ajustar
+    razon <- identical(b$cfg$cascada$modo$valor, "razon")
+    if (razon) .dl_razones_reparto(b)
 
     .dl_message("ajuste nacional: %d cadena(s) de %d iteraciones por sexo (motor %s)", o$chains, o$iter, o$engine)
     f <- dl_ajustar(b, o, semilla = semilla)
@@ -909,7 +934,7 @@ print.dl_corridas <- function(x, ...) {
                          "(validacion.gates.force)"), convergencia$rhat_max, convergencia$ess_min, format(ess_minimo))
     f0 <- dl_ajustar_solo_prior(b, o, semilla = semilla, ajuste = f)
     casc <- NULL
-    if (nrow(b$cov_proxy) > 0L || identical(b$cfg$cascada$modo$valor, "plana")) {
+    if (nrow(b$cov_proxy) > 0L || identical(b$cfg$cascada$modo$valor, "plana") || razon) {
       .dl_message("cascada subnacional")
       casc <- dl_cascada(f, b, semilla = semilla)
     } else {
@@ -930,6 +955,12 @@ print.dl_corridas <- function(x, ...) {
     if (is.null(comorbilidad))
       .dl_message("el ancla no trae AVD: los AVD no se corrigen por comorbilidad (el manifiesto lo declara)")
     avd <- dl_avd(ajuste, b, comorbilidad, semilla = semilla)
+    reparto <- NULL
+    if (razon) {
+      .dl_message("reparto subnacional por raz\u00f3n (tabla razones)")
+      reparto <- dl_repartir_razon(list(fit = casc, yld = avd, bundle = b),
+                                   semilla = b$cfg$cascada$razon_semilla %||% semilla)
+    }
 
     .dl_message("etiquetas de cu\u00e1nto informan los datos")
     etiquetas <- if (rapido) dl_etiquetas(f, f0, b, grilla_rho = b$cfg$anchor$rho_edad, semilla = semilla,
@@ -938,10 +969,15 @@ print.dl_corridas <- function(x, ...) {
     sens <- NULL
     if (sensibilidad) {
       .dl_message("sensibilidad (grilla `sensibilidad` de la configuraci\u00f3n)")
-      sens <- if (rapido) dl_sensibilidad(b, semilla = semilla, opciones = o) else dl_sensibilidad(b, semilla = semilla)
+      # de prueba: las cadenas cortas de la corrida, en un proceso. De producción: las cadenas propias de la
+      # sensibilidad con el motor del ajuste nacional, y sus núcleos como procesos (reparten las combinaciones de la
+      # grilla). Con el motor "mh" y 1 núcleo es dl_sensibilidad(b, semilla = semilla).
+      sens <- if (rapido) dl_sensibilidad(b, semilla = semilla, opciones = o)
+              else dl_sensibilidad(b, semilla = semilla, opciones = .dl_opciones_sensibilidad(o$engine),
+                                   procesos = o$cores)
     }
 
-    resumen <- dl_resumir(list(fit = ajuste, yld = avd, bundle = b))
+    resumen <- dl_resumir(c(list(fit = ajuste, yld = avd, bundle = b), if (razon) list(reparto = reparto)))
     run <- dl_exportar_corrida(list(resumen = resumen, fit = ajuste, yld = avd, bundle = b),
                                nombre = nombre,
                                carpeta = carpeta_salida, etiquetas = etiquetas, validacion = validacion,

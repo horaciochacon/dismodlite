@@ -19,11 +19,18 @@
 #
 # Promedio poblacional de x sobre el intervalo [inicio, fin):
 #   A   = { a de la malla anual : inicio <= a < fin }
-#   w_a = N_b(a) / sum_{a' en A} N_b(a'),        b(a) = banda fina que contiene la edad a
+#   n_b = número de edades de la malla anual en la banda fina b (de toda la malla, no solo de A)
+#   m_a = N_b(a) / n_b(a),                       b(a) = banda fina que contiene la edad a
+#   w_a = m_a / sum_{a' en A} m_a'
 #   q   = sum_{a en A} w_a x(a)                  (los w_a suman 1)
-# Cada edad pesa con la población de su banda fina: dentro de una banda las edades pesan igual y, entre bandas, en
-# proporción a N_b (lo mismo que repartir N_b por igual entre los años de su banda cuando las bandas de A tienen el
-# mismo ancho). Un intervalo sin edades de la malla, o con una edad sin banda fina, es un error; nunca un cero.
+# Cada edad pesa con la población de su banda fina repartida por igual entre las edades de la malla en esa banda
+# (m_a, personas por año de edad): dentro de una banda las edades pesan igual y, entre bandas, una banda completa
+# pesa en proporción a N_b. Si todas las bandas de A tienen el mismo n_b (una sola banda, o varias quinquenales), n_b
+# se cancela y w_a = N_b(a) / sum N_b(a'): ese caso se calcula así, sin dividir, y no cambia ni un bit respecto de la
+# versión 2.2.0. Solo cuando A cruza bandas con distinto n_b (un dato de todas las edades sobre quinquenios y una
+# banda abierta de 80 años y más, que en la malla 0..99 tiene 20 edades) se divide por n_b; hasta la versión 2.2.0 no
+# se dividía y esa banda abierta pesaba 4 veces lo que le corresponde frente a un quinquenio (20 edades frente a 5).
+# Un intervalo sin edades de la malla, o con una edad sin banda fina, es un error; nunca un cero.
 # Es una cuadratura por rectángulos con paso de 1 año y x evaluada en la edad exacta a (el cumpleaños), no a mitad
 # del año de edad: el promedio de [inicio, fin) usa x(inicio), ..., x(fin - 1), cuya edad promedio es medio año
 # menor que la del intervalo (42 frente a 42,5 en [40, 45)). La banda abierta final se representa con las edades
@@ -105,6 +112,7 @@
 #   pobl_sexo     población de una ubicación y un sexo por banda fina (columnas age_group_id y val);
 #   bandas        bandas finas (age_group_id, age_start, age_end), p. ej. insumos$bandas_pobl.
 # Devuelve list(idx, w): las posiciones en `edades_anual` de las edades de A y sus pesos w_a (suman 1).
+# Gemela en C++: ninguna; .dl_ctx_cpp() (R/rcpp.R) pasa estos pesos ya calculados a q_banda().
 .dl_pesos_intervalo <- function(edades_anual, age_start, age_end, pobl_sexo, bandas) {
   idx <- which(edades_anual >= age_start & edades_anual < age_end)
   if (!length(idx))
@@ -118,6 +126,10 @@
   if (anyNA(N))
     .dl_stop("poblaci\u00f3n sin banda(s) %s, necesaria(s) para el intervalo [%s, %s)",
              paste(unique(ids_banda[is.na(N)]), collapse = ", "), age_start, age_end)
+  # n_b(a): edades de la malla en la banda de cada edad a de A. Con el mismo n_b en todo A la división se cancela y
+  # no se hace: los operandos son los de la versión 2.2.0 (invariancia numérica).
+  n_malla <- tabulate(.dl_banda_de(edades_anual, bandas), nbins = nrow(bandas))[banda]
+  if (length(unique(n_malla)) > 1L) N <- N / n_malla
   list(idx = idx, w = N / sum(N))
 }
 

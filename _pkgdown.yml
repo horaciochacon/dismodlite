@@ -160,6 +160,7 @@ reference:
     cascada.
   contents:
   - dl_cascada
+  - dl_repartir_razon
 - title: Carga
   desc: >
     Años vividos con discapacidad (AVD) a partir de la prevalencia, la severidad y los pesos de discapacidad.

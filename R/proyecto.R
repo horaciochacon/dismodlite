@@ -256,10 +256,10 @@
 
 # Lo que la traducción de la configuración de `causa` toma de las tablas (.dl_traducir_config_simple): la ubicación
 # nacional (la que no tiene padre en ubicaciones), las betas de la causa (las de `padre` si es un subtipo sin betas
-# propias), las covariables con filas subnacionales, si hay ubicaciones subnacionales, el nombre de la causa en el
-# ancla, la causa padre, los años con prevalencia de la causa en el ancla (para el año del ancla), las causas con filas
-# en la tabla betas, el covariate_id de cada covariable (para valor_nacional_de) y los location_id de GBD que los
-# lectores tomaron como el país (ubicacion_gbd; vacío si ninguna tabla vino de una descarga).
+# propias), las covariables con filas subnacionales, si hay ubicaciones subnacionales, si está la tabla razones, el
+# nombre de la causa en el ancla, la causa padre, los años con prevalencia de la causa en el ancla (para el año del
+# ancla), las causas con filas en la tabla betas, el covariate_id de cada covariable (para valor_nacional_de) y los
+# location_id de GBD que los lectores tomaron como el país (ubicacion_gbd; vacío si ninguna tabla vino de una descarga).
 .dl_contexto_tablas <- function(tablas, causa, padre = NULL) {
   nacional <- .dl_ubicacion_nacional(tablas)
   betas <- .dl_betas_de_causa(tablas$betas, causa, padre)
@@ -272,6 +272,7 @@
        covariables_subnacionales = if (is.null(cov)) character()
                                    else unique(cov$covariable[!.dl_es_nacional(cov, nacional)]),
        subnacional = any(!is.na(.dl_col(tablas$ubicaciones, "padre", NA_character_))),
+       razones = !is.null(tablas$razones),
        nombre = if (length(nombres)) nombres[[1L]], ids_covariable = .dl_ids_covariable(tablas, betas),
        ubicacion_gbd = unique(unlist(lapply(tablas, attr, "ubicacion_gbd"))))
 }
@@ -678,6 +679,7 @@
 #'   fuentes_gbd/
 #'   poblacion_detalle.csv
 #'   proxies_crudos.csv   # un indicador de encuesta por ubicación y edición: se calibra al leer
+#'   razones.csv          # la razón de cada ubicación subnacional respecto de la nacional (subnacional.modo: razon)
 #'   particion/<corrida>/ # opcional: la partición de severidad que nombra severidad.particion
 #' ```
 #' Cada tabla es `<tabla>.csv` o una carpeta `<tabla>/` cuyos CSV se juntan (cada uno pasa por su lector), como
@@ -744,8 +746,8 @@
 #'   las tablas).
 #' @param causa Causa (`cause_id`, un entero); `NULL` si el proyecto tiene una sola o la configuración la declara.
 #' @param ... Tablas del contrato por su nombre (ver [dl_tablas]: `ubicaciones`, `poblacion`, `ancla`, `covariables`,
-#'   `betas`, `datos`, `severidad`, `fuentes_gbd`, `poblacion_detalle`, `proxies_crudos`): un `data.frame` o la ruta
-#'   de un CSV o de una carpeta. Reemplazan a las de la carpeta.
+#'   `betas`, `datos`, `severidad`, `fuentes_gbd`, `poblacion_detalle`, `proxies_crudos`, `razones`): un `data.frame`
+#'   o la ruta de un CSV o de una carpeta. Reemplazan a las de la carpeta.
 #' @param configuracion Ruta del YAML de la configuración o una lista con sus claves (opcional; por defecto, la de la
 #'   carpeta).
 #' @param anio Año que se estima (un entero), en lugar del `anio` de la configuración; `NULL` (por defecto) deja el

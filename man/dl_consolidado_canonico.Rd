@@ -20,6 +20,10 @@ proporción; la incidencia y los AVD por 100 000), sin conteos.
 Apila las celdas de cada corrida seleccionada, con \code{run_fuente} (la corrida de origen) y \code{run_id} (el del
 consolidado).
 }
+\details{
+De una corrida cuya configuración dice \code{exportar: {incidencia: no}} (su manifiesto lleva
+\code{causa.exporta_incidencia: false}; ver \code{\link[=dl_configuracion]{dl_configuracion()}}) se apilan la prevalencia y los AVD, no la incidencia.
+}
 \examples{
 # El ejemplo de ?dl_consolidar arma un registro de corridas y corre todos los pasos. Este es
 # el segundo, con la selección del primero:

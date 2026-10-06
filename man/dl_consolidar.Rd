@@ -17,7 +17,8 @@ dl_consolidar(
   nombre = "consolidado",
   registro_salida = NULL,
   carpeta_corridas = carpeta,
-  nombres_nivel4 = file.path(dirname(maestro), "causas_nivel4_es.csv")
+  nombres_nivel4 = file.path(dirname(maestro), "causas_nivel4_es.csv"),
+  ajuste_directo = integer()
 )
 }
 \arguments{
@@ -47,6 +48,9 @@ ejemplo \code{dl_rutas_ejemplo(9100)} con los datos de ejemplo).}
 \item{carpeta_corridas}{Carpeta raíz donde están las corridas (por defecto, \code{carpeta}).}
 
 \item{nombres_nivel4}{Archivo con los nombres en español de las causas de nivel 4 (opcional).}
+
+\item{ajuste_directo}{Causas con hijas en \code{master_gbd.csv} que se consolidan desde su propio ajuste y no desde la
+suma de sus hijas: un vector de \code{cause_id} (por defecto, ninguna).}
 }
 \value{
 Objeto de clase \code{dl_run} del consolidado, con \code{run_id}, \code{dir} (su carpeta), \code{manifest} (el contenido de
@@ -65,6 +69,14 @@ el contrato \code{estimates/v1} (\code{\link[=dl_validar_estimaciones]{dl_valida
 valida en memoria antes de escribir, y la escritura va a una carpeta temporal que se renombra al final. El
 manifiesto declara el perfil (con su sha256), la procedencia de la población, un bloque por causa y año (la
 corrida de origen, si es una suma, sus compuertas) y las limitaciones del consolidado.
+
+La incidencia de una causa cuya configuración dice \code{exportar: {incidencia: no}} (ver \code{\link[=dl_configuracion]{dl_configuracion()}}) no entra:
+sus tablas de prevalencia y de AVD sí. El bloque de esa causa lleva \code{incidencia_exportada: false} y las limitaciones
+la nombran; la corrida conserva su incidencia.
+
+Una causa que el maestro declara con hijas debe venir de su suma (\code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}}). Si se modeló entera, con
+un ajuste propio, se nombra en \code{ajuste_directo} y se consolida desde ese ajuste: su bloque lleva
+\code{ajuste_directo: true} y las limitaciones lo dicen (ver \code{\link[=dl_consolidado_seleccionar]{dl_consolidado_seleccionar()}}).
 
 Usa el registro de corridas y la carpeta del registro de causas (\code{master_gbd.csv} y \code{etiquetas_es.csv}): la de un
 proyecto la arma \code{\link[=dl_proyecto]{dl_proyecto()}} (\code{dl_proyecto(...)$rutas$registry}); la de un proyecto en el formato completo es

@@ -25,7 +25,7 @@ test_that("dl_configuracion sin carpeta_config pide el argumento y no nombra var
 })
 test_that("el paquete carga y expone dl_version()", {
   expect_true(is.function(dl_version))
-  expect_identical(dl_version(), "2.2.0")
+  expect_identical(dl_version(), "2.3.0")
 })
 # El paquete instalado en una librería bajo una ruta con espacios y tildes (una carpeta de usuario de Windows como
 # «C:/Users/Ana María/...»): en otro proceso de R se carga desde ahí y lee de su carpeta el esquema, la versión y

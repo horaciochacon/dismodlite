@@ -47,10 +47,13 @@ la población o se pueda agrupar con \code{poblacion_detalle}; que cada covariab
 en el año del ancla (el suyo o, con \code{valor_nacional_de} y valores subnacionales de la covariable, el de la
 covariable que nombra) y que \code{escala} vaya solo con la transformación lineal; que cada ubicación subnacional
 con proxies los traiga de todas las covariables y que el valor nacional en que se anclan traiga su intervalo
-(\code{inferior} y \code{superior}); que las proporciones de \code{severidad} sumen 1. Avisa (\code{!}) de una covariable con
+(\code{inferior} y \code{superior}); que las proporciones de \code{severidad} sumen 1; con \code{subnacional.modo: razon}, que la
+tabla \code{razones} traiga, en el año que se estima, la razón de cada ubicación subnacional de la población y de
+ninguna otra, con números finitos y alguna razón mayor que 0. Avisa (\code{!}) de una covariable con
 proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
-subnacional) y de valores de mortalidad de \code{datos} que parecen tasas por 100 000 en vez de por persona-año
-(mayores que 1, o más de 1000 veces la mortalidad del ancla en la misma causa, año, sexo y banda);
+subnacional), de una tabla \code{razones} sin el modo \code{razon} (no se usa) y de valores de mortalidad de \code{datos} que
+parecen tasas por 100 000 en vez de por persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla
+en la misma causa, año, sexo y banda);
 \item \code{insumos}: si nada falló, los insumos completos (\code{\link[=dl_insumos]{dl_insumos()}}), con las reglas que necesitan todo armado: que
 la población nacional sea la suma de las subnacionales, que el promedio de los proxies, ponderado por la
 población, sea el valor nacional de la covariable o que los datos locales tengan valores posibles; y la

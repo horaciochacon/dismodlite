@@ -57,10 +57,11 @@
 }
 
 # Proyección (years.ancla): el nivel nacional y su incertidumbre son los del año ancla; del año de ajuste son solo
-# la población (con su acquisition_id) y, con una cascada por proxies, los proxies subnacionales. Es «declarada» si
-# la configuración da el año del ancla y «automática» si salió de la tabla ancla (.dl_proyeccion_anunciada); cierra
-# con la procedencia de years.ancla (la de la automática, sin su «proyección: » inicial).
-.dl_limitacion_ancla <- function(cfg, b, casc = NULL) {
+# la población (con su acquisition_id) y, con una cascada por proxies, los proxies subnacionales (con el reparto por
+# razón `reparto`, las razones). Es «declarada» si la configuración da el año del ancla y «automática» si salió de la
+# tabla ancla (.dl_proyeccion_anunciada); cierra con la procedencia de years.ancla (la de la automática, sin su
+# «proyección: » inicial).
+.dl_limitacion_ancla <- function(cfg, b, casc = NULL, reparto = NULL) {
   anio <- .dl_anio_ajuste(cfg); anio_a <- .dl_anio_ancla(cfg)
   if (identical(anio_a, anio)) return(NULL)
   acq <- unique(b$poblacion$acquisition_id[b$poblacion$year == anio])
@@ -71,9 +72,63 @@
                 "\u2014 el nivel nacional y su incertidumbre son los de %d; del %d son solo la poblaci\u00f3n (%s)%s",
                 "\u2014 %s"),
           if (sola) "autom\u00e1tica" else "declarada", anio_a, anio, anio_a, anio, paste(acq, collapse = ", "),
-          if (con_proxies) " y los proxies subnacionales de la cascada" else "",
+          if (!is.null(reparto)) " y las razones del reparto subnacional"
+          else if (con_proxies) " y los proxies subnacionales de la cascada" else "",
           .dl_texto_yaml(if (sola) sub("^proyecci\u00f3n: ", "", cfg$years$ancla$procedencia)
                          else cfg$years$ancla$procedencia))
+}
+
+# Ancla a peso completo (lambda = 1) con fuentes locales no fatales en la evidencia: ningún dato local entra al ajuste
+# (si entrara, .dl_chequear_doble_conteo() habría detenido los insumos), así que no hay doble conteo; el manifiesto
+# dice cuántas fuentes son y cuáles. NULL con lambda < 1 o sin fuentes.
+.dl_limitacion_peso_completo <- function(cfg, b) {
+  nid <- b$fuentes_locales$nid_no_fatal %||% integer()
+  if (!length(nid) || as.numeric(cfg$anchor$lambda) < 1) return(NULL)
+  sprintf(paste("ancla a peso completo (lambda = 1) con %d fuente(s) local(es) no fatal(es) en la evidencia (nid %s)",
+                "\u2014 ning\u00fan dato local entra al ajuste, as\u00ed que no se cuentan dos veces"),
+          length(nid), paste(nid, collapse = ", "))
+}
+
+# Reparto subnacional por razón (cascada.modo razon; `reparto`: el del resumen, R/razon.R): el modelo es el nacional
+# y cada ubicación recibe la tasa nacional por su razón, la misma en todas las edades y sexos. Ocupa el lugar de la
+# limitación de la cascada plana, que es la del modelo.
+.dl_limitacion_razon <- function(cfg, reparto) {
+  fuentes <- unique(stats::na.omit(reparto$razones$fuente))
+  sprintf(paste0("reparto subnacional por raz\u00f3n declarado \u2014 cada ubicaci\u00f3n subnacional recibe la tasa ",
+                 "nacional por edad y sexo multiplicada por su raz\u00f3n (tabla razones%s), sorteada por ",
+                 "simulaci\u00f3n y con cierre exacto en el valor nacional; la misma raz\u00f3n en todas las edades y ",
+                 "sexos (supuesto declarado); el modelo es el nacional, sin covariables entre ubicaciones \u2014 %s"),
+          if (length(fuentes)) sprintf("; fuente %s", paste(.dl_texto_yaml(fuentes), collapse = ", ")) else "",
+          .dl_texto_yaml(cfg$cascada$modo$procedencia))
+}
+
+# Bloque `razon` del manifiesto de una corrida con el reparto por razón `reparto` (el del resumen): la semilla del
+# sorteo, cuántas ubicaciones, el rango de las razones de la tabla (6 decimales), cuántas son cero, sus fuentes y la
+# regla, en ASCII.
+.dl_manifiesto_razon <- function(reparto) {
+  r <- reparto$razones
+  list(semilla = as.integer(reparto$semilla), ubicaciones = length(reparto$ubicaciones),
+       razon_min = round(min(r$razon), 6), razon_max = round(max(r$razon), 6),
+       razones_cero = as.integer(sum(r$razon == 0)),
+       fuente = as.list(.dl_texto_yaml(unique(stats::na.omit(r$fuente)))),
+       regla = list("R_dj = razon_d exp(error_log_d z_dj), z ~ N(0, 1) por ubicacion y simulacion",
+                    "la misma z en las tres medidas y en todas las celdas de edad y sexo",
+                    "tasa_dj = tasa_nac_j R_dj N_nac / sum_d R_dj N_d (cierre exacto en el nacional)"))
+}
+
+# La incidencia en las limitaciones. Con exportar.incidencia = false: no entra en los consolidados, con la
+# procedencia como motivo (y, si además el ancla no trae incidencia de la causa, que se omitió su comprobación). Si se
+# exporta y el ancla no trae incidencia de la causa: la limitación de siempre. Una sola limitación, o ninguna.
+.dl_limitacion_incidencia <- function(cfg, sin_incidencia_ancla) {
+  if (!.dl_exporta_incidencia(cfg))
+    return(sprintf(paste0("incidencia no exportada (exportar.incidencia) \u2014 la corrida la escribe ",
+                          "(cause/incidence/ y draws/) y un consolidado la omite \u2014 %s%s"),
+                   .dl_texto_yaml(cfg$exportar$incidencia$procedencia),
+                   if (sin_incidencia_ancla) paste0("; el ancla de incidencia no trae filas de la causa y se omite el ",
+                                                    "chequeo implied_incidence") else ""))
+  if (!sin_incidencia_ancla) return(NULL)
+  paste0("incidencia exportada sin referencia \u2014 el ancla de incidencia no trae filas de la causa; se ",
+         "omite el chequeo implied_incidence")
 }
 
 # Todas las limitaciones de una corrida, en el orden del manifiesto.
@@ -90,10 +145,9 @@
     list("pesos de discapacidad (DW) muestreados de forma independiente entre estados de salud"),
     as.list(.dl_limitacion_fraccion_aguda(cfg)),
     as.list(.dl_limitacion_heldout(cfg, validacion)),
-    as.list(.dl_limitacion_ancla(cfg, b, casc)),
-    if (isTRUE(attr(validacion, "sin_incidencia_gbd")))
-      list(paste0("incidencia exportada sin referencia \u2014 el ancla de incidencia no trae filas de la causa; se ",
-                  "omite el chequeo implied_incidence")),
+    as.list(.dl_limitacion_ancla(cfg, b, casc, res$reparto)),
+    as.list(.dl_limitacion_incidencia(cfg, isTRUE(attr(validacion, "sin_incidencia_gbd")))),
+    as.list(.dl_limitacion_peso_completo(cfg, b)),
     if (!is.null(b$componente))
       list(sprintf(paste0("componente de la causa \u2014 esta corrida cubre solo las secuelas %s (%s); prevalencia ",
                           "del ancla \u00d7 %.4f y AVD de referencia \u00d7 %.4f seg\u00fan la partici\u00f3n de ",
@@ -107,6 +161,10 @@
       list(sprintf(paste("prior de la mortalidad en exceso (EMR) relajado \u2014 sd_log \u00d7 %g",
                          "(emr_prior.factor_sd) \u2014 %s"),
                    .dl_factor_sd_emr(cfg), .dl_texto_yaml(cfg$emr_prior$factor_sd$procedencia))),
+    if (.dl_emr_es_cero(cfg))
+      list(sprintf(paste("mortalidad en exceso (EMR) fija en 0 (emr_prior.tipo cero) \u2014 no se estima (sin nudos",
+                         "de log f en el muestreo) y la causa no aporta muertes al modelo \u2014 %s"),
+                   .dl_texto_yaml(cfg$emr_prior$tipo_procedencia))),
     if (length(cfg$remision$por_edad))
       list(sprintf("remisi\u00f3n por tramo de edad \u2014 %s (fuera de los tramos, remisi\u00f3n %g)",
                    paste(vapply(cfg$remision$por_edad, function(t)
@@ -114,6 +172,7 @@
                    as.numeric(cfg$remision$valor %||% 0))),
     if (is.null(casc))
       list("sin cascada \u2014 corrida solo nacional, con las covariables en su valor medio (X sin simular)")
+    else if (!is.null(res$reparto)) list(.dl_limitacion_razon(cfg, res$reparto))
     else if (identical(casc$modo, "plana"))
       list(sprintf(paste0("cascada plana declarada \u2014 tasas nacionales por edad y sexo en cada ubicaci\u00f3n ",
                           "subnacional (dX = 0 en todas las covariables; conteos solo por poblaci\u00f3n); sin ",
@@ -320,7 +379,7 @@
   casc <- if (inherits(f, "dl_cascade")) f else NULL
   amplitud <- attr(validacion, "amplitud")
   c(.dl_manifiesto_base(celdas$run_id[1], .DL_METODO_DISMOD_LITE, as.character(celdas$round[1])), list(
-    causa = list(cause_id = as.integer(cfg$cause_id), cause_name = celdas$cause_name[1],
+    causa = c(list(cause_id = as.integer(cfg$cause_id), cause_name = celdas$cause_name[1],
                  # causa de la extracción de las betas (extraction.cause_id) cuando no es la causa modelada (por
                  # ejemplo, un subtipo con la extracción de su causa padre)
                  extraction_cause_id = as.integer(cfg$extraction$cause_id %||% cfg$cause_id),
@@ -330,6 +389,9 @@
                    sequela_ids = as.list(as.integer(b$componente$sequela_ids)),
                    fraccion_prevalencia = round(as.numeric(b$componente$fraccion_prevalencia), 6),
                    fraccion_yld = round(as.numeric(b$componente$fraccion_yld), 6)) else NULL),
+               # la incidencia queda fuera de los consolidados (exportar.incidencia = false); sin el campo, el
+               # manifiesto no gana la clave
+               if (!.dl_exporta_incidencia(cfg)) list(exporta_incidencia = FALSE)),
     params = c(list(seed = as.integer(f$seed), draws = as.integer(f$params$draws),
                   chains = as.integer(f$params$chains), iter = as.integer(f$params$iter),
                   warmup = as.integer(f$params$warmup), thin = as.integer(f$params$thin),
@@ -345,12 +407,14 @@
                   emr_prior = cfg$emr_prior$tipo,
                   # fracción aguda del csmr descontada del prior de la EMR y de su techo
                   csmr_fraccion_aguda = .dl_fraccion_aguda(cfg),
-                  # techo de la EMR: el de la configuración («impreso») o derivado del ancla (k * max csmr/prev)
+                  # techo de la EMR: el de la configuración («impreso») o derivado del ancla (k * max csmr/prev);
+                  # con la EMR fija en cero, [0, 0] y origen «cero»
                   emr_cota = as.list(round(as.numeric(cfg$emr_prior$cota), 6)),
                   emr_cota_origen = b$techo_emr$origen %||% "impreso",
                   emr_cota_k = if (identical(b$techo_emr$origen, "derivado")) as.numeric(b$techo_emr$k) else NULL,
                   lambda = as.numeric(cfg$anchor$lambda),
-                  # fuentes locales no fatales que informaron el ancla (con alguna, lambda debe ser < 1)
+                  # fuentes locales no fatales que informaron el ancla (con alguna, lambda < 1 o ningún dato local
+                  # en el ajuste: .dl_chequear_doble_conteo)
                   fuentes_locales_no_fatales = as.list(b$fuentes_locales$nid_no_fatal %||% integer()),
                   rho = as.numeric(cfg$anchor$rho_edad),
                   kappa = if (is.null(casc)) NULL else as.numeric(casc$kappa),
@@ -385,8 +449,9 @@
                     parametro_objetivo = b$betas$parametro_objetivo[i], escala = as.numeric(b$betas$escala[i]))))),
     files = archivos,
     cascada = if (is.null(casc)) NULL else list(
-      # con la cascada plana, su procedencia va en las limitaciones (el emisor no pliega escalares largos)
-      modo = casc$modo %||% "proxy",
+      # con la cascada plana, su procedencia va en las limitaciones (el emisor no pliega escalares largos); con el
+      # reparto por razón del resumen, el modo es razon (la cascada del modelo es la plana)
+      modo = if (!is.null(res$reparto)) "razon" else casc$modo %||% "proxy",
       departamentos = length(casc$departamentos),
       proxies = as.list(unique(casc$dX$covariate_name_short)),
       renorm_min = round(min(casc$renorm$factor), 6), renorm_max = round(max(casc$renorm$factor), 6),
@@ -410,6 +475,8 @@
                  heldout_anio = .dl_anio_heldout(cfg)),
     # el emisor no cita «: »; sin decisiones, una lista vacía
     decisiones = if (length(unlist(cfg$decisiones))) as.list(.dl_texto_yaml(unlist(cfg$decisiones))) else list()),
+    # el reparto por razón que se aplicó (la clave solo existe con cascada.modo razon)
+    if (!is.null(res$reparto)) list(razon = .dl_manifiesto_razon(res$reparto)),
     # configuración simple: su formato y las claves tomadas por defecto, con su valor (la clave solo existe en ese
     # formato)
     if (.dl_es_simple(cfg)) list(configuracion = list(formato = "simple", por_defecto = lapply(
@@ -501,11 +568,15 @@
 #' - `diagnostics/`: `mcmc.csv` (R-hat y ESS), `aceptacion.csv`, `desplazamiento_splits.csv`, `validacion.csv`
 #'   ([dl_validar_ancla()]), `sensibilidad.csv` ([dl_sensibilidad()], si se da) y, con una cascada, `renorm.csv`
 #'   (los factores de renormalización), `dx_bandas.csv` (la mediana y el intervalo de dX por ubicación, sexo,
-#'   covariable y banda) y `amplitud.csv` (la validación de la amplitud, si se calculó). Con un proyecto que trae
+#'   covariable y banda) y `amplitud.csv` (la validación de la amplitud, si se calculó). Con el reparto por razón
+#'   (`subnacional.modo: razon`), `razon.csv`: la razón aplicada por ubicación (la tabla `razones` de
+#'   [dl_repartir_razon()]). Con un proyecto que trae
 #'   `proxies_crudos`, `proxies_series.csv`: las series de su calibración (el atributo `series` de
 #'   [dl_calibrar_proxies()]: el gradiente observado y el suavizado por ubicación y edición).
 #' - `inputs/`: los insumos congelados ([dl_congelar_insumos()]), la configuración usada (`config_usado.yaml`, en el
-#'   formato completo) y las descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con un
+#'   formato completo) y las descargas de covariables (`ghdx_cov/`, solo con los insumos del formato completo). Con la
+#'   mortalidad en exceso fija en 0 (`emr_prior.tipo: cero`), `config_usado.yaml` va sin `emr_prior.cota` (el
+#'   manifiesto sí declara `params.emr_cota: [0, 0]`): [dl_configuracion()] no admite esa clave con ese prior. Con un
 #'   proyecto de las tablas del contrato ([dl_proyecto()]), `inputs/contrato/` guarda las tablas que se usaron
 #'   (`<tabla>.csv`, con las covariables nacionales; los números escritos exactos) y la configuración del proyecto tal
 #'   como se leyó (`config.yaml`, con los nombres de clave de ahora), y el manifiesto registra el sha256 de cada
@@ -532,7 +603,15 @@
 #' el método, la transformación, q, el borde de su intervalo en que quedó (si quedó en uno), las ediciones usadas y
 #' las excluidas, cada una con su `anio` y su `motivo`. En la cascada, `haqi_nacional` se conserva por compatibilidad con la versión 0.2.2: es `false` solo si la
 #' cascada aplicó un proxy subnacional de una covariable llamada `haqi`; si no (también en un proyecto sin esa
-#' covariable), es `true`.
+#' covariable), es `true`. Con el reparto por razón (`subnacional.modo: razon`), `cascada.modo` es `razon` y el
+#' bloque `razon` trae la semilla del sorteo, cuántas ubicaciones, el rango de las razones de la tabla, cuántas son
+#' cero, sus fuentes y la regla; las limitaciones declaran que la razón es la misma en todas las edades y sexos.
+#'
+#' Si la configuración dice que la incidencia de la causa no se reporta (en un proyecto, `exportar: {incidencia: no}`;
+#' en el formato completo, `exportar: {incidencia: {valor: false, procedencia}}`), la corrida escribe la incidencia
+#' igual, en `cause/incidence/` y en `draws/`, y el manifiesto lleva `causa.exporta_incidencia: false` y una
+#' limitación con la procedencia: [dl_consolidar()] omite la incidencia de esa corrida. Sin la clave, el manifiesto
+#' no cambia.
 #'
 #' `forzar = TRUE` salta la convergencia, no el error del ancla: si la prevalencia ajustada se aleja de la del ancla
 #' (error relativo mediano mayor que `anchor.gate_err_mediano`, 0.05 por defecto), la corrida no se escribe. Ese
@@ -540,7 +619,8 @@
 #' `anchor: {gate_err_mediano: {valor, procedencia}}`; ver [dl_configuracion()]).
 #'
 #' @param piezas Lista con `resumen` ([dl_resumir()]), `fit` (ajuste o cascada), `yld` ([dl_avd()]) y `bundle`
-#'   (insumos), las mismas con que se hizo el resumen; también valen los nombres `ajuste`, `avd` e `insumos`.
+#'   (insumos), las mismas con que se hizo el resumen; también valen los nombres `ajuste`, `avd` e `insumos`. El
+#'   reparto por razón ([dl_repartir_razon()]) va en el resumen: aquí no hace falta.
 #' @param nombre Nombre corto de la corrida: minúsculas sin tildes, números y guiones (por ejemplo
 #'   `"acs-nacional"`).
 #' @param carpeta Carpeta raíz de las corridas.
@@ -645,6 +725,8 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   escribir(validacion, "validacion.csv")
   escribir(sensibilidad, "sensibilidad.csv")
   escribir(casc$renorm, "renorm.csv")
+  # la razón aplicada por ubicación (la de la tabla y la media y el intervalo de las sorteadas), con el reparto
+  escribir(res$reparto$razones, "razon.csv")
   # dX por departamento, sexo, covariable y banda del proxy (mediana e intervalo del 95 % de las simulaciones): la
   # tabla que hace trazable el reparto del gradiente departamental por edad
   if (!is.null(casc) && nrow(casc$dX))
@@ -659,6 +741,9 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   # la configuración traducida al formato completo (sin la del proyecto, que va en contrato/config.yaml)
   usada <- cfg
   usada$origen$configuracion <- NULL
+  # con la EMR fija en cero, sin la cota [0, 0] que ponen los insumos (la declara el manifiesto): la configuración no
+  # admite emr_prior.cota con ese prior
+  if (.dl_emr_es_cero(cfg)) usada$emr_prior$cota <- NULL
   yaml::write_yaml(usada, file.path(inputs_dir, "config_usado.yaml"))
   # las tablas del contrato del proyecto (si los insumos vienen de uno) y su configuración tal como se leyó: con ellas
   # la corrida se repite sin la carpeta original, también cuando las tablas o la configuración se dieron en R. Cada
@@ -768,14 +853,15 @@ dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"
   writeLines(enc2utf8(texto), f, sep = "", useBytes = TRUE)
 }
 
-# Qué es una corrida, según su manifiesto: un consolidado, una suma de hijas, un re-resumen, o el ajuste nacional o
-# la cascada que exportó dl_exportar_corrida().
+# Qué es una corrida, según su manifiesto: un consolidado, una suma de hijas, un re-resumen, o el ajuste nacional, el
+# reparto por razón o la cascada que exportó dl_exportar_corrida().
 .dl_tipo_corrida <- function(x) {
   man <- x$manifest
   origen <- x$origen %||% man$resumen$run_origen
   if (identical(man$method, .DL_METODO_CONSOLIDADO)) "consolidado"
   else if (identical(man$causa$agregacion, "suma_de_hijas")) "suma de las hijas"
   else if (!is.null(origen)) sprintf("re-resumen de %s", origen)
+  else if (identical(man$cascada$modo, "razon")) "reparto subnacional por raz\u00f3n"
   else if (!is.null(man$cascada)) "cascada subnacional"
   else "ajuste nacional"
 }

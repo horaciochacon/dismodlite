@@ -1,7 +1,7 @@
 ---
 title: "Preparar tus datos"
 description: >
-  Las tablas que necesita un proyecto, para cualquier país y causa: el eje común y la regla de omisión, las diez
+  Las tablas que necesita un proyecto, para cualquier país y causa: el eje común y la regla de omisión, las once
   tablas con sus columnas y sus fuentes, la carpeta y la puerta de R, cómo revisarlas, las bandas de edad del ancla,
   qué bajar de GBD y cómo se organiza la carpeta de un proyecto de modelación.
 vignette: >
@@ -23,7 +23,7 @@ Los insumos de dismodlite son unas pocas tablas, el **contrato de insumos**, y u
 explica:
 
 1. el **eje**: las seis columnas que comparten todas las tablas, y la regla para omitir las que no varían;
-2. las **diez tablas**: para qué sirve cada una, qué columnas exige y de dónde suele salir;
+2. las **once tablas**: para qué sirve cada una, qué columnas exige y de dónde suele salir;
 3. las dos formas de pasarlas al paquete: **la carpeta** del proyecto y **la puerta de R** (`data.frame`);
 4. cómo revisar una tabla con `dl_tabla()` y el proyecto entero con `dl_revisar_proyecto()`;
 5. las **bandas de edad** del ancla y de la población, y cuándo hace falta `poblacion_detalle`;
@@ -93,7 +93,7 @@ Las tablas son CSV en UTF-8, separados por comas y con punto decimal (en Excel, 
 Los nombres de columna no distinguen mayúsculas y algunos sinónimos fijos se aceptan (`year` por `anio`, `tipo` por
 `medida`...); las columnas de más se ignoran.
 
-## 2. Las diez tablas
+## 2. Las once tablas
 
 | Tabla | ¿Hace falta? | Qué aporta | De dónde suele salir |
 |---|---|---|---|
@@ -107,6 +107,7 @@ Los nombres de columna no distinguen mayúsculas y algunos sinónimos fijos se a
 | `fuentes_gbd` | opcional | las fuentes que GBD ya usó (doble conteo) | GHDx |
 | `poblacion_detalle` | si el ancla tiene bandas más finas que la población (80 y más, menores de 5) | la población nacional con más detalle de edad | GBD o la ONU |
 | `proxies_crudos` | opcional, en lugar de los proxies de `covariables` | un indicador de encuesta por ubicación subnacional y edición, que el paquete calibra | encuestas de hogares y similares |
+| `razones` | con `subnacional.modo: razon` | la razón entre la tasa de cada ubicación subnacional y la nacional, con su error | una encuesta, la población en riesgo, casos notificados |
 
 Con las tres obligatorias (y la configuración) ya se estima la causa en el país y, si hay ubicaciones subnacionales,
 en cada una con las tasas nacionales. Cada tabla, con sus columnas (la definición es la misma que usa el validador;
@@ -175,7 +176,7 @@ lector las reconoce y las convierte (sección 6). También puede ser una tabla p
 | `medida` | Unidad | Para qué se usa | ¿Hace falta? |
 |---|---|---|---|
 | `prevalencia` | proporción | el término principal del ajuste | siempre |
-| `mortalidad` | por persona-año | el prior y el techo de la mortalidad en exceso | con el prior por defecto (`mortalidad_exceso.prior: desde_ancla`) |
+| `mortalidad` | por persona-año | el prior y el techo de la mortalidad en exceso | con el prior por defecto (`mortalidad_exceso.prior: desde_ancla`); con `prior: cero` no se usa |
 | `avd` | por persona-año | calibra los AVD del modelo a los del ancla | opcional |
 | `incidencia` | por persona-año | solo la validación | opcional |
 
@@ -336,7 +337,10 @@ tabla se declara la carpeta de la partición en la configuración (`severidad.pa
 
 Las fuentes (`nid`) que GBD ya usó para la causa y la ubicación, por componente (`no_fatal`, `causa_de_muerte`). Si
 un dato local que entra al ajuste viene de una de ellas, ya informó el ancla: con el ancla a peso completo
-(`ancla.peso` 1), los insumos se detienen para evitar el doble conteo. Se pone en `fuentes_gbd/` la lista de
+(`ancla.peso` 1) y alguna medida en `datos_en_ajuste`, los insumos se detienen para evitar el doble conteo. Si ningún
+dato local entra al ajuste (`datos_en_ajuste` vacío) no hay nada que contar dos veces: el ancla puede ir a peso
+completo, un mensaje dice cuántas fuentes locales trae la tabla y la corrida lo declara entre las limitaciones de su
+manifiesto. Se pone en `fuentes_gbd/` la lista de
 fuentes que exporta el GHDx (<https://ghdx.healthdata.org/>), tal cual: el lector toma 4 de sus columnas y las
 filas del país (su `location_id` de GBD, ver `ubicacion_gbd` en la sección 6), que quedan con el código nacional de
 `ubicaciones`; las fuentes de otras ubicaciones de GBD se descartan, con un aviso. La lista del GHDx repite cada
@@ -403,6 +407,30 @@ columnas("proxies_crudos")
 head(proyecto$tablas$proxies_crudos, 3)
 ```
 
+### `razones` {#razones}
+
+Para el reparto por razón (`subnacional: {modo: razon}` en la configuración): la tasa de cada ubicación subnacional
+dividida por la nacional, ya calculada fuera del paquete (con una encuesta, la población en riesgo, los casos
+notificados...), y el error estándar de su logaritmo. Una fila por ubicación subnacional y año: en el año que se
+estima deben estar todas las ubicaciones subnacionales de la población, y solo ellas (la nacional no lleva fila).
+`razon` y `error_log` son números finitos y no negativos, con alguna razón mayor que 0. Una razón 0 deja la ubicación
+sin casos; con `error_log` 0 la razón no se sortea. La razón vale para todas las edades y los dos sexos. Con varias
+causas en el proyecto, la columna `causa` dice de cuál es cada fila. La tabla solo se usa en ese modo, que no admite
+valores subnacionales de covariables; la guía
+[Estimación subnacional](https://horaciochacon.github.io/dismodlite/articles/desagregacion-subnacional.html#modo-razon)
+explica el cálculo y `?dl_repartir_razon`, el detalle.
+
+```{r}
+#| label: col-razones
+#| echo: false
+columnas("razones")
+```
+
+```{r}
+#| label: ej-razones
+dl_plantilla("razones")
+```
+
 `dl_plantilla()` da la plantilla de cualquier tabla: sus columnas y una fila de ejemplo. Con `archivo`, la escribe
 como CSV.
 
@@ -426,6 +454,7 @@ mi_proyecto/
   fuentes_gbd/
   poblacion_detalle.csv
   proxies_crudos.csv     un indicador de encuesta por ubicación y edición, que se calibra al leer
+  razones.csv            la razón de cada ubicación subnacional (con subnacional.modo: razon)
   particion/<corrida>/   opcional: la partición de severidad (severidad.particion)
 ```
 
@@ -501,9 +530,13 @@ knitr::kable(tabla, col.names = c("Clave", "Qué es", "Por defecto"))
 
 Cuándo cambiar las que no son obligatorias, en breve: `nudos`, si la incidencia cambia rápido en algún tramo de
 edad; `mortalidad_exceso.prior: plano`, si el ancla no trae muertes fiables, y `mortalidad_exceso.techo`, con un
-valor conocido para la causa; `ancla.correlacion_edad`, rara vez (la sensibilidad la explora); `subnacional.kappa`,
-para atenuar diferencias entre ubicaciones poco creíbles. Y `notas`, siempre que se decida algo: por qué
-`ancla.peso` es 0.5, por qué ese techo.
+valor conocido para la causa; `mortalidad_exceso.prior: cero`, si la causa no tiene muertes (la mortalidad en exceso
+queda fija en 0 y no se estima); `ancla.correlacion_edad`, rara vez (la sensibilidad la explora); `subnacional.kappa`,
+para atenuar diferencias entre ubicaciones poco creíbles; `subnacional.modo: razon`, si las diferencias entre
+ubicaciones salen de una razón ya calculada (la tabla `razones`) y no de covariables; `exportar: {incidencia: no}`,
+si la incidencia de la causa no se debe reportar (la corrida la escribe igual y las tablas consolidadas la omiten;
+ver [Corridas, versiones y tablas consolidadas](https://horaciochacon.github.io/dismodlite/articles/corridas-y-consolidado.html#sin-incidencia)).
+Y `notas`, siempre que se decida algo: por qué `ancla.peso` es 0.5, por qué ese techo.
 
 ### La puerta de R
 

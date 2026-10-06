@@ -118,6 +118,22 @@ escribir_pais_ficticio <- function(d, causa, anio, config, nombre = "Enfermedad 
   invisible(d)
 }
 
+# El país ficticio en modo razón: la causa 7001 en 2023, sin covariables, con `subnacional: {modo: razon}` (más las
+# líneas `config`), la población repetida en cada año de `anios_poblacion` y razones.csv con una fila por región (A, B
+# y C) y año de `anios`: razón 1,4, 0,7 y 0 (la región C queda sin casos) y error_log 0,1, 0,2 y 0. Devuelve `d`.
+escribir_proyecto_razon <- function(d, anios = 2023L, anios_poblacion = anios, config = character()) {
+  escribir_pais_ficticio(d, 7001L, 2023L, c("causa: 7001", "anio: 2023", "edad_inicio: 40", "subnacional:",
+                                           "  modo: razon", config))
+  pob <- leer_texto(file.path(d, "poblacion.csv"))
+  escribir_texto(data.table::rbindlist(lapply(anios_poblacion, function(a)
+    data.table::copy(pob)[, anio := as.character(a)])), d, "poblacion.csv")
+  rz <- data.table::CJ(anio = as.integer(anios), ubicacion = c("A", "B", "C"))
+  rz[, `:=`(razon = c(A = 1.4, B = 0.7, C = 0)[ubicacion], error_log = c(A = 0.1, B = 0.2, C = 0)[ubicacion],
+            fuente = "indicador inventado")]
+  escribir_texto(rz, d, "razones.csv")
+  invisible(d)
+}
+
 # Una corrida de partición de severidad mínima en `d` (particion/mini): la causa 302 de GBD con sus cuatro secuelas y
 # sus estados de salud del catálogo del paquete (665 -> 355, 666 -> 356, 667 -> 357, 668 -> 540), con proporciones
 # 0,6, 0,25, 0,1 y 0,05.
@@ -260,4 +276,14 @@ ejemplo_calibrado <- function() {
   d <- file.path(tempdir(), "ejemplo_calibrado")
   if (!dir.exists(d)) escribir_proxies_calibrados(dl_ejemplo(copiar_en = d))
   d
+}
+
+# El proyecto de ejemplo con la mortalidad en exceso fija en 0: en config/9100.yaml, `mortalidad_exceso: {prior: cero}`
+# en lugar de su techo, más las líneas `extra` al final. Una copia en una carpeta temporal (copia_ejemplo()). Conserva
+# los proxies y las betas del ejemplo: la cascada es por covariables.
+copia_emr_cero <- function(extra = character(), env = parent.frame()) {
+  cfg <- readLines(file.path(dl_ejemplo(), "config", "9100.yaml"), encoding = "UTF-8")
+  i <- which(cfg == "mortalidad_exceso:")
+  cfg <- c(cfg[seq_len(i - 1L)], "mortalidad_exceso:", "  prior: cero", cfg[-seq_len(i + 1L)], extra)
+  copia_ejemplo(`config/9100.yaml` = cfg, env = env)
 }

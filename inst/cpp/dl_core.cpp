@@ -51,6 +51,7 @@ struct DlCtx {
   std::vector<double> cota;              // {mínimo, máximo} de f en los nudos
   std::vector<double> emr_mu_log, emr_sd_log;
   bool emr_plano;                        // prior plano dentro de la cota: sin término de EMR
+  bool emr_cero;                         // EMR fija en cero: theta = log i (n_nudos), f = 0, sin cota ni término de EMR
   // Ancla: bandas, chol de su correlación AR(1) y pesos de población de cada banda (concatenados: los de la
   // banda b son ancla_idx/ancla_w[ancla_off[b] .. ancla_off[b + 1] - 1], con ancla_idx en las edades enteras)
   int n_bandas;
@@ -140,6 +141,7 @@ SEXP dl_ctx_construir_cpp(List cx) {
   c->emr_mu_log = como_vector<NumericVector>(cx["emr_mu_log"]);
   c->emr_sd_log = como_vector<NumericVector>(cx["emr_sd_log"]);
   c->emr_plano = as<bool>(cx["emr_plano"]);
+  c->emr_cero = as<bool>(cx["emr_cero"]);
   NumericMatrix U = cx["chol_R"]; c->chol_R.assign(U.begin(), U.end()); c->n_bandas = U.nrow();
   c->lambda = as<double>(cx["lambda"]);
   c->ancla_val = como_vector<NumericVector>(cx["ancla_val"]);
@@ -166,11 +168,17 @@ SEXP dl_ctx_construir_cpp(List cx) {
 // ---- Solución de la EDO en el contexto ----
 
 // log i = W theta_i, log f = W theta_f en la malla h/2; i = exp(log i), f = exp(log f).
+// Con la EMR fija en cero (emr_cero) theta solo trae log i: f = 0 en toda la malla y theta[n_nudos + k] no se lee.
 // Gemela en R: .dl_log_tasas_media() y el exp de .dl_edo_log_media() (R/verosimilitud.R), sin techo de f.
 static inline void tasas_media(const double* theta, DlCtx& c) {
   const int n_nudos = c.n_nudos, n_media = c.n_media;
   for (int fila = 0; fila < n_media; ++fila) {
     double log_i = 0.0, log_f = 0.0;
+    if (c.emr_cero) {
+      for (int k = 0; k < n_nudos; ++k) log_i += c.W[fila + k * n_media] * theta[k];
+      c.i_media[fila] = std::exp(log_i); c.f_media[fila] = 0.0;
+      continue;
+    }
     for (int k = 0; k < n_nudos; ++k) {
       const double w = c.W[fila + k * n_media];
       log_i += w * theta[k]; log_f += w * theta[n_nudos + k];
@@ -314,15 +322,17 @@ static inline void llenar_salida(double* out, double lp_suav, double lp_emr, dou
 }
 
 // log posterior(theta) por términos. Gemela en R: .dl_lp_componentes() (R/verosimilitud.R).
+// Con la EMR fija en cero (emr_cero) theta tiene n_nudos valores: log_f_nudos no se lee, no hay truncamiento a la
+// cota y el término de EMR vale 0.
 static void dl_lp_core(const double* theta, DlCtx& c, double* out) {
   const double* log_i_nudos = theta;
   const double* log_f_nudos = theta + c.n_nudos;
-  if (f_fuera_de_cota(log_f_nudos, c)) { llenar_salida(out, R_NegInf, R_NegInf, R_NegInf); return; }
+  if (!c.emr_cero && f_fuera_de_cota(log_f_nudos, c)) { llenar_salida(out, R_NegInf, R_NegInf, R_NegInf); return; }
   tasas_media(theta, c);
   resolver_edo(c.i_media.data(), c.f_media.data(), c.r_media.data(), c.n_media, 0.0, c.nsub, c.p_malla);
   anuales(c);
   const double lp_suav = lp_suavidad(log_i_nudos, c);
-  const double lp_emr = lp_prior_emr(log_f_nudos, c);
+  const double lp_emr = c.emr_cero ? 0.0 : lp_prior_emr(log_f_nudos, c);
   double lp_anc;
   if (!lp_ancla(c, lp_anc)) { llenar_salida(out, lp_suav, lp_emr, R_NegInf); return; }
   double lp_tipo[N_TIPOS_DATO];

@@ -153,7 +153,12 @@ dl_insumos(dl_proyecto(solo_prevalencia, causa = 9100))
 Arriba, `dl_insumos()` avisó: con datos en el ajuste y el ancla a peso completo, la estimación de referencia puede
 incluir ya esos datos. El ancla entra al ajuste como un *power prior*: su término de la log-posterior se multiplica
 por λ = `ancla.peso`. Con λ = 1 el ancla pesa con su propia incertidumbre; con λ = 0.5 pesa como si su varianza fuera
-el doble, y los datos locales tienen más voz. La elección se anota en `notas`, que queda en el manifiesto de cada
+el doble, y los datos locales tienen más voz. Con la tabla `fuentes_gbd` (las fuentes que GBD ya usó; ver
+[Preparar tus datos](preparar-datos.html)) el aviso pasa a ser una regla: si trae fuentes no fatales del país, con
+`ancla.peso` 1 y alguna medida en `datos_en_ajuste`, `dl_insumos()` se detiene y pide bajar el peso. Sin datos en el
+ajuste (`datos_en_ajuste` vacío) no hay doble conteo: el ancla va a peso completo aunque la tabla traiga fuentes
+locales; `dl_insumos()` lo dice con un mensaje, que `dl_revisar_proyecto()` muestra como aviso, y la corrida registra
+las fuentes en su manifiesto (`params.fuentes_locales_no_fatales`) y lo declara entre sus limitaciones. La elección se anota en `notas`, que queda en el manifiesto de cada
 corrida:
 
 ```{r}
@@ -259,7 +264,10 @@ la prevalencia *p* para `prevalencia`, la incidencia poblacional *i* (1 − *p*)
 mortalidad por la causa *p f* para `mortalidad`. Un dato con `valor` y `error_estandar` entra con una verosimilitud
 log-normal, centrada en su valor y con su error; uno con `casos` y `muestra`, con una binomial (prevalencia) o una
 Poisson (incidencia y mortalidad), con `muestra_efectiva` en lugar de `muestra` si se da. La guía
-[El modelo](el-modelo.html#verosimilitud) escribe cada término.
+[El modelo](el-modelo.html#verosimilitud) escribe cada término. Si el intervalo de un dato cruza bandas de la
+población con distinto número de edades (un dato de todas las edades, o de 60 años y más, sobre quinquenios y una
+banda de 80 años y más), cada edad lleva la población de su banda repartida entre las edades de esa banda: la banda
+ancha cuenta por su población y no pesa de más frente a una de cinco años.
 
 Con casos y muestra, la incertidumbre sale del tamaño de la muestra; con valor y error estándar, del error que se
 declara. La forma del dato y su incertidumbre deben ser las de la fuente: no conviene convertir un valor publicado en

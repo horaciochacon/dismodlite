@@ -72,12 +72,15 @@
   bundle = list(sinonimo = "insumos", clase = "dl_bundle", origen = "dl_insumos()",
                 como = "los insumos de dl_insumos(configuracion, rutas)"),
   resumen = list(sinonimo = "resumen", clase = "dl_resumen", origen = "dl_resumir()",
-                 como = "dl_resumir(list(ajuste = ..., avd = ..., insumos = ...))"))
+                 como = "dl_resumir(list(ajuste = ..., avd = ..., insumos = ...))"),
+  reparto = list(sinonimo = "reparto", clase = "dl_reparto", origen = "dl_repartir_razon()",
+                 como = "dl_repartir_razon(list(ajuste = ..., avd = ..., insumos = ...)), con subnacional.modo: razon"))
 
 # Comprueba y normaliza `piezas` (lista con nombres; se aceptan los sinónimos en español) y devuelve la lista con los
-# nombres internos `requeridas`. Una clave desconocida o que falta es un error que dice qué va en cada una. Los
-# mensajes muestran los nombres en español (ajuste, avd, insumos) y recuerdan que valen también fit, yld y bundle.
-.dl_piezas <- function(piezas, requeridas) {
+# nombres internos `requeridas` y, de las `opcionales`, las que vienen. Una clave desconocida o una requerida que
+# falta es un error que dice qué va en cada una. Los mensajes muestran los nombres en español (ajuste, avd, insumos)
+# y recuerdan que valen también fit, yld y bundle.
+.dl_piezas <- function(piezas, requeridas, opcionales = character()) {
   sinonimos <- vapply(.DL_PIEZAS, `[[`, "", "sinonimo")
   internos <- setdiff(requeridas, sinonimos[requeridas])
   formato <- sprintf("list(%s)%s", paste(sprintf("%s = ...", sinonimos[requeridas]), collapse = ", "),
@@ -109,7 +112,36 @@
                d$sinonimo, if (identical(d$sinonimo, k)) "" else sprintf(" (o `%s`)", k), d$como, formato)
     .dl_exigir_clase(piezas[[k]], d$clase, paste0("piezas$", k), d$origen)
   }
-  piezas[requeridas]
+  opcionales <- intersect(opcionales, nm)
+  for (k in opcionales)
+    .dl_exigir_clase(piezas[[k]], .DL_PIEZAS[[k]]$clase, paste0("piezas$", k), .DL_PIEZAS[[k]]$origen)
+  piezas[c(requeridas, opcionales)]
+}
+
+# El reparto por razón de un resumen (la pieza `reparto`, o NULL). Con cascada.modo razon y una cascada en `f`, es
+# obligatorio: sin él las celdas subnacionales serían las de la cascada plana. Debe salir de las mismas piezas (los
+# insumos `b`, con su tabla razones, la cascada `f` y los AVD `y`); sin ese modo, o con un ajuste solo nacional, no
+# se admite.
+.dl_reparto_del_resumen <- function(reparto, f, y, b) {
+  razon <- identical(b$cfg$cascada$modo$valor, "razon") && inherits(f, "dl_cascade")
+  if (is.null(reparto)) {
+    if (razon)
+      .dl_stop(paste0("falta la pieza `reparto`: con subnacional.modo: razon las ubicaciones subnacionales salen de ",
+                      "dl_repartir_razon(list(ajuste = ..., avd = ..., insumos = ...)); p\u00e1sala en `piezas`"))
+    return(NULL)
+  }
+  if (!razon)
+    .dl_stop(paste0("la pieza `reparto` solo va con subnacional.modo: razon y la cascada de dl_cascada() en ",
+                    "`ajuste`: qu\u00edtala de `piezas`"))
+  .dl_exigir_mismos_insumos(reparto, b, "piezas$reparto")
+  if (!identical(reparto$huella_ajuste, .dl_huella_ajuste(f)) || !identical(reparto$huella_avd, .dl_huella_avd(y)))
+    .dl_stop(paste0("el `reparto` no se hizo con este `fit` y este `yld`: vuelve a correr dl_repartir_razon() con ",
+                    "las mismas piezas"))
+  # la tabla razones no entra en el hash de los insumos: el reparto lleva la huella de la que lo produjo
+  if (!identical(reparto$huella_razones, .dl_huella_razones(b)))
+    .dl_stop(paste0("el `reparto` no se hizo con la tabla razones de estos insumos: vuelve a correr ",
+                    "dl_repartir_razon() con los mismos insumos"))
+  reparto
 }
 
 # Huella de un ajuste o una cascada: identifica de qué objeto salen los AVD y el resumen, para no mezclar piezas de
@@ -142,7 +174,8 @@
 #'
 #' @param piezas Lista con `fit` (el ajuste de [dl_ajustar()] o la cascada de [dl_cascada()]), `yld` (resultado de
 #'   [dl_avd()] con ese mismo ajuste o cascada) y `bundle` (los insumos); también valen los nombres `ajuste`, `avd` e
-#'   `insumos`.
+#'   `insumos`. Con `subnacional.modo: razon` y una cascada, además `reparto` (el de [dl_repartir_razon()] con esas
+#'   mismas piezas): las celdas y las simulaciones subnacionales son entonces las repartidas.
 #' @param nivel Nivel del intervalo de incertidumbre, entre 0 y 1 (0.95: cuantiles 2.5 % y 97.5 %). Para exportar
 #'   la corrida con [dl_exportar_corrida()] debe ser 0.95, el que fija el contrato de las corridas.
 #' @param rutas Rutas de [dl_rutas()]; se usan los catálogos. `NULL` (por defecto) usa las de los insumos.
@@ -161,6 +194,8 @@
 #'   - `desplazamiento_splits` y `como_aplicado`: los de [dl_avd()].
 #'   - `bundle_hash`, `huella_ajuste` y `huella_avd`: identifican los insumos, el ajuste y los AVD del resumen;
 #'     [dl_exportar_corrida()] comprueba que sean las mismas piezas.
+#'   - `reparto`: solo con la pieza `reparto`, la razón aplicada (`razones`, `semilla`, `ubicaciones` y `anio` de
+#'     [dl_repartir_razon()]), que [dl_exportar_corrida()] lleva al manifiesto y a `diagnostics/razon.csv`.
 #' @seealso [dl_exportar_corrida()] (el paso siguiente) y [dl_estimaciones()] (una tabla por edad simple, sin
 #'   escribir nada).
 #' @family corrida
@@ -177,7 +212,7 @@
 #' }
 #' @export
 dl_resumir <- function(piezas, nivel = 0.95, rutas = NULL) {
-  piezas <- .dl_piezas(piezas, c("fit", "yld", "bundle"))
+  piezas <- .dl_piezas(piezas, c("fit", "yld", "bundle"), opcionales = "reparto")
   .dl_exigir_nivel(nivel)
   f <- piezas$fit; y <- piezas$yld; b <- piezas$bundle
   .dl_exigir_mismos_insumos(f, b, "piezas$fit")
@@ -186,10 +221,13 @@ dl_resumir <- function(piezas, nivel = 0.95, rutas = NULL) {
   rutas <- .dl_resolver_rutas(rutas, b)
   cfg <- b$cfg
   # Simulaciones de cada medida exportable (slug de .DL_MEDIDAS -> tabla location_id, sex_id, age_group_id, draw,
-  # val), en las unidades del modelo (proporción o tasa por persona-año).
-  fuentes <- list(prevalence = y$draws_prev_banda,
-                  incidence  = .dl_ipop_bandas(f, b),
-                  yld        = y$draws_yld)
+  # val), en las unidades del modelo (proporción o tasa por persona-año). Con el reparto por razón, las suyas: las
+  # nacionales tal cual y las subnacionales repartidas.
+  reparto <- .dl_reparto_del_resumen(piezas$reparto, f, y, b)
+  fuentes <- if (!is.null(reparto)) reparto$draws
+             else list(prevalence = y$draws_prev_banda,
+                       incidence  = .dl_ipop_bandas(f, b),
+                       yld        = y$draws_yld)
   slugs <- stats::setNames(nm = .DL_MEDIDAS_EXPORTA$slug)
   falta <- setdiff(slugs, names(fuentes))
   if (length(falta))
@@ -201,13 +239,15 @@ dl_resumir <- function(piezas, nivel = 0.95, rutas = NULL) {
     anio = .dl_anio_ajuste(cfg), causa = cfg$cause_id, nombre_causa = b$meta$cause_name, nivel = nivel,
     ancla = list(location_id = b$loc_ancla, location_name = b$meta$location_name),
     bandas = unique(b$prior_gbd[measure_id == .dl_medida_id("prevalence"), list(age_group_id, age_group_name)]))
-  structure(list(celdas = celdas,
-                 draws = lapply(slugs, function(s) .dl_draws_ancho(fuentes[[s]])),
-                 mcmc = f$mcmc, aceptacion = f$aceptacion,
-                 desplazamiento_splits = y$desplazamiento_splits,
-                 como_aplicado = y$como_aplicado, bundle_hash = b$hash,
-                 huella_ajuste = .dl_huella_ajuste(f), huella_avd = .dl_huella_avd(y)),
-            class = "dl_resumen")
+  out <- list(celdas = celdas,
+              draws = lapply(slugs, function(s) .dl_draws_ancho(fuentes[[s]])),
+              mcmc = f$mcmc, aceptacion = f$aceptacion,
+              desplazamiento_splits = y$desplazamiento_splits,
+              como_aplicado = y$como_aplicado, bundle_hash = b$hash,
+              huella_ajuste = .dl_huella_ajuste(f), huella_avd = .dl_huella_avd(y))
+  # el reparto por razón que se aplicó (sin sus simulaciones, que ya están en `draws`); sin él, el campo no existe
+  if (!is.null(reparto)) out$reparto <- reparto[c("razones", "semilla", "ubicaciones", "anio")]
+  structure(out, class = "dl_resumen")
 }
 
 # Nombre en español de cada medida exportable (slug de .DL_MEDIDAS), para los print.

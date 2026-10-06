@@ -49,6 +49,8 @@ incidencia y la mortalidad en exceso de cada simulación según la diferencia en
 la ubicación (su proxy) y el nacional, por su beta; vuelve a resolver la ecuación de la prevalencia en cada
 ubicación y renormaliza para que la suma ponderada por población de las ubicaciones sea igual al valor nacional.
 Con la estimación subnacional plana (\code{subnacional.modo: plano}), cada ubicación recibe las tasas nacionales.
+Con el reparto por razón (\code{subnacional.modo: razon}) la cascada es también la plana, y \code{\link[=dl_repartir_razon]{dl_repartir_razon()}}
+reemplaza las tasas subnacionales después de los AVD.
 }
 \details{
 Para cada sexo, simulación y ubicación subnacional d:
@@ -56,7 +58,8 @@ Para cada sexo, simulación y ubicación subnacional d:
 \item \code{dX}: la diferencia entre la covariable en d y la nacional, en la escala de su transformación (log, logit o
 lineal), con una simulación de cada una según su incertidumbre.
 \item En cada edad, log i (o log f, según \code{efecto_sobre}) de d es el nacional más \code{kappa} x beta x dX, sumado sobre
-las covariables; log f no pasa del techo de la mortalidad en exceso.
+las covariables; log f no pasa del techo de la mortalidad en exceso. Con la mortalidad en exceso fija en 0
+(\code{mortalidad_exceso.prior: cero}), f es 0 en toda ubicación y las covariables con \code{efecto_sobre: mortalidad_exceso} no tienen efecto.
 \item Con esas tasas se vuelve a resolver la ecuación de la prevalencia.
 \item Renormalización, por sexo, banda de población y simulación: la prevalencia (y la incidencia poblacional) de
 cada ubicación se multiplica por el factor que hace que su suma ponderada por población sea la nacional.
@@ -87,5 +90,8 @@ rango_60(dl_cascada(f, b, kappa = 0.5, semilla = 1))
 \seealso{
 \code{\link[=dl_ajustar]{dl_ajustar()}} (el paso anterior), \code{\link[=dl_estimaciones]{dl_estimaciones()}}, \code{\link[=dl_avd]{dl_avd()}} y \code{\link[=dl_validar_ancla]{dl_validar_ancla()}} (los pasos
 siguientes) y \code{\link[=dl_proyecto]{dl_proyecto()}} (los proxies y su requisito de cierre en el valor nacional).
+
+Estimación subnacional:
+\code{\link{dl_repartir_razon}()}
 }
 \concept{subnacional}

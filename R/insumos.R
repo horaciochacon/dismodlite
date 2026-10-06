@@ -14,18 +14,32 @@
 .DL_GHDX_COMPONENTE <- c(no_fatal = 5L, cod = 4L)
 
 # Doble conteo entre el ancla y los datos locales. El ancla nacional de GBD ya fue informada por las fuentes del país
-# que están en la evidencia (`evidencia`, la tabla list.csv), así que no vale a peso completo: lambda = 1 solo sin
-# fuentes locales no fatales (0.5 por defecto con al menos una), y con csmr en medidas_entrada tampoco si el registro
-# de defunciones (CoD) ya informó el ancla. Devuelve los nid no fatales y el número de filas CoD, que quedan
-# declarados en los insumos. Sin evidencia, el aviso es el de .dl_avisar_datos_en_ajuste().
+# que están en la evidencia (`evidencia`, la tabla list.csv). El peso lambda < 1 existe para no contar esos datos dos
+# veces cuando, además, entran al ajuste (medidas_entrada). Con lambda = 1 (peso completo):
+#   - fuentes locales no fatales y alguna medida en medidas_entrada: error (0.5 por defecto);
+#   - fuentes locales no fatales y medidas_entrada vacío: ningún dato local entra al ajuste y no hay doble conteo; un
+#     mensaje lo dice (de clase dl_mensaje_revision: la revisión del proyecto lo muestra como aviso) y el manifiesto
+#     de la corrida lo declara (.dl_limitacion_peso_completo(), R/corrida.R);
+#   - csmr en medidas_entrada y el registro de defunciones (CoD) en la evidencia: error.
+# lambda < 1 vale siempre. Devuelve los nid no fatales y el número de filas CoD, que quedan declarados en los insumos
+# (fuentes_locales). Sin evidencia, el aviso es el de .dl_avisar_datos_en_ajuste().
 .dl_chequear_doble_conteo <- function(cfg, evidencia, loc) {
   if (is.null(evidencia)) return(list(nid_no_fatal = integer(), n_cod = 0L))
   nf <- evidencia[cause_id == cfg$cause_id & component_id == .DL_GHDX_COMPONENTE[["no_fatal"]] & location_id == loc]
-  if (nrow(nf) && cfg$anchor$lambda >= 1)
-    .dl_stop(paste0("el ancla a peso completo (lambda = 1) exige 0 fuentes locales no fatales para la causa %d y la ",
-                    "evidencia tiene %d (nid %s); usa lambda < 1 (0.5 por defecto), por ejemplo cambios = ",
-                    "list(anchor = list(lambda = 0.5)), y deja la raz\u00f3n en `decisiones`"), cfg$cause_id, nrow(nf),
+  en_ajuste <- unlist(cfg$medidas_entrada)
+  peso_completo <- cfg$anchor$lambda >= 1
+  if (nrow(nf) && peso_completo && length(en_ajuste))
+    .dl_stop(paste0("el ancla a peso completo (lambda = 1) exige 0 fuentes locales no fatales para la causa %d cuando ",
+                    "entran datos locales al ajuste (medidas_entrada: %s), y la evidencia tiene %d (nid %s); usa ",
+                    "lambda < 1 (0.5 por defecto), por ejemplo cambios = list(anchor = list(lambda = 0.5)), y deja ",
+                    "la raz\u00f3n en `decisiones`"), cfg$cause_id, paste(en_ajuste, collapse = ", "), nrow(nf),
              paste(utils::head(nf$nid, 3), collapse = ", "))
+  if (nrow(nf) && peso_completo)
+    .dl_message(paste0("ancla a peso completo (anchor.lambda = 1) con %d fuente(s) local(es) no fatal(es) en la ",
+                       "evidencia (nid %s): ning\u00fan dato local entra al ajuste (medidas_entrada vac\u00edo), ",
+                       "as\u00ed que no se cuentan dos veces; el manifiesto de la corrida lo declara"),
+                length(unique(nf$nid)), paste(utils::head(unique(nf$nid), 5), collapse = ", "),
+                clase = "dl_mensaje_revision")
   cod <- evidencia[cause_id == cfg$cause_id & component_id == .DL_GHDX_COMPONENTE[["cod"]] & location_id == loc]
   if ("csmr" %in% unlist(cfg$medidas_entrada) && nrow(cod) && cfg$anchor$lambda >= 1)
     .dl_stop(paste0("doble conteo: el registro de defunciones ya inform\u00f3 el ancla (componente CoD, ",
@@ -448,7 +462,11 @@
 #' Lo que falta se reporta donde hace falta: sin tabla de severidad, los insumos se arman igual y [dl_avd()] la pide;
 #' con datos locales en el ajuste y el ancla a peso completo, sin almacén de evidencia (`evidencia` de [dl_rutas()];
 #' obligatoria si la configuración declara `anchor.evidencia_ghdx`), un aviso de doble conteo; si ninguna fila nacional
-#' de `datos` entra al ajuste, un mensaje lo dice en su lugar. Con un proyecto (`dl_insumos(dl_proyecto(...))`), los
+#' de `datos` entra al ajuste, un mensaje lo dice en su lugar. Con almacén de evidencia (en un proyecto, la tabla
+#' `fuentes_gbd`) y el ancla a peso completo: si la evidencia trae fuentes locales no fatales de la causa y alguna
+#' medida entra al ajuste, un error pide bajar el peso del ancla; si ninguna entra, no hay doble conteo, los insumos
+#' se arman, un mensaje dice cuántas fuentes son y la corrida lo declara entre las limitaciones de su manifiesto. Con
+#' un proyecto (`dl_insumos(dl_proyecto(...))`), los
 #' mensajes citan sus claves y sus tablas (`datos_en_ajuste`, la tabla `covariables`, ...) en lugar de los del formato
 #' completo; si su traducción ya no está (cambió la configuración o una tabla y se volvió a traducir, o es de otra
 #' sesión), un error pide volver a llamar a [dl_proyecto()].
@@ -468,8 +486,9 @@
 #'   - `loc_ancla`: el `location_id` de la ubicación nacional; `meta`: el nombre de la causa (`cause_name`) y de la
 #'     ubicación (`location_name`) según el ancla y la ronda de GBD (`round`);
 #'   - `seleccion_betas` (de dónde salió cada beta), `techo_emr` (el techo de la mortalidad en exceso, `cota`, y su
-#'     `origen`: impreso en la configuración o derivado del ancla), `fuentes_locales` (en el formato completo con
-#'     almacén de evidencia, las fuentes del país que ya informaron el ancla: la base del aviso de doble conteo),
+#'     `origen`: impreso en la configuración o derivado del ancla), `fuentes_locales` (con almacén de
+#'     evidencia, las fuentes del país que ya informaron el ancla, `nid_no_fatal`, y el número de filas de causas de
+#'     muerte, `n_cod`: la base de la regla del doble conteo),
 #'     `componente` (el componente modelado, solo en el formato completo; `NULL` si no hay), `bandas_pobl` y
 #'     `bandas_catalogo` (los límites de las bandas de edad de la población y del catálogo);
 #'   - `hash`: el sha256 que identifica los insumos (el de las tablas, `hashes`, combinado); los ajustes y las

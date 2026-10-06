@@ -2,7 +2,8 @@
 title: "Estimación subnacional"
 description: >
   Cómo se lleva la estimación nacional a regiones, departamentos o provincias: covariables y proxies, de la
-  encuesta a la covariable, la fuerza kappa, la renormalización, el modo plano, la validación con datos reservados y la escala de una covariable.
+  encuesta a la covariable, la fuerza kappa, la renormalización, el modo plano, el reparto por razón, la validación
+  con datos reservados y la escala de una covariable.
 knitr:
   opts_chunk:
     collapse: true
@@ -15,7 +16,7 @@ knitr:
 
 - Cómo dismodlite pasa de la estimación nacional a las ubicaciones subnacionales (regiones, departamentos,
   provincias...): qué supone y qué hace en cada paso.
-- Los tres modos de la estimación subnacional (`covariables`, `plano` y `no`) y cuándo conviene cada uno.
+- Los cuatro modos de la estimación subnacional (`covariables`, `plano`, `razon` y `no`) y cuándo conviene cada uno.
 - Qué hacen las covariables y sus valores subnacionales (los *proxies*), la fuerza del efecto κ y la
   renormalización.
 - Cómo un indicador de encuesta con varias ediciones se convierte en los proxies de una covariable: el gradiente, el
@@ -50,7 +51,7 @@ supone que cada ubicación comparte la forma de la enfermedad del país y se apa
 Todo se hace simulación por simulación, así que la incertidumbre del ajuste nacional, la de las covariables y la de
 las β llegan a las estimaciones subnacionales.
 
-## Los tres modos
+## Los cuatro modos
 
 La clave `subnacional.modo` de la configuración elige el modo. Sin ella, el paquete lo deduce de las tablas del
 proyecto:
@@ -59,6 +60,7 @@ proyecto:
 |---|---|---|---|
 | `covariables` | Desplaza las tasas nacionales según las covariables de cada ubicación (los pasos de arriba). | La tabla `betas` y, en la tabla `covariables`, el valor nacional de cada covariable y sus valores subnacionales. | alguna covariable de `betas` tiene filas subnacionales en `covariables`. |
 | `plano` | Cada ubicación recibe las tasas nacionales; sus casos difieren solo por su población. | Ubicaciones subnacionales en `ubicaciones` y `poblacion`. | no hay proxies, pero la población trae ubicaciones subnacionales. |
+| `razon` | Cada ubicación recibe las tasas nacionales por su razón (la tasa de la ubicación entre la nacional), con cierre en el valor nacional. | La tabla `razones`, con la razón de cada ubicación subnacional en el año que se estima, y ninguna covariable con valores subnacionales. | nunca: se declara. |
 | `no` | Solo la estimación nacional. | Nada más. | la población trae solo la ubicación nacional. |
 
 ## El ejemplo: modo `covariables`
@@ -472,6 +474,94 @@ Con κ = 0.5 las ubicaciones se acercan a la nacional; en el modo plano todas va
 ejemplo sintético las covariables son informativas y κ = 1 reproduce mejor el gradiente verdadero; con datos reales
 no hay verdad, y la validación de la sección siguiente es la forma de decidirlo.
 
+## Modo razón {#modo-razon}
+
+A veces el patrón entre ubicaciones no sale de covariables con una β publicada, sino de una **razón** ya calculada:
+la tasa de cada ubicación dividida por la nacional, estimada con una encuesta, con la población en riesgo o con los
+casos notificados. Con `subnacional.modo: razon` el modelo es el nacional y cada ubicación recibe la tasa nacional
+por su razón, simulación por simulación:
+
+1. La tabla `razones` trae, para cada ubicación $d$ y el año que se estima, la razón y el error estándar de su
+   logaritmo (`error_log`). En cada simulación $j$ se sortea
+   $R_{dj} = \text{razon}_d \, \exp(\text{error\_log}_d \, z_{dj})$, con $z_{dj}$ normal estándar. Con razón 0 la
+   ubicación queda sin casos; con `error_log` 0 la razón no se sortea.
+2. Por medida (prevalencia, incidencia y AVD), sexo y banda de edad,
+   $$
+   \text{tasa}_{dj} = \text{tasa}_{nac,j} \, \frac{R_{dj} \, N_{nac}}{\sum_d R_{dj} \, N_d},
+   $$
+   de modo que los casos de las ubicaciones suman los nacionales en cada simulación.
+
+La razón es una por ubicación y año, **la misma en todas las edades y sexos**: la corrida lo declara como limitación.
+El nivel nacional no cambia, y la validación contra el ancla, los factores de renormalización, las etiquetas y la
+sensibilidad son los del ajuste nacional (la cascada plana). El modo no admite valores subnacionales de covariables
+(ni `proxies_crudos`): la razón ya es todo el patrón entre ubicaciones.
+
+El modo **se declara**: nunca se deduce de las tablas, y en un proyecto solo con `subnacional.modo` (la clave
+`avanzado: {cascada: {modo: }}` no puede cambiarlo a `razon` ni desde `razon`: es un error de configuración). La
+tabla `razones` debe traer, en el año que se estima, todas las ubicaciones subnacionales de la población y ninguna
+otra (tampoco la nacional), con `razon` y `error_log` finitos y no negativos y alguna razón mayor que 0;
+`dl_revisar_proyecto()` lo comprueba antes de correr. El reparto se detiene con un error en dos casos: si en una
+celda las tasas repartidas no son finitas (por ejemplo, las ubicaciones con razón mayor que 0 no tienen población en
+esa celda), y el mensaje nombra el sexo y la banda; y si alguna prevalencia repartida pasa de 1, y el mensaje nombra
+las ubicaciones.
+
+Para probarlo, otra copia del ejemplo, sin la encuesta de los proxies y con una tabla `razones` inventada: de 0.7 a
+1.3 veces la tasa nacional, con un error del 5 % (en un proyecto propio es el archivo `razones.csv`, y el modo va en
+su configuración: `subnacional: {modo: razon}`):
+
+```{r}
+#| label: razon
+carpeta_razon <- dl_ejemplo(copiar_en = file.path(tempdir(), "razon"))
+unlink(file.path(carpeta_razon, "proxies_crudos.csv"))
+ubicaciones <- read.csv(file.path(carpeta_razon, "ubicaciones.csv"), colClasses = "character")
+subnacionales <- setdiff(ubicaciones$ubicacion, "123")
+razones <- data.frame(ubicacion = subnacionales, anio = 2023,
+                      razon = seq(0.7, 1.3, length.out = length(subnacionales)),
+                      error_log = 0.05, fuente = "razones inventadas")
+proyecto_razon <- dl_proyecto(carpeta_razon, razones = razones,
+                              configuracion = list(causa = 9100, anio = 2023, edad_inicio = 30,
+                                                   mortalidad_exceso = list(techo = 0.25),
+                                                   subnacional = list(modo = "razon")))
+insumos_razon <- dl_insumos(proyecto_razon)
+ajuste_razon <- dl_ajustar(insumos_razon, opciones, semilla = 1)
+cascada_razon <- dl_cascada(ajuste_razon, insumos_razon, semilla = 1)   # la plana: las tasas nacionales
+avd_razon <- dl_avd(cascada_razon, insumos_razon, semilla = 1)
+reparto <- dl_repartir_razon(list(ajuste = cascada_razon, avd = avd_razon, insumos = insumos_razon))
+reparto
+head(reparto$razones, 3)
+```
+
+`razon_media`, `razon_lower` y `razon_upper` resumen las razones sorteadas. Los casos de las ubicaciones suman los
+nacionales en cada simulación (la mayor diferencia relativa, en el último dígito):
+
+```{r}
+#| label: razon-cierre
+pob <- insumos_razon$poblacion[, .(location_id, sex_id, age_group_id, N = val)]
+x <- merge(reparto$draws$prevalence, pob, by = c("location_id", "sex_id", "age_group_id"))
+casos <- x[, .(subnacional = sum(val[location_id != "123"] * N[location_id != "123"]),
+               nacional = val[location_id == "123"] * N[location_id == "123"]),
+           by = .(sex_id, age_group_id, draw)]
+casos[, max(abs(subnacional / nacional - 1))]
+```
+
+El reparto es una pieza más del resumen, `dl_resumir(list(ajuste = cascada_razon, avd = avd_razon, insumos =
+insumos_razon, reparto = reparto))`, y `dl_correr()` hace todos los pasos en una llamada: escribe una sola corrida,
+ya repartida, con `cascada.modo: razon`, el bloque `razon` (la semilla del sorteo, cuántas ubicaciones, el rango de
+las razones, cuántas son cero y sus fuentes) y la limitación en su manifiesto, y la razón aplicada en
+`diagnostics/razon.csv`.
+
+La semilla del sorteo de las razones es la de la corrida. Para fijar otra (por ejemplo, para que el sorteo no cambie
+al cambiar la semilla del ajuste), la clave `razon_semilla`, un entero no negativo, en el bloque `avanzado` de la
+configuración:
+
+```yaml
+subnacional:
+  modo: razon
+avanzado:
+  cascada:
+    razon_semilla: 20250101
+```
+
 ## Validación con datos subnacionales reservados
 
 Las filas subnacionales de la tabla `datos` nunca entran al ajuste. Las del año `subnacional.anio_validacion` (2019 en
@@ -498,7 +588,8 @@ versión 0.2.2; ver [los nombres anteriores](corridas-y-consolidado.html#nombres
 pendiente queda cerca de 1; con κ = 0.5, cerca de 2: el gradiente predicho es más plano que el observado. La
 comparación es entre gradientes (cada ubicación relativa a la nacional), no entre niveles: por eso sirven datos de
 otro año, siempre que las diferencias entre ubicaciones cambien poco entre ese año y el que se estima. La validación
-de amplitud no se calcula en el modo plano (no hay gradiente que comparar) ni sin datos subnacionales de mortalidad;
+de amplitud no se calcula en el modo plano ni en el modo razón (no hay un gradiente por covariables que comparar) ni
+sin datos subnacionales de mortalidad;
 la corrida dice por qué. El análisis de sensibilidad repite la cascada con cada valor de `sensibilidad.kappa` (ver
 [Diagnóstico y sensibilidad](diagnostico-y-sensibilidad.html)).
 

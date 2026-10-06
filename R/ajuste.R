@@ -1,7 +1,8 @@
 # Ajuste nacional por sexo: dl_ajustar() y dl_ajustar_solo_prior(). Notación: ver R/edo.R.
 #
 # Para cada sexo se muestrea con MCMC la posterior de theta = (log i en los nudos, log f en los nudos) y, con cada
-# simulación guardada, se resuelve la EDO de la prevalencia para tener p, i y f por edad anual. Piezas:
+# simulación guardada, se resuelve la EDO de la prevalencia para tener p, i y f por edad anual. Con la EMR fija en
+# cero (emr_prior.tipo cero), theta = (log i en los nudos) y f = 0. Piezas:
 #   contexto del sexo (mallas, W, remisión, ancla, datos) y log-posterior de theta   R/verosimilitud.R
 #   cadenas de Metropolis-Hastings adaptativo por bloques                            R/muestreador.R
 #   reparto de las cadenas entre procesos                                            R/paralelo.R
@@ -24,6 +25,11 @@
 #' edades `ancla.correlacion_edad`) y la de los datos locales que entran al ajuste. La notación y las ecuaciones están
 #' en `vignette("el-modelo", package = "dismodlite")`.
 #'
+#' Con `mortalidad_exceso.prior: cero` la mortalidad en exceso queda fija en 0 y no se estima: los parámetros son
+#' solo log i en los nudos (un bloque del muestreador), la ecuación se resuelve con f = 0 y la log-posterior no tiene
+#' término de mortalidad en exceso. Sirve para una causa sin muertes: sin esta opción, log f no tendría información
+#' y sus cadenas no convergerían.
+#'
 #' Cada sexo se muestrea con cadenas de Metropolis-Hastings adaptativo por bloques ([dl_mh()]), con log i y log f
 #' en bloques separados. La semilla de un sexo es `semilla + sex_id` y la de cada cadena se deriva de ella: el
 #' resultado no depende de `nucleos`. De todas las cadenas juntas se guardan `simulaciones` equiespaciadas
@@ -40,14 +46,16 @@
 #'   calculado en la sesión; `FALSE` vuelve a muestrear.
 #' @return Objeto de clase `dl_fit`, una lista con:
 #'   - `draws_par`: lista con una matriz por sexo (nombres `"1"` y `"2"`): una fila por simulación y una columna por
-#'     parámetro (`logi_<nudo>` y `logf_<nudo>`: log i y log f en cada nudo).
+#'     parámetro (`logi_<nudo>` y `logf_<nudo>`: log i y log f en cada nudo; con la mortalidad en exceso fija en 0,
+#'     solo `logi_<nudo>`).
 #'   - `draws_q`: tabla (data.table) con una fila por ubicación, sexo, simulación y edad entera: `location_id`,
 #'     `sex_id`, `draw`, `edad`, `p` (prevalencia), `i` (incidencia), `f` (mortalidad en exceso) e `ipop`
 #'     (incidencia poblacional, i (1 - p): casos nuevos por persona-año de toda la población). Las tasas son por
 #'     persona-año.
 #'   - `grid`: lista con `edades` (las edades enteras de `draws_q`) y `nudos`.
 #'   - `mcmc`: tabla con el R-hat (`rhat`) y el tamaño efectivo de muestra (`ess`) de cada `parametro` y sexo.
-#'   - `aceptacion`: tabla con la tasa de aceptación (`tasa`) de cada sexo, `cadena` y `bloque` (1: log i; 2: log f).
+#'   - `aceptacion`: tabla con la tasa de aceptación (`tasa`) de cada sexo, `cadena` y `bloque` (1: log i; 2: log f,
+#'     que no existe con la mortalidad en exceso fija en 0).
 #'   - `bundle_hash`: el hash de los insumos.
 #'   - `seed`: la semilla.
 #'   - `prior_only`: `FALSE` (`TRUE` en [dl_ajustar_solo_prior()]).
@@ -89,9 +97,10 @@ dl_ajustar <- function(insumos, opciones = dl_opciones_mcmc(), semilla, cache = 
   ctxs <- stats::setNames(lapply(sexos, function(sx) .dl_ctx(insumos, sx)), sexos)
   lps <- lapply(ctxs, function(ctx)
     if (motor == "rcpp") .dl_lp_rcpp(ctx)$total else function(theta) .dl_log_post(theta, ctx))
-  # Bloques de Metropolis-Hastings: log i en los nudos y log f en los nudos se proponen por separado.
+  # Bloques de Metropolis-Hastings: log i en los nudos y log f en los nudos se proponen por separado. Con la EMR
+  # fija en cero (emr_prior.tipo cero) theta solo trae log i: un bloque.
   nk <- length(ctxs[[1]]$nudos)
-  bloques <- list(seq_len(nk), nk + seq_len(nk))
+  bloques <- if (.dl_ctx_emr_cero(ctxs[[1]])) list(seq_len(nk)) else list(seq_len(nk), nk + seq_len(nk))
 
   # Una tarea por (cadena, sexo), todas en un solo reparto. La semilla de un sexo es semilla + sexo y la de cada
   # cadena se deriva de ella (.dl_correr_cadena): el resultado no depende de cómo se repartan las tareas.

@@ -26,8 +26,9 @@ no hay);
 \item \code{loc_ancla}: el \code{location_id} de la ubicación nacional; \code{meta}: el nombre de la causa (\code{cause_name}) y de la
 ubicación (\code{location_name}) según el ancla y la ronda de GBD (\code{round});
 \item \code{seleccion_betas} (de dónde salió cada beta), \code{techo_emr} (el techo de la mortalidad en exceso, \code{cota}, y su
-\code{origen}: impreso en la configuración o derivado del ancla), \code{fuentes_locales} (en el formato completo con
-almacén de evidencia, las fuentes del país que ya informaron el ancla: la base del aviso de doble conteo),
+\code{origen}: impreso en la configuración o derivado del ancla), \code{fuentes_locales} (con almacén de
+evidencia, las fuentes del país que ya informaron el ancla, \code{nid_no_fatal}, y el número de filas de causas de
+muerte, \code{n_cod}: la base de la regla del doble conteo),
 \code{componente} (el componente modelado, solo en el formato completo; \code{NULL} si no hay), \code{bandas_pobl} y
 \code{bandas_catalogo} (los límites de las bandas de edad de la población y del catálogo);
 \item \code{hash}: el sha256 que identifica los insumos (el de las tablas, \code{hashes}, combinado); los ajustes y las
@@ -49,7 +50,11 @@ identifica los insumos. Es el primer paso de una corrida: su resultado lo usan \
 Lo que falta se reporta donde hace falta: sin tabla de severidad, los insumos se arman igual y \code{\link[=dl_avd]{dl_avd()}} la pide;
 con datos locales en el ajuste y el ancla a peso completo, sin almacén de evidencia (\code{evidencia} de \code{\link[=dl_rutas]{dl_rutas()}};
 obligatoria si la configuración declara \code{anchor.evidencia_ghdx}), un aviso de doble conteo; si ninguna fila nacional
-de \code{datos} entra al ajuste, un mensaje lo dice en su lugar. Con un proyecto (\code{dl_insumos(dl_proyecto(...))}), los
+de \code{datos} entra al ajuste, un mensaje lo dice en su lugar. Con almacén de evidencia (en un proyecto, la tabla
+\code{fuentes_gbd}) y el ancla a peso completo: si la evidencia trae fuentes locales no fatales de la causa y alguna
+medida entra al ajuste, un error pide bajar el peso del ancla; si ninguna entra, no hay doble conteo, los insumos
+se arman, un mensaje dice cuántas fuentes son y la corrida lo declara entre las limitaciones de su manifiesto. Con
+un proyecto (\code{dl_insumos(dl_proyecto(...))}), los
 mensajes citan sus claves y sus tablas (\code{datos_en_ajuste}, la tabla \code{covariables}, ...) en lugar de los del formato
 completo; si su traducción ya no está (cambió la configuración o una tabla y se volvió a traducir, o es de otra
 sesión), un error pide volver a llamar a \code{\link[=dl_proyecto]{dl_proyecto()}}.

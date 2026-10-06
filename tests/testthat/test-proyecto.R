@@ -185,8 +185,23 @@ test_that("las fuentes del GHDx van con el código nacional del proyecto y el do
   expect_warning(p <- dl_proyecto(d), "se descartan las fuentes de .ghdx.csv. de otras ubicaciones de GBD \\(4567\\)")
   expect_identical(p$tablas$fuentes_gbd$ubicacion, "PAIS")
   expect_identical(p$tablas$fuentes_gbd$nid, 1001L)
-  # con el ancla a peso completo, una fuente local no fatal del país es doble conteo: dl_insumos() se detiene
-  expect_error(suppressMessages(dl_insumos(p)), "exige 0 fuentes locales no fatales para la causa 501.*nid 1001")
+  # con el ancla a peso completo y sin datos en el ajuste, la fuente local no fatal no se cuenta dos veces: los
+  # insumos se arman, un mensaje lo dice con las claves del proyecto y la revisión lo muestra como aviso
+  m <- expect_message(b <- dl_insumos(p), class = "dl_mensaje_revision")
+  expect_match(conditionMessage(m), paste0("ancla a peso completo \\(ancla.peso = 1\\) con 1 fuente\\(s\\) local\\(es\\) ",
+                                           "no fatal\\(es\\) .*\\(nid 1001\\).*\\(datos_en_ajuste vacío\\)"))
+  expect_identical(b$fuentes_locales$nid_no_fatal, 1001L)
+  utils::capture.output(r <- dl_revisar_proyecto(d))
+  expect_identical(r$estado[grepl("ancla a peso completo", r$detalle)], "aviso")
+  expect_false(any(r$estado == "error"))
+  # con un dato local en el ajuste es doble conteo: dl_insumos() se detiene
+  data.table::fwrite(data.table::data.table(ubicacion = "PAIS", anio = 2020L, sexo = "hombres", edad_inicio = 60,
+                                            edad_fin = 65, medida = "prevalencia_estudio", casos = 30L,
+                                            muestra = 400L), file.path(d, "datos.csv"))
+  writeLines(c("causa: 501", "anio: 2020", "edad_inicio: 40", "ubicacion_gbd: 999",
+               "datos_en_ajuste: [prevalencia_estudio]"), file.path(d, "config.yaml"))
+  expect_error(suppressMessages(suppressWarnings(dl_insumos(dl_proyecto(d)))),
+               "exige 0 fuentes locales no fatales para la causa 501 cuando entran datos locales al ajuste.*nid 1001")
 })
 
 test_that("la procedencia de lo que la configuración completa exige declarar nombra la configuración del proyecto", {

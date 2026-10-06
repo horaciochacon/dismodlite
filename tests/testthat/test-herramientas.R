@@ -14,11 +14,11 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada y las plantil
                                    edad_inicio = 40),
                  "^dl_nuevo_proyecto\\(\\): proyecto de la causa 501")
   for (f in c("config.yaml", "LEEME.md", "ubicaciones.csv", "poblacion.csv", "betas.csv", "datos.csv",
-              "severidad.csv", "poblacion_detalle.csv", "proxies_crudos.csv"))
+              "severidad.csv", "poblacion_detalle.csv", "proxies_crudos.csv", "razones.csv"))
     expect_true(file.exists(file.path(d, f)), info = f)
   for (f in c("ancla", "covariables", "fuentes_gbd")) expect_true(dir.exists(file.path(d, f)), info = f)
   # las plantillas: solo el encabezado, las columnas de dl_plantilla()
-  for (t in c("ubicaciones", "betas", "severidad", "proxies_crudos"))
+  for (t in c("ubicaciones", "betas", "severidad", "proxies_crudos", "razones"))
     expect_identical(readLines(file.path(d, paste0(t, ".csv"))), paste(names(dl_plantilla(t)), collapse = ","))
   # sin comentar, solo lo dado; cada clave de la tabla aparece con su descripción, su símbolo y su valor por defecto
   y <- yaml::read_yaml(file.path(d, "config.yaml"))
@@ -56,10 +56,12 @@ test_that("dl_nuevo_proyecto() escribe la configuración comentada y las plantil
   # del contrato estimates/v1)
   leeme <- paste(readLines(file.path(d, "LEEME.md"), encoding = "UTF-8"), collapse = "\n")
   expect_match(leeme, "?dl_tablas", fixed = TRUE)
-  for (f in c("ubicaciones.csv", "poblacion_detalle.csv", "proxies_crudos.csv", "fuentes_gbd/"))
+  for (f in c("ubicaciones.csv", "poblacion_detalle.csv", "proxies_crudos.csv", "razones.csv", "fuentes_gbd/"))
     expect_match(leeme, f, fixed = TRUE)
   expect_match(leeme, .dl_schema_estimates()$sources$gbd$url, fixed = TRUE)
   expect_match(leeme, .dl_schema_estimates()$sources$ghdx$url, fixed = TRUE)
+  # el paso del reparto por razón: cuándo se llena razones.csv
+  expect_match(leeme, "Si repartes por razón (`subnacional: {modo: razon}`", fixed = TRUE)
   # otra llamada no toca lo que ya existe
   writeLines(c("causa: 501", "anio: 2021", "edad_inicio: 40"), file.path(d, "config.yaml"))
   expect_message(dl_nuevo_proyecto(d, causa = 501), "archivos nuevos: ninguno\n.*ya existían \\(no se tocaron\\): LEEME.md")
@@ -1116,4 +1118,94 @@ test_that("el paso «proxies» muestra el borde inferior de q, los avisos y los 
   x <- revisar_callado(d, causa = 9100)
   expect_match(x$detalle[x$paso == "proxies" & x$estado == "error"], "error_estandar debe ser mayor que 0")
   expect_identical(x$estado[x$paso %in% c("configuración", "proyecto")], c("omitido", "omitido"))
+})
+
+# ---- dl_correr(): la sensibilidad con el motor y los núcleos del ajuste ----
+
+# Corre una corrida de producción corta de 9101 (forzada, sin reajustes de etiquetas) con `opciones` y devuelve los
+# argumentos con que dl_correr() llamó a dl_sensibilidad(): una espía con su misma firma (y sus mismos valores por
+# defecto) que no ajusta nada y devuelve NULL.
+sensibilidad_pedida <- function(opciones, env = parent.frame()) {
+  d <- copia_ejemplo(env = env)
+  cfg <- readLines(file.path(d, "config", "9101.yaml"), encoding = "UTF-8")
+  cfg <- sub("  peso: [0.1, 0.5, 1.0]", "  peso: [1]\n  correlacion_edad: [0.5]\n  kappa: [1]", cfg, fixed = TRUE)
+  writeLines(enc2utf8(cfg), file.path(d, "config", "9101.yaml"), useBytes = TRUE)
+  visto <- NULL
+  espia <- dl_sensibilidad
+  body(espia) <- quote({
+    visto <<- list(opciones = opciones, procesos = procesos, semilla = semilla)
+    NULL
+  })
+  environment(espia) <- environment()
+  local_mocked_bindings(dl_sensibilidad = espia)
+  run <- suppressMessages(dl_correr(d, 9101, semilla = 1, opciones = opciones, forzar = TRUE))
+  expect_false(file.exists(file.path(run$dir, "diagnostics", "sensibilidad.csv")))    # la espía devolvió NULL
+  visto
+}
+
+test_that("las cadenas propias de la sensibilidad son las de la firma de dl_sensibilidad()", {
+  expect_identical(.dl_opciones_sensibilidad("mh"), eval(formals(dl_sensibilidad)$opciones))
+  expect_identical(.dl_opciones_sensibilidad("mh")[c("draws", "chains", "iter", "warmup", "thin", "cores")],
+                   list(draws = 200L, chains = 2L, iter = 6000L, warmup = 3000L, thin = 10L, cores = 1L))
+})
+
+test_that("dl_correr() con el motor por defecto y 1 núcleo pide la sensibilidad de siempre", {
+  o <- dl_opciones_mcmc(simulaciones = 100L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L,
+                        adelgazamiento = 1L)
+  visto <- sensibilidad_pedida(o)
+  # los argumentos de dl_sensibilidad(b, semilla = semilla), la llamada de la versión 2.2.0: las opciones por defecto
+  # de su firma (motor "mh", 1 núcleo) y un proceso. Con los mismos argumentos, el resultado es el mismo bit a bit
+  expect_identical(visto$opciones, dl_opciones_mcmc(simulaciones = 200L, cadenas = 2L, iteraciones = 6000L,
+                                                    calentamiento = 3000L))
+  expect_identical(visto$procesos, 1L)
+  expect_identical(visto$semilla, 1)
+})
+
+test_that("dl_correr() pasa a la sensibilidad el motor del ajuste y sus núcleos como procesos", {
+  skip_if_not_installed("Rcpp")
+  skip_on_cran()
+  skip_on_os("windows")                                  # allí `nucleos` > 1 avisa y usa un proceso
+  o <- dl_opciones_mcmc(simulaciones = 100L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L,
+                        adelgazamiento = 1L, nucleos = 2L, motor = "rcpp")
+  visto <- sensibilidad_pedida(o)
+  expect_identical(visto$opciones$engine, "rcpp")
+  expect_identical(visto$procesos, 2L)
+  # las cadenas siguen siendo las de la sensibilidad, no las del ajuste, con 1 núcleo por ajuste
+  expect_identical(visto$opciones, .dl_opciones_sensibilidad("rcpp"))
+  expect_identical(visto$opciones$cores, 1L)
+})
+
+# ---- exportar.incidencia ----
+
+test_that("dl_correr() con exportar: {incidencia: no} escribe la incidencia y la marca; la revisión lo dice", {
+  d <- copia_ejemplo()
+  f <- file.path(d, "config", "9101.yaml")
+  cat("exportar:\n  incidencia: no\n", file = f, append = TRUE)
+  # la línea en orden del paso «configuración» de una revisión
+  linea_config <- function(r) r$detalle[r$paso == "configuración" & r$estado == "ok"]
+  r <- revisar_callado(d, causa = 9101)
+  expect_identical(sum(r$estado == "error"), 0L)
+  expect_match(linea_config(r),
+               "^config/9101.yaml: proyecto; la incidencia no entra en los consolidados \\(exportar.incidencia: no\\)")
+  # un proyecto ya leído se revisa igual
+  expect_identical(linea_config(revisar_callado(dl_proyecto(d, 9101))), sub("^config/", "", linea_config(r)))
+  run <- suppressMessages(dl_correr(d, causa = 9101, semilla = 3, rapido = TRUE, sensibilidad = FALSE))
+  expect_true(file.exists(file.path(run$dir, "cause", "incidence", paste0(run$run_id, ".csv"))))
+  expect_true(file.exists(file.path(run$dir, "draws", "incidence_2023.csv.gz")))
+  expect_identical(run$manifest$causa$exporta_incidencia, FALSE)
+  expect_true(any(startsWith(unlist(run$manifest$limitaciones), "incidencia no exportada (exportar.incidencia)")))
+  expect_false("exportar.incidencia" %in% names(run$manifest$configuracion$por_defecto))
+  # la configuración congelada conserva la clave: la corrida se repite desde inputs/contrato/
+  expect_identical(dismodlite:::.dl_si_no(yaml::read_yaml(file.path(run$dir, "inputs", "contrato", "config.yaml"),
+                                                           handlers = dismodlite:::.DL_YAML_LOGICOS)$exportar$incidencia),
+                   FALSE)
+  # sin la clave: la otra causa del proyecto no gana nada en su manifiesto, y su revisión dice lo de siempre
+  expect_identical(linea_config(revisar_callado(d, causa = 9102)), "config/9102.yaml: proyecto")
+  # un valor que no es sí ni no, o una clave que el bloque no tiene: un error de la configuración
+  writeLines(sub("incidencia: no", "incidencia: a veces", readLines(f, encoding = "UTF-8")), f, useBytes = TRUE)
+  expect_error(dl_proyecto(d, 9101), "exportar[.]incidencia: debe ser sí o no")
+  # una suma de subtipos no usa la clave: la revisión avisa
+  ds <- copia_con_suma(c("exportar:", "  incidencia: no"))
+  rs <- revisar_callado(ds, causa = 9200)
+  expect_match(rs$detalle[rs$estado == "aviso"], "no se usa\\(n\\) la\\(s\\) clave\\(s\\) exportar$")
 })

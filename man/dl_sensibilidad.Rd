@@ -46,7 +46,8 @@ En un proyecto, la grilla de la configuración es \code{sensibilidad.peso} (lamb
 \code{\link[=dl_configuracion]{dl_configuracion()}}). Cada combinación (lambda, rho) es un ajuste completo con \code{opciones}, así que la grilla
 entera tarda varias veces lo que un ajuste; \code{procesos} reparte las combinaciones entre procesos. El eje opcional
 \code{fraccion_aguda} cambia la fracción de las muertes por la causa que se descuenta del prior de la mortalidad en
-exceso. Una combinación con la que la cascada falla (por ejemplo, prevalencias subnacionales mayores que 1 con
+exceso; con la mortalidad en exceso fija en 0 (\code{mortalidad_exceso.prior: cero}) no hay prior que cambie y el eje
+es un error. Una combinación con la que la cascada falla (por ejemplo, prevalencias subnacionales mayores que 1 con
 un lambda pequeño) no detiene las demás: su fila lo explica en \code{nota}.
 
 Lo que se mira: cuánto cambia la prevalencia nacional (y su etiqueta) de una combinación a otra y cuánto se abre

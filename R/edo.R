@@ -11,7 +11,8 @@
 #   dp/da = i (1 - p) - r p - f p (1 - p)
 # Mallas: anual (edades enteras), malla de paso h = 1/nsub (RK4) y malla media de paso h/2
 # (puntos intermedios de RK4). log i y log f se interpolan linealmente entre nudos (matriz W) y
-# son constantes fuera de ellos. theta = (log i en los nudos, log f en los nudos).
+# son constantes fuera de ellos. theta = (log i en los nudos, log f en los nudos); con la mortalidad en exceso fija
+# en cero (emr_prior.tipo cero), theta = (log i en los nudos) y f(a) = 0.
 #   p(a) = C / (S + C) en [0, 1) (proporción). Condición inicial p(a0) = p0 en a0 = edad_inicio; el ajuste usa
 #        p0 = 0.
 #   r(a) no se estima: sale de la configuración (remision.valor y remision.por_edad), constante por tramos

@@ -85,3 +85,36 @@ test_that("agregación por bandas devuelve location_id y usa la población de ca
   qi <- .dl_ipop_bandas(f2, b)
   expect_setequal(unique(qi$location_id), c("123", "01"))
 })
+
+test_that("un intervalo que cruza bandas con distinto número de edades reparte la población de cada banda entre sus edades", {
+  # <5 y 5-9 (5 edades cada una) y una banda abierta desde los 10 años, que en la malla 0..29 tiene 20 edades
+  bandas <- data.table::data.table(age_group_id = c(1L, 6L, 21L), age_start = c(0, 5, 10), age_end = c(5, 10, 125))
+  pobl <- data.table::data.table(age_group_id = c(21L, 1L, 6L), val = c(200, 500, 300))   # desordenada a propósito
+  anual <- 0:29
+  # [0, 125): cada edad pesa N_b / n_b = 500 / 5, 300 / 5 y 200 / 20 = 100, 60 y 10 personas por año de edad (suma 1000)
+  pw <- .dl_pesos_intervalo(anual, 0, 125, pobl, bandas)
+  expect_identical(pw$idx, 1:30)
+  expect_equal(pw$w, c(rep(100, 5), rep(60, 5), rep(10, 20)) / 1000, tolerance = 1e-15)
+  expect_equal(sum(pw$w), 1)
+  # cada banda pesa su población: la abierta 200 / 1000 y no 20 x 200 / (5 x 500 + 5 x 300 + 20 x 200) = 0.5
+  expect_equal(c(sum(pw$w[1:5]), sum(pw$w[6:10]), sum(pw$w[11:30])), c(0.5, 0.3, 0.2), tolerance = 1e-15)
+  # promedio de x(a) = a / 100: (100 x 10 + 60 x 35 + 10 x 390) / 100 / 1000 = 0.07
+  expect_equal(.dl_q_intervalos(anual / 100, list(pw)), 0.07, tolerance = 1e-15)
+  # un intervalo que toma parte de dos bandas: 8 y 9 pesan 60; 10 y 11 pesan 10 (n_b cuenta toda la malla)
+  expect_equal(.dl_pesos_intervalo(anual, 8, 12, pobl, bandas)$w, c(60, 60, 10, 10) / 140, tolerance = 1e-15)
+})
+
+test_that("dentro de una banda, o entre bandas con las mismas edades, los pesos son los de antes bit a bit", {
+  bandas <- data.table::data.table(age_group_id = c(1L, 6L, 21L), age_start = c(0, 5, 10), age_end = c(5, 10, 125))
+  pobl <- data.table::data.table(age_group_id = c(1L, 6L, 21L), val = c(500.3, 301.7, 200.9))
+  anual <- 0:29
+  antes <- function(N) N / sum(N)                       # la cuenta de la versión 2.2.0
+  expect_identical(.dl_pesos_intervalo(anual, 5, 10, pobl, bandas)$w, antes(rep(301.7, 5)))
+  expect_identical(.dl_pesos_intervalo(anual, 10, 125, pobl, bandas)$w, antes(rep(200.9, 20)))
+  expect_identical(.dl_pesos_intervalo(anual, 3, 8, pobl, bandas)$w, antes(c(500.3, 500.3, 301.7, 301.7, 301.7)))
+  # el ejemplo: la banda 80 y más del ancla cruza 80-84, 85-89, 90-94 y 95 y más, todas con 5 edades de la malla
+  b <- dl_insumos(cfg9100(), rutas_nacional())
+  malla <- .dl_ctx(b, 1L)$anual; p <- b$poblacion[location_id == b$loc_ancla & sex_id == 1L]
+  expect_identical(.dl_pesos_intervalo(malla, 80, 125, p, b$bandas_pobl)$w,
+                   antes(p$val[match(rep(c(30L, 31L, 32L, 235L), each = 5L), p$age_group_id)]))
+})
