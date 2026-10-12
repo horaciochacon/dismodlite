@@ -51,8 +51,8 @@ con proxies los traiga de todas las covariables y que el valor nacional en que s
 tabla \code{razones} traiga, en el año que se estima, la razón de cada ubicación subnacional de la población y de
 ninguna otra, con números finitos y alguna razón mayor que 0; con \code{mortalidad_exceso.prior: tabla}, que la tabla
 \code{prior_mortalidad_exceso} traiga, en el año que se estima y en cada sexo, un tramo de edad para cada nudo, sin
-solapes, con \code{mu_log} finito y \code{sd_log} mayor que 0 (y el paso \code{insumos} avisa si el centro de algún nudo queda
-fuera del rango permitido, del techo a su milésima parte). Avisa (\code{!}) de una covariable con
+solapes, con \code{mu_log} finito y \code{sd_log} mayor que 0 (y el paso \code{insumos} falla si el centro de algún nudo
+supera el techo). Avisa (\code{!}) de una covariable con
 proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
 subnacional), de una tabla \code{razones} sin el modo \code{razon} o \code{prior_mortalidad_exceso} sin el prior \code{tabla} (no se
 usan) y de valores de mortalidad de \code{datos} que

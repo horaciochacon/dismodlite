@@ -596,7 +596,7 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
     .dl_emr_dado_leer(.dl_path(paths, "prior_mortalidad_exceso", motivo = paste0(
       "emr_prior.tipo tabla necesita la tabla del prior de la mortalidad en exceso (sex_id, age_start, age_end, ",
       "mu_log, sd_log)")), cfg)
-  if (!is.null(prior_emr_dado)) .dl_emr_dado_avisar_soporte(prior_emr_dado, cfg, techo$cota)
+  if (!is.null(prior_emr_dado)) .dl_emr_dado_exigir_soporte(prior_emr_dado, cfg, techo$cota)
   datos <- .dl_materializar_datos(cfg, paths, sch)
   .dl_avisar_datos_en_ajuste(cfg, datos, con_evidencia = !is.null(evidencia))
   b <- list(datos = datos,

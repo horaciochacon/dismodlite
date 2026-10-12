@@ -101,7 +101,7 @@
 .dl_chol_ar1 <- function(n, rho) chol(rho^abs(outer(seq_len(n), seq_len(n), "-")))
 
 # Prior de EMR en los nudos (R/emr.R): fija en cero (emr_prior.tipo cero, sin log f en theta), plano dentro del techo
-# (plano_cota), dado por tabla (tabla: mu_log y sd_log del tramo de edad de cada nudo, con el soporte del plano) o
+# (plano_cota), dado por tabla (tabla: mu_log y sd_log del tramo de edad de cada nudo, bajo el techo) o
 # informativo, log(csmr / prevalencia) del ancla por banda. list(mu_log, sd_log,
 # cota = c(mínimo, máximo), plano), y cero = TRUE con la EMR fija en cero.
 .dl_ctx_emr <- function(b, sexo, nudos) {
@@ -317,14 +317,12 @@
 .dl_log_post <- function(theta, ctx) unname(.dl_lp_componentes(theta, ctx)["total"])
 
 # Punto inicial de las cadenas: log i = .DL_LOG_I_INICIAL en todos los nudos y log f = la media del prior de EMR,
-# pero al menos .DL_MARGEN_LOG_F_INICIAL bajo log(techo). Con el prior dado por tabla (ctx$emr$dado), además al menos
-# .DL_MARGEN_LOG_F_INICIAL sobre log(piso): el centro de la tabla puede quedar fuera del soporte [piso, techo] y el
-# punto inicial debe caer dentro. Nombres logi_<nudo> y logf_<nudo>. Con la EMR fija en cero, solo log i (logi_<nudo>).
+# pero al menos .DL_MARGEN_LOG_F_INICIAL bajo log(techo). Nombres logi_<nudo> y logf_<nudo>. Con la EMR fija en cero,
+# solo log i (logi_<nudo>).
 .dl_theta_inicial <- function(ctx) {
   if (.dl_ctx_emr_cero(ctx))
     return(stats::setNames(rep(.DL_LOG_I_INICIAL, length(ctx$nudos)), paste0("logi_", ctx$nudos)))
   log_f0 <- pmin(ctx$emr$mu_log, log(ctx$emr$cota[2]) - .DL_MARGEN_LOG_F_INICIAL)
-  if (isTRUE(ctx$emr$dado)) log_f0 <- pmax(log_f0, log(ctx$emr$cota[1]) + .DL_MARGEN_LOG_F_INICIAL)
   theta0 <- c(rep(.DL_LOG_I_INICIAL, length(ctx$nudos)), log_f0)
   names(theta0) <- c(paste0("logi_", ctx$nudos), paste0("logf_", ctx$nudos))
   theta0

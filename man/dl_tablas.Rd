@@ -355,7 +355,7 @@ falta); con detalle de \code{ambos}, se agrupan como las de cada sexo.
 \code{sexo} \tab texto \tab no \tab hombres, mujeres o ambos (ambos, o sin la columna: el mismo prior en los dos sexos)\cr
 \code{edad_inicio} \tab número \tab sí \tab Primera edad del tramo (años)\cr
 \code{edad_fin} \tab número \tab sí \tab Fin del tramo (excluido) (años)\cr
-\code{mu_log} \tab número \tab sí \tab Centro del prior de log f en los nudos del tramo: el de la Normal antes de truncarla entre el piso (la milésima parte del techo) y el techo (logaritmo de la tasa por persona-año)\cr
+\code{mu_log} \tab número \tab sí \tab Centro del prior de log f en los nudos del tramo: el de la Normal antes de truncarla bajo el techo, que no puede superar (logaritmo de la tasa por persona-año)\cr
 \code{sd_log} \tab número \tab sí \tab Desviación estándar de esa Normal, mayor que 0 (una muy pequeña deja la mortalidad en exceso fija en el centro)\cr
 \code{fuente} \tab texto \tab no \tab De dónde sale el prior\cr
 }
@@ -366,7 +366,7 @@ falta); con detalle de \code{ambos}, se agrupan como las de cada sexo.
 \item{\code{sexo}}{hombres, mujeres o ambos (ambos, o sin la columna: el mismo prior en los dos sexos). Texto, opcional.}
 \item{\code{edad_inicio}}{Primera edad del tramo (años). Número, obligatoria.}
 \item{\code{edad_fin}}{Fin del tramo (excluido) (años). Número, obligatoria.}
-\item{\code{mu_log}}{Centro del prior de log f en los nudos del tramo: el de la Normal antes de truncarla entre el piso (la milésima parte del techo) y el techo (logaritmo de la tasa por persona-año). Número, obligatoria.}
+\item{\code{mu_log}}{Centro del prior de log f en los nudos del tramo: el de la Normal antes de truncarla bajo el techo, que no puede superar (logaritmo de la tasa por persona-año). Número, obligatoria.}
 \item{\code{sd_log}}{Desviación estándar de esa Normal, mayor que 0 (una muy pequeña deja la mortalidad en exceso fija en el centro). Número, obligatoria.}
 \item{\code{fuente}}{De dónde sale el prior. Texto, opcional.}
 }

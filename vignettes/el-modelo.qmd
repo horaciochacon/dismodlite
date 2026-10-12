@@ -252,8 +252,8 @@ recorrerían el prior y no convergerían. En la estimación subnacional, $f$ es 
 
 Con `mortalidad_exceso.prior: tabla`, $\mu_{log,k}$ y $sd_{log,k}$ no salen del ancla: son los del tramo de edad que
 contiene al nudo $k$ en la tabla `prior_mortalidad_exceso` del proyecto, por sexo. $L_{emr}$ es el mismo término
-normal y $\log f_k$ queda entre $\log f_{max} - \log 1000$ y $\log f_{max}$, como con el prior plano; $\mu_{log,k}$
-es el centro de la Normal antes de truncarla. Sirve cuando la mortalidad en exceso se conoce por otra vía (un
+normal y $\log f_k$ queda bajo $\log f_{max}$, como con el prior del ancla; $\mu_{log,k}$ es el centro de la Normal
+antes de truncarla y no puede superar $\log f_{max}$. Sirve cuando la mortalidad en exceso se conoce por otra vía (un
 estudio de seguimiento, otra corrida, los años vecinos de un año sin muertes fiables).
 
 El prior del ejemplo, en muertes por 1000 personas-año con la enfermedad (`dl_prior_emr()`):

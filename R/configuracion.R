@@ -462,9 +462,9 @@ NULL
   # aporta muertes al modelo: exige tipo_procedencia y no admite lo que ajusta un prior o un techo que no existen, ni
   # datos de mortalidad en el ajuste (con f = 0 el modelo predice p f = 0 muertes y su verosimilitud es -Inf).
   # tabla toma el prior de cada nudo (centro y desviación estándar de log f) de la tabla del prior dado (la pieza
-  # prior_mortalidad_exceso de las rutas), con el soporte del prior plano; exige tipo_procedencia y no admite lo que
+  # prior_mortalidad_exceso de las rutas), con el soporte del prior del ancla; exige tipo_procedencia y no admite lo que
   # ajusta el prior del ancla: factor_sd ni sensibilidad.fraccion_aguda (emr_prior.fraccion_aguda sí: mueve el techo
-  # derivado del ancla, como con plano_cota).
+  # derivado del ancla, como con plano_cota, y declara la fase aguda en el manifiesto).
   tp <- cfg$emr_prior$tipo
   if (!isTRUE(tp %in% c("informativo_edad", "plano_cota", "cero", "tabla")))
     p("emr_prior.tipo", "valores admitidos: informativo_edad, plano_cota, cero o tabla")

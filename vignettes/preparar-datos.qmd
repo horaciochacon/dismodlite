@@ -445,13 +445,14 @@ para los dos sexos. Sin la columna `anio` la tabla vale para todos los años; co
 se estima.
 
 El logaritmo de la mortalidad en exceso de cada nudo sigue una Normal con ese centro y esa desviación, truncada
-entre el techo (`mortalidad_exceso.techo`; sin la clave, el que sale del ancla) y su milésima parte, el mismo rango
-del prior plano. `mu_log` es el centro de la Normal antes de truncarla. Si el centro de algún nudo queda fuera de ese
-rango, la mortalidad en exceso quedaría junto al piso o al techo y no en el centro pedido: la revisión del proyecto
-y `dl_insumos()` lo avisan, con los nudos, el piso y el techo (lo habitual es un error de unidades, o un techo que
-hay que subir o bajar). Una `sd_log` muy pequeña deja la mortalidad en exceso fija en el centro. La tabla solo se
-usa con ese prior; con él, `mortalidad_exceso.fraccion_aguda` solo cambia el techo que sale del ancla y
-`sensibilidad.fraccion_aguda` no se admite (el prior no cambia con ella).
+bajo el techo (`mortalidad_exceso.techo`; sin la clave, el que sale del ancla): el mismo rango del prior que sale del
+ancla. `mu_log` es el centro de la Normal antes de truncarla y no puede superar el techo: la mortalidad en exceso
+quedaría junto al techo y no en el centro pedido. Si el centro de algún nudo lo supera, `dl_insumos()` se detiene y
+la revisión del proyecto lo marca, con los nudos y el techo; lo habitual es un error de unidades, o un techo que no
+corresponde (el que sale de un ancla sin muertes fiables): entonces se declara `mortalidad_exceso.techo`. Una
+`sd_log` muy pequeña deja la mortalidad en exceso fija en el centro. La tabla solo se usa con ese prior; con él,
+`mortalidad_exceso.fraccion_aguda` no cambia el prior (mueve el techo que sale del ancla y la corrida sigue
+declarando la fase aguda) y `sensibilidad.fraccion_aguda` no se admite.
 
 ```{r}
 #| label: col-prior-mortalidad-exceso

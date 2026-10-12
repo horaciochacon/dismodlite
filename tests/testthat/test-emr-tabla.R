@@ -1,7 +1,7 @@
 # Prior de la mortalidad en exceso (EMR) dado por tabla: `mortalidad_exceso: {prior: tabla}` (emr_prior.tipo tabla en
 # el formato completo) y la tabla prior_mortalidad_exceso del contrato (la duodécima): por sexo y tramo de edad, el
 # centro (mu_log) y la desviación estándar (sd_log) de log f. Cada nudo toma el tramo que lo contiene y log f queda
-# truncado a [techo / 1000, techo], el soporte del prior plano. El proyecto de prueba es el país ficticio
+# truncado bajo el techo, el soporte del prior del ancla; un centro sobre el techo es un error. El proyecto de prueba es el país ficticio
 # (escribir_pais_ficticio(), helper-dismodlite.R) con la causa 7001 en 2023 y los nudos por defecto de edad_inicio 40.
 
 NUDOS_TABLA <- c(40, 50, 60, 70, 80, 95)
@@ -165,48 +165,52 @@ test_that("insumos con `prior: tabla`: la tabla llega exacta, entra al hash y se
   expect_identical(derivado$techo_emr$origen, "derivado")
 })
 
-test_that("contexto: cada nudo toma su tramo, el soporte es [techo / 1000, techo] y el punto inicial cae dentro", {
-  # centros que salen del soporte por los dos lados: el primero sobre el techo y el segundo bajo el piso
-  mu <- c(log(0.9), log(1e-5), log(c(3.5, 5, 8, 12) * 1e-2))
-  tabla <- prior_tabla_prueba(mu = mu)
-  # dl_insumos() avisa de los centros fuera del soporte, con los nudos, el piso y el techo
-  d <- proyecto_emr_tabla(tabla)
-  expect_warning(b <- suppressMessages(dl_insumos(dl_proyecto(d))),
-                 paste0("el centro, exp\\(mu_log\\), queda fuera del rango permitido, de 5e-04 \\(el piso\\) a 0.5 ",
-                        "\\(el techo\\) por persona-año, en el/los nudo\\(s\\) 40, 50 en hombres; 40, 50 en mujeres: .*",
-                        "logaritmo natural de una tasa por persona-año"))
-  # la revisión del proyecto lo muestra como aviso del paso «insumos»
+test_that("contexto: cada nudo toma su tramo, el soporte es [0, techo] y un centro sobre el techo es un error", {
+  # un centro sobre el techo (0,9 con techo 0,5): dl_insumos() se detiene, con los nudos y el techo
+  sobre <- prior_tabla_prueba(mu = c(log(0.9), log(c(2.5, 3.5, 5, 8, 12) * 1e-2)))
+  d <- proyecto_emr_tabla(sobre)
+  expect_error(suppressMessages(dl_insumos(dl_proyecto(d))),
+               paste0("el centro, exp\\(mu_log\\), queda fuera del rango permitido, de 0 a 0.5 \\(el techo\\) por ",
+                      "persona-año, en el/los nudo\\(s\\) 40 en hombres; 40 en mujeres. .*",
+                      "logaritmo natural de una tasa por persona-año.*mortalidad_exceso.techo"),
+               class = "dl_error")
+  # la revisión del proyecto lo muestra como error del paso «insumos»
   salida <- utils::capture.output(r <- suppressMessages(dl_revisar_proyecto(d)))
-  expect_match(r$detalle[r$paso == "insumos" & r$estado == "aviso"], "queda fuera del rango permitido")
-  expect_false(any(r$estado == "error"))
-  # con los centros dentro del soporte no hay aviso (tampoco en el borde exacto)
-  expect_no_warning(suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla()))))
-  borde <- prior_tabla_prueba(mu = c(log(0.5 / 1000), log(0.5), log(c(3.5, 5, 8, 12) * 1e-2)))[sexo == "mujeres"]
-  expect_no_warning(suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla(borde[, sexo := "ambos"])))))
+  expect_match(r$detalle[r$paso == "insumos" & r$estado == "error"], "queda fuera del rango permitido")
   # el techo que sale del ancla también se compara: unidades por 100 000 en vez de por persona-año
   por_cien_mil <- prior_tabla_prueba(mu = log(c(2, 2.5, 3.5, 5, 8, 12) * 1e3))
-  expect_warning(suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla(por_cien_mil, techo = NULL)))),
-                 "queda fuera del rango permitido")
+  expect_error(suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla(por_cien_mil, techo = NULL)))),
+               "queda fuera del rango permitido")
+  # no hay piso: un centro mil veces (y más) bajo el techo es válido, y en el borde exacto del techo también
+  mu <- c(log(1e-5), log(0.5), log(c(3.5, 5, 8, 12) * 1e-2))
+  tabla <- prior_tabla_prueba(mu = mu)[sexo == "mujeres"][, sexo := "ambos"]
+  expect_no_warning(b <- suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla(tabla)))))
   ctx <- .dl_ctx(b, 2L)
-  expect_identical(ctx$emr, list(mu_log = mu, sd_log = rep(0.3, 6L), cota = c(0.5 / 1000, 0.5), plano = FALSE,
-                                 dado = TRUE))
-  expect_identical(.dl_ctx(b, 1L)$emr$mu_log, mu + log(1.05))
+  expect_identical(ctx$emr, list(mu_log = mu, sd_log = rep(0.3, 6L), cota = c(0, 0.5), plano = FALSE))
+  expect_identical(.dl_ctx(suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla()))), 1L)$emr$mu_log,
+                   log(c(2, 2.5, 3.5, 5, 8, 12) * 1e-2) + log(1.05))
+  # el punto inicial: el centro, pero al menos el margen bajo el techo (como con el prior del ancla)
   th <- .dl_theta_inicial(ctx)
   log_f0 <- unname(th[paste0("logf_", NUDOS_TABLA)])
-  expect_identical(log_f0, c(log(0.5) - 0.5, log(0.5 / 1000) + 0.5, mu[3:6]))
-  expect_true(all(exp(log_f0) > ctx$emr$cota[1] & exp(log_f0) < ctx$emr$cota[2]))
+  expect_identical(log_f0, c(mu[1], log(0.5) - 0.5, mu[3:6]))
   lp <- .dl_lp_componentes(th, ctx)
   expect_true(is.finite(lp[["total"]]))
   expect_equal(unname(lp[["emr"]]), sum(stats::dnorm(log_f0, mu, 0.3, log = TRUE)), tolerance = 1e-12)
-  # fuera del soporte, por arriba o por abajo, la log-posterior es -Inf
+  # sobre el techo la log-posterior es -Inf; muy por debajo, finita (no hay piso)
   arriba <- th; arriba["logf_60"] <- log(0.5) + 1e-6
-  abajo <- th; abajo["logf_60"] <- log(0.5 / 1000) - 1e-6
+  abajo <- th; abajo["logf_60"] <- log(0.5 / 1e6)
   expect_true(all(.dl_lp_componentes(arriba, ctx) == -Inf))
-  expect_true(all(.dl_lp_componentes(abajo, ctx) == -Inf))
-  # los otros priores no llevan la bandera ni el piso en el punto inicial
-  plano <- .dl_ctx(suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla(tabla = NULL, prior = "plano")))), 2L)
-  expect_null(plano$emr$dado)
-  expect_identical(unname(.dl_theta_inicial(plano)[paste0("logf_", NUDOS_TABLA)]), rep(log(0.5) - 2, 6L))
+  expect_true(is.finite(.dl_lp_componentes(abajo, ctx)[["total"]]))
+  # el contexto es el del prior del ancla con otra fuente: con la tabla que sale de dl_prior_emr(), el mismo (por la
+  # puerta de R, que no redondea sd_log como el CSV)
+  ancla <- suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla(tabla = NULL, prior = "desde_ancla"))))
+  pa <- dl_prior_emr(ancla)
+  como_ancla <- data.table::data.table(sexo = c("hombres", "mujeres")[pa$sex_id], edad_inicio = pa$age_start,
+                                       edad_fin = pa$age_end, mu_log = pa$mu_log, sd_log = pa$sd_log)
+  dada <- suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla(tabla = NULL),
+                                                  prior_mortalidad_exceso = as.data.frame(como_ancla))))
+  expect_identical(.dl_ctx(dada, 2L)$emr, .dl_ctx(ancla, 2L)$emr)
+  expect_identical(.dl_theta_inicial(.dl_ctx(dada, 2L)), .dl_theta_inicial(.dl_ctx(ancla, 2L)))
 })
 
 test_that("la log-posterior en C++ coincide con la de R (1e-9) con el prior dado por tabla", {
@@ -222,19 +226,19 @@ test_that("la log-posterior en C++ coincide con la de R (1e-9) con el prior dado
     expect_equal(unname(lpr$componentes(th)), unname(r), tolerance = 1e-9)
     expect_equal(lpr$total(th), unname(r[["total"]]), tolerance = 1e-9)
   }
-  abajo <- th0; abajo["logf_60"] <- log(0.5 / 1000) - 1e-6
-  expect_identical(lpr$total(abajo), -Inf)
+  arriba <- th0; arriba["logf_60"] <- log(0.5) + 1e-6
+  expect_identical(lpr$total(arriba), -Inf)
 })
 
 # ---- Ajuste y corrida ----
 
-test_that("dl_ajustar() con un prior estrecho deja log f en el centro de la tabla, dentro del soporte", {
+test_that("dl_ajustar() con un prior estrecho deja log f en el centro de la tabla, bajo el techo", {
   b <- suppressMessages(dl_insumos(dl_proyecto(proyecto_emr_tabla(prior_tabla_prueba(sd_log = 0.02)))))
   o <- dl_opciones_mcmc(simulaciones = 40L, cadenas = 2L, iteraciones = 3200L, calentamiento = 1600L)
   f <- dl_ajustar(b, o, semilla = 11L, cache = FALSE)
   par <- f$draws_par[["2"]]
   log_f <- par[, paste0("logf_", NUDOS_TABLA)]
-  expect_true(all(exp(log_f) >= 0.5 / 1000 & exp(log_f) <= 0.5))
+  expect_true(all(exp(log_f) > 0 & exp(log_f) <= 0.5))
   expect_equal(unname(colMeans(log_f)), log(c(2, 2.5, 3.5, 5, 8, 12) * 1e-2), tolerance = 0.03)
   # con la misma semilla, las mismas cadenas
   expect_identical(dl_ajustar(b, o, semilla = 11L, cache = FALSE)$draws_par, f$draws_par)
@@ -249,7 +253,7 @@ test_that("dl_correr() con `prior: tabla`: el manifiesto lo declara y el proyect
   expect_identical(m$params$emr_prior, "tabla")
   expect_identical(m$params$emr_cota_origen, "impreso")
   expect_match(paste(unlist(m), collapse = " "), "dado por tabla \\(emr_prior.tipo tabla\\)")
-  expect_match(paste(unlist(m$limitaciones), collapse = " "), "truncada entre el piso (5e-04) y el techo (0.5)",
+  expect_match(paste(unlist(m$limitaciones), collapse = " "), "truncada bajo el techo (0.5), como el prior del ancla",
                fixed = TRUE)
   expect_true(file.exists(file.path(run$dir, "inputs", "prior_emr_dado.csv")))
   expect_true(file.exists(file.path(run$dir, "inputs", "contrato", "prior_mortalidad_exceso.csv")))

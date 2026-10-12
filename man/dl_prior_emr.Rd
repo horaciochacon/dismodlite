@@ -36,10 +36,10 @@ no hay prior y esta función se detiene con un error.
 
 Con \code{mortalidad_exceso.prior: tabla} el prior no sale del ancla: es el de la tabla \code{prior_mortalidad_exceso} del
 proyecto (ver \link{dl_tablas}), y esta función la devuelve tal como entra al ajuste. Cada nudo toma el tramo de edad
-que lo contiene (todos los nudos deben caer en un tramo) y log f queda truncado entre el piso (la milésima parte
-del techo, como con el prior plano) y el techo: \code{mu_log} es el centro de la Normal antes de truncarla, y
-\code{\link[=dl_insumos]{dl_insumos()}} avisa si el de algún nudo queda fuera de ese rango. Sirve para dar al modelo una mortalidad en
-exceso conocida por otra vía: un estudio de seguimiento, otra corrida o un año vecino.
+que lo contiene (todos los nudos deben caer en un tramo) y log f queda truncado bajo el techo, como con el prior
+del ancla: \code{mu_log} es el centro de la Normal antes de truncarla, y \code{\link[=dl_insumos]{dl_insumos()}} se detiene si el de algún nudo
+supera el techo. Sirve para dar al modelo una mortalidad en exceso conocida por otra vía: un estudio de
+seguimiento, otra corrida o un año vecino.
 }
 \examples{
 b <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))

@@ -541,8 +541,8 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #'    tabla `razones` traiga, en el año que se estima, la razón de cada ubicación subnacional de la población y de
 #'    ninguna otra, con números finitos y alguna razón mayor que 0; con `mortalidad_exceso.prior: tabla`, que la tabla
 #'    `prior_mortalidad_exceso` traiga, en el año que se estima y en cada sexo, un tramo de edad para cada nudo, sin
-#'    solapes, con `mu_log` finito y `sd_log` mayor que 0 (y el paso `insumos` avisa si el centro de algún nudo queda
-#'    fuera del rango permitido, del techo a su milésima parte). Avisa (`!`) de una covariable con
+#'    solapes, con `mu_log` finito y `sd_log` mayor que 0 (y el paso `insumos` falla si el centro de algún nudo
+#'    supera el techo). Avisa (`!`) de una covariable con
 #'    proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
 #'    subnacional), de una tabla `razones` sin el modo `razon` o `prior_mortalidad_exceso` sin el prior `tabla` (no se
 #'    usan) y de valores de mortalidad de `datos` que

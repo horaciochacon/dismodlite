@@ -27,9 +27,11 @@
 # Prior dado por tabla (emr_prior.tipo tabla): el usuario da, por sexo y tramo de edad [age_start, age_end),
 # el centro mu_log y la desviación estándar sd_log de log f (tabla prior_mortalidad_exceso del proyecto). Cada nudo
 # toma el tramo que lo contiene y, por nudo k,
-#   log f_k ~ N(mu_log_k, sd_log_k)   truncada a   [log(f_min), log(f_max)],   f_min = max(cota inferior, f_max / 1000),
-# el mismo soporte del prior plano. mu_log es el centro de la Normal antes de truncarla (no la media de la truncada).
-# No usa el csmr del ancla, salvo para derivar el techo si la configuración no lo imprime.
+#   log f_k ~ N(mu_log_k, sd_log_k)   truncada a   [log(f_min), log(f_max)],   [f_min, f_max] = emr_prior.cota,
+# el mismo término y el mismo soporte del prior informativo del ancla (f_min es 0 si la cota inferior no se
+# declara): solo cambia de dónde salen mu_log y sd_log. mu_log es el centro de la Normal antes de truncarla, y debe
+# caer dentro de la cota (.dl_emr_dado_exigir_soporte). No usa el csmr del ancla, salvo para derivar el techo si la
+# configuración no lo imprime.
 #
 # Techo de EMR: f_max, la cota superior de f. Impreso en la configuración (emr_prior.cota = [f_min, f_max]) o
 # derivado del ancla:
@@ -99,10 +101,10 @@
 #'
 #' Con `mortalidad_exceso.prior: tabla` el prior no sale del ancla: es el de la tabla `prior_mortalidad_exceso` del
 #' proyecto (ver [dl_tablas]), y esta función la devuelve tal como entra al ajuste. Cada nudo toma el tramo de edad
-#' que lo contiene (todos los nudos deben caer en un tramo) y log f queda truncado entre el piso (la milésima parte
-#' del techo, como con el prior plano) y el techo: `mu_log` es el centro de la Normal antes de truncarla, y
-#' [dl_insumos()] avisa si el de algún nudo queda fuera de ese rango. Sirve para dar al modelo una mortalidad en
-#' exceso conocida por otra vía: un estudio de seguimiento, otra corrida o un año vecino.
+#' que lo contiene (todos los nudos deben caer en un tramo) y log f queda truncado bajo el techo, como con el prior
+#' del ancla: `mu_log` es el centro de la Normal antes de truncarla, y [dl_insumos()] se detiene si el de algún nudo
+#' supera el techo. Sirve para dar al modelo una mortalidad en exceso conocida por otra vía: un estudio de
+#' seguimiento, otra corrida o un año vecino.
 #'
 #' @param insumos Insumos de [dl_insumos()] (con el ancla de mortalidad o, con el prior por tabla, con esa tabla).
 #' @return Tabla (data.table) con una fila por sexo y banda del ancla: `sex_id`, `age_group_id`, `age_start`,
@@ -236,7 +238,7 @@ dl_prior_emr <- function(insumos) {
 # edad. Exige, en cada sexo de la configuración: tramos [age_start, age_end) que no se solapan, cada nudo dentro de
 # un tramo (el prior no se extrapola), mu_log finito y sd_log finito y mayor que 0. Las filas de un sex_id que no es
 # del modelo no se usan. mu_log no se compara aquí con el techo (puede derivarse del ancla después): lo hace
-# .dl_emr_dado_avisar_soporte.
+# .dl_emr_dado_exigir_soporte.
 .dl_emr_dado_leer <- function(archivo, cfg) {
   d <- .dl_leer_csv(archivo, pieza = "prior_mortalidad_exceso")
   faltan <- setdiff(.DL_COLUMNAS_EMR_DADO, names(d))
@@ -272,49 +274,39 @@ dl_prior_emr <- function(insumos) {
 # Prior dado en los nudos, desde la tabla de un sexo (.dl_emr_dado_leer filtrada por sexo). Cada nudo a_k toma el
 # tramo que lo contiene, age_start <= a_k < age_end (.dl_banda_de; todos los nudos tienen tramo):
 #   mu_log_k = mu_log[tramo],   sd_log_k = sd_log[tramo],
-# y el soporte de f es el del prior plano:
-#   f_max = cota impresa superior,   f_min = max(cota impresa inferior, f_max / .DL_EMR_PLANO_RANGO).
-# plano = FALSE: la log-posterior lleva el término log N(log f_k; mu_log_k, sd_log_k), además del truncamiento a
-# [f_min, f_max]. dado = TRUE lo lee el punto inicial de las cadenas (.dl_theta_inicial), que debe caer dentro del
-# soporte aunque mu_log quede fuera.
+# y el soporte de f es la cota de la configuración, [f_min, f_max] = emr_prior.cota, como en el prior informativo
+# del ancla (.dl_emr_en_nudos). plano = FALSE: la log-posterior lleva el término log N(log f_k; mu_log_k, sd_log_k),
+# además del truncamiento a [f_min, f_max].
 .dl_emr_dado_en_nudos <- function(tabla_sexo, nudos, cota) {
   tramos <- data.table::as.data.table(tabla_sexo)
   data.table::setorder(tramos, age_start)
   tramo <- .dl_banda_de(nudos, tramos)
-  list(mu_log = tramos$mu_log[tramo], sd_log = tramos$sd_log[tramo], cota = .dl_emr_dado_soporte(cota), plano = FALSE,
-       dado = TRUE)
-}
-
-# Soporte del prior dado, c(f_min, f_max), desde la cota de la configuración (impresa o derivada del ancla): el del
-# prior plano,   f_max = cota superior,   f_min = max(cota inferior, f_max / .DL_EMR_PLANO_RANGO).
-.dl_emr_dado_soporte <- function(cota) {
-  cota <- as.numeric(unlist(cota))
-  cota[1] <- max(cota[1], cota[2] / .DL_EMR_PLANO_RANGO)
-  cota
+  list(mu_log = tramos$mu_log[tramo], sd_log = tramos$sd_log[tramo], cota = as.numeric(unlist(cota)), plano = FALSE)
 }
 
 # El sexo `sex_id` en los mensajes del prior dado: «sex_id 1 (hombres)».
 .dl_emr_dado_sexo <- function(sex_id) sprintf("sex_id %d (%s)", sex_id, .DL_SEXOS_CONTRATO[[as.character(sex_id)]])
 
-# Avisa si el centro del prior dado de algún nudo queda fuera del soporte [f_min, f_max] (.dl_emr_dado_en_nudos, con
-# la cota definitiva `cota`: impresa o derivada del ancla): mu_log_k < log(f_min) o mu_log_k > log(f_max). Allí la
-# Normal truncada tiene, como mucho, la mitad de su masa dentro del soporte y la mortalidad en exceso queda junto al
-# piso o al techo, no en el centro pedido; suele ser un error de unidades de la tabla o un techo que no le corresponde.
-.dl_emr_dado_avisar_soporte <- function(tabla, cfg, cota) {
+# Detiene la corrida si el centro del prior dado de algún nudo queda fuera del soporte [f_min, f_max]
+# (.dl_emr_dado_en_nudos, con la cota definitiva `cota`: impresa o derivada del ancla):
+#   mu_log_k > log(f_max)   o   mu_log_k < log(f_min)   (lo segundo, solo con una cota inferior declarada mayor que 0).
+# Allí la Normal truncada tendría, como mucho, la mitad de su masa dentro del soporte y la mortalidad en exceso
+# quedaría junto al techo, no en el centro pedido; suele ser un error de unidades de la tabla o un techo que no le
+# corresponde (el derivado de un ancla sin muertes fiables).
+.dl_emr_dado_exigir_soporte <- function(tabla, cfg, cota) {
   nudos <- as.numeric(unlist(cfg$nudos_incidencia))
-  soporte <- .dl_emr_dado_soporte(cota)
+  cota <- as.numeric(unlist(cota))
   fuera <- unlist(lapply(as.integer(unlist(cfg$sexos)), function(sexo) {
     mu_log <- .dl_emr_dado_en_nudos(tabla[sex_id == sexo], nudos, cota)$mu_log
-    k <- mu_log < log(soporte[1]) | mu_log > log(soporte[2])
+    k <- mu_log < log(cota[1]) | mu_log > log(cota[2])
     if (any(k)) sprintf("%s en %s", paste(nudos[k], collapse = ", "), .DL_SEXOS_CONTRATO[[as.character(sexo)]])
   }))
   if (length(fuera))
-    .dl_warn(paste0("prior de la mortalidad en exceso por tabla: el centro, exp(mu_log), queda fuera del rango ",
-                    "permitido, de %s (el piso) a %s (el techo) por persona-a\u00f1o, ",
-                    "en el/los nudo(s) %s: all\u00ed la mortalidad en exceso quedar\u00e1 junto al piso o al techo y no ",
-                    "en el centro de la tabla. Revisa las unidades (mu_log es el logaritmo natural de una tasa por ",
-                    "persona-a\u00f1o, no por 100 000) o cambia el techo (emr_prior.cota): el piso es su mil\u00e9sima ",
-                    "parte"), format(soporte[1]), format(soporte[2]), paste(fuera, collapse = "; "))
+    .dl_stop(paste0("prior de la mortalidad en exceso por tabla: el centro, exp(mu_log), queda fuera del rango ",
+                    "permitido, de %s a %s (el techo) por persona-a\u00f1o, en el/los nudo(s) %s. Revisa las ",
+                    "unidades de la tabla (mu_log es el logaritmo natural de una tasa por persona-a\u00f1o, no por ",
+                    "100 000) o declara un techo que contenga el centro (mortalidad_exceso.techo; emr_prior.cota ",
+                    "en el formato completo)"), format(cota[1]), format(cota[2]), paste(fuera, collapse = "; "))
   invisible(NULL)
 }
 
