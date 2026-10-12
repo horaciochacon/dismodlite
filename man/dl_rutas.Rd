@@ -21,6 +21,7 @@ dl_rutas(
   evidencia = NULL,
   registro = NULL,
   catalogos = NULL,
+  prior_mortalidad_exceso = NULL,
   cambios = list()
 )
 }
@@ -54,6 +55,10 @@ no es el registro de corridas.}
 
 \item{catalogos}{Carpeta de catálogos (causas, ubicaciones, edades, estados de salud, secuelas).}
 
+\item{prior_mortalidad_exceso}{CSV con el prior de la mortalidad en exceso por sexo y tramo de edad (\code{sex_id},
+\code{age_start}, \code{age_end}, \code{mu_log}, \code{sd_log}); solo con \code{emr_prior.tipo: tabla}. Lleva una fila por tramo de edad
+y por cada \code{sex_id} del modelo (1, hombres; 2, mujeres): las de otro \code{sex_id} no se usan.}
+
 \item{cambios}{Lista con nombres que reemplaza piezas después de los argumentos. Acepta los nombres de los
 argumentos de esta función y las claves internas de la versión 0.2.2 (\code{std_prior}, \code{ghdx_cov}, ...); un
 elemento \code{NULL} quita la pieza.}
@@ -63,7 +68,8 @@ Objeto de clase \code{dl_paths}: una lista con la ruta de cada pieza (o \code{NU
 versión 0.2.2: \code{std_prior}, \code{std_csmr}, \code{std_yld} y \code{std_incidence} (el ancla), \code{ghdx_cov} (\code{covariables}),
 \code{cov_std} (\code{covariables_std}), \code{extraction} (\code{extraccion}), \code{cov_proxy} (\code{proxies}), \code{poblacion}, \code{datos},
 \code{pesos_80mas}, \code{severidad}, \code{severity_split} (\code{particion_severidad}), \code{ghdx_store} (\code{evidencia}), \code{registry}
-(\code{registro}) y \code{catalogos}. \code{print()} la muestra con los nombres de los argumentos.
+(\code{registro}) y \code{catalogos}; y \code{prior_mortalidad_exceso}, que no existía en esa versión. \code{print()} la
+muestra con los nombres de los argumentos.
 }
 \description{
 Reúne las rutas de los archivos que lee \code{\link[=dl_insumos]{dl_insumos()}} en el formato completo: el ancla, las covariables, la

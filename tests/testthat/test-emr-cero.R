@@ -23,7 +23,7 @@ test_that("formato completo: emr_prior.tipo cero exige procedencia y rechaza lo 
   expect_error(completa(c(cero(), list(sensibilidad = list(fraccion_aguda = c(0, 0.3))))),
                "config[.]emr_prior[.]tipo: cero .* no admite sensibilidad[.]fraccion_aguda")
   expect_error(completa(list(emr_prior = list(tipo = "nula"))),
-               "config[.]emr_prior[.]tipo: valores admitidos: informativo_edad, plano_cota o cero")
+               "config[.]emr_prior[.]tipo: valores admitidos: informativo_edad, plano_cota, cero o tabla")
 })
 
 test_that("formato simple: `prior: cero` se traduce a emr_prior.tipo cero, sin techo que tomar por defecto", {
@@ -36,7 +36,7 @@ test_that("formato simple: `prior: cero` se traduce a emr_prior.tipo cero, sin t
   expect_true("mortalidad_exceso.techo" %in%
                 names(.dl_config_simple(base, "config.yaml", 501L, ctx)$origen$por_defecto))
   expect_match(.dl_problemas_config_simple(c(base, list(mortalidad_exceso = list(prior = "nulo")))),
-               "^mortalidad_exceso.prior: valor\\(es\\) no admitido\\(s\\): nulo; los admitidos son: desde_ancla, plano, cero$")
+               "^mortalidad_exceso.prior: valor\\(es\\) no admitido\\(s\\): nulo; los admitidos son: desde_ancla, plano, cero, tabla$")
 })
 
 test_that("formato simple: `prior: cero` con techo, fracción aguda o mortalidad en el ajuste es un error claro", {
@@ -92,7 +92,7 @@ test_that("la plantilla de dl_nuevo_proyecto() y la ayuda de la configuración n
   expect_length(i, 1L)
   descripcion <- gsub(" #\\s+", " ", paste(lineas[i:(i + 4L)], collapse = " "))    # la descripción ocupa varias líneas
   expect_match(descripcion, "cero \\(la EMR queda fija en 0 y no se estima")
-  expect_identical(names(.dl_vocabulario_simple("mortalidad_exceso.prior")), c("desde_ancla", "plano", "cero"))
+  expect_identical(names(.dl_vocabulario_simple("mortalidad_exceso.prior")), c("desde_ancla", "plano", "cero", "tabla"))
 })
 
 # ---- Tarea 1.2: log-posterior y ajuste, en R y en C++ ----

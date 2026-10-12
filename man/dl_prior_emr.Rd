@@ -7,12 +7,12 @@
 dl_prior_emr(insumos)
 }
 \arguments{
-\item{insumos}{Insumos de \code{\link[=dl_insumos]{dl_insumos()}} (con el ancla de mortalidad).}
+\item{insumos}{Insumos de \code{\link[=dl_insumos]{dl_insumos()}} (con el ancla de mortalidad o, con el prior por tabla, con esa tabla).}
 }
 \value{
 Tabla (data.table) con una fila por sexo y banda del ancla: \code{sex_id}, \code{age_group_id}, \code{age_start},
 \code{age_end} (la banda es \verb{[age_start, age_end)}), \code{mu_log} y \code{sd_log} (media y desviación estándar de log f, con f
-por persona-año).
+por persona-año). Con el prior por tabla, una fila por sexo y tramo de edad de la tabla, sin \code{age_group_id}.
 }
 \description{
 Construye el prior informativo de la mortalidad en exceso f por sexo y banda de edad a partir del ancla. Como las
@@ -33,6 +33,13 @@ desviación estándar) y log f queda truncado bajo el techo de la mortalidad en 
 sin él, 3 veces el máximo de csmr / p del ancla). Con \code{mortalidad_exceso.prior: plano} el prior de log f es plano
 bajo el techo y esta tabla no se usa. Con \code{mortalidad_exceso.prior: cero} la mortalidad en exceso está fija en 0,
 no hay prior y esta función se detiene con un error.
+
+Con \code{mortalidad_exceso.prior: tabla} el prior no sale del ancla: es el de la tabla \code{prior_mortalidad_exceso} del
+proyecto (ver \link{dl_tablas}), y esta función la devuelve tal como entra al ajuste. Cada nudo toma el tramo de edad
+que lo contiene (todos los nudos deben caer en un tramo) y log f queda truncado entre el piso (la milésima parte
+del techo, como con el prior plano) y el techo: \code{mu_log} es el centro de la Normal antes de truncarla, y
+\code{\link[=dl_insumos]{dl_insumos()}} avisa si el de algún nudo queda fuera de ese rango. Sirve para dar al modelo una mortalidad en
+exceso conocida por otra vía: un estudio de seguimiento, otra corrida o un año vecino.
 }
 \examples{
 b <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))
@@ -40,6 +47,17 @@ prior <- dl_prior_emr(b)
 head(prior)
 # la mortalidad en exceso central del prior, por persona-año
 head(exp(prior$mu_log))
+
+# El mismo prior dado por tabla (mortalidad_exceso.prior: tabla), como si viniera de otra fuente. El prior del
+# ancla empieza en su primera banda (40) y el primer nudo es 30: el primer tramo se extiende hasta él.
+tabla <- data.frame(sexo = ifelse(prior$sex_id == 1, "hombres", "mujeres"), edad_inicio = prior$age_start,
+                    edad_fin = prior$age_end, mu_log = prior$mu_log, sd_log = prior$sd_log)
+tabla$edad_inicio[tabla$edad_inicio == 40] <- 30
+config <- yaml::read_yaml(file.path(dl_ejemplo(), "config", "9100.yaml"))
+config$mortalidad_exceso$prior <- "tabla"
+b_tabla <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100, configuracion = config,
+                                  prior_mortalidad_exceso = tabla))
+head(dl_prior_emr(b_tabla))
 }
 \seealso{
 \code{\link[=dl_ajustar]{dl_ajustar()}}, \code{\link[=dl_configuracion]{dl_configuracion()}} (las claves \verb{mortalidad_exceso.*}).

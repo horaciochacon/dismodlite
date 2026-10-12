@@ -1,7 +1,7 @@
 ---
 title: "Preparar tus datos"
 description: >
-  Las tablas que necesita un proyecto, para cualquier país y causa: el eje común y la regla de omisión, las once
+  Las tablas que necesita un proyecto, para cualquier país y causa: el eje común y la regla de omisión, las doce
   tablas con sus columnas y sus fuentes, la carpeta y la puerta de R, cómo revisarlas, las bandas de edad del ancla,
   qué bajar de GBD y cómo se organiza la carpeta de un proyecto de modelación.
 vignette: >
@@ -23,7 +23,7 @@ Los insumos de dismodlite son unas pocas tablas, el **contrato de insumos**, y u
 explica:
 
 1. el **eje**: las seis columnas que comparten todas las tablas, y la regla para omitir las que no varían;
-2. las **once tablas**: para qué sirve cada una, qué columnas exige y de dónde suele salir;
+2. las **doce tablas**: para qué sirve cada una, qué columnas exige y de dónde suele salir;
 3. las dos formas de pasarlas al paquete: **la carpeta** del proyecto y **la puerta de R** (`data.frame`);
 4. cómo revisar una tabla con `dl_tabla()` y el proyecto entero con `dl_revisar_proyecto()`;
 5. las **bandas de edad** del ancla y de la población, y cuándo hace falta `poblacion_detalle`;
@@ -93,7 +93,7 @@ Las tablas son CSV en UTF-8, separados por comas y con punto decimal (en Excel, 
 Los nombres de columna no distinguen mayúsculas y algunos sinónimos fijos se aceptan (`year` por `anio`, `tipo` por
 `medida`...); las columnas de más se ignoran.
 
-## 2. Las once tablas
+## 2. Las doce tablas
 
 | Tabla | ¿Hace falta? | Qué aporta | De dónde suele salir |
 |---|---|---|---|
@@ -108,6 +108,7 @@ Los nombres de columna no distinguen mayúsculas y algunos sinónimos fijos se a
 | `poblacion_detalle` | si el ancla tiene bandas más finas que la población (80 y más, menores de 5) | la población nacional con más detalle de edad | GBD o la ONU |
 | `proxies_crudos` | opcional, en lugar de los proxies de `covariables` | un indicador de encuesta por ubicación subnacional y edición, que el paquete calibra | encuestas de hogares y similares |
 | `razones` | con `subnacional.modo: razon` | la razón entre la tasa de cada ubicación subnacional y la nacional, con su error | una encuesta, la población en riesgo, casos notificados |
+| `prior_mortalidad_exceso` | con `mortalidad_exceso.prior: tabla` | el prior de la mortalidad en exceso por sexo y tramo de edad: centro y desviación estándar de su logaritmo | un estudio de seguimiento, otra corrida, un año vecino |
 
 Con las tres obligatorias (y la configuración) ya se estima la causa en el país y, si hay ubicaciones subnacionales,
 en cada una con las tasas nacionales. Cada tabla, con sus columnas (la definición es la misma que usa el validador;
@@ -431,6 +432,55 @@ columnas("razones")
 dl_plantilla("razones")
 ```
 
+### `prior_mortalidad_exceso` {#prior-mortalidad-exceso}
+
+Para dar al modelo el prior de la mortalidad en exceso (`mortalidad_exceso: {prior: tabla}` en la configuración)
+cuando se conoce por otra vía: un estudio de seguimiento, otra corrida de la misma causa o los años vecinos de un año
+sin muertes fiables. Una fila por sexo y tramo de edad `[edad_inicio, edad_fin)`, con el centro (`mu_log`) y la
+desviación estándar (`sd_log`, mayor que 0) del logaritmo de la mortalidad en exceso, por persona-año. Cada nudo de
+la configuración toma el prior del tramo que lo contiene: todos los nudos deben caer en un tramo (el prior no se
+extrapola a otras edades) y los tramos de un sexo no se solapan; lo más simple es un tramo por nudo, del nudo al
+siguiente, y también vale un solo tramo para todas las edades. `sexo: ambos`, o la tabla sin la columna `sexo`, vale
+para los dos sexos. Sin la columna `anio` la tabla vale para todos los años; con ella, se usan las filas del año que
+se estima.
+
+El logaritmo de la mortalidad en exceso de cada nudo sigue una Normal con ese centro y esa desviación, truncada
+entre el techo (`mortalidad_exceso.techo`; sin la clave, el que sale del ancla) y su milésima parte, el mismo rango
+del prior plano. `mu_log` es el centro de la Normal antes de truncarla. Si el centro de algún nudo queda fuera de ese
+rango, la mortalidad en exceso quedaría junto al piso o al techo y no en el centro pedido: la revisión del proyecto
+y `dl_insumos()` lo avisan, con los nudos, el piso y el techo (lo habitual es un error de unidades, o un techo que
+hay que subir o bajar). Una `sd_log` muy pequeña deja la mortalidad en exceso fija en el centro. La tabla solo se
+usa con ese prior; con él, `mortalidad_exceso.fraccion_aguda` solo cambia el techo que sale del ancla y
+`sensibilidad.fraccion_aguda` no se admite (el prior no cambia con ella).
+
+```{r}
+#| label: col-prior-mortalidad-exceso
+#| echo: false
+columnas("prior_mortalidad_exceso")
+```
+
+```{r}
+#| label: ej-prior-mortalidad-exceso
+dl_plantilla("prior_mortalidad_exceso")
+```
+
+Un ejemplo con la causa 9100: el prior que el paquete saca del ancla (`dl_prior_emr()`), pasado como tabla, como si
+viniera de otra corrida. Ese prior empieza en la primera banda del ancla (40 años) y el primer nudo de la causa es
+30: el primer tramo se extiende hasta él, porque cada nudo necesita su tramo.
+
+```{r}
+#| label: ej-prior-tabla
+desde_ancla <- dl_prior_emr(dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100)))
+tabla <- data.frame(sexo = ifelse(desde_ancla$sex_id == 1, "hombres", "mujeres"),
+                    edad_inicio = desde_ancla$age_start, edad_fin = desde_ancla$age_end,
+                    mu_log = desde_ancla$mu_log, sd_log = desde_ancla$sd_log, fuente = "otra corrida")
+tabla$edad_inicio[tabla$edad_inicio == 40] <- 30
+config <- yaml::read_yaml(file.path(dl_ejemplo(), "config", "9100.yaml"))
+config$mortalidad_exceso$prior <- "tabla"
+p <- dl_proyecto(dl_ejemplo(), causa = 9100, configuracion = config, prior_mortalidad_exceso = tabla)
+head(dl_prior_emr(dl_insumos(p)), 3)
+```
+
 `dl_plantilla()` da la plantilla de cualquier tabla: sus columnas y una fila de ejemplo. Con `archivo`, la escribe
 como CSV.
 
@@ -455,6 +505,7 @@ mi_proyecto/
   poblacion_detalle.csv
   proxies_crudos.csv     un indicador de encuesta por ubicación y edición, que se calibra al leer
   razones.csv            la razón de cada ubicación subnacional (con subnacional.modo: razon)
+  prior_mortalidad_exceso.csv   el prior de la mortalidad en exceso (con mortalidad_exceso.prior: tabla)
   particion/<corrida>/   opcional: la partición de severidad (severidad.particion)
 ```
 
@@ -531,7 +582,8 @@ knitr::kable(tabla, col.names = c("Clave", "Qué es", "Por defecto"))
 Cuándo cambiar las que no son obligatorias, en breve: `nudos`, si la incidencia cambia rápido en algún tramo de
 edad; `mortalidad_exceso.prior: plano`, si el ancla no trae muertes fiables, y `mortalidad_exceso.techo`, con un
 valor conocido para la causa; `mortalidad_exceso.prior: cero`, si la causa no tiene muertes (la mortalidad en exceso
-queda fija en 0 y no se estima); `ancla.correlacion_edad`, rara vez (la sensibilidad la explora); `subnacional.kappa`,
+queda fija en 0 y no se estima); `mortalidad_exceso.prior: tabla`, si la mortalidad en exceso se conoce por otra
+vía (la tabla `prior_mortalidad_exceso`); `ancla.correlacion_edad`, rara vez (la sensibilidad la explora); `subnacional.kappa`,
 para atenuar diferencias entre ubicaciones poco creíbles; `subnacional.modo: razon`, si las diferencias entre
 ubicaciones salen de una razón ya calculada (la tabla `razones`) y no de covariables; `exportar: {incidencia: no}`,
 si la incidencia de la causa no se debe reportar (la corrida la escribe igual y las tablas consolidadas la omiten;

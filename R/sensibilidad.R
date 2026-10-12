@@ -89,6 +89,11 @@ dl_sensibilidad <- function(insumos, grilla = insumos$cfg$sensibilidad, semilla,
   if (.dl_emr_es_cero(insumos$cfg) && length(grilla$fraccion_aguda))
     .dl_stop(paste0("emr_prior.tipo: cero fija la mortalidad en exceso en 0 y no admite `fraccion_aguda` en la ",
                     "grilla (no hay prior de mortalidad en exceso que cambie): quita el eje o usa otro prior"))
+  # Con el prior dado por tabla la fracción aguda no cambia el prior (no sale del csmr del ancla): mismo error que
+  # el de la configuración.
+  if (.dl_emr_es_dado(insumos$cfg) && length(grilla$fraccion_aguda))
+    .dl_stop(paste0("emr_prior.tipo: tabla no toma el prior de la mortalidad del ancla y no admite `fraccion_aguda` ",
+                    "en la grilla (el prior no cambia con ella): quita el eje o usa otro prior"))
   # Motor rcpp: el núcleo C++ se compila antes de repartir las combinaciones entre procesos.
   if (opciones$engine == "rcpp") .dl_rcpp()
 

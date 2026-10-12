@@ -11,7 +11,8 @@
   ancla_incidencia = "std_incidence", covariables = "ghdx_cov", covariables_std = "cov_std",
   extraccion = "extraction", proxies = "cov_proxy", poblacion = "poblacion", datos = "datos",
   pesos_80mas = "pesos_80mas", severidad = "severidad", particion_severidad = "severity_split",
-  evidencia = "ghdx_store", registro = "registry", catalogos = "catalogos")
+  evidencia = "ghdx_store", registro = "registry", catalogos = "catalogos",
+  prior_mortalidad_exceso = "prior_mortalidad_exceso")
 
 # Rutas por defecto: las que se derivan de las variables de entorno de respaldo; el resto, NULL. Con DATA_ROOT, las
 # estimaciones GBD se buscan en DATA_ROOT/std/gbd/2023/cause/<medida>, las de población en DATA_ROOT/std/inei y la
@@ -37,7 +38,8 @@
     severity_split = NULL,                    # carpeta de la corrida de partición de severidad de la causa
     ghdx_store  = if (nzchar(droot)) file.path(droot, "ghdx") else NULL,
     registry    = NULL,                       # carpeta `registro` (master_gbd.csv, etiquetas_es.csv, ...)
-    catalogos   = if (nzchar(Sys.getenv("CATALOGOS_DIR"))) Sys.getenv("CATALOGOS_DIR") else NULL))
+    catalogos   = if (nzchar(Sys.getenv("CATALOGOS_DIR"))) Sys.getenv("CATALOGOS_DIR") else NULL,
+    prior_mortalidad_exceso = NULL))          # CSV con el prior de la mortalidad en exceso (emr_prior.tipo tabla)
 }
 
 # Traduce los nombres de `cambios` (argumentos de dl_rutas() o claves internas) a claves internas. Cada elemento
@@ -124,6 +126,9 @@
 #' @param registro Carpeta de tablas de referencia (`master_gbd.csv`, `etiquetas_es.csv`, `sequela_rei.csv`, ...);
 #'   no es el registro de corridas.
 #' @param catalogos Carpeta de catálogos (causas, ubicaciones, edades, estados de salud, secuelas).
+#' @param prior_mortalidad_exceso CSV con el prior de la mortalidad en exceso por sexo y tramo de edad (`sex_id`,
+#'   `age_start`, `age_end`, `mu_log`, `sd_log`); solo con `emr_prior.tipo: tabla`. Lleva una fila por tramo de edad
+#'   y por cada `sex_id` del modelo (1, hombres; 2, mujeres): las de otro `sex_id` no se usan.
 #' @param cambios Lista con nombres que reemplaza piezas después de los argumentos. Acepta los nombres de los
 #'   argumentos de esta función y las claves internas de la versión 0.2.2 (`std_prior`, `ghdx_cov`, ...); un
 #'   elemento `NULL` quita la pieza.
@@ -131,7 +136,8 @@
 #'   versión 0.2.2: `std_prior`, `std_csmr`, `std_yld` y `std_incidence` (el ancla), `ghdx_cov` (`covariables`),
 #'   `cov_std` (`covariables_std`), `extraction` (`extraccion`), `cov_proxy` (`proxies`), `poblacion`, `datos`,
 #'   `pesos_80mas`, `severidad`, `severity_split` (`particion_severidad`), `ghdx_store` (`evidencia`), `registry`
-#'   (`registro`) y `catalogos`. `print()` la muestra con los nombres de los argumentos.
+#'   (`registro`) y `catalogos`; y `prior_mortalidad_exceso`, que no existía en esa versión. `print()` la
+#'   muestra con los nombres de los argumentos.
 #' @seealso [dl_proyecto()] (las rutas de un proyecto, en cualquier formato), [dl_rutas_ejemplo()] (las del
 #'   ejemplo) y [dl_insumos()] (el paso siguiente).
 #' @family configuración
@@ -159,7 +165,7 @@
 dl_rutas <- function(ancla_prevalencia = NULL, ancla_mortalidad = NULL, ancla_avd = NULL, ancla_incidencia = NULL,
                      covariables = NULL, covariables_std = NULL, extraccion = NULL, proxies = NULL, poblacion = NULL,
                      datos = NULL, pesos_80mas = NULL, severidad = NULL, particion_severidad = NULL, evidencia = NULL,
-                     registro = NULL, catalogos = NULL, cambios = list()) {
+                     registro = NULL, catalogos = NULL, prior_mortalidad_exceso = NULL, cambios = list()) {
   base <- .dl_rutas_base()
   dados <- mget(names(.DL_CLAVES_RUTAS), envir = environment())
   .dl_exigir_rutas_texto(dados)

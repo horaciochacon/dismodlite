@@ -9,7 +9,18 @@ test_that("cada tabla del contrato tiene su fila y su sección en la guía «Pre
     expect_true(any(startsWith(guia, sprintf("| `%s` |", t))), info = t)
     expect_true(any(startsWith(guia, sprintf("### `%s`", t))), info = t)
   }
-  expect_true(any(grepl("las **once tablas**", guia, fixed = TRUE)))
+  expect_true(any(grepl("las **doce tablas**", guia, fixed = TRUE)))
+})
+
+test_that("el prior de la mortalidad en exceso por tabla está en las guías y las novedades", {
+  r <- raiz_fuente(); skip_if(is.null(r), "solo desde el código fuente")
+  leer <- function(...) paste(readLines(file.path(r, ...), encoding = "UTF-8"), collapse = "\n")
+  datos <- leer("vignettes", "preparar-datos.qmd")
+  for (texto in c("### `prior_mortalidad_exceso` {#prior-mortalidad-exceso}", "#| label: ej-prior-tabla",
+                  "`mortalidad_exceso.prior: tabla`, si la mortalidad en exceso se conoce por otra"))
+    expect_match(datos, texto, fixed = TRUE, info = texto)
+  expect_match(leer("vignettes", "el-modelo.qmd"), "`mortalidad_exceso.prior: tabla`", fixed = TRUE)
+  expect_match(leer("NEWS.md"), "## Prior de la mortalidad en exceso dado por tabla", fixed = TRUE)
 })
 
 test_that("el reparto por razón está en las guías, las novedades y el índice de la referencia", {

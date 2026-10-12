@@ -9,7 +9,8 @@
 #   de paso 1 año con la cantidad en la edad exacta a, no a mitad del año de edad (ver la cabecera de R/bandas.R).
 #
 #   L_suavidad = sum_k log N(D2_k; 0, sigma)      D2_k = segunda diferencia de log i en los nudos
-#   L_emr      = sum_k log N(log f_k; mu_log_k, sd_log_k)   prior de EMR por nudo (R/emr.R); 0 con el prior plano.
+#   L_emr      = sum_k log N(log f_k; mu_log_k, sd_log_k)   prior de EMR por nudo (R/emr.R: del ancla o dado por
+#                                                         tabla); 0 con el prior plano.
 #                Truncamiento: si algún f_k cae fuera de [cota_min, cota_max], log posterior = -Inf.
 #   L_ancla    = log MVN(z; 0, Sigma / lambda)     power prior sobre las bandas del ancla:
 #                z_b = log q_b - log val_b,  Sigma = diag(sigma_log) R diag(sigma_log),  R_bc = rho^|b - c|
@@ -100,12 +101,14 @@
 .dl_chol_ar1 <- function(n, rho) chol(rho^abs(outer(seq_len(n), seq_len(n), "-")))
 
 # Prior de EMR en los nudos (R/emr.R): fija en cero (emr_prior.tipo cero, sin log f en theta), plano dentro del techo
-# (plano_cota) o informativo, log(csmr / prevalencia) del ancla por banda. list(mu_log, sd_log,
+# (plano_cota), dado por tabla (tabla: mu_log y sd_log del tramo de edad de cada nudo, con el soporte del plano) o
+# informativo, log(csmr / prevalencia) del ancla por banda. list(mu_log, sd_log,
 # cota = c(mínimo, máximo), plano), y cero = TRUE con la EMR fija en cero.
 .dl_ctx_emr <- function(b, sexo, nudos) {
   cfg <- b$cfg
   if (.dl_emr_es_cero(cfg)) .dl_emr_cero()
   else if (identical(cfg$emr_prior$tipo, "plano_cota")) .dl_emr_plano(nudos, cfg$emr_prior$cota)
+  else if (.dl_emr_es_dado(cfg)) .dl_emr_dado_en_nudos(b$prior_emr_dado[sex_id == sexo], nudos, cfg$emr_prior$cota)
   else .dl_emr_en_nudos(.dl_prior_emr_tabla(b$prior_gbd, cfg)[sex_id == sexo], nudos, cfg$emr_prior$cota)
 }
 
@@ -314,12 +317,14 @@
 .dl_log_post <- function(theta, ctx) unname(.dl_lp_componentes(theta, ctx)["total"])
 
 # Punto inicial de las cadenas: log i = .DL_LOG_I_INICIAL en todos los nudos y log f = la media del prior de EMR,
-# pero al menos .DL_MARGEN_LOG_F_INICIAL bajo log(techo). Nombres logi_<nudo> y logf_<nudo>. Con la EMR fija en cero,
-# solo log i (logi_<nudo>).
+# pero al menos .DL_MARGEN_LOG_F_INICIAL bajo log(techo). Con el prior dado por tabla (ctx$emr$dado), además al menos
+# .DL_MARGEN_LOG_F_INICIAL sobre log(piso): el centro de la tabla puede quedar fuera del soporte [piso, techo] y el
+# punto inicial debe caer dentro. Nombres logi_<nudo> y logf_<nudo>. Con la EMR fija en cero, solo log i (logi_<nudo>).
 .dl_theta_inicial <- function(ctx) {
   if (.dl_ctx_emr_cero(ctx))
     return(stats::setNames(rep(.DL_LOG_I_INICIAL, length(ctx$nudos)), paste0("logi_", ctx$nudos)))
   log_f0 <- pmin(ctx$emr$mu_log, log(ctx$emr$cota[2]) - .DL_MARGEN_LOG_F_INICIAL)
+  if (isTRUE(ctx$emr$dado)) log_f0 <- pmax(log_f0, log(ctx$emr$cota[1]) + .DL_MARGEN_LOG_F_INICIAL)
   theta0 <- c(rep(.DL_LOG_I_INICIAL, length(ctx$nudos)), log_f0)
   names(theta0) <- c(paste0("logi_", ctx$nudos), paste0("logf_", ctx$nudos))
   theta0

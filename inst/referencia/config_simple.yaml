@@ -144,13 +144,17 @@ claves:
     tipo: texto
     destino: emr_prior.tipo
     valor: desde_ancla
-    vocabulario: {desde_ancla: informativo_edad, plano: plano_cota, cero: cero}
+    vocabulario: {desde_ancla: informativo_edad, plano: plano_cota, cero: cero, tabla: tabla}
     ejemplo: plano
     descripcion: >-
       Prior de la mortalidad en exceso (EMR): desde_ancla (por edad, de las muertes y la prevalencia del ancla),
-      plano (sin prior por edad, solo el techo) o cero (la EMR queda fija en 0 y no se estima: para una causa sin
+      plano (sin prior por edad, solo el techo), cero (la EMR queda fija en 0 y no se estima: para una causa sin
       muertes; no usa la mortalidad del ancla ni admite mortalidad_exceso.techo, mortalidad_exceso.fraccion_aguda,
-      sensibilidad.fraccion_aguda ni mortalidad en datos_en_ajuste).
+      sensibilidad.fraccion_aguda ni mortalidad en datos_en_ajuste) o tabla (por sexo y edad, de la tabla
+      prior_mortalidad_exceso del proyecto: el centro y la desviación estándar de log EMR de cada tramo de edad, entre
+      el techo y su milésima parte; no usa la mortalidad del ancla, salvo para el techo si no se da
+      mortalidad_exceso.techo: mortalidad_exceso.fraccion_aguda solo cambia ese techo, y no admite
+      sensibilidad.fraccion_aguda).
 
   - clave: mortalidad_exceso.techo
     tipo: número

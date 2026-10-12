@@ -42,7 +42,7 @@ valor dado o vacías; \code{nombre}, si se da, también. Las demás van comentad
 tienen un valor fijo, con un ejemplo. Para usar otro valor se quita el \verb{#} de la línea (y el de su
 bloque, como \verb{ancla:} para \code{ancla.peso}).
 \item \code{ubicaciones.csv}, \code{poblacion.csv}, \code{betas.csv}, \code{datos.csv}, \code{severidad.csv}, \code{poblacion_detalle.csv},
-\code{proxies_crudos.csv} y \code{razones.csv}, con solo el encabezado (las columnas de \code{\link[=dl_plantilla]{dl_plantilla()}}). Una tabla con
+\code{proxies_crudos.csv}, \code{razones.csv} y \code{prior_mortalidad_exceso.csv}, con solo el encabezado (las columnas de \code{\link[=dl_plantilla]{dl_plantilla()}}). Una tabla con
 solo el encabezado es como si no estuviera: las opcionales que no se llenan no se usan.
 \item \verb{ancla/}, \verb{covariables/} y \verb{fuentes_gbd/}, vacías: ahí van las descargas de GBD Results y del GHDx, sin editar
 (o las tablas del contrato).

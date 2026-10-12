@@ -8,7 +8,7 @@
 
 # Las tablas del contrato, en el orden en que se documentan.
 .DL_TABLAS <- c("ubicaciones", "poblacion", "ancla", "covariables", "betas", "datos", "severidad", "fuentes_gbd",
-                "poblacion_detalle", "proxies_crudos", "razones")
+                "poblacion_detalle", "proxies_crudos", "razones", "prior_mortalidad_exceso")
 
 # El eje: las dimensiones que comparten las tablas. Una columna del eje ausente en una tabla significa que la tabla
 # no varía en esa dimensión (sin causa: todas; sin ubicacion: la nacional; sin anio: todos; sin sexo: ambos; sin
@@ -66,7 +66,8 @@
                          fuentes_gbd = c("componente", "nid"), proxies_crudos = "covariable")
 
 # Tablas en las que las bandas de edad de un mismo grupo no pueden solaparse.
-.DL_TABLAS_SIN_SOLAPE <- c("poblacion", "ancla", "covariables", "severidad", "poblacion_detalle", "proxies_crudos")
+.DL_TABLAS_SIN_SOLAPE <- c("poblacion", "ancla", "covariables", "severidad", "poblacion_detalle", "proxies_crudos",
+                           "prior_mortalidad_exceso")
 
 # Filas para un mensaje: «fila(s) 2, 5, 7» (como mucho 5). De un archivo, la línea del CSV (el encabezado es la
 # 1: la fila i es la línea i + 1); de un data.frame, su número de fila, «fila(s) 1, 4 del data.frame». `df` dice si
@@ -309,7 +310,9 @@ dl_plantilla <- function(tabla, archivo = NULL) {
                         indicador = c("indicador de ejemplo", "indicador de ejemplo"), valor = c(61.2, 62.5),
                         error_estandar = c(1.4, 1.5)),
   razones = list(causa = 1234L, ubicacion = "R01", anio = 2023L, razon = 1.15, error_log = 0.08,
-                 fuente = "indicador de ejemplo"))
+                 fuente = "indicador de ejemplo"),
+  prior_mortalidad_exceso = list(causa = 1234L, anio = 2023L, sexo = "mujeres", edad_inicio = 40, edad_fin = 50,
+                                 mu_log = -3.2, sd_log = 0.4, fuente = "estudio de ejemplo"))
 
 #' El contrato de insumos
 #'
@@ -466,9 +469,11 @@ NULL
                 .dl_regla_poblacion(tablas, cfg), .dl_regla_ancla(tablas, cfg, n_causas),
                 .dl_regla_bandas_ancla(tablas, cfg), .dl_regla_betas(tablas, cfg),
                 .dl_regla_proxies_incompletos(tablas, cfg), .dl_regla_intervalo_nacional(tablas, cfg),
-                .dl_regla_severidad(tablas, cfg), .dl_regla_razones(tablas, cfg)),
+                .dl_regla_severidad(tablas, cfg), .dl_regla_razones(tablas, cfg),
+                .dl_regla_prior_mortalidad_exceso(tablas, cfg)),
   avisos = c(.dl_regla_covariables_sin_beta(tablas, cfg), .dl_regla_ubicaciones_sin_proxy(tablas, cfg),
-             .dl_regla_unidades_datos(tablas, cfg), .dl_regla_razones_sin_uso(tablas, cfg)))
+             .dl_regla_unidades_datos(tablas, cfg), .dl_regla_razones_sin_uso(tablas, cfg),
+             .dl_regla_prior_mortalidad_exceso_sin_uso(tablas, cfg)))
 
 # Los sexos del modelo (cfg$sexos) en palabras del contrato: «hombres», «mujeres».
 .dl_sexos_modelo <- function(cfg) unname(.DL_SEXOS_CONTRATO[as.character(unlist(cfg$sexos))])
@@ -762,6 +767,61 @@ NULL
   if (is.null(tablas$razones) || identical(cfg$origen$subnacional, "razon")) return(character())
   sprintf(paste0("razones: la tabla no se usa: subnacional.modo es %s; para repartir por raz\u00f3n, ",
                  "subnacional: {modo: razon}"), cfg$origen$subnacional)
+}
+
+# Las filas de la tabla prior_mortalidad_exceso de la causa de `cfg` en el año que se estima: sin la columna causa,
+# todas las causas; sin la columna anio (o con el año vacío), todos los años.
+.dl_prior_mortalidad_exceso_del_anio <- function(prior, cfg) {
+  d <- .dl_filas_de_causa(prior, cfg$cause_id)
+  if (!"anio" %in% names(d)) return(d)
+  k <- is.na(d$anio) | d$anio == .dl_anio_ajuste(cfg)
+  d[k]
+}
+
+# Los tramos de la tabla prior_mortalidad_exceso `d` (ya de la causa y el año) que valen para el sexo `sexo` del
+# modelo («hombres» o «mujeres»): los de ese sexo y los de «ambos» (sin la columna sexo, todos).
+.dl_prior_mortalidad_exceso_del_sexo <- function(d, sexo) {
+  s <- .dl_col(d, "sexo", "ambos")            # sin la columna o vacío: ambos (la regla del eje)
+  k <- is.na(s) | s %in% c(sexo, "ambos")     # fuera de d[]: dentro, `sexo` sería la columna
+  d[k]
+}
+
+# prior_mortalidad_exceso (solo con mortalidad_exceso.prior: tabla): en el año que se estima y en cada sexo del
+# modelo, los tramos de edad no se solapan y cada nudo cae en uno (un nudo sin tramo no tendría prior: no se
+# extrapola); mu_log es finito y sd_log es finito y mayor que 0. Sin ese prior la tabla no se usa y nada de esto se
+# comprueba; que la tabla esté lo exige la configuración (.dl_traducir_config_simple).
+.dl_regla_prior_mortalidad_exceso <- function(tablas, cfg) {
+  if (!identical(cfg$emr_prior$tipo, "tabla") || is.null(tablas$prior_mortalidad_exceso)) return(character())
+  anio <- .dl_anio_ajuste(cfg)
+  d <- .dl_prior_mortalidad_exceso_del_anio(tablas$prior_mortalidad_exceso, cfg)
+  nudos <- as.numeric(unlist(cfg$nudos_incidencia))
+  unlist(lapply(.dl_sexos_modelo(cfg), function(sexo) {
+    t <- .dl_prior_mortalidad_exceso_del_sexo(d, sexo)
+    if (!nrow(t))
+      return(sprintf(paste0("prior_mortalidad_exceso: no trae el prior de la causa %d en %d para %s (el a\u00f1o que ",
+                            "se estima): un tramo de edad por cada nudo, con mu_log y sd_log"), cfg$cause_id, anio, sexo))
+    sin_tramo <- nudos[is.na(.dl_banda_de(nudos, list(age_start = sort(t$edad_inicio),
+                                                      age_end = t$edad_fin[order(t$edad_inicio)])))]
+    malos <- !is.finite(t$mu_log) | !is.finite(t$sd_log) | t$sd_log <= 0
+    c(if (.dl_hay_solape(t$edad_inicio, t$edad_fin))
+        sprintf(paste0("prior_mortalidad_exceso: los tramos de edad de %s en %d se solapan (los de \u00abambos\u00bb ",
+                       "cuentan en los dos sexos): cada nudo toma el prior de un solo tramo"), sexo, anio),
+      if (length(sin_tramo))
+        sprintf(paste0("prior_mortalidad_exceso: el/los nudo(s) %s no cae(n) en ning\u00fan tramo de edad de %s en %d: ",
+                       "cada nudo de la configuraci\u00f3n (nudos) necesita su tramo [edad_inicio, edad_fin); el prior ",
+                       "no se extrapola a otras edades"), .dl_lista(sin_tramo), sexo, anio),
+      if (any(malos))
+        sprintf(paste0("prior_mortalidad_exceso: mu_log debe ser un n\u00famero finito y sd_log un n\u00famero finito ",
+                       "mayor que 0 (%s en %d, tramo(s) que empiezan en %s)"), sexo, anio,
+                .dl_lista(t$edad_inicio[malos])))
+  }))
+}
+
+# Aviso: la tabla prior_mortalidad_exceso solo se usa con mortalidad_exceso.prior: tabla.
+.dl_regla_prior_mortalidad_exceso_sin_uso <- function(tablas, cfg) {
+  if (is.null(tablas$prior_mortalidad_exceso) || identical(cfg$emr_prior$tipo, "tabla")) return(character())
+  paste0("prior_mortalidad_exceso: la tabla no se usa: para tomar de ella el prior de la mortalidad en exceso, ",
+         "mortalidad_exceso: {prior: tabla}")
 }
 
 # proxies_crudos y covariables: las filas subnacionales de una covariable vienen de una sola de las dos tablas (las de
