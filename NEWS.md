@@ -1,4 +1,4 @@
-# dismodlite (en desarrollo)
+# dismodlite 2.4.0
 
 ## Prior de la mortalidad en exceso dado por tabla
 
