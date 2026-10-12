@@ -48,10 +48,12 @@ head(prior)
 # la mortalidad en exceso central del prior, por persona-año
 head(exp(prior$mu_log))
 
-# El mismo prior dado por tabla (mortalidad_exceso.prior: tabla), como si viniera de otra fuente. El prior del
-# ancla empieza en su primera banda (40) y el primer nudo es 30: el primer tramo se extiende hasta él.
-tabla <- data.frame(sexo = ifelse(prior$sex_id == 1, "hombres", "mujeres"), edad_inicio = prior$age_start,
-                    edad_fin = prior$age_end, mu_log = prior$mu_log, sd_log = prior$sd_log)
+# El mismo prior dado por tabla (mortalidad_exceso.prior: tabla), como si viniera de otra fuente.
+# El prior del ancla empieza en su primera banda (40) y el primer nudo es 30: el primer tramo se
+# extiende hasta él.
+tabla <- data.frame(sexo = ifelse(prior$sex_id == 1, "hombres", "mujeres"),
+                    edad_inicio = prior$age_start, edad_fin = prior$age_end,
+                    mu_log = prior$mu_log, sd_log = prior$sd_log)
 tabla$edad_inicio[tabla$edad_inicio == 40] <- 30
 config <- yaml::read_yaml(file.path(dl_ejemplo(), "config", "9100.yaml"))
 config$mortalidad_exceso$prior <- "tabla"
