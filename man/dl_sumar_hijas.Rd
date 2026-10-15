@@ -16,7 +16,7 @@ dl_sumar_hijas(
   rutas = dl_rutas(),
   omitidas = NULL,
   guardar_simulaciones = TRUE,
-  cifras_simulaciones = NULL
+  cifras_simulaciones = 6
 )
 }
 \arguments{
@@ -48,8 +48,9 @@ de la causa padre en la parte de cada hija omitida, y el manifiesto lo declara c
 \item{guardar_simulaciones}{\code{TRUE} guarda las simulaciones por celda en \verb{draws/}; \code{FALSE} no las escribe, y la
 corrida no se puede re-resumir ni sumar con otras sin volver a correrla.}
 
-\item{cifras_simulaciones}{\code{NULL} (por defecto) guarda cada simulación con todas sus cifras; un entero de 1 a 15,
-con ese número de cifras significativas, para que \verb{draws/} ocupe menos.}
+\item{cifras_simulaciones}{Cifras significativas con que se guarda cada simulación: un entero de 1 a 15 (por
+defecto 6, para que \verb{draws/} ocupe menos de la mitad) o \code{NULL}, todas. Con \code{guardar_simulaciones = FALSE} no
+cuenta.}
 }
 \value{
 Objeto de clase \code{dl_run} de la corrida de la suma, con \code{run_id}, \code{dir}, \code{manifest} y \code{files} (como en

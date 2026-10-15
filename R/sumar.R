@@ -235,7 +235,8 @@
 #' @export
 dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("DATA_ROOT"), nombre_causa = NULL,
                            nivel = 0.95, registrar = !is.null(registro), registro = NULL, rutas = dl_rutas(),
-                           omitidas = NULL, guardar_simulaciones = TRUE, cifras_simulaciones = NULL) {
+                           omitidas = NULL, guardar_simulaciones = TRUE,
+                           cifras_simulaciones = 6) {
   .dl_sumar_corridas(corridas_hijas, causa, nombre, carpeta, nombre_causa, nivel, registrar, registro, rutas, omitidas,
                      simulaciones = .dl_exigir_simulaciones(guardar_simulaciones, cifras_simulaciones))
 }
@@ -246,7 +247,8 @@ dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("
 # de .dl_exigir_simulaciones(), cómo se guardan las simulaciones de la suma.
 .dl_sumar_corridas <- function(corridas_hijas, causa, nombre, carpeta, nombre_causa = NULL, nivel = 0.95,
                                registrar = !is.null(registro), registro = NULL, rutas = dl_rutas(), omitidas = NULL,
-                               forzadas = integer(), simulaciones = .dl_exigir_simulaciones(TRUE, NULL)) {
+                               forzadas = integer(),
+                               simulaciones = .dl_exigir_simulaciones(TRUE, .DL_CIFRAS_SIMULACIONES)) {
   .dl_exigir_registro(registrar, registro)
   .dl_exigir_nivel(nivel, exportable = TRUE)
   if (missing(nombre)) .dl_stop("falta `nombre` (nombre corto de la corrida de la suma, p. ej. \"acs-suma\")")

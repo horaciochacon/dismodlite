@@ -1,6 +1,6 @@
 # Espacio en disco de las simulaciones de una corrida: guardar_simulaciones = FALSE no escribe draws/ y el manifiesto
-# lo declara; cifras_simulaciones guarda cada simulación con menos cifras significativas; quien necesita las
-# simulaciones (re-resumen, suma de subtipos) falla con un mensaje que dice por qué faltan y qué hacer.
+# lo declara; cifras_simulaciones (6 por defecto) guarda cada simulación con menos cifras significativas; quien
+# necesita las simulaciones (re-resumen, suma de subtipos) falla con un mensaje que dice por qué faltan y qué hacer.
 
 .piezas_sim <- function(x = corrida_mini())
   list(resumen = dl_resumir(list(fit = x$ajuste, yld = x$avd, bundle = x$insumos)), fit = x$ajuste, yld = x$avd,
@@ -16,24 +16,32 @@
 
 test_that("guardar_simulaciones = FALSE no escribe draws/, el manifiesto lo declara y las celdas no cambian", {
   d <- withr::local_tempdir()
-  todo <- .exportar_sim(d, "con-sim")
-  sin <- .exportar_sim(d, "sin-sim", guardar_simulaciones = FALSE)
+  todo <- .exportar_sim(d, "con-sim", cifras_simulaciones = NULL)
+  defecto <- .exportar_sim(d, "defecto")
+  sin <- .exportar_sim(d, "sin-sim", guardar_simulaciones = FALSE)     # las cifras por defecto no cuentan
   expect_true(dir.exists(file.path(todo$dir, "draws")))
   expect_false(dir.exists(file.path(sin$dir, "draws")))
   man <- yaml::read_yaml(file.path(sin$dir, "manifest.yaml"))
   man0 <- yaml::read_yaml(file.path(todo$dir, "manifest.yaml"))
+  man6 <- yaml::read_yaml(file.path(defecto$dir, "manifest.yaml"))
   expect_identical(man$params$simulaciones_guardadas, FALSE)
-  # por defecto, ni la clave ni las cifras: los manifiestos de siempre no cambian
+  expect_false("cifras_simulaciones" %in% names(man$params))
+  # con todas las cifras, ni una clave ni la otra: el manifiesto de las versiones anteriores
   expect_false(any(c("simulaciones_guardadas", "cifras_simulaciones") %in% names(man0$params)))
   expect_identical(man$params[names(man0$params)], man0$params)
-  for (s in c("prevalence", "incidence", "yld"))
+  # por defecto, 6 cifras, declaradas
+  expect_identical(man6$params$cifras_simulaciones, 6L)
+  expect_identical(man6$params[names(man0$params)], man0$params)
+  for (s in c("prevalence", "incidence", "yld")) {
     expect_identical(.celdas_run(sin, s), .celdas_run(todo, s), info = s)
+    expect_identical(.celdas_run(defecto, s), .celdas_run(todo, s), info = s)
+  }
 })
 
 test_that("cifras_simulaciones guarda N cifras significativas, lo declara y no cambia las celdas", {
   d <- withr::local_tempdir()
-  todo <- .exportar_sim(d, "todas")
-  seis <- .exportar_sim(d, "seis", cifras_simulaciones = 6)
+  todo <- .exportar_sim(d, "todas", cifras_simulaciones = NULL)
+  seis <- .exportar_sim(d, "seis")
   expect_identical(yaml::read_yaml(file.path(seis$dir, "manifest.yaml"))$params$cifras_simulaciones, 6L)
   for (s in c("prevalence", "incidence", "yld")) {
     a <- dismodlite:::.dl_leer_draws(todo$dir, s, 2023L)
@@ -57,8 +65,6 @@ test_that("los argumentos de las simulaciones se validan antes de escribir nada"
   for (malo in list(0, 16, 2.5, "6", c(5, 6)))
     expect_error(.exportar_sim(d, "a", cifras_simulaciones = malo),
                  "`cifras_simulaciones` debe ser NULL o un entero entre 1 y 15", info = format(malo))
-  expect_error(.exportar_sim(d, "a", guardar_simulaciones = FALSE, cifras_simulaciones = 6),
-               "`cifras_simulaciones` no aplica con guardar_simulaciones = FALSE")
   expect_length(list.files(d, recursive = TRUE, include.dirs = TRUE), 0L)
 })
 
@@ -77,8 +83,8 @@ test_that("el re-resumen de una corrida sin simulaciones falla diciendo por qué
                       "\\(.*prevalence_2023.csv.gz\\): se borraron después de escribirla.*",
                       "guardar_simulaciones = TRUE"))
   expect_false(any(grepl("_v2$", list.dirs(.dl_dir_corrida(d), recursive = FALSE))))   # nada escrito
-  # con cifras_simulaciones, el re-resumen funciona y hereda la declaración
-  seis <- .exportar_sim(d, "seis", cifras_simulaciones = 6)
+  # con las cifras por defecto, el re-resumen funciona y hereda la declaración
+  seis <- .exportar_sim(d, "seis")
   rr <- dl_reresumir_corrida(seis$dir, carpeta = d, rutas = r)
   expect_identical(rr$manifest$params$cifras_simulaciones, 6L)
 })
@@ -99,17 +105,18 @@ test_that("la suma de subtipos nombra la hija sin simulaciones y escribe la suma
   expect_identical(sin$manifest$params$simulaciones_guardadas, FALSE)
   for (s in c("prevalence", "yld"))
     expect_equal(.celdas_run(sin, s), .celdas_run(x$suma, s), info = s)
-  seis <- dl_sumar_hijas(dirs, 9100L, "suma-seis", carpeta = d, rutas = x$rutas, cifras_simulaciones = 6)
-  expect_identical(seis$manifest$params$cifras_simulaciones, 6L)
-  expect_false("cifras_simulaciones" %in% names(x$suma$manifest$params))
-  expect_false(any(vapply(seis$manifest$causa$hijas, function(h) "cifras_simulaciones" %in% names(h), NA)))
-  # una hija guardada con menos cifras: la suma lo declara en causa.hijas
+  # por defecto, la suma y sus hijas declaran 6 cifras; con NULL, la suma no declara las suyas
+  expect_identical(x$suma$manifest$params$cifras_simulaciones, 6L)
+  expect_identical(lapply(x$suma$manifest$causa$hijas, `[[`, "cifras_simulaciones"), list(6L, 6L, 6L))
+  todas <- dl_sumar_hijas(dirs, 9100L, "suma-todas", carpeta = d, rutas = x$rutas, cifras_simulaciones = NULL)
+  expect_false("cifras_simulaciones" %in% names(todas$manifest$params))
+  # una hija guardada con todas sus cifras (sin la clave): la suma solo declara las de las otras
   m <- yaml::read_yaml(file.path(copia, "manifest.yaml"))
-  m$params$cifras_simulaciones <- 6L
+  m$params$cifras_simulaciones <- NULL
   yaml::write_yaml(m, file.path(copia, "manifest.yaml"))
   file.copy(file.path(dirs[2], "draws"), copia, recursive = TRUE)
   mixta <- dl_sumar_hijas(c(dirs[1], copia, dirs[3]), 9100L, "suma-mixta", carpeta = d, rutas = x$rutas)
-  expect_identical(lapply(mixta$manifest$causa$hijas, `[[`, "cifras_simulaciones"), list(NULL, 6L, NULL))
+  expect_identical(lapply(mixta$manifest$causa$hijas, `[[`, "cifras_simulaciones"), list(6L, NULL, 6L))
 })
 
 test_that("dl_correr() pasa guardar_simulaciones y cifras_simulaciones a la corrida y a la suma", {
@@ -121,8 +128,10 @@ test_that("dl_correr() pasa guardar_simulaciones y cifras_simulaciones a la corr
                              guardar_simulaciones = FALSE), "proyecto")
   expect_identical(visto$proyecto, list(guardar = FALSE, cifras = NULL))
   d <- copia_con_suma()
-  expect_identical(dl_correr(d, 9200, cifras_simulaciones = 6), "suma")
+  expect_identical(dl_correr(d, 9200), "suma")
   expect_identical(visto$suma, list(guardar = TRUE, cifras = 6L))
+  expect_identical(dl_correr(d, 9200, cifras_simulaciones = NULL), "suma")
+  expect_identical(visto$suma, list(guardar = TRUE, cifras = NULL))
   expect_error(dl_correr(dl_ejemplo(), 9100, semilla = 1, carpeta_salida = withr::local_tempdir(),
                          cifras_simulaciones = 0), "`cifras_simulaciones` debe ser NULL o un entero entre 1 y 15")
 })

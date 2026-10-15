@@ -756,7 +756,7 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #'   año de la configuración del proyecto.
 #' @param guardar_simulaciones,cifras_simulaciones Cómo se guardan las simulaciones de la corrida (o de la suma) en
 #'   `draws/`, como en [dl_exportar_corrida()]: `guardar_simulaciones = FALSE` no las escribe, y
-#'   `cifras_simulaciones` las guarda con ese número de cifras significativas.
+#'   `cifras_simulaciones` (por defecto 6; `NULL`, todas) las guarda con ese número de cifras significativas.
 #' @return Sin `anios`, un objeto de clase `dl_run`, como el de [dl_exportar_corrida()], una lista con `run_id` (el
 #'   identificador de la corrida, `<AAAA-MM-DD>_causa-<causa>_v<n>`, o `..._causa-<causa>-prueba_v<n>` con
 #'   `rapido = TRUE`), `dir` (su carpeta), `manifest` (el contenido de su `manifest.yaml`, como lista) y `files` (las
@@ -820,7 +820,7 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' @export
 dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, rapido = FALSE, sensibilidad = TRUE,
                       opciones = NULL, registro = NULL, forzar = FALSE, anios = NULL, guardar_simulaciones = TRUE,
-                      cifras_simulaciones = NULL) {
+                      cifras_simulaciones = 6) {
   if (missing(proyecto)) .dl_stop("falta `proyecto` (la carpeta del proyecto o un proyecto de dl_proyecto())")
   # la semilla se exige abajo, con el proyecto leído: una suma de subtipos no la usa
   if (!missing(semilla)) .dl_exigir_semilla(semilla)

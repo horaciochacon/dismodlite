@@ -318,23 +318,27 @@
   data.table::setorder(.dl_leer_gz(p), location_id, sex_id, age_group_id)
 }
 
+# Cifras significativas con que se guarda cada simulación por defecto: con 6, draws/ ocupa menos de la mitad que con
+# las 15 de fwrite, con un error relativo de 5e-6 como máximo.
+.DL_CIFRAS_SIMULACIONES <- 6L
+
 # Argumentos de las simulaciones de una corrida escrita (dl_exportar_corrida(), dl_sumar_hijas(), dl_correr()):
 # `guardar` TRUE o FALSE y `cifras` NULL (todas las de fwrite, 15) o un entero de 1 a 15, que solo aplica si se
-# guardan. Devuelve list(guardar, cifras) con las cifras enteras.
+# guardan (sin guardarlas, las cifras no cuentan). Devuelve list(guardar, cifras) con las cifras enteras.
 .dl_exigir_simulaciones <- function(guardar, cifras) {
   .dl_exigir_si_no(guardar, "guardar_simulaciones")
   if (!is.null(cifras)) {
     if (!is.numeric(cifras) || length(cifras) != 1L || is.na(cifras) || cifras != round(cifras) ||
         cifras < 1 || cifras > 15)
       .dl_stop("`cifras_simulaciones` debe ser NULL o un entero entre 1 y 15; es %s", .dl_describir_objeto(cifras))
-    if (!guardar) .dl_stop("`cifras_simulaciones` no aplica con guardar_simulaciones = FALSE")
-    cifras <- as.integer(cifras)
+    cifras <- if (guardar) as.integer(cifras)
   }
   list(guardar = guardar, cifras = cifras)
 }
 
-# Claves del manifiesto (params) que declaran cómo se guardaron las simulaciones; con los valores por defecto
-# (guardadas, con todas sus cifras) ninguna, y un manifiesto sin ellas es el de siempre.
+# Claves del manifiesto (params) que declaran cómo se guardaron las simulaciones: simulaciones_guardadas: false si no
+# se guardaron y cifras_simulaciones si se guardaron con menos cifras. Un manifiesto sin ninguna (los de las versiones
+# anteriores, o con cifras_simulaciones = NULL) es de simulaciones guardadas con todas sus cifras.
 .dl_params_simulaciones <- function(sim)
   c(if (!sim$guardar) list(simulaciones_guardadas = FALSE),
     if (!is.null(sim$cifras)) list(cifras_simulaciones = sim$cifras))
@@ -615,9 +619,9 @@
 #'   `run_id`), validadas contra el contrato `estimates/v1` ([dl_validar_estimaciones()]).
 #' - `draws/<medida>_<año>.csv.gz`: las simulaciones por celda (con `guardar_simulaciones = TRUE`); con ellas
 #'   [dl_reresumir_corrida()] y [dl_sumar_hijas()] trabajan sin volver a ajustar. Suelen ser la mayor parte del
-#'   tamaño de la corrida: con `guardar_simulaciones = FALSE` no se escriben, y con `cifras_simulaciones` cada
-#'   simulación se guarda con menos cifras significativas (con 6 cifras, menos de la mitad que con las 15 de siempre,
-#'   con un error relativo de 5e-6 como máximo). Las celdas de la corrida salen de las simulaciones enteras; las de
+#'   tamaño de la corrida: por defecto cada simulación se guarda con 6 cifras significativas (`cifras_simulaciones`;
+#'   menos de la mitad que con las 15 de `NULL`, con un error relativo de 5e-6 como máximo), y con
+#'   `guardar_simulaciones = FALSE` no se escriben. Las celdas de la corrida salen de las simulaciones enteras; las de
 #'   un re-resumen o una suma, de las guardadas. El manifiesto declara lo que no es el valor por defecto
 #'   (`params.simulaciones_guardadas: false`, `params.cifras_simulaciones`).
 #' - `etiquetas/<run_id>.csv`: las etiquetas de [dl_etiquetas()].
@@ -692,8 +696,9 @@
 #'   línea `datasets: []`); opcional.
 #' @param rutas Rutas de [dl_rutas()]; se usan los catálogos y la carpeta de covariables. `NULL` (por defecto) usa
 #'   las de los insumos.
-#' @param cifras_simulaciones `NULL` (por defecto) guarda cada simulación con todas sus cifras; un entero de 1 a 15,
-#'   con ese número de cifras significativas, para que `draws/` ocupe menos.
+#' @param cifras_simulaciones Cifras significativas con que se guarda cada simulación: un entero de 1 a 15 (por
+#'   defecto 6, para que `draws/` ocupe menos de la mitad) o `NULL`, todas. Con `guardar_simulaciones = FALSE` no
+#'   cuenta.
 #' @return Objeto de clase `dl_run`, una lista con `run_id` (el identificador de la corrida), `dir` (su carpeta),
 #'   `manifest` (el contenido de `manifest.yaml`, como lista) y `files` (las tablas de celdas escritas, una por
 #'   medida: `path`, relativa a `carpeta`, `sha256` y `rows`).
@@ -726,7 +731,8 @@
 dl_exportar_corrida <- function(piezas, nombre, carpeta = Sys.getenv("DATA_ROOT"), etiquetas,
                                 validacion = NULL, sensibilidad = NULL, guardar_simulaciones = TRUE,
                                 registrar = !is.null(registro), forzar = FALSE, ess_minimo = 400,
-                                registro = NULL, rutas = NULL, cifras_simulaciones = NULL) {
+                                registro = NULL, rutas = NULL,
+                                cifras_simulaciones = 6) {
   .dl_exigir_registro(registrar, registro)
   sim <- .dl_exigir_simulaciones(guardar_simulaciones, cifras_simulaciones)
   if (missing(nombre)) .dl_stop("falta `nombre` (nombre corto de la corrida, p. ej. \"acs-nacional\")")

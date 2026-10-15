@@ -16,7 +16,7 @@ dl_correr(
   forzar = FALSE,
   anios = NULL,
   guardar_simulaciones = TRUE,
-  cifras_simulaciones = NULL
+  cifras_simulaciones = 6
 )
 }
 \arguments{
@@ -54,7 +54,7 @@ año de la configuración del proyecto.}
 
 \item{guardar_simulaciones, cifras_simulaciones}{Cómo se guardan las simulaciones de la corrida (o de la suma) en
 \verb{draws/}, como en \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}: \code{guardar_simulaciones = FALSE} no las escribe, y
-\code{cifras_simulaciones} las guarda con ese número de cifras significativas.}
+\code{cifras_simulaciones} (por defecto 6; \code{NULL}, todas) las guarda con ese número de cifras significativas.}
 }
 \value{
 Sin \code{anios}, un objeto de clase \code{dl_run}, como el de \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}, una lista con \code{run_id} (el

@@ -148,13 +148,16 @@ api_nueva <- function(perfiles = system.file("perfiles", package = "dismodlite")
   }
   configuracion <- function(causa, carpeta_config = NULL, cambios = NULL)
     como_0_2_2(g("dl_configuracion")(causa, carpeta_config, cambios))
+  # La versión 0.2.2 guardaba las simulaciones con todas sus cifras, y las referencias comparan las de draws/ (y el
+  # re-resumen y las sumas que salen de ellas) con tolerancia 1e-8: las corridas del arnés las guardan así.
+  todas_las_cifras <- function(f) function(...) f(..., cifras_simulaciones = NULL)
   list(
     configuracion = configuracion, rutas = g("dl_rutas"), insumos = g("dl_insumos"),
     opciones_mcmc = g("dl_opciones_mcmc"), ajustar = g("dl_ajustar"), ajustar_solo_prior = g("dl_ajustar_solo_prior"),
     cascada = g("dl_cascada"), validar_ancla = g("dl_validar_ancla"), factor_comorbilidad = g("dl_factor_comorbilidad"),
     avd = g("dl_avd"), etiquetas = g("dl_etiquetas"), sensibilidad = g("dl_sensibilidad"), resumir = g("dl_resumir"),
-    exportar_corrida = g("dl_exportar_corrida"), reresumir_corrida = g("dl_reresumir_corrida"),
-    sumar_hijas = g("dl_sumar_hijas"), consolidar = g("dl_consolidar"), limpiar_cache = g("dl_limpiar_cache"),
+    exportar_corrida = todas_las_cifras(g("dl_exportar_corrida")), reresumir_corrida = g("dl_reresumir_corrida"),
+    sumar_hijas = todas_las_cifras(g("dl_sumar_hijas")), consolidar = g("dl_consolidar"), limpiar_cache = g("dl_limpiar_cache"),
     proyecto = g("dl_proyecto"),
     perfil = function(version) file.path(perfiles, sprintf("perfil_%s.yaml", version)))
 }

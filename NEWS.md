@@ -4,14 +4,18 @@
 
 * Las simulaciones por celda (`draws/<medida>_<año>.csv.gz`) suelen ser la mayor parte del tamaño de una corrida.
   `dl_correr()`, `dl_exportar_corrida()` y `dl_sumar_hijas()` tienen dos argumentos para controlarlo:
-  `guardar_simulaciones = FALSE` no escribe `draws/`, y `cifras_simulaciones` (un entero de 1 a 15; `NULL` por
-  defecto, todas) guarda cada simulación con ese número de cifras significativas. En una corrida de 884 celdas por
-  1000 simulaciones, 6 cifras reducen cada archivo de simulaciones en un 57 %, con un error relativo de 5e-6 como
-  máximo. Las celdas de la corrida salen de las simulaciones enteras; las de un re-resumen o una suma de subtipos,
-  de las guardadas.
-* El manifiesto declara lo que no es el valor por defecto: `params.simulaciones_guardadas: false` y
+  `cifras_simulaciones` (un entero de 1 a 15, **6 por defecto**; `NULL`, todas, como en las versiones anteriores)
+  guarda cada simulación con ese número de cifras significativas, y `guardar_simulaciones = FALSE` no escribe
+  `draws/`. En una corrida de 884 celdas por 1000 simulaciones, 6 cifras reducen cada archivo de simulaciones en un
+  57 %, con un error relativo de 5e-6 como máximo. Las celdas de la corrida salen de las simulaciones enteras; las
+  de un re-resumen o una suma de subtipos, de las guardadas.
+* El manifiesto declara cómo se guardaron las simulaciones: `params.simulaciones_guardadas: false` y
   `params.cifras_simulaciones`; el de una suma declara también, en `causa.hijas`, las cifras de cada hija que las
-  guardó con menos. Con los valores por defecto el manifiesto no cambia.
+  guardó con menos. Un manifiesto sin `cifras_simulaciones` (los de las versiones anteriores, o con `NULL`) es de
+  simulaciones con todas sus cifras.
+* Cambia un resultado: el re-resumen y la suma de subtipos de las corridas escritas con las cifras por defecto salen
+  de simulaciones con 6 cifras, y pueden diferir en la sexta cifra significativa de los de las versiones anteriores.
+  Con `cifras_simulaciones = NULL` se reproducen exactamente.
 * `dl_reresumir_corrida()` y `dl_sumar_hijas()`, que leen las simulaciones, fallan antes de escribir nada con un
   mensaje que dice si la corrida se escribió sin ellas o si se borraron después, y que el remedio es volver a correrla
   con `guardar_simulaciones = TRUE`. La suma nombra la corrida de la hija a la que le faltan.
