@@ -57,6 +57,9 @@
   if (!is.null(tablas$datos)) x$datos <- paso("datos", .dl_trad_datos(tablas, cfg, x$nombres_loc))
   if (!is.null(tablas$severidad)) x$severidad <- paso("severidad", .dl_trad_severidad(tablas, cfg))
   if (!is.null(tablas$fuentes_gbd)) x$fuentes <- .dl_trad_fuentes(tablas, cfg)
+  # el prior de la mortalidad en exceso dado por tabla: solo con ese prior (sin él, la traducción no cambia)
+  if (identical(cfg$emr_prior$tipo, "tabla") && !is.null(tablas$prior_mortalidad_exceso))
+    x$prior_emr <- paso("prior_mortalidad_exceso", .dl_trad_prior_emr(tablas, cfg))
   x$ids_covariable <- x$cov$ids
   x
 }
@@ -555,6 +558,23 @@
     prop_upper = .dl_num_exacto(s$superior), dw_mean = .dl_num_exacto(s$peso_discapacidad),
     dw_lower = .dl_num_exacto(s$peso_inferior), dw_upper = .dl_num_exacto(s$peso_superior),
     beta_covariable = NA_character_, location_id_fuente = .dl_loc_ancla(cfg), fuente = "extraction")
+}
+
+# prior_mortalidad_exceso -> la tabla del prior de EMR dado del formato completo (R/emr.R: .dl_emr_dado_leer): las
+# filas de la causa en el año que se estima, una por sexo del modelo y tramo de edad (las de «ambos», repetidas en
+# cada sexo), con sex_id, age_start, age_end, mu_log y sd_log. Los números van con su texto exacto (.dl_num_exacto).
+.dl_trad_prior_emr <- function(tablas, cfg) {
+  d <- .dl_prior_mortalidad_exceso_del_anio(tablas$prior_mortalidad_exceso, cfg)
+  sexos <- .dl_sexos_modelo(cfg)
+  por_sexo <- lapply(seq_along(sexos), function(k) {
+    t <- .dl_prior_mortalidad_exceso_del_sexo(d, sexos[k])
+    t <- t[order(t$edad_inicio)]
+    data.table::data.table(sex_id = rep(as.integer(unlist(cfg$sexos))[k], nrow(t)), age_start = t$edad_inicio,
+                           age_end = t$edad_fin, mu_log = t$mu_log, sd_log = t$sd_log)
+  })
+  out <- data.table::rbindlist(por_sexo)
+  for (j in c("age_start", "age_end", "mu_log", "sd_log")) data.table::set(out, j = j, value = .dl_num_exacto(out[[j]]))
+  out
 }
 
 # fuentes_gbd -> list.csv de la evidencia del formato completo (cause_id, component_id 5 no fatal / 4 causas de

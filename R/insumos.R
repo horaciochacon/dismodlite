@@ -173,11 +173,11 @@
   prior
 }
 
-# El prior de EMR usa el csmr del ancla: el prior informativo csmr/prevalencia, o el techo derivado con plano_cota sin
-# cota declarada.
+# El prior de EMR usa el csmr del ancla: el prior informativo csmr/prevalencia, o el techo derivado con plano_cota o
+# con el prior dado por tabla sin cota declarada.
 .dl_prior_usa_csmr <- function(cfg)
   identical(cfg$emr_prior$tipo, "informativo_edad") ||
-    (identical(cfg$emr_prior$tipo, "plano_cota") && is.null(cfg$emr_prior$cota))
+    (isTRUE(cfg$emr_prior$tipo %in% c("plano_cota", "tabla")) && is.null(cfg$emr_prior$cota))
 
 # Tabla prior_gbd: la prevalencia del ancla y, cuando el prior de EMR la necesita, el csmr (.dl_prior_usa_csmr). Los
 # pesos de las bandas finas se leen una sola vez para las dos medidas.
@@ -187,7 +187,7 @@
   meta <- attr(out, "meta")
   if (.dl_prior_usa_csmr(cfg)) {
     archivo <- .dl_path(paths, "std_csmr", motivo = paste0(
-      "emr_prior.tipo informativo_edad (o plano_cota sin cota) necesita el ancla de mortalidad, muertes por 100 000 ",
+      "emr_prior.tipo informativo_edad (o plano_cota o tabla sin cota) necesita el ancla de mortalidad, muertes por 100 000 ",
       "de GBD Results, por edad y sexo, de la causa y el a\u00f1o de ajuste"))
     out <- rbind(out, .dl_materializar_medida(cfg, "csmr", paths, archivo = archivo, cat_bandas = cat_bandas,
                                               pesos = pesos))
@@ -439,6 +439,10 @@
 .DL_TABLAS_BUNDLE <- c("datos", "prior_gbd", "betas", "crosswalks", "cov_valores",
                        "cov_proxy", "severidad", "poblacion", "sequela_map")
 
+# Tabla de los insumos que solo existe con el prior de EMR dado por tabla (emr_prior.tipo tabla): entonces entra al
+# hash, después de las de .DL_TABLAS_BUNDLE, y se congela con ellas.
+.DL_TABLA_EMR_DADO <- "prior_emr_dado"
+
 # Detiene la corrida si el paso del RK4, con la remisión más alta de la configuración y el techo de EMR (`cota`),
 # supera .DL_RK4_LIMITE_PASO (R/edo.R) con el nsub de la configuración (por defecto .DL_NSUB).
 .dl_chequear_paso_rk4 <- function(cfg, cota) {
@@ -491,6 +495,8 @@
 #'     muerte, `n_cod`: la base de la regla del doble conteo),
 #'     `componente` (el componente modelado, solo en el formato completo; `NULL` si no hay), `bandas_pobl` y
 #'     `bandas_catalogo` (los límites de las bandas de edad de la población y del catálogo);
+#'   - `prior_emr_dado`: solo con el prior de la mortalidad en exceso dado por tabla (`mortalidad_exceso.prior:
+#'     tabla`), esa tabla (`sex_id`, `age_start`, `age_end`, `mu_log`, `sd_log`); entra en el hash.
 #'   - `hash`: el sha256 que identifica los insumos (el de las tablas, `hashes`, combinado); los ajustes y las
 #'     corridas lo registran;
 #'   - `rutas`: las rutas con que se armaron (no entran en el hash); las etapas siguientes las usan cuando no se les
@@ -584,6 +590,13 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
   techo <- .dl_techo_emr(cfg, prior)
   cfg$emr_prior$cota <- techo$cota
   .dl_chequear_paso_rk4(cfg, techo$cota)
+  # Prior de EMR dado por tabla (emr_prior.tipo tabla): una fila por sexo y tramo de edad, de la pieza
+  # `prior_mortalidad_exceso` de las rutas. Sin ese prior, los insumos no llevan la tabla.
+  prior_emr_dado <- if (.dl_emr_es_dado(cfg))
+    .dl_emr_dado_leer(.dl_path(paths, "prior_mortalidad_exceso", motivo = paste0(
+      "emr_prior.tipo tabla necesita la tabla del prior de la mortalidad en exceso (sex_id, age_start, age_end, ",
+      "mu_log, sd_log)")), cfg)
+  if (!is.null(prior_emr_dado)) .dl_emr_dado_exigir_soporte(prior_emr_dado, cfg, techo$cota)
   datos <- .dl_materializar_datos(cfg, paths, sch)
   .dl_avisar_datos_en_ajuste(cfg, datos, con_evidencia = !is.null(evidencia))
   b <- list(datos = datos,
@@ -608,6 +621,14 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
   for (nm in c("poblacion", setdiff(.DL_TABLAS_BUNDLE, "poblacion"))) dl_validar_tabla(b[[nm]], nm, sch, ctx)
   h <- .dl_hash_bundle(b, .DL_TABLAS_BUNDLE)
   b$hash <- h$hash; b$hashes <- h$tablas
+  # La tabla del prior de EMR dado entra al hash solo cuando existe (cambia el ajuste): los insumos sin ella
+  # conservan el hash de siempre.
+  if (!is.null(prior_emr_dado)) {
+    b$prior_emr_dado <- prior_emr_dado
+    hd <- .dl_hash_bundle(b, .DL_TABLA_EMR_DADO)
+    b$hash <- digest::digest(paste(h$hash, hd$hash), algo = "sha256")
+    b$hashes <- c(b$hashes, hd$tablas)
+  }
   b$rutas <- paths
   structure(b, class = "dl_bundle")
 }
@@ -619,7 +640,8 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
 #'
 #' Los archivos son las tablas del contrato `dismod_lite/v1` (`datos.csv`, `prior_gbd.csv`, `betas.csv`,
 #' `crosswalks.csv`, `cov_valores.csv`, `cov_proxy.csv`, `severidad.csv`, `poblacion.csv` y `sequela_map.csv`), tal
-#' como las usa el modelo: con ellas y la configuración se puede auditar o repetir una corrida.
+#' como las usa el modelo: con ellas y la configuración se puede auditar o repetir una corrida. Con el prior de la
+#' mortalidad en exceso dado por tabla (`mortalidad_exceso.prior: tabla`) se escribe además `prior_emr_dado.csv`.
 #'
 #' @inheritParams dl_ajustar
 #' @param carpeta Carpeta de destino (se crea si no existe).
@@ -641,7 +663,7 @@ dl_congelar_insumos <- function(insumos, carpeta) {
   hs <- list()
   # Si los insumos traen los sha256 de dl_insumos() (`hashes`), deben coincidir: una tabla editada en memoria
   # después de dl_insumos() es un error, porque el hash de los insumos ya no describiría lo congelado.
-  for (nm in .DL_TABLAS_BUNDLE) {
+  for (nm in c(.DL_TABLAS_BUNDLE, if (!is.null(insumos[[.DL_TABLA_EMR_DADO]])) .DL_TABLA_EMR_DADO)) {
     f <- file.path(carpeta, paste0(nm, ".csv"))
     data.table::fwrite(insumos[[nm]], f)
     hs[[paste0(nm, ".csv")]] <- digest::digest(file = f, algo = "sha256")

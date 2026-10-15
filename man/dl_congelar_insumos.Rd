@@ -21,7 +21,8 @@ guarda \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}} en \verb{inputs
 \details{
 Los archivos son las tablas del contrato \code{dismod_lite/v1} (\code{datos.csv}, \code{prior_gbd.csv}, \code{betas.csv},
 \code{crosswalks.csv}, \code{cov_valores.csv}, \code{cov_proxy.csv}, \code{severidad.csv}, \code{poblacion.csv} y \code{sequela_map.csv}), tal
-como las usa el modelo: con ellas y la configuración se puede auditar o repetir una corrida.
+como las usa el modelo: con ellas y la configuración se puede auditar o repetir una corrida. Con el prior de la
+mortalidad en exceso dado por tabla (\code{mortalidad_exceso.prior: tabla}) se escribe además \code{prior_emr_dado.csv}.
 }
 \examples{
 b <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))

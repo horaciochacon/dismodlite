@@ -180,6 +180,9 @@ dl_validar_ancla <- function(ajuste, insumos, rutas = insumos$rutas, cascada = N
     else if (.dl_emr_es_cero(cfg))
       paste0("incidencia reservada para validar: con la EMR fija en 0 mide la consistencia de i con la remisi\u00f3n ",
              "declarada (interpretaci\u00f3n declarada de antemano)")
+    else if (.dl_emr_es_dado(cfg))
+      paste0("incidencia reservada para validar: con la EMR de un prior dado por tabla mide la consistencia de i con ",
+             "ese prior y la remisi\u00f3n declarada (interpretaci\u00f3n declarada de antemano)")
     else paste0("incidencia reservada para validar: con una EMR no informativa mide adem\u00e1s la ",
                 "identificabilidad de i (interpretaci\u00f3n declarada de antemano)")
     # Fase aguda descontada: al modelo crónico entran los sobrevivientes a 28 días; con cfr_30d declarada, la

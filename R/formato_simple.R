@@ -397,7 +397,8 @@
 #   ubicacion (el código nacional), nombre, betas (la tabla betas de la causa, ya resuelta para un subtipo),
 #   anios_ancla (los años con prevalencia de la causa en el ancla: de ellos sale years.ancla, .dl_anio_ancla_leido),
 #   covariables_subnacionales (las covariables con filas subnacionales), subnacional (si la población lo es), razones
-#   (si el proyecto trae la tabla razones) e ids_covariable (covariable -> covariate_id, para valor_nacional_de); y
+#   (si el proyecto trae la tabla razones), prior_mortalidad_exceso (si trae esa tabla) e ids_covariable (covariable ->
+#   covariate_id, para valor_nacional_de); y
 #   ancla_declarado (el ancla.anio del archivo cuando el argumento `anio` de dl_proyecto() lo bajó al año que se
 #   estima: la procedencia de years.ancla lo dice).
 # `origen`: formato, archivo, nombre, modo subnacional, betas y claves tomadas por defecto (con su valor); y las
@@ -468,6 +469,12 @@
   por_defecto <- stats::setNames(ifelse(pd$clave %in% names(reglas), reglas[pd$clave],
                                         ifelse(pd$defecto == "anio", format(s[["anio"]]), pd$defecto)), pd$clave)
   prior <- val("mortalidad_exceso.prior")
+  if (identical(prior, "tabla") && !isTRUE(contexto$prior_mortalidad_exceso))
+    .dl_stop_config_simple(archivo, paste0(
+      "mortalidad_exceso.prior: es tabla y el proyecto no trae la tabla prior_mortalidad_exceso ",
+      "(prior_mortalidad_exceso.csv: sexo, edad_inicio, edad_fin, mu_log y sd_log, con cada nudo dentro de un tramo ",
+      "de edad): ",
+      "agr\u00e9gala o usa otro prior"))
   techo <- dado("mortalidad_exceso.techo")
   fa <- dado("mortalidad_exceso.fraccion_aguda")
   proc <- .DL_PROCEDENCIA_SIMPLE
@@ -486,7 +493,7 @@
     sexos = sort(unique(.dl_codigos_sexo(val("sexos")))), edad_inicio = s[["edad_inicio"]], edad_inicio_fuente = proc,
     remision = list(valor = val("remision"), fuente = proc),
     emr_prior = c(list(tipo = voc("mortalidad_exceso.prior", prior)),
-                  if (prior %in% c("plano", "cero")) list(tipo_procedencia = proc),
+                  if (prior %in% c("plano", "cero", "tabla")) list(tipo_procedencia = proc),
                   if (!is.null(techo)) list(cota = c(0, num(techo)), fuente_cota = proc),
                   if (!is.null(fa)) list(fraccion_aguda = list(valor = num(fa), procedencia = proc))),
     nudos_incidencia = nudos, sigma_suavidad = num(val("incidencia.suavidad")),

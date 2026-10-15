@@ -31,6 +31,7 @@ evidencia, las fuentes del país que ya informaron el ancla, \code{nid_no_fatal}
 muerte, \code{n_cod}: la base de la regla del doble conteo),
 \code{componente} (el componente modelado, solo en el formato completo; \code{NULL} si no hay), \code{bandas_pobl} y
 \code{bandas_catalogo} (los límites de las bandas de edad de la población y del catálogo);
+\item \code{prior_emr_dado}: solo con el prior de la mortalidad en exceso dado por tabla (\code{mortalidad_exceso.prior: tabla}), esa tabla (\code{sex_id}, \code{age_start}, \code{age_end}, \code{mu_log}, \code{sd_log}); entra en el hash.
 \item \code{hash}: el sha256 que identifica los insumos (el de las tablas, \code{hashes}, combinado); los ajustes y las
 corridas lo registran;
 \item \code{rutas}: las rutas con que se armaron (no entran en el hash); las etapas siguientes las usan cuando no se les

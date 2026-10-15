@@ -1,7 +1,7 @@
-test_that("la definición del contrato tiene las once tablas y el eje en cada una", {
+test_that("la definición del contrato tiene las doce tablas y el eje en cada una", {
   ref <- dismodlite:::.dl_tablas_ref()
   expect_setequal(unique(ref$tabla), dismodlite:::.DL_TABLAS)
-  expect_length(dismodlite:::.DL_TABLAS, 11L)
+  expect_length(dismodlite:::.DL_TABLAS, 12L)
   expect_true(all(ref$columna[ref$rol == "eje"] %in% dismodlite:::.DL_EJE))
   expect_identical(dismodlite:::.dl_columnas_contrato("poblacion", "exigidas"),
                    c("ubicacion", "anio", "sexo", "edad_inicio", "edad_fin", "poblacion"))
@@ -177,7 +177,7 @@ test_that("proxies_crudos: tabla del contrato con su plantilla y sus reglas", {
 })
 
 test_that("razones: la undécima tabla del contrato, con su plantilla y sus reglas", {
-  expect_identical(utils::tail(dismodlite:::.DL_TABLAS, 1L), "razones")
+  expect_identical(dismodlite:::.DL_TABLAS[11L], "razones")
   expect_identical(dismodlite:::.dl_columnas_contrato("razones", "exigidas"),
                    c("ubicacion", "anio", "razon", "error_log"))
   expect_identical(names(dl_plantilla("razones")), c("causa", "ubicacion", "anio", "razon", "error_log", "fuente"))

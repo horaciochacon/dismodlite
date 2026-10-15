@@ -9,7 +9,8 @@
 #   de paso 1 año con la cantidad en la edad exacta a, no a mitad del año de edad (ver la cabecera de R/bandas.R).
 #
 #   L_suavidad = sum_k log N(D2_k; 0, sigma)      D2_k = segunda diferencia de log i en los nudos
-#   L_emr      = sum_k log N(log f_k; mu_log_k, sd_log_k)   prior de EMR por nudo (R/emr.R); 0 con el prior plano.
+#   L_emr      = sum_k log N(log f_k; mu_log_k, sd_log_k)   prior de EMR por nudo (R/emr.R: del ancla o dado por
+#                                                         tabla); 0 con el prior plano.
 #                Truncamiento: si algún f_k cae fuera de [cota_min, cota_max], log posterior = -Inf.
 #   L_ancla    = log MVN(z; 0, Sigma / lambda)     power prior sobre las bandas del ancla:
 #                z_b = log q_b - log val_b,  Sigma = diag(sigma_log) R diag(sigma_log),  R_bc = rho^|b - c|
@@ -100,12 +101,14 @@
 .dl_chol_ar1 <- function(n, rho) chol(rho^abs(outer(seq_len(n), seq_len(n), "-")))
 
 # Prior de EMR en los nudos (R/emr.R): fija en cero (emr_prior.tipo cero, sin log f en theta), plano dentro del techo
-# (plano_cota) o informativo, log(csmr / prevalencia) del ancla por banda. list(mu_log, sd_log,
+# (plano_cota), dado por tabla (tabla: mu_log y sd_log del tramo de edad de cada nudo, bajo el techo) o
+# informativo, log(csmr / prevalencia) del ancla por banda. list(mu_log, sd_log,
 # cota = c(mínimo, máximo), plano), y cero = TRUE con la EMR fija en cero.
 .dl_ctx_emr <- function(b, sexo, nudos) {
   cfg <- b$cfg
   if (.dl_emr_es_cero(cfg)) .dl_emr_cero()
   else if (identical(cfg$emr_prior$tipo, "plano_cota")) .dl_emr_plano(nudos, cfg$emr_prior$cota)
+  else if (.dl_emr_es_dado(cfg)) .dl_emr_dado_en_nudos(b$prior_emr_dado[sex_id == sexo], nudos, cfg$emr_prior$cota)
   else .dl_emr_en_nudos(.dl_prior_emr_tabla(b$prior_gbd, cfg)[sex_id == sexo], nudos, cfg$emr_prior$cota)
 }
 

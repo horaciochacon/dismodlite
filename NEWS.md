@@ -1,3 +1,39 @@
+# dismodlite 2.4.0
+
+## Prior de la mortalidad en exceso dado por tabla
+
+* `mortalidad_exceso: {prior: tabla}` (en el formato completo, `emr_prior.tipo: tabla`) toma el prior de la
+  mortalidad en exceso de una tabla del proyecto, `prior_mortalidad_exceso` (la duodécima del contrato): por sexo y
+  tramo de edad, el centro (`mu_log`) y la desviación estándar (`sd_log`) del logaritmo de la mortalidad en exceso.
+  Sirve cuando esa mortalidad se conoce por otra vía: un estudio de seguimiento, otra corrida de la causa o los años
+  vecinos de un año sin muertes fiables.
+
+  ```yaml
+  mortalidad_exceso:
+    prior: tabla
+    techo: 0.5
+  ```
+
+* Cada nudo toma el tramo `[edad_inicio, edad_fin)` que lo contiene; todos los nudos deben caer en un tramo (el prior
+  no se extrapola) y los tramos de un sexo no se solapan: la revisión del proyecto lo dice. `sexo: ambos`, o la tabla
+  sin la columna `sexo`, vale para los dos sexos; sin la columna `anio`, la tabla vale para todos los años.
+* Por nudo, log f sigue una Normal con ese centro y esa desviación, truncada bajo el techo: el mismo término y el
+  mismo rango del prior que sale del ancla, con otra fuente. `mu_log` es el centro antes de truncar y no puede
+  superar el techo: si el de algún nudo lo supera, `dl_insumos()` se detiene y la revisión del proyecto lo marca,
+  con los nudos y el techo (suele ser un error de unidades, o un techo que no corresponde: se declara otro en
+  `mortalidad_exceso.techo`). No usa la mortalidad del ancla, salvo para derivar el techo si no se da
+  `mortalidad_exceso.techo`. Vale con los dos motores (`"mh"` y `"rcpp"`).
+* Con este prior, `mortalidad_exceso.fraccion_aguda` no cambia el prior: mueve el techo que sale del ancla y la
+  corrida sigue declarando la fase aguda (su incidencia es el flujo de sobrevivientes a 28 días). Por eso
+  `sensibilidad.fraccion_aguda` (o `fraccion_aguda` en la rejilla de `dl_sensibilidad()`) es un error.
+  `emr_prior.factor_sd` tampoco se admite: la desviación se cambia en la tabla.
+* La tabla entra en el hash de los insumos (solo con este prior) y se congela en `inputs/prior_emr_dado.csv` y, como
+  vino, en `inputs/contrato/prior_mortalidad_exceso.csv`. El manifiesto lo declara: `params.emr_prior: tabla` y una
+  limitación con el techo. En el formato completo, la tabla va en `dl_rutas(prior_mortalidad_exceso = )`.
+  `dl_prior_emr()` devuelve la tabla tal como entra al ajuste. `dl_nuevo_proyecto()` deja su plantilla.
+* Los proyectos con los otros priores (`desde_ancla`, `plano`, `cero`) dan los mismos números y el mismo hash de
+  insumos que en la versión 2.3.0.
+
 # dismodlite 2.3.0
 
 Más causas caben en un proyecto sin recetas: las que no tienen mortalidad propia, las que se reparten entre

@@ -49,9 +49,13 @@ covariable que nombra) y que \code{escala} vaya solo con la transformación line
 con proxies los traiga de todas las covariables y que el valor nacional en que se anclan traiga su intervalo
 (\code{inferior} y \code{superior}); que las proporciones de \code{severidad} sumen 1; con \code{subnacional.modo: razon}, que la
 tabla \code{razones} traiga, en el año que se estima, la razón de cada ubicación subnacional de la población y de
-ninguna otra, con números finitos y alguna razón mayor que 0. Avisa (\code{!}) de una covariable con
+ninguna otra, con números finitos y alguna razón mayor que 0; con \code{mortalidad_exceso.prior: tabla}, que la tabla
+\code{prior_mortalidad_exceso} traiga, en el año que se estima y en cada sexo, un tramo de edad para cada nudo, sin
+solapes, con \code{mu_log} finito y \code{sd_log} mayor que 0 (y el paso \code{insumos} falla si el centro de algún nudo
+supera el techo). Avisa (\code{!}) de una covariable con
 proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
-subnacional), de una tabla \code{razones} sin el modo \code{razon} (no se usa) y de valores de mortalidad de \code{datos} que
+subnacional), de una tabla \code{razones} sin el modo \code{razon} o \code{prior_mortalidad_exceso} sin el prior \code{tabla} (no se
+usan) y de valores de mortalidad de \code{datos} que
 parecen tasas por 100 000 en vez de por persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla
 en la misma causa, año, sexo y banda);
 \item \code{insumos}: si nada falló, los insumos completos (\code{\link[=dl_insumos]{dl_insumos()}}), con las reglas que necesitan todo armado: que

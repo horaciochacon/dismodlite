@@ -69,7 +69,7 @@
 # Las tablas con plantilla en un proyecto nuevo (solo el encabezado: una tabla opcional sin filas es como si no
 # estuviera) y las carpetas para las descargas tal cual.
 .DL_PLANTILLAS_NUEVO <- c("ubicaciones", "poblacion", "betas", "datos", "severidad", "poblacion_detalle",
-                          "proxies_crudos", "razones")
+                          "proxies_crudos", "razones", "prior_mortalidad_exceso")
 .DL_CARPETAS_NUEVO <- c("ancla", "covariables", "fuentes_gbd")
 
 # LEEME.md de un proyecto nuevo: la carpeta del proyecto (la de ?dl_proyecto), los pasos, con las direcciones de GBD
@@ -92,6 +92,7 @@
     "poblacion_detalle.csv  # poblaci\u00f3n nacional con m\u00e1s detalle de edad, si el ancla es m\u00e1s fina",
     "proxies_crudos.csv     # un indicador de encuesta por ubicaci\u00f3n y edici\u00f3n (se calibra al leer)",
     "razones.csv            # la raz\u00f3n de cada ubicaci\u00f3n subnacional (con subnacional.modo: razon)",
+    "prior_mortalidad_exceso.csv  # el prior de la mortalidad en exceso (con mortalidad_exceso.prior: tabla)",
     "particion/<corrida>/   # (opcional) la partici\u00f3n de severidad que nombra severidad.particion",
     "```", "",
     "Una tabla con solo el encabezado no se usa: las obligatorias son `ubicaciones`, `poblacion` y `ancla`.", "",
@@ -106,7 +107,9 @@
     paste0("5. Si repartes por raz\u00f3n (`subnacional: {modo: razon}` en la configuraci\u00f3n), llena ",
            "`razones.csv`: la raz\u00f3n de cada ubicaci\u00f3n subnacional respecto de la nacional y el error de ",
            "su logaritmo, en el a\u00f1o que se estima. Ese modo no lleva valores subnacionales de covariables."),
-    "6. Llena las dem\u00e1s tablas que uses (`severidad.csv`, para los AVD; `datos.csv`; ...).",
+    paste0("6. Llena las dem\u00e1s tablas que uses (`severidad.csv`, para los AVD; `datos.csv`; ",
+           "`prior_mortalidad_exceso.csv`, si das el prior de la mortalidad en exceso con `mortalidad_exceso: ",
+           "{prior: tabla}`; ...)."),
     sprintf("7. Revisa el proyecto: `dl_revisar_proyecto(\"%s\")`.", ruta),
     sprintf(paste0("8. Pru\u00e9balo con `dl_correr(\"%s\", semilla = 1, rapido = TRUE)`; la corrida final, con ",
                    "`rapido = FALSE`."), ruta))
@@ -127,7 +130,7 @@
 #'   tienen un valor fijo, con un ejemplo. Para usar otro valor se quita el `#` de la línea (y el de su
 #'   bloque, como `ancla:` para `ancla.peso`).
 #' - `ubicaciones.csv`, `poblacion.csv`, `betas.csv`, `datos.csv`, `severidad.csv`, `poblacion_detalle.csv`,
-#'   `proxies_crudos.csv` y `razones.csv`, con solo el encabezado (las columnas de [dl_plantilla()]). Una tabla con
+#'   `proxies_crudos.csv`, `razones.csv` y `prior_mortalidad_exceso.csv`, con solo el encabezado (las columnas de [dl_plantilla()]). Una tabla con
 #'   solo el encabezado es como si no estuviera: las opcionales que no se llenan no se usan.
 #' - `ancla/`, `covariables/` y `fuentes_gbd/`, vacías: ahí van las descargas de GBD Results y del GHDx, sin editar
 #'   (o las tablas del contrato).
@@ -536,9 +539,13 @@ dl_nuevo_proyecto <- function(carpeta, causa, nombre = NULL, anio = NULL, edad_i
 #'    con proxies los traiga de todas las covariables y que el valor nacional en que se anclan traiga su intervalo
 #'    (`inferior` y `superior`); que las proporciones de `severidad` sumen 1; con `subnacional.modo: razon`, que la
 #'    tabla `razones` traiga, en el año que se estima, la razón de cada ubicación subnacional de la población y de
-#'    ninguna otra, con números finitos y alguna razón mayor que 0. Avisa (`!`) de una covariable con
+#'    ninguna otra, con números finitos y alguna razón mayor que 0; con `mortalidad_exceso.prior: tabla`, que la tabla
+#'    `prior_mortalidad_exceso` traiga, en el año que se estima y en cada sexo, un tramo de edad para cada nudo, sin
+#'    solapes, con `mu_log` finito y `sd_log` mayor que 0 (y el paso `insumos` falla si el centro de algún nudo
+#'    supera el techo). Avisa (`!`) de una covariable con
 #'    proxies y sin beta (no se usa), de una ubicación subnacional sin proxies (queda fuera de la estimación
-#'    subnacional), de una tabla `razones` sin el modo `razon` (no se usa) y de valores de mortalidad de `datos` que
+#'    subnacional), de una tabla `razones` sin el modo `razon` o `prior_mortalidad_exceso` sin el prior `tabla` (no se
+#'    usan) y de valores de mortalidad de `datos` que
 #'    parecen tasas por 100 000 en vez de por persona-año (mayores que 1, o más de 1000 veces la mortalidad del ancla
 #'    en la misma causa, año, sexo y banda);
 #' 4. `insumos`: si nada falló, los insumos completos ([dl_insumos()]), con las reglas que necesitan todo armado: que

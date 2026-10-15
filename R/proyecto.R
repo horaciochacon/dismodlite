@@ -273,6 +273,7 @@
                                    else unique(cov$covariable[!.dl_es_nacional(cov, nacional)]),
        subnacional = any(!is.na(.dl_col(tablas$ubicaciones, "padre", NA_character_))),
        razones = !is.null(tablas$razones),
+       prior_mortalidad_exceso = !is.null(tablas$prior_mortalidad_exceso),
        nombre = if (length(nombres)) nombres[[1L]], ids_covariable = .dl_ids_covariable(tablas, betas),
        ubicacion_gbd = unique(unlist(lapply(tablas, attr, "ubicacion_gbd"))))
 }
@@ -450,7 +451,8 @@
   stats::setNames(as.list(sprintf("ancla/%s.csv", tolower(.DL_MEDIDAS$nombre_es))), .DL_MEDIDAS$path_key),
   list(ghdx_cov = "covariables", extraction = "extraccion.yaml", poblacion = "poblacion.csv",
        pesos_80mas = "pesos_80mas.csv", severidad = sprintf("severidad/%d.csv", causa), ghdx_store = "evidencia",
-       catalogos = "catalogos", datos = "datos.csv", cov_proxy = "proxies_departamentales.csv", registry = "registro"))
+       catalogos = "catalogos", datos = "datos.csv", cov_proxy = "proxies_departamentales.csv", registry = "registro",
+       prior_mortalidad_exceso = "prior_mortalidad_exceso.csv"))
 
 # Nombres que no están en las tablas: las causas con configuración (`cf`) y sus hijas, con el nombre de cada causa en
 # el ancla, para el catálogo de causas, el registro de subtipos y las etiquetas.
@@ -499,6 +501,7 @@
   escribir(x$datos, pieza$datos)
   escribir(x$severidad, pieza$severidad)
   escribir(x$fuentes, pieza$ghdx_store, "list.csv")
+  escribir(x$prior_emr, pieza$prior_mortalidad_exceso)
 }
 
 # Los catálogos y el registro de la traducción: las edades de GBD (inst/referencia) más las bandas del proyecto que no
@@ -680,6 +683,7 @@
 #'   poblacion_detalle.csv
 #'   proxies_crudos.csv   # un indicador de encuesta por ubicación y edición: se calibra al leer
 #'   razones.csv          # la razón de cada ubicación subnacional respecto de la nacional (subnacional.modo: razon)
+#'   prior_mortalidad_exceso.csv   # el prior de la mortalidad en exceso por sexo y edad (mortalidad_exceso.prior: tabla)
 #'   particion/<corrida>/ # opcional: la partición de severidad que nombra severidad.particion
 #' ```
 #' Cada tabla es `<tabla>.csv` o una carpeta `<tabla>/` cuyos CSV se juntan (cada uno pasa por su lector), como
@@ -746,7 +750,8 @@
 #'   las tablas).
 #' @param causa Causa (`cause_id`, un entero); `NULL` si el proyecto tiene una sola o la configuración la declara.
 #' @param ... Tablas del contrato por su nombre (ver [dl_tablas]: `ubicaciones`, `poblacion`, `ancla`, `covariables`,
-#'   `betas`, `datos`, `severidad`, `fuentes_gbd`, `poblacion_detalle`, `proxies_crudos`, `razones`): un `data.frame`
+#'   `betas`, `datos`, `severidad`, `fuentes_gbd`, `poblacion_detalle`, `proxies_crudos`, `razones`,
+#'   `prior_mortalidad_exceso`): un `data.frame`
 #'   o la ruta de un CSV o de una carpeta. Reemplazan a las de la carpeta.
 #' @param configuracion Ruta del YAML de la configuración o una lista con sus claves (opcional; por defecto, la de la
 #'   carpeta).
