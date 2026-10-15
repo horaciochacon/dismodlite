@@ -1,3 +1,15 @@
+# dismodlite (en desarrollo)
+
+## Correcciones
+
+* La validación de amplitud acepta la mortalidad subnacional de validación en casos y muestra (`casos`/`muestra` en
+  `datos.csv`; `x`/`n` en el formato completo), no solo en valor y error estándar: la tasa observada de cada fila es
+  `casos / muestra`, la misma tasa cruda que lee la verosimilitud de conteos. Antes esas filas dejaban la tasa en NA
+  y `dl_correr()` se detenía sin escribir la corrida («missing value where TRUE/FALSE needed»). Una fila sin valor ni
+  casos y muestra es un error que nombra sus filas.
+* En la validación de amplitud, una celda sin muertes (log 0) o un valor que falta queda fuera de la pendiente y de
+  la correlación de rangos, en vez de detener la corrida; con menos de 3 puntos que queden, el estadístico es NA.
+
 # dismodlite 2.4.0
 
 ## Prior de la mortalidad en exceso dado por tabla
