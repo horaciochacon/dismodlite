@@ -287,3 +287,53 @@ copia_emr_cero <- function(extra = character(), env = parent.frame()) {
   cfg <- c(cfg[seq_len(i - 1L)], "mortalidad_exceso:", "  prior: cero", cfg[-seq_len(i + 1L)], extra)
   copia_ejemplo(`config/9100.yaml` = cfg, env = env)
 }
+
+# ---- Corridas exportadas de las hijas de 9100 y su suma (test-consolidar.R, test-simulaciones-guardadas.R) ----
+
+# Corrida mínima de la causa `causa` del ejemplo (formato completo), exportada en `carpeta` y anotada en `reg`.
+# `cambios`: los de dl_configuracion() (por ejemplo exportar.incidencia).
+.corrida_minima <- function(causa, carpeta, reg, cambios = NULL) {
+  r <- dl_rutas_ejemplo(causa, datos = FALSE, proxies = FALSE, formato = "completo")
+  b <- suppressMessages(dl_insumos(dl_configuracion(causa, ejemplo_completo("config"), cambios = cambios), r))
+  o <- dl_opciones_mcmc(simulaciones = 10L, cadenas = 2L, iteraciones = 400L, calentamiento = 200L)
+  f <- dl_ajustar(b, o, semilla = 3L)
+  f0 <- dl_ajustar_solo_prior(b, o, semilla = 3L, ajuste = f)
+  y <- dl_avd(f, b, semilla = 3L)
+  piezas <- list(resumen = dl_resumir(list(fit = f, yld = y, bundle = b)), fit = f, yld = y, bundle = b)
+  dl_exportar_corrida(piezas, sprintf("acs-%d", causa), carpeta = carpeta,
+                      etiquetas = dl_etiquetas(f, f0, b, grilla_rho = 0.5, semilla = 3L), forzar = TRUE,
+                      registro = reg)
+}
+
+# Una carpeta de corridas con las tres hijas de 9100 (la 9102 con exportar.incidencia = false), el ajuste de la causa
+# padre 9100 y la suma de las hijas, y tres registros: `hijas` (9101 y 9102), `ajuste` (las hijas y el ajuste de
+# 9100) y `suma` (las hijas y la suma de 9100). Memorizada en la sesión.
+corridas_acs <- local({
+  x <- NULL
+  function() {
+    if (is.null(x)) {
+      carpeta <- withr::local_tempdir(.local_envir = testthat::teardown_env())
+      reg <- function(nm) { f <- file.path(carpeta, paste0(nm, ".yaml")); writeLines("datasets: []", f); f }
+      todo <- reg("todo")
+      sin_incidencia <- list(exportar = list(incidencia = list(valor = FALSE, procedencia = "prueba: sin datos")))
+      hijas <- list(.corrida_minima(9101L, carpeta, todo), .corrida_minima(9102L, carpeta, todo, sin_incidencia),
+                    .corrida_minima(9103L, carpeta, todo))
+      ajuste <- .corrida_minima(9100L, carpeta, todo)
+      rutas <- dl_rutas_ejemplo(9100L, datos = FALSE, proxies = FALSE, formato = "completo")
+      suma <- dl_sumar_hijas(vapply(hijas, function(h) h$dir, ""), 9100L, "acs-suma", carpeta = carpeta,
+                             registro = todo, rutas = rutas)
+      # un registro con solo las corridas `ids` del registro completo
+      entradas <- yaml::read_yaml(todo)$datasets
+      solo <- function(nm, ids) {
+        f <- file.path(carpeta, paste0(nm, ".yaml"))
+        yaml::write_yaml(list(datasets = Filter(function(d) d$run_id %in% ids, entradas)), f)
+        f
+      }
+      id <- function(l) vapply(l, function(h) h$run_id, "")
+      x <<- list(carpeta = carpeta, rutas = rutas, hijas = hijas, ajuste = ajuste, suma = suma,
+                 reg_hijas = solo("hijas", id(hijas[1:2])), reg_ajuste = solo("ajuste", c(id(hijas), ajuste$run_id)),
+                 reg_suma = solo("suma", c(id(hijas), suma$run_id)))
+    }
+    x
+  }
+})

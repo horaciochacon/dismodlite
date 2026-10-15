@@ -14,7 +14,9 @@ dl_sumar_hijas(
   registrar = !is.null(registro),
   registro = NULL,
   rutas = dl_rutas(),
-  omitidas = NULL
+  omitidas = NULL,
+  guardar_simulaciones = TRUE,
+  cifras_simulaciones = 6
 )
 }
 \arguments{
@@ -42,6 +44,13 @@ datos de ejemplo).}
 
 \item{omitidas}{Hijas que no entran en la suma: lista de \code{list(cause_id = , motivo = )}. La suma queda por debajo
 de la causa padre en la parte de cada hija omitida, y el manifiesto lo declara con su motivo.}
+
+\item{guardar_simulaciones}{\code{TRUE} guarda las simulaciones por celda en \verb{draws/}; \code{FALSE} no las escribe, y la
+corrida no se puede re-resumir ni sumar con otras sin volver a correrla.}
+
+\item{cifras_simulaciones}{Cifras significativas con que se guarda cada simulación: un entero de 1 a 15 (por
+defecto 6, para que \verb{draws/} ocupe menos de la mitad) o \code{NULL}, todas. Con \code{guardar_simulaciones = FALSE} no
+cuenta.}
 }
 \value{
 Objeto de clase \code{dl_run} de la corrida de la suma, con \code{run_id}, \code{dir}, \code{manifest} y \code{files} (como en
@@ -70,7 +79,9 @@ número de simulaciones y celdas (ubicaciones, sexos y bandas). La simulación k
 simulaciones k de las hijas; la correlación entre hijas no se modela (cada una viene de su propio ajuste). Una hija
 que no se corre se declara en \code{omitidas}, con su motivo; la suma queda por debajo de la causa padre en su parte y el
 manifiesto lo declara como limitación. La corrida de la suma no tiene ajuste propio: trae \verb{cause/}, \verb{draws/} y el
-manifiesto (con las corridas de las hijas en \code{causa.hijas}), sin etiquetas, diagnósticos ni insumos.
+manifiesto (con las corridas de las hijas en \code{causa.hijas}), sin etiquetas, diagnósticos ni insumos. Las hijas
+deben traer sus simulaciones (\verb{draws/}); \code{guardar_simulaciones} y \code{cifras_simulaciones} dicen cómo se guardan las
+de la suma, como en \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}.
 }
 \examples{
 \donttest{

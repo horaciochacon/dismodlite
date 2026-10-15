@@ -754,6 +754,9 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' @param anios Vector de años enteros, sin `NA` ni repetidos (por ejemplo `2019:2023`): corre la causa una vez por
 #'   año, en orden, con el proyecto leído para cada uno (ver Detalles). `NULL` (por defecto) corre una sola vez, el
 #'   año de la configuración del proyecto.
+#' @param guardar_simulaciones,cifras_simulaciones Cómo se guardan las simulaciones de la corrida (o de la suma) en
+#'   `draws/`, como en [dl_exportar_corrida()]: `guardar_simulaciones = FALSE` no las escribe, y
+#'   `cifras_simulaciones` (por defecto 6; `NULL`, todas) las guarda con ese número de cifras significativas.
 #' @return Sin `anios`, un objeto de clase `dl_run`, como el de [dl_exportar_corrida()], una lista con `run_id` (el
 #'   identificador de la corrida, `<AAAA-MM-DD>_causa-<causa>_v<n>`, o `..._causa-<causa>-prueba_v<n>` con
 #'   `rapido = TRUE`), `dir` (su carpeta), `manifest` (el contenido de su `manifest.yaml`, como lista) y `files` (las
@@ -816,7 +819,8 @@ dl_revisar_proyecto <- function(carpeta, causa = NULL) {
 #' }
 #' @export
 dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, rapido = FALSE, sensibilidad = TRUE,
-                      opciones = NULL, registro = NULL, forzar = FALSE, anios = NULL) {
+                      opciones = NULL, registro = NULL, forzar = FALSE, anios = NULL, guardar_simulaciones = TRUE,
+                      cifras_simulaciones = 6) {
   if (missing(proyecto)) .dl_stop("falta `proyecto` (la carpeta del proyecto o un proyecto de dl_proyecto())")
   # la semilla se exige abajo, con el proyecto leído: una suma de subtipos no la usa
   if (!missing(semilla)) .dl_exigir_semilla(semilla)
@@ -827,6 +831,7 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
   if (!is.null(carpeta_salida)) .dl_exigir_carpeta(carpeta_salida, argumento = "carpeta_salida")
   .dl_exigir_registro(!is.null(registro), registro)
   if (!is.null(anios)) anios <- .dl_exigir_anios(anios)
+  sim <- .dl_exigir_simulaciones(guardar_simulaciones, cifras_simulaciones)
   p <- .dl_proyecto_a_correr(proyecto, causa, anios)
   cfg <- p$configuracion
   if (!is.null(causa) && .dl_exigir_causa(causa) != cfg$cause_id)
@@ -847,8 +852,9 @@ dl_correr <- function(proyecto, causa = NULL, semilla, carpeta_salida = NULL, ra
   nombre <- function(anio) sprintf("causa-%d%s%s", cfg$cause_id, if (is.null(anio)) "" else paste0("-", anio),
                                    if (rapido) "-prueba" else "")
   correr <- function(p, anio)
-    if (suma) .dl_correr_suma(p, carpeta_salida, rapido, registro, nombre(anio))
-    else .dl_correr_proyecto(p, semilla, carpeta_salida, rapido, sensibilidad, o, registro, forzar, nombre(anio))
+    if (suma) .dl_correr_suma(p, carpeta_salida, rapido, registro, nombre(anio), simulaciones = sim)
+    else .dl_correr_proyecto(p, semilla, carpeta_salida, rapido, sensibilidad, o, registro, forzar, nombre(anio),
+                             simulaciones = sim)
   if (is.null(anios)) return(correr(p, NULL))
   .dl_correr_anios(p, anios, correr)
 }
@@ -916,8 +922,10 @@ print.dl_corridas <- function(x, ...) {
 }
 
 # La corrida de un proyecto ya leído (`p`, para el año que se estima) con las opciones `o` del ajuste nacional y la
-# carpeta del resultado llamada `nombre`: los pasos de dl_correr(), que ya comprobó sus argumentos.
-.dl_correr_proyecto <- function(p, semilla, carpeta_salida, rapido, sensibilidad, o, registro, forzar, nombre) {
+# carpeta del resultado llamada `nombre`: los pasos de dl_correr(), que ya comprobó sus argumentos. `simulaciones`:
+# cómo se guardan las de la corrida (.dl_exigir_simulaciones).
+.dl_correr_proyecto <- function(p, semilla, carpeta_salida, rapido, sensibilidad, o, registro, forzar, nombre,
+                                simulaciones) {
   cfg <- p$configuracion
   # con un proyecto simple, los mensajes en sus palabras
   .dl_en_simple(simple = .dl_es_simple(cfg), datos = p$tablas$datos, {
@@ -988,7 +996,9 @@ print.dl_corridas <- function(x, ...) {
     run <- dl_exportar_corrida(list(resumen = resumen, fit = ajuste, yld = avd, bundle = b),
                                nombre = nombre,
                                carpeta = carpeta_salida, etiquetas = etiquetas, validacion = validacion,
-                               sensibilidad = sens, forzar = forzar || rapido, registro = registro)
+                               sensibilidad = sens, forzar = forzar || rapido, registro = registro,
+                               guardar_simulaciones = simulaciones$guardar,
+                               cifras_simulaciones = simulaciones$cifras)
     .dl_message("corrida escrita en %s%s", run$dir, if (rapido) " (prueba: no sirve para publicar)" else "")
     run
   })
@@ -1033,7 +1043,7 @@ print.dl_corridas <- function(x, ...) {
 # subtipos omitidos de la configuración y las rutas del proyecto. Antes dice cuáles tomó y comprueba, en palabras del
 # proyecto, lo que la suma exige de cada corrida (.dl_exigir_subtipos_de). Los subtipos de una suma de producción
 # escritos con forzar = TRUE quedan entre las limitaciones de su manifiesto.
-.dl_correr_suma <- function(p, carpeta_salida, rapido, registro, nombre) {
+.dl_correr_suma <- function(p, carpeta_salida, rapido, registro, nombre, simulaciones) {
   cfg <- p$configuracion
   s <- cfg$origen$configuracion
   anio <- .dl_anio_ajuste(cfg)
@@ -1045,7 +1055,7 @@ print.dl_corridas <- function(x, ...) {
   .dl_exigir_subtipos_de(subtipos, corridas, cfg$cause_id)
   run <- .dl_sumar_corridas(corridas, causa = cfg$cause_id, nombre = nombre, carpeta = carpeta_salida,
                             nombre_causa = cfg$origen$nombre, registro = registro, rutas = p$rutas,
-                            omitidas = cfg$suma$omitidas, forzadas = forzadas)
+                            omitidas = cfg$suma$omitidas, forzadas = forzadas, simulaciones = simulaciones)
   .dl_message("corrida escrita en %s%s", run$dir, if (rapido) " (prueba: no sirve para publicar)" else "")
   run
 }

@@ -16,7 +16,8 @@ dl_exportar_corrida(
   forzar = FALSE,
   ess_minimo = 400,
   registro = NULL,
-  rutas = NULL
+  rutas = NULL,
+  cifras_simulaciones = 6
 )
 }
 \arguments{
@@ -35,7 +36,8 @@ reparto por razón (\code{\link[=dl_repartir_razon]{dl_repartir_razon()}}) va en
 
 \item{sensibilidad}{Resultado de \code{\link[=dl_sensibilidad]{dl_sensibilidad()}} (opcional).}
 
-\item{guardar_simulaciones}{\code{TRUE} guarda las simulaciones por celda en \verb{draws/}.}
+\item{guardar_simulaciones}{\code{TRUE} guarda las simulaciones por celda en \verb{draws/}; \code{FALSE} no las escribe, y la
+corrida no se puede re-resumir ni sumar con otras sin volver a correrla.}
 
 \item{registrar}{\code{TRUE} agrega la corrida al registro \code{registro}.}
 
@@ -48,6 +50,10 @@ línea \verb{datasets: []}); opcional.}
 
 \item{rutas}{Rutas de \code{\link[=dl_rutas]{dl_rutas()}}; se usan los catálogos y la carpeta de covariables. \code{NULL} (por defecto) usa
 las de los insumos.}
+
+\item{cifras_simulaciones}{Cifras significativas con que se guarda cada simulación: un entero de 1 a 15 (por
+defecto 6, para que \verb{draws/} ocupe menos de la mitad) o \code{NULL}, todas. Con \code{guardar_simulaciones = FALSE} no
+cuenta.}
 }
 \value{
 Objeto de clase \code{dl_run}, una lista con \code{run_id} (el identificador de la corrida), \code{dir} (su carpeta),
@@ -66,7 +72,12 @@ La carpeta de la corrida:
 \item \verb{cause/<medida>/<run_id>.csv}: las celdas de \code{prevalence}, \code{incidence} y \code{yld} (las de \code{\link[=dl_resumir]{dl_resumir()}}, con
 \code{run_id}), validadas contra el contrato \code{estimates/v1} (\code{\link[=dl_validar_estimaciones]{dl_validar_estimaciones()}}).
 \item \verb{draws/<medida>_<año>.csv.gz}: las simulaciones por celda (con \code{guardar_simulaciones = TRUE}); con ellas
-\code{\link[=dl_reresumir_corrida]{dl_reresumir_corrida()}} y \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} trabajan sin volver a ajustar.
+\code{\link[=dl_reresumir_corrida]{dl_reresumir_corrida()}} y \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} trabajan sin volver a ajustar. Suelen ser la mayor parte del
+tamaño de la corrida: por defecto cada simulación se guarda con 6 cifras significativas (\code{cifras_simulaciones};
+menos de la mitad que con las 15 de \code{NULL}, con un error relativo de 5e-6 como máximo), y con
+\code{guardar_simulaciones = FALSE} no se escriben. Las celdas de la corrida salen de las simulaciones enteras; las de
+un re-resumen o una suma, de las guardadas. El manifiesto declara lo que no es el valor por defecto
+(\code{params.simulaciones_guardadas: false}, \code{params.cifras_simulaciones}).
 \item \verb{etiquetas/<run_id>.csv}: las etiquetas de \code{\link[=dl_etiquetas]{dl_etiquetas()}}.
 \item \verb{diagnostics/}: \code{mcmc.csv} (R-hat y ESS), \code{aceptacion.csv}, \code{desplazamiento_splits.csv}, \code{validacion.csv}
 (\code{\link[=dl_validar_ancla]{dl_validar_ancla()}}), \code{sensibilidad.csv} (\code{\link[=dl_sensibilidad]{dl_sensibilidad()}}, si se da) y, con una cascada, \code{renorm.csv}
