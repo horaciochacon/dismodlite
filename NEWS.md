@@ -7,9 +7,11 @@
   `guardar_simulaciones = FALSE` no escribe `draws/`, y `cifras_simulaciones` (un entero de 1 a 15; `NULL` por
   defecto, todas) guarda cada simulación con ese número de cifras significativas. En una corrida de 884 celdas por
   1000 simulaciones, 6 cifras reducen cada archivo de simulaciones en un 57 %, con un error relativo de 5e-6 como
-  máximo. Las celdas de la corrida salen siempre de las simulaciones enteras.
+  máximo. Las celdas de la corrida salen de las simulaciones enteras; las de un re-resumen o una suma de subtipos,
+  de las guardadas.
 * El manifiesto declara lo que no es el valor por defecto: `params.simulaciones_guardadas: false` y
-  `params.cifras_simulaciones`. Con los valores por defecto el manifiesto no cambia.
+  `params.cifras_simulaciones`; el de una suma declara también, en `causa.hijas`, las cifras de cada hija que las
+  guardó con menos. Con los valores por defecto el manifiesto no cambia.
 * `dl_reresumir_corrida()` y `dl_sumar_hijas()`, que leen las simulaciones, fallan antes de escribir nada con un
   mensaje que dice si la corrida se escribió sin ellas o si se borraron después, y que el remedio es volver a correrla
   con `guardar_simulaciones = TRUE`. La suma nombra la corrida de la hija a la que le faltan.

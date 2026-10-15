@@ -296,12 +296,15 @@ dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("
   man <- c(.dl_manifiesto_base(run_id, .DL_METODO_DISMOD_LITE, ronda), list(
     causa = list(cause_id = causa, cause_name = nombre_causa, nombre_es = padre$nombre_es,
                  agregacion = "suma_de_hijas",
-                 hijas = lapply(seq_along(hijas), function(i) list(
+                 hijas = lapply(seq_along(hijas), function(i) c(list(
                    cause_id = ids_hijas[i],
                    run_id = hijas[[i]]$run_id,
                    bundle_hash = hijas[[i]]$man$inputs$bundle_hash,
                    # fracción aguda descontada en la hija (0 si su manifiesto no la declara)
-                   csmr_fraccion_aguda = fraccion_aguda[i])),
+                   csmr_fraccion_aguda = fraccion_aguda[i]),
+                   # cifras con que la hija guardó sus simulaciones, las que se suman (sin la clave, todas)
+                   if (!is.null(hijas[[i]]$man$params$cifras_simulaciones))
+                     list(cifras_simulaciones = as.integer(hijas[[i]]$man$params$cifras_simulaciones)))),
                  hijas_omitidas = lapply(omitidas %||% list(), function(o) list(cause_id = as.integer(o$cause_id)))),
     params = c(list(draws = as.integer(n_draws), year = as.integer(anio), anio_ancla = anio_ancla, ui_level = nivel,
                     estadistico_puntual = .DL_ESTADISTICO_PUNTUAL, version_paquete = dl_version()),

@@ -74,9 +74,9 @@ La carpeta de la corrida:
 \code{\link[=dl_reresumir_corrida]{dl_reresumir_corrida()}} y \code{\link[=dl_sumar_hijas]{dl_sumar_hijas()}} trabajan sin volver a ajustar. Suelen ser la mayor parte del
 tamaño de la corrida: con \code{guardar_simulaciones = FALSE} no se escriben, y con \code{cifras_simulaciones} cada
 simulación se guarda con menos cifras significativas (con 6 cifras, menos de la mitad que con las 15 de siempre,
-con un error relativo de 5e-6 como máximo). Las celdas salen siempre de las simulaciones enteras; el manifiesto
-declara lo que no es el valor por defecto (\code{params.simulaciones_guardadas: false},
-\code{params.cifras_simulaciones}).
+con un error relativo de 5e-6 como máximo). Las celdas de la corrida salen de las simulaciones enteras; las de
+un re-resumen o una suma, de las guardadas. El manifiesto declara lo que no es el valor por defecto
+(\code{params.simulaciones_guardadas: false}, \code{params.cifras_simulaciones}).
 \item \verb{etiquetas/<run_id>.csv}: las etiquetas de \code{\link[=dl_etiquetas]{dl_etiquetas()}}.
 \item \verb{diagnostics/}: \code{mcmc.csv} (R-hat y ESS), \code{aceptacion.csv}, \code{desplazamiento_splits.csv}, \code{validacion.csv}
 (\code{\link[=dl_validar_ancla]{dl_validar_ancla()}}), \code{sensibilidad.csv} (\code{\link[=dl_sensibilidad]{dl_sensibilidad()}}, si se da) y, con una cascada, \code{renorm.csv}

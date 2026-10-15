@@ -102,6 +102,14 @@ test_that("la suma de subtipos nombra la hija sin simulaciones y escribe la suma
   seis <- dl_sumar_hijas(dirs, 9100L, "suma-seis", carpeta = d, rutas = x$rutas, cifras_simulaciones = 6)
   expect_identical(seis$manifest$params$cifras_simulaciones, 6L)
   expect_false("cifras_simulaciones" %in% names(x$suma$manifest$params))
+  expect_false(any(vapply(seis$manifest$causa$hijas, function(h) "cifras_simulaciones" %in% names(h), NA)))
+  # una hija guardada con menos cifras: la suma lo declara en causa.hijas
+  m <- yaml::read_yaml(file.path(copia, "manifest.yaml"))
+  m$params$cifras_simulaciones <- 6L
+  yaml::write_yaml(m, file.path(copia, "manifest.yaml"))
+  file.copy(file.path(dirs[2], "draws"), copia, recursive = TRUE)
+  mixta <- dl_sumar_hijas(c(dirs[1], copia, dirs[3]), 9100L, "suma-mixta", carpeta = d, rutas = x$rutas)
+  expect_identical(lapply(mixta$manifest$causa$hijas, `[[`, "cifras_simulaciones"), list(NULL, 6L, NULL))
 })
 
 test_that("dl_correr() pasa guardar_simulaciones y cifras_simulaciones a la corrida y a la suma", {

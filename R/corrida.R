@@ -617,9 +617,9 @@
 #'   [dl_reresumir_corrida()] y [dl_sumar_hijas()] trabajan sin volver a ajustar. Suelen ser la mayor parte del
 #'   tamaño de la corrida: con `guardar_simulaciones = FALSE` no se escriben, y con `cifras_simulaciones` cada
 #'   simulación se guarda con menos cifras significativas (con 6 cifras, menos de la mitad que con las 15 de siempre,
-#'   con un error relativo de 5e-6 como máximo). Las celdas salen siempre de las simulaciones enteras; el manifiesto
-#'   declara lo que no es el valor por defecto (`params.simulaciones_guardadas: false`,
-#'   `params.cifras_simulaciones`).
+#'   con un error relativo de 5e-6 como máximo). Las celdas de la corrida salen de las simulaciones enteras; las de
+#'   un re-resumen o una suma, de las guardadas. El manifiesto declara lo que no es el valor por defecto
+#'   (`params.simulaciones_guardadas: false`, `params.cifras_simulaciones`).
 #' - `etiquetas/<run_id>.csv`: las etiquetas de [dl_etiquetas()].
 #' - `diagnostics/`: `mcmc.csv` (R-hat y ESS), `aceptacion.csv`, `desplazamiento_splits.csv`, `validacion.csv`
 #'   ([dl_validar_ancla()]), `sensibilidad.csv` ([dl_sensibilidad()], si se da) y, con una cascada, `renorm.csv`
