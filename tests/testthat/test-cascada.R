@@ -376,3 +376,33 @@ test_that("cascada con sustituye: dX no cambia en media al anclar el proxy en la
   expect_equal(casc$sustituciones$covariate_id_nacional, 57L)
 })
 
+
+test_that("amplitud: el csmr de validación en casos y muestra se lee como x / n, con celdas de 0 muertes", {
+  x <- fit_v02(); casc <- dl_cascada(x$f, x$b, kappa = 1, semilla = 3L)
+  held <- x$b$datos$tipo_dato == "csmr" & x$b$datos$location_level == 1L
+  b_conteos <- x$b; b_conteos$datos <- data.table::copy(x$b$datos)
+  b_conteos$datos[held, `:=`(x = as.integer(round(val * 1e6)), n = 1000000L, val = NA_real_, se = NA_real_)]
+  # referencia: las mismas tasas como valor (la ruta que ya funcionaba)
+  b_valor <- x$b; b_valor$datos <- data.table::copy(b_conteos$datos)
+  b_valor$datos[held, `:=`(val = x / n, se = sqrt(x) / n, x = NA_integer_, n = NA_integer_)]
+  v <- suppressMessages(dl_validar_ancla(x$f, b_conteos, rutas_completas(), cascada = casc))
+  ref <- suppressMessages(dl_validar_ancla(x$f, b_valor, rutas_completas(), cascada = casc))
+  expect_identical(nrow(attr(v, "amplitud")), 2L)
+  expect_equal(attr(v, "amplitud"), attr(ref, "amplitud"))
+  # una celda sin muertes (log 0 = -Inf) no rompe ni la pendiente ni la correlación de rangos: se deja fuera
+  ceros <- which(held)[1:3]
+  b_conteos$datos[ceros, x := 0L]
+  am <- attr(suppressMessages(dl_validar_ancla(x$f, b_conteos, rutas_completas(), cascada = casc)), "amplitud")
+  expect_true(all(is.finite(am$pendiente)) && all(is.finite(am$spearman)))
+  # sin valor ni casos y muestra no hay tasa observada: el error lo dice
+  b_conteos$datos[ceros[1], n := NA_integer_]
+  expect_error(suppressMessages(dl_validar_ancla(x$f, b_conteos, rutas_completas(), cascada = casc)),
+               "sin valor ni casos y muestra")
+})
+
+test_that(".dl_spearman deja fuera los pares no finitos antes de contar los puntos", {
+  expect_identical(.dl_spearman(c(1, NA, 3, 4, -Inf), c(2, 5, 1, 7, 3)), stats::cor(c(1, 3, 4), c(2, 1, 7),
+                                                                                    method = "spearman"))
+  expect_identical(.dl_spearman(c(1, NA, 3), c(2, 5, 1)), NA_real_)
+  expect_identical(.dl_spearman(c(NaN, NA, NA), c(1, 2, 3)), NA_real_)
+})

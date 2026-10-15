@@ -38,13 +38,31 @@
   }))
 }
 
-# Correlación de rangos, o NA cuando no hay orden que correlacionar: menos de 3 puntos, o x o y constantes (salvo
-# ruido de coma flotante, medido en relación con el tamaño de los valores: tolerancia relativa 1e-9).
+# Correlación de rangos, o NA cuando no hay orden que correlacionar: menos de 3 pares finitos (un NA, o el log de una
+# celda sin muertes, -Inf, deja fuera su par), o x o y constantes (salvo ruido de coma flotante, medido en relación
+# con el tamaño de los valores: tolerancia relativa 1e-9).
 .dl_spearman <- function(x, y) {
+  ok <- is.finite(x) & is.finite(y); x <- x[ok]; y <- y[ok]
   if (length(x) < 3L) return(NA_real_)
   tol <- 1e-9
   if (stats::sd(x) <= tol * max(abs(x), 1) || stats::sd(y) <= tol * max(abs(y), 1)) return(NA_real_)
   stats::cor(x, y, method = "spearman")
+}
+
+# Tasa observada de cada fila del csmr de validación (columna obs): el valor si lo trae, si no casos / muestra, la
+# tasa cruda que la verosimilitud de conteos (Poisson) también lee de x y n (n, no n_efectivo: n_efectivo es un peso
+# de la verosimilitud y aquí no hay verosimilitud). Una fila sin ninguna de las dos formas es un error que la nombra.
+.dl_tasa_observada <- function(held) {
+  num <- function(cn) if (cn %in% names(held)) as.numeric(held[[cn]]) else rep(NA_real_, nrow(held))
+  val <- num("val"); x <- num("x"); n <- num("n")
+  obs <- ifelse(!is.na(val), val, x / n)
+  sin <- is.na(obs)
+  if (any(sin))
+    .dl_stop(paste0("el csmr subnacional de validaci\u00f3n tiene filas sin valor ni casos y muestra (%s): la ",
+                    "validaci\u00f3n de amplitud necesita la tasa observada de cada fila"),
+             paste(utils::head(held$dato_id[sin], 5L), collapse = ", "))
+  data.table::set(held, j = "obs", value = obs)
+  held
 }
 
 # Validación de amplitud: el gradiente departamental predicho frente al observado en el csmr departamental reservado
@@ -55,12 +73,13 @@
 .dl_amplitud_csmr <- function(casc, b) {
   held <- b$datos[tipo_dato == "csmr" & location_level == 1L & outlier == FALSE]
   if (!nrow(held)) return(NULL)
+  held <- .dl_tasa_observada(held)
   pred_d <- .dl_csmr_predicho(casc, b, held)
   celdas <- unique(held[, list(sex_id, age_start, age_end)])
   nac <- data.table::copy(celdas)[, `:=`(location_id = b$loc_ancla, dato_id = sprintf("nac_%d_%s", sex_id, age_start))]
   pred_n <- .dl_csmr_predicho(casc, b, nac)
   pob <- b$poblacion[location_level == 1L, list(N = sum(val)), by = list(location_id, sex_id)]
-  m <- merge(held[, list(dato_id, location_id, sex_id, age_start, age_end, obs = val)],
+  m <- merge(held[, list(dato_id, location_id, sex_id, age_start, age_end, obs)],
              pred_d[, list(dato_id, pred = val)], by = "dato_id")
   m <- merge(m, pred_n[, list(sex_id, age_start, age_end, pred_nac = val)], by = c("sex_id", "age_start", "age_end"))
   m <- merge(m, pob, by = c("location_id", "sex_id"))
@@ -80,8 +99,10 @@
   # ralo mide la composición por edad, no el gradiente.
   std <- ms[, list(ys = log(sum(w * obs) / sum(w * obs_nac)), xs = log(sum(w * pred) / sum(w * pred_nac))),
             by = list(sex_id, location_id)]
-  # pendiente de y sobre x con su IC95 (NA con menos de 3 puntos)
+  # pendiente de y sobre x con su IC95 (NA con menos de 3 puntos finitos: una celda sin muertes da y = -Inf y queda
+  # fuera, como en la correlación de rangos)
   pendiente <- function(x, y) {
+    ok <- is.finite(x) & is.finite(y); x <- x[ok]; y <- y[ok]
     if (length(x) < 3L) return(rep(NA_real_, 3))
     fit <- stats::lm(y ~ x); c(unname(stats::coef(fit)[2]), stats::confint(fit)[2, ])
   }
