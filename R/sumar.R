@@ -196,7 +196,9 @@
 #' simulaciones k de las hijas; la correlación entre hijas no se modela (cada una viene de su propio ajuste). Una hija
 #' que no se corre se declara en `omitidas`, con su motivo; la suma queda por debajo de la causa padre en su parte y el
 #' manifiesto lo declara como limitación. La corrida de la suma no tiene ajuste propio: trae `cause/`, `draws/` y el
-#' manifiesto (con las corridas de las hijas en `causa.hijas`), sin etiquetas, diagnósticos ni insumos.
+#' manifiesto (con las corridas de las hijas en `causa.hijas`), sin etiquetas, diagnósticos ni insumos. Las hijas
+#' deben traer sus simulaciones (`draws/`); `guardar_simulaciones` y `cifras_simulaciones` dicen cómo se guardan las
+#' de la suma, como en [dl_exportar_corrida()].
 #'
 #' @inheritParams dl_exportar_corrida
 #' @inheritParams dl_reresumir_corrida
@@ -233,16 +235,18 @@
 #' @export
 dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("DATA_ROOT"), nombre_causa = NULL,
                            nivel = 0.95, registrar = !is.null(registro), registro = NULL, rutas = dl_rutas(),
-                           omitidas = NULL) {
-  .dl_sumar_corridas(corridas_hijas, causa, nombre, carpeta, nombre_causa, nivel, registrar, registro, rutas, omitidas)
+                           omitidas = NULL, guardar_simulaciones = TRUE, cifras_simulaciones = NULL) {
+  .dl_sumar_corridas(corridas_hijas, causa, nombre, carpeta, nombre_causa, nivel, registrar, registro, rutas, omitidas,
+                     simulaciones = .dl_exigir_simulaciones(guardar_simulaciones, cifras_simulaciones))
 }
 
 # La suma de dl_sumar_hijas(), con sus argumentos, y `forzadas`: las hijas cuya corrida se escribió con forzar = TRUE
 # y que el manifiesto declara entre sus limitaciones (las que da dl_correr() de una suma de producción;
-# dl_sumar_hijas() no da ninguna). Un `nombre` que falta en dl_sumar_hijas() falta también aquí.
+# dl_sumar_hijas() no da ninguna). Un `nombre` que falta en dl_sumar_hijas() falta también aquí. `simulaciones`: las
+# de .dl_exigir_simulaciones(), cómo se guardan las simulaciones de la suma.
 .dl_sumar_corridas <- function(corridas_hijas, causa, nombre, carpeta, nombre_causa = NULL, nivel = 0.95,
                                registrar = !is.null(registro), registro = NULL, rutas = dl_rutas(), omitidas = NULL,
-                               forzadas = integer()) {
+                               forzadas = integer(), simulaciones = .dl_exigir_simulaciones(TRUE, NULL)) {
   .dl_exigir_registro(registrar, registro)
   .dl_exigir_nivel(nivel, exportable = TRUE)
   if (missing(nombre)) .dl_stop("falta `nombre` (nombre corto de la corrida de la suma, p. ej. \"acs-suma\")")
@@ -287,8 +291,7 @@ dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("
   # 3. Escritura: particiones, simulaciones de la suma, manifiesto; el registro al final.
   dir_run <- .dl_dir_corrida(carpeta, run_id)
   archivos <- .dl_escribir_particiones(celdas, dir_run, run_id)
-  dir.create(file.path(dir_run, "draws"), showWarnings = FALSE)
-  for (s in names(draws_suma)) .dl_fwrite_gz(draws_suma[[s]], .dl_archivo_draws(dir_run, s, anio))
+  .dl_escribir_draws(draws_suma, dir_run, anio, simulaciones)
   ids_hijas <- vapply(hijas, function(h) as.integer(h$man$causa$cause_id), 0L)
   man <- c(.dl_manifiesto_base(run_id, .DL_METODO_DISMOD_LITE, ronda), list(
     causa = list(cause_id = causa, cause_name = nombre_causa, nombre_es = padre$nombre_es,
@@ -300,8 +303,9 @@ dl_sumar_hijas <- function(corridas_hijas, causa, nombre, carpeta = Sys.getenv("
                    # fracción aguda descontada en la hija (0 si su manifiesto no la declara)
                    csmr_fraccion_aguda = fraccion_aguda[i])),
                  hijas_omitidas = lapply(omitidas %||% list(), function(o) list(cause_id = as.integer(o$cause_id)))),
-    params = list(draws = as.integer(n_draws), year = as.integer(anio), anio_ancla = anio_ancla, ui_level = nivel,
-                  estadistico_puntual = .DL_ESTADISTICO_PUNTUAL, version_paquete = dl_version()),
+    params = c(list(draws = as.integer(n_draws), year = as.integer(anio), anio_ancla = anio_ancla, ui_level = nivel,
+                    estadistico_puntual = .DL_ESTADISTICO_PUNTUAL, version_paquete = dl_version()),
+               .dl_params_simulaciones(simulaciones)),
     inputs = list(runs_hijas = lapply(hijas, function(h) h$run_id)),
     files = archivos,
     limitaciones = .dl_limitaciones_suma(ids_hijas, omitidas, anio, anio_ancla, fraccion_aguda, forzadas)))

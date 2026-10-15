@@ -14,7 +14,9 @@ dl_correr(
   opciones = NULL,
   registro = NULL,
   forzar = FALSE,
-  anios = NULL
+  anios = NULL,
+  guardar_simulaciones = TRUE,
+  cifras_simulaciones = NULL
 )
 }
 \arguments{
@@ -49,6 +51,10 @@ ver Detalles); no salta la compuerta del ancla. \code{FALSE} (por defecto) exige
 \item{anios}{Vector de años enteros, sin \code{NA} ni repetidos (por ejemplo \code{2019:2023}): corre la causa una vez por
 año, en orden, con el proyecto leído para cada uno (ver Detalles). \code{NULL} (por defecto) corre una sola vez, el
 año de la configuración del proyecto.}
+
+\item{guardar_simulaciones, cifras_simulaciones}{Cómo se guardan las simulaciones de la corrida (o de la suma) en
+\verb{draws/}, como en \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}: \code{guardar_simulaciones = FALSE} no las escribe, y
+\code{cifras_simulaciones} las guarda con ese número de cifras significativas.}
 }
 \value{
 Sin \code{anios}, un objeto de clase \code{dl_run}, como el de \code{\link[=dl_exportar_corrida]{dl_exportar_corrida()}}, una lista con \code{run_id} (el
