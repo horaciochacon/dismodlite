@@ -59,11 +59,11 @@ TOMAS (segundos):
           entre nudo_k y nudo_k+1, con a_j llevada primero al rango de los nudos». Una línea por vez, 0.7 s entre ellas;
           la configuración y θ bajan al 40 %.
 29.5-35.4 el cursor de la marca baja en a_j = 63 (29.8); puntos en i y f (30.1); la fila de W en 63, siete celdas
-          con su nudo debajo: 0, 0, 0, 0.70, 0.30, 0, 0 (30.5), «Σ = 1.00» (31.0); i(63) = 2.88 por 1000 (31.4).
+          con su nudo debajo: 0, 0, 0, 0.70, 0.30, 0, 0 (30.5), «Σ = 1.00» (31.0); i(63) = 2.88 por 1000 personas-año (31.4).
 35.7-41.6 el cursor vuelve a 30 (36.0-36.6, EASE.mover) y va de nudo en nudo hasta 99 (36.8-41.3); la fila cambia con
           él y la suma se queda en 1. En cada nudo se detiene: un 1 bajo ese nudo; desde 95, un 1 en el último.
 42.0-46.4 lo de W se va (42.0); i pasa a escala lineal, 0 a 8 por 1000 (42.4-43.8); f se apaga y la leyenda dice
-          «f (10 a 90 por 1000) no cabe en esta escala». Los tramos se curvan: crecimiento exponencial.
+          «f (10 a 90 por 1000 personas-año) no cabe aquí». Los tramos se curvan: crecimiento exponencial.
 46.7-50.6 de vuelta a escala log (47.0-48.4); f vuelve.
 51.0-56.6 a la derecha, θ →(W, exp) i(a), f(a) →(RK4) p(a) (51.3) y «dl_edo(): RK4 con paso h = 0.2 (escena 03),
           r = 0 y p(30) = 0» (51.7); los ejes de p (52.2) y la curva p se traza de 30 a 99 (52.8-55.2, lineal).

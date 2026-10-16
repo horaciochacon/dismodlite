@@ -44,6 +44,12 @@ Diseñador (10 notas, todas aplicadas):
 Además, en la vuelta de corrección: las marcas del eje y los títulos de las dos escalas se relevan (antes se
 cruzaban y se encimaban a mitad del cambio).
 
+Después, con la lista de hallazgos recurrentes de la sesión coordinadora (escenas 04, 05, 06 y 10): «por 1000» sin
+denominador en tres etiquetas (i(63), el valor del nudo, la nota de f) pasó a «por 1000 personas-año»; i(63) se movió
+a la izquierda del cursor, en dos líneas, y el valor del nudo a su derecha, para no chocar con la leyenda ni con f. Lo
+demás de la lista ya se cumplía: valores ilustrativos de la guía (no el ajuste del ejemplo) y dicho en el pie; ningún
+«igual» para un ≈; las comprobaciones miden lo dibujado; la cabecera nombra dl_edo(), que hace lo que se muestra.
+
 ## (b) Cambios que sugeriría en lib/ (hechos aquí, en index.html)
 
 - `D.ejes` con escala mezclable: una opción `yMezcla(u)` (log ↔ lineal) que mueva marcas, rejilla y título. Aquí lo

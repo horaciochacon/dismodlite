@@ -229,8 +229,9 @@
       c.svg(D.circulo(xc, yLog(1000 * iCur), 8, { relleno: P.i, borde: P.superficie, grosor: 3, o: oPc }));
       var oI63 = M.visible(t, T.i63, T.vuelve[0] - 0.3);
       if (oI63 > 0) {
-        c.svg(D.rect(xc + 10, yLog(1000 * iCur) + 20, 212, 36, { relleno: P.fondo, o: oI63 }));
-        c.svg(D.parrafo(xc + 14, yLog(1000 * iCur) + 22, 300, '$i(63)$ = ' + D.num(1000 * iCur, 2) + ' por 1000', { tam: 24, o: oI63, id: 'i63', alto: 36 }));
+        // A la izquierda del cursor, entre las curvas de f (arriba) e i (abajo), en dos líneas.
+        c.svg(D.rect(xc - 262, yLog(1000 * iCur) - 100, 250, 68, { relleno: P.fondo, o: oI63 }));
+        c.svg(D.parrafo(xc - 14, yLog(1000 * iCur) - 98, 250, '$i(63)$ = ' + D.num(1000 * iCur, 2) + '\npor 1000 personas-año', { tam: 24, ancla: 'end', o: oI63, id: 'i63', alto: 66, interlineado: 1.25 }));
         c.dato('i63', iCur);
         c.dato('i63_texto', D.num(1000 * iCur, 2));
       }
@@ -254,8 +255,8 @@
     // f, apagada en la escala lineal: se dice por qué.
     var oNf = M.tramo(u, 0.3, 0.6) * aten;
     if (oNf > 0) {
-      c.svg(D.rect(LEY.x - 200, LEY.y + 44, 500, 44, { relleno: P.fondo, o: oNf }));
-      c.svg(D.parrafo(LEY.x + 290, LEY.y + 48, 490, '$f$ (10 a 90 por 1000) no cabe en esta escala', { tam: 24, color: P.suave, ancla: 'end', o: oNf, id: 'nota-f', alto: 34 }));
+      c.svg(D.rect(LEY.x - 330, LEY.y + 44, 630, 44, { relleno: P.fondo, o: oNf }));
+      c.svg(D.parrafo(LEY.x + 290, LEY.y + 48, 620, '$f$ (10 a 90 por 1000 personas-año) no cabe aquí', { tam: 24, color: P.suave, ancla: 'end', o: oNf, id: 'nota-f', alto: 34 }));
     }
 
     // Los puntos de los nudos: i y f (pop sobre el radio, escalonados 90 ms). El de i en 60 es el que se mueve.
@@ -278,7 +279,7 @@
     var oV = M.visible(t, T.sube[0], T.baja[0]);
     if (oV > 0) {
       var v60 = 1000 * Math.exp(logI[K60]);
-      c.svg(D.texto(G.x(60) - 22, yLog(v60) - 20, D.num(v60, 1) + ' por 1000', { tam: 24, ancla: 'end', id: 'nudo-valor', seguir: true, o: oV }));
+      c.svg(D.texto(G.x(60) + 22, yLog(v60) - 22, D.num(v60, 1) + ' por 1000 personas-año', { tam: 24, ancla: 'start', id: 'nudo-valor', seguir: true, o: oV }));
       c.dato('nudo_texto', D.num(v60, 1));
     }
     // El final: lo que queda es θ.
