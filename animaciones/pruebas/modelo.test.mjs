@@ -159,7 +159,7 @@ test('lpSuavidad, lpPriorEmr, lpMvnAr1, logMvn y cholesky', () => {
   comparar('logMvn', M.logMvn(fn.mvn.z, fn.mvn.Sigma), fn.mvn.valor, 1e-11, 'abs');
   for (const c of fn.cholesky) {
     compararMatriz('correlacionAr1', M.correlacionAr1(c.n, c.rho), c.R, 1e-16);
-    compararMatriz('cholesky (chol de R)', M.cholAr1(c.n, c.rho), c.U, 1e-14);
+    compararMatriz('cholesky (chol de R)', M.cholAr1(c.n, c.rho), c.U, 0);   // DPOTRF2 de LAPACK repetido: idéntico bit a bit
   }
 });
 
@@ -223,7 +223,7 @@ for (const [variante, cv] of Object.entries(fx.contextos)) {
       comparar('mallas (edades, índices)', c.idx_anual_malla, r.idx_anual_malla, 0, 'abs');
       comparar('mallas (edades, índices)', c.idx_anual_media, r.idx_anual_media, 0, 'abs');
       comparar('mallas (edades, índices)', c.anual, r.anual, 0, 'abs');
-      compararMatriz('cholesky (chol de R)', c.ancla.chol_R, r.chol_R, 1e-14);
+      compararMatriz('cholesky (chol de R)', c.ancla.chol_R, r.chol_R, 0);
       const pesos = (a, e, nm) => {
         assert.equal(a.length, e.length, nm);
         a.forEach((p, k) => { comparar('mallas (edades, índices)', p.idx, e[k].idx, 0, 'abs'); comparar('pesosIntervalo (w)', p.w, e[k].w, 1e-15, 'rel', nm); });
@@ -406,6 +406,182 @@ test('betaMomentos, renormalizarProporciones y avdBanda reproducen R/avd.R', () 
     const pr = fx.avd.proporciones[c.draw - 1];
     comparar('avdBanda', M.avdBanda(c.p_banda, pr.pi, pr.dw, c.como), c.avd, 1e-14);
   }
+});
+
+// ---- (d) Casos adversarios --------------------------------------------------------------------------------------
+
+const adv = fx.adversario;
+
+test('ctx.emr se rehace desde el ancla y la configuración en cada variante (prior, techo derivado, plano, tabla, cero)', () => {
+  for (const [variante, cv] of Object.entries(fx.contextos)) {
+    const e = cv.emr_fuente;
+    // dl_prior_emr(): una fila por sexo y banda presentes en la prevalencia y en el csmr del ancla
+    const tabla = [];
+    e.prev.sex_id.forEach((sx, k) => {
+      const j = e.csmr.sex_id.findIndex((s2, m) => s2 === sx && e.csmr.inicio[m] === e.prev.inicio[k] && e.csmr.fin[m] === e.prev.fin[k]);
+      if (j < 0) return;
+      tabla.push({ sx, inicio: e.prev.inicio[k], fin: e.prev.fin[k],
+        ...M.priorEmrBanda(e.csmr.val[j], e.prev.val[k], e.csmr.sigma_log[j], e.prev.sigma_log[k], e.fraccion_aguda, e.factor_sd) });
+    });
+    let cota = e.cota_cfg;
+    if (e.techo_origen === 'derivado') {   // .dl_techo_emr: K_techo por el máximo de csmr / p sobre los dos sexos
+      const t = M.techoEmr(tabla.map((x) => x.mu_log), e.factor_techo);
+      comparar('prior de la EMR (rehecho desde el ancla)', t.cota, e.cota_cfg, 1e-14, 'rel', `${variante} techo derivado`);
+      cota = t.cota;
+    }
+    for (const s of cv.sexos) {
+      let r;
+      if (e.tipo === 'cero') r = M.emrCero();
+      else if (e.tipo === 'plano_cota') r = M.emrPlano(s.ctx.nudos, e.cota_cfg);
+      else if (e.tipo === 'tabla') {
+        const dado = e.dado.sex_id.map((sx, k) => ({ sx, inicio: e.dado.inicio[k], fin: e.dado.fin[k], mu_log: e.dado.mu_log[k], sd_log: e.dado.sd_log[k] }));
+        r = M.emrDadoEnNudos(dado.filter((x) => x.sx === s.sexo), s.ctx.nudos, cota);
+      } else r = M.emrEnNudos(tabla.filter((x) => x.sx === s.sexo), s.ctx.nudos, cota);
+      const et = `${variante} sexo ${s.sexo}`;
+      comparar('prior de la EMR (rehecho desde el ancla)', r.mu_log, s.ctx.emr.mu_log, 1e-14, 'rel', `${et} mu_log`);
+      comparar('prior de la EMR (rehecho desde el ancla)', r.sd_log, s.ctx.emr.sd_log, 1e-14, 'rel', `${et} sd_log`);
+      comparar('prior de la EMR (rehecho desde el ancla)', r.cota, s.ctx.emr.cota, 1e-14, 'rel', `${et} cota`);
+      assert.deepEqual([r.plano, r.cero], [s.ctx.emr.plano, s.ctx.emr.cero], et);
+    }
+  }
+  // las variantes cubren los cinco caminos de .dl_ctx_emr()
+  const tipos = new Set(Object.values(fx.contextos).map((cv) => `${cv.emr_fuente.tipo}/${cv.emr_fuente.techo_origen}`));
+  for (const t of ['informativo_edad/impreso', 'informativo_edad/derivado', 'plano_cota/impreso', 'tabla/impreso', 'cero/cero'])
+    assert.ok(tipos.has(t), `falta una variante con ${t}`);
+});
+
+test('la cota de la EMR es cerrada: f igual al techo o al piso queda dentro; a un ulp, fuera (como en R)', () => {
+  const vistos = { techo_igual: 0, techo_fuera: 0, piso_igual: 0, piso_fuera: 0 };
+  for (const cv of Object.values(fx.contextos)) for (const s of cv.sexos) {
+    const c = M.prepararCtx(s.ctx), K = c.nudos.length;
+    for (const th of s.thetas) {
+      const m = /^(techo|piso)_([+-]\d)_ulp$/.exec(th.nombre);
+      if (!m) continue;
+      const k = m[1] === 'techo' ? K + 1 : K, borde = m[1] === 'techo' ? c.emr.cota[1] : c.emr.cota[0];
+      const f = Math.exp(th.theta[k]), lp = M.lpComponentes(th.theta, c).total;
+      assert.equal(Number.isFinite(lp), Number.isFinite(th.lp.total), `${cv.nombre} ${s.sexo} ${th.nombre}`);
+      if (f === borde && Number.isFinite(th.lp.total)) vistos[`${m[1]}_igual`]++;
+      if ((m[1] === 'techo' ? f > borde : f < borde) && th.lp.total === -Infinity) vistos[`${m[1]}_fuera`]++;
+    }
+  }
+  for (const [caso, n] of Object.entries(vistos)) assert.ok(n > 0, `ningún theta probó ${caso}`);
+  assert.equal(M.fFueraDeCota([Math.log(0.25)], [0, Math.exp(Math.log(0.25))]), false);
+});
+
+test('q = 0, RK4 inestable y desborde: los mismos -Inf que R en cada término', () => {
+  for (const cv of Object.values(fx.contextos)) for (const s of cv.sexos) {
+    const c = M.prepararCtx(s.ctx);
+    for (const th of s.thetas.filter((t) => ['q_cero', 'rk4_inestable', 'desborde'].includes(t.nombre))) {
+      const lp = M.lpComponentes(th.theta, c);
+      for (const nm of M.constantes.LP_NOMBRES) {
+        assert.equal(Number.isFinite(lp[nm]), Number.isFinite(th.lp[nm]), `${cv.nombre} ${s.sexo} ${th.nombre} ${nm}`);
+        if (!Number.isFinite(th.lp[nm])) assert.ok(Object.is(lp[nm], th.lp[nm]), `${th.nombre} ${nm}: ${lp[nm]} frente a ${th.lp[nm]}`);
+      }
+    }
+  }
+});
+
+test('cholesky = chol() de R bit a bit con rho cerca de 1, n = 1 y matrices cualesquiera; L_ancla con lambda 0.25', () => {
+  for (const c of adv.cholesky) {
+    compararMatriz('cholesky (chol de R)', M.cholAr1(c.n, c.rho), c.U, 0, 'abs', `n ${c.n} rho ${c.rho}`);
+    comparar('lpMvnAr1', M.lpMvnAr1(c.z, c.sigma_log, M.cholAr1(c.n, c.rho), c.lambda), c.valor, 1e-12, 'abs', `n ${c.n} rho ${c.rho}`);
+  }
+  for (const c of adv.cholesky_general) compararMatriz('cholesky (chol de R)', M.cholesky(c.A), c.U, 0, 'abs', `n ${c.A.length}`);
+  assert.throws(() => M.cholesky([[1, 2], [2, 1]]), /definida positiva/);
+});
+
+test('rhat, ess y sumaGeyer con cadenas cortas, impares y anticorrelacionadas; forma con un parámetro quieto', () => {
+  for (const [nombre, d] of Object.entries(adv.diagnosticos)) {
+    comparar('rhat', M.rhat(d.cadenas), d.rhat, 1e-12, 'rel', nombre);
+    comparar('ess', M.ess(d.cadenas), d.ess, 1e-12, 'rel', nombre);
+    comparar('ess', M.ess(d.cadenas, 2), d.ess_lag2, 1e-12, 'rel', `${nombre} max_lag 2`);
+    comparar('ess', M.ess(d.cadenas, 3), d.ess_lag3, 1e-12, 'rel', `${nombre} max_lag 3`);
+  }
+  for (const g of adv.geyer) comparar('sumaGeyer', M.sumaGeyer(g.autocor), g.valor, 0, 'abs');
+  compararMatriz('muestreador (forma de la propuesta)', M.formaPropuesta(adv.forma_quieta.theta_b), adv.forma_quieta.L, 1e-12, 'abs');
+  // lo que dl_rhat() y dl_ess() rechazan
+  assert.throws(() => M.ess(adv.diagnosticos.n4.cadenas, 1), /max_lag/);
+  assert.throws(() => M.ess([[[1], [2], [3]]]), /al menos 4/);
+  assert.throws(() => M.rhat([[[1], [2], [3], [4]], [[1], [2], [3]]]), /mismas filas/);
+});
+
+test('pesosEdad con bandas desordenadas, huecos, banda abierta y empates; desplazamientoLog en el orden de P', () => {
+  const pe = adv.pesos_edad, bandas = filasDe(pe.bandas);
+  const ids_ordenados = bandas.slice().sort((a, b) => a.inicio - b.inicio).map((b) => b.age_group_id);
+  for (const c of pe.casos) {
+    assert.deepEqual(ids_ordenados, c.filas_id);   // las filas de P van en el orden de las bandas por edad, como en R
+    compararMatriz('pesosEdad', M.pesosEdad(pe.edades, bandas, c.fuera, c.interp), c.P, 0, 'abs', `${c.fuera} ${c.interp}`);
+  }
+  const P = M.pesosEdad(pe.edades, bandas, 'vecina', 'lineal'), d = adv.desplazamiento;
+  d.dX.forEach((dX, k) => comparar('desplazamientoLog', M.desplazamientoLog(dX, P, d.beta[k], d.kappa), d.delta[k], 0, 'abs'));
+});
+
+test('betaMomentos en los bordes: v = media (1 - media) es infactible, v < 1e-12 degenerado, intervalo invertido', () => {
+  const motivos = new Set();
+  for (const c of adv.beta_bordes) {
+    const b = M.betaMomentos(c.media, c.inferior, c.superior);
+    assert.equal(b.v, c.v);
+    assert.equal(b.motivo ?? 'beta', c.motivo, `media ${c.media} [${c.inferior}, ${c.superior}]`);
+    motivos.add(c.motivo);
+    if (c.motivo === 'beta') comparar('betaMomentos', [b.forma1, b.forma2], [c.forma1, c.forma2], 0, 'rel');
+    else assert.equal(b.constante, c.constante);
+  }
+  assert.deepEqual([...motivos].sort(), ['beta', 'degenerado', 'infactible']);
+});
+
+test('el techo de la cascada: log f igual a log(techo) no trunca; a un ulp por encima, sí', () => {
+  const ctx = M.prepararCtx(fx.contextos.ejemplo.sexos[0].ctx);
+  for (const t of adv.techo_cascada) {
+    // si Math.log de V8 y log de glibc difirieran aquí, la decisión podría cambiar: la prueba lo detectaría
+    assert.equal(Math.log(t.techo_f), t.log_techo, `log(${t.techo_f})`);
+    t.casos.forEach((c, k) => {
+      const s = M.edoLogMedia(t.log_i_media, c.log_f_media, ctx, t.techo_f);
+      assert.equal(s.truncado, c.truncado, `techo ${t.techo_f} caso ${k}`);
+      comparar('logTasasMedia y techo de la cascada', s.p, c.p, 1e-12, 'rel');
+      comparar('logTasasMedia y techo de la cascada', s.f, c.f, 1e-12, 'rel');
+    });
+    assert.deepEqual(t.casos.map((c) => c.truncado), [0, 1]);
+  }
+});
+
+// ---- (d) Entradas de las escenas: Float64Array, formas de la remisión y errores que R también da -----------------
+
+test('Float64Array vale donde vale un arreglo (theta, remisión, cadenas, tasas)', () => {
+  const c = fx.edo_bordes.find((x) => x.nombre === 'nsub7_33_97_remision_vector');
+  const op = { edad_inicio: c.edad_inicio, edad_fin: c.edad_fin, nsub: c.nsub };
+  const conArreglo = M.edo(v.log_i, v.log_f, v.nudos, { ...op, remision: c.remision });
+  const conF64 = M.edo(Float64Array.from(v.log_i), Float64Array.from(v.log_f), v.nudos, { ...op, remision: Float64Array.from(c.remision) });
+  comparar('edo en los bordes (p, i, f, p_malla)', conF64.p, c.p, 1e-12, 'rel', 'Float64Array');
+  assert.deepEqual(Array.from(conF64.p), Array.from(conArreglo.p));
+  const s = fx.contextos.adversario.sexos[0], ctx = M.prepararCtx(s.ctx);
+  for (const th of s.thetas) assert.ok(Object.is(M.logPosterior(Float64Array.from(th.theta), ctx), M.logPosterior(th.theta, ctx)), th.nombre);
+  const cad = adv.diagnosticos.n7.cadenas;
+  assert.deepEqual(M.rhat(cad.map((ch) => ch.map((f) => Float64Array.from(f)))), M.rhat(cad));
+  assert.deepEqual(M.resolverEdo(Float64Array.from(v.i_media), Float64Array.from(v.f_media), 0, 0, 5), v.p_malla);
+});
+
+test('la remisión del contexto: número, arreglo por punto o {valor, por_edad} dan la misma r', () => {
+  const s = fx.contextos.nsub10.sexos[0], n = s.r.r_media.length;
+  const conCfg = M.prepararCtx(s.ctx);
+  comparar('remisionPorEdad', conCfg.r_media, s.r.r_media, 0, 'abs', 'configuración');
+  comparar('remisionPorEdad', M.prepararCtx({ ...s.ctx, remision: s.r.r_media }).r_media, s.r.r_media, 0, 'abs', 'arreglo');
+  comparar('remisionPorEdad', M.prepararCtx({ ...s.ctx, remision: 0.05 }).r_media, new Array(n).fill(0.05), 0, 'abs', 'número');
+  comparar('remisionPorEdad', M.prepararCtx({ ...s.ctx, remision: { valor: 0.05 } }).r_media, new Array(n).fill(0.05), 0, 'abs');
+  comparar('remisionPorEdad', M.prepararCtx({ ...s.ctx, remision: undefined }).r_media, new Array(n).fill(0), 0, 'abs', 'sin remisión');
+});
+
+test('errores que R también da: theta corto, nudos o bandas sin ordenar, ancla desordenada', () => {
+  const s = fx.contextos.ejemplo.sexos[0], ctx = M.prepararCtx(s.ctx), K = ctx.nudos.length, th = s.thetas[1].theta;
+  assert.throws(() => M.logPosterior(th.slice(0, K), ctx), /hacen falta 14/);
+  assert.throws(() => M.edoCtx(th.slice(0, 2 * K - 1), ctx), /theta trae/);
+  assert.equal(M.logPosterior([...th, 99], ctx), M.logPosterior(th, ctx));   // valores de más se ignoran, como en R
+  const cero = M.prepararCtx(fx.contextos.cero.sexos[0].ctx);   // con la EMR cero, theta = log i (los K valores bastan)
+  assert.ok(Number.isFinite(M.logPosterior(fx.contextos.cero.sexos[0].thetas[1].theta, cero)));
+  assert.throws(() => M.matrizW([40, 30, 50], [35]), /creciente/);
+  assert.throws(() => M.bandaDe([42], [{ inicio: 45, fin: 50 }, { inicio: 40, fin: 45 }]), /creciente/);
+  const perm = [2, 0, 1, ...s.ctx.ancla.inicio.slice(3).map((_, k) => k + 3)];
+  const desordenada = { ...s.ctx, ancla: { ...s.ctx.ancla, ...Object.fromEntries(['age_group_id', 'inicio', 'fin', 'val', 'sigma_log'].map((c) => [c, perm.map((k) => s.ctx.ancla[c][k])])) } };
+  assert.throws(() => M.prepararCtx(desordenada), /ancla.inicio debe ser creciente/);
 });
 
 // ---- Resumen ----------------------------------------------------------------------------------------------------

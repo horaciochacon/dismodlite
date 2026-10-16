@@ -12,7 +12,14 @@
 #       configuración, y varios theta (simulaciones de un dl_ajustar() corto, perturbadas, sobre el techo de la EMR,
 #       bajo el piso del prior plano y con desborde) con la log-posterior de R por términos;
 #   (c) configuraciones de borde de la EDO: nsub 10, remisión constante y por tramos, edad_inicio 0 y 20, edad_fin 90,
-#       p0 > 0 y f = 0.
+#       p0 > 0 y f = 0;
+#   (d) casos adversarios, para buscar infidelidades del port: variantes del proyecto con edad_inicio 33 (bandas de
+#       población con distinto número de edades del modelo), edad_fin 97, nsub 7 y 3, remisión por tramos que no caen
+#       en la malla, rho 0.95 y 0.999, lambda 0.25, offset con un dato de valor 0, binomiales con x = 0 y x = n,
+#       n_efectivo, techo derivado del ancla (fracción aguda, factor_sd, factor_techo), prior plano con piso declarado,
+#       prior por tabla y EMR cero con datos; theta en el techo y en el piso (y a un ulp), con q = 0 y con RK4 inestable;
+#       y pruebas sueltas de chol con rho cerca de 1, cadenas cortas e impares, bandas del proxy con huecos y empates,
+#       los bordes de la Beta por momentos y el techo de la cascada justo en log(techo).
 # Los números se escriben con 17 cifras significativas (jsonlite digits = I(17)): un double de R vuelve al mismo
 # double en JavaScript. digits = NA de jsonlite escribe 15 y no siempre vuelve (el script lo comprueba).
 # No-finitos: jsonlite con na = "string" escribe "Inf", "-Inf", "NaN" y "NA" (DL.modelo.reviverR los convierte).
@@ -35,6 +42,7 @@ salida <- file.path(carpeta, "fixtures.json")
 A <- function(x) I(as.vector(x))
 `%||%` <- function(a, b) if (is.null(a)) b else a
 filas <- function(m) { m <- as.matrix(m); dimnames(m) <- NULL; m }   # matriz -> arreglo de filas
+ulp <- function(x) 2^(floor(log2(abs(x))) - 52)                      # distancia al double siguiente (x normal)
 
 fx <- list(generado_con = list(r = R.version.string, dismodlite = as.character(packageVersion("dismodlite")),
                                blas = unname(extSoftVersion()["BLAS"])))
@@ -121,7 +129,13 @@ fx$edo_bordes <- list(
   caso_edo("edad_inicio_20_remision_por_tramos", 20, remision_cfg = tramos),
   caso_edo("edad_fin_90_p0", 30, edad_fin = 90, p0 = 0.01),
   caso_edo("f_cero", 30, f_cero = TRUE),
-  caso_edo("f_cero_remision_nsub10", 30, nsub = 10L, remision = 0.3, f_cero = TRUE))
+  caso_edo("f_cero_remision_nsub10", 30, nsub = 10L, remision = 0.3, f_cero = TRUE),
+  # (d) adversarios: h = 1/3 y 1/7 (h/2 no exacto en binario), p0 alto, remisión con un valor por punto de la malla
+  # h/2 y edades no enteras (la malla anual es 30.5, 31.5, ...; la malla h/2 termina en 98.7)
+  caso_edo("nsub3_p0_0.5", 30, nsub = 3L, p0 = 0.5),
+  caso_edo("nsub7_33_97_remision_vector", 33, edad_fin = 97, nsub = 7L,
+           remision = 0.05 + 0.02 * sin(dl$.dl_edades_media(33, 97, 7L))),
+  caso_edo("edades_no_enteras", 30.5, edad_fin = 98.7))
 
 # ==== Funciones sueltas de la log-posterior ===========================================================================
 
@@ -246,6 +260,65 @@ variantes <- list(
                 nota = paste("edad_inicio 35, edad_fin 100 (95+ con 6 edades), nsub 10, remisión 0.05 y 0.2 en [60, 80),",
                              "rho 0, datos en el ajuste")))
 
+# ---- (d) Variantes adversarias ----
+# Filas nacionales de borde: un valor 0 con offset (log-normal), binomiales con x = 0 y x = n, n_efectivo distinto de n,
+# Poisson con x = 0 sobre una banda abierta, y datos que cruzan bandas de población con distinto número de edades del
+# modelo: con edad_inicio 33 la banda [30, 35) tiene 2 edades (33, 34) y, con edad_fin 97, la de 95+ tiene 3.
+extra_adv <- data.table(
+  causa = 9100L, ubicacion = "123", anio = 2023L,
+  sexo = c("hombres", "mujeres", "hombres", "mujeres", "hombres", "mujeres", "hombres", "mujeres", "hombres", "mujeres"),
+  edad_inicio = c(33, 30, 50, 41, 60, 75, 33, 41, 75, 30),
+  edad_fin =    c(45, 45, 60, 43, 125, 125, 35, 42, 125, 125),
+  medida = c("prevalencia", "prevalencia", "prevalencia", "prevalencia", "incidencia", "mortalidad", "incidencia",
+             "prevalencia", "prevalencia", "incidencia"),
+  valor = c(0, 0, NA, NA, NA, 0.004, 0.0004, NA, 0.2, NA),
+  error_estandar = c(0.002, 0.001, NA, NA, NA, 0.001, 0.0002, NA, 0.05, NA),
+  casos = c(NA, NA, 0, 400, 0, NA, NA, 30, NA, 0), muestra = c(NA, NA, 500, 400, 10000, NA, NA, 900, NA, 1e5),
+  muestra_efectiva = c(NA, NA, NA, NA, NA, NA, NA, 450, NA, NA),
+  excluir = FALSE, motivo = "", fuente = "fila adversaria de las animaciones", definicion = "prueba")
+datos_adv <- rbind(datos0, extra_adv, fill = TRUE)
+cfg_adv <- cfg0
+cfg_adv$edad_inicio <- 33
+cfg_adv$nudos <- c(33, 37.5, 50, 65, 80, 90, 97)          # 33 y 37.5 fuera de las bandas del ancla (desde 40)
+cfg_adv$remision <- 0.02
+cfg_adv$datos_en_ajuste <- c("prevalencia", "incidencia", "mortalidad")
+cfg_adv$ancla <- list(peso = 0.25, correlacion_edad = 0.95)
+cfg_adv$avanzado <- list(nsub = 7L, edad_fin = 97L, offset_lognormal = 1e-3,
+  remision = list(por_edad = list(list(edad_inicio = 47.3, edad_fin = 61.7, valor = 0.3, fuente = "prueba"),
+                                  list(edad_inicio = 90, edad_fin = 200, valor = 0.1, fuente = "prueba"))))
+cfg_rho <- cfg0                                            # techo derivado: sin mortalidad_exceso.techo
+cfg_rho$ancla <- list(peso = 1, correlacion_edad = 0.999)
+cfg_rho$mortalidad_exceso <- list(fraccion_aguda = 0.1)
+cfg_rho$incidencia <- list(suavidad = 2)
+cfg_rho$nudos <- c(30, 45, 60, 75, 90, 99)
+cfg_rho$avanzado <- list(emr_prior = list(factor_sd = list(valor = 1.5, procedencia = "prueba"), factor_techo = 2))
+cfg_piso <- cfg0
+cfg_piso$mortalidad_exceso <- list(prior = "plano")
+cfg_piso$avanzado <- list(emr_prior = list(cota = c(0.002, 0.4), fuente_cota = "prueba"))   # piso 0.002 > 0.4 / 1000
+cfg_tabla <- cfg0
+cfg_tabla$mortalidad_exceso <- list(prior = "tabla", techo = 0.3)
+tabla_emr_dada <- data.frame(sexo = rep(c("hombres", "mujeres"), each = 3), edad_inicio = rep(c(30, 52, 80), 2),
+                             edad_fin = rep(c(52, 80, 125), 2), mu_log = c(-4.2, -3.1, -2.2, -4.5, -3.3, -2.4),
+                             sd_log = c(0.3, 0.25, 0.4, 0.35, 0.2, 0.5))   # el nudo 80 cae justo en un borde
+cfg_cero_datos <- cfg0
+cfg_cero_datos$mortalidad_exceso <- list(prior = "cero")
+cfg_cero_datos$datos_en_ajuste <- c("prevalencia", "incidencia")
+cfg_cero_datos$avanzado <- list(nsub = 3L)
+insumos_tabla <- function() suppressWarnings(suppressMessages(dl_insumos(dl_proyecto(
+  ej, causa = 9100, configuracion = cfg_tabla, prior_mortalidad_exceso = tabla_emr_dada))))
+variantes <- c(variantes, list(
+  adversario = list(b = insumos_de(cfg_adv, datos_adv),
+                    nota = paste("edad_inicio 33, edad_fin 97, nsub 7, nudos fuera de las bandas del ancla, remisión",
+                                 "por tramos [47.3, 61.7) y [90, 200), rho 0.95, lambda 0.25, offset 1e-3, datos con",
+                                 "valor 0, x = 0, x = n, n_efectivo y bandas de población con 2, 3 y 5 edades")),
+  rho_alto = list(b = insumos_de(cfg_rho),
+                  nota = paste("rho 0.999, techo derivado del ancla (factor_techo 2), fracción aguda 0.1, factor_sd",
+                               "1.5, suavidad 2, nudo en 99")),
+  plano_piso = list(b = insumos_de(cfg_piso), nota = "prior plano con cota [0.002, 0.4]: el piso declarado manda"),
+  tabla = list(b = insumos_tabla(), nota = "prior de la EMR dado por tabla, techo 0.3, un nudo en el borde 80"),
+  cero_datos = list(b = insumos_de(cfg_cero_datos, datos0[medida != "mortalidad"]),
+                    nota = "EMR fija en cero, nsub 3, datos de prevalencia e incidencia en el ajuste")))
+
 # Contexto de un sexo (.dl_ctx) como JSON: lo que lee prepararCtx() de modelo.js.
 ctx_json <- function(ctx, b, sexo) {
   pobl <- b$poblacion[location_id == b$loc_ancla & sex_id == sexo]
@@ -270,6 +343,23 @@ ctx_json <- function(ctx, b, sexo) {
                  x = A(as.numeric(d$x)), n = A(d$n_ef)))
 }
 pesos_json <- function(pesos) lapply(pesos, function(p) list(idx = A(p$idx - 1L), w = A(p$w)))
+
+# De dónde sale ctx$emr (R/emr.R), para rehacerlo en JavaScript desde el ancla: el tipo de prior, las bandas de
+# prevalencia y csmr del ancla (los dos sexos: el techo derivado toma el máximo de csmr / p sobre ambos), la fracción
+# aguda, factor_sd, factor_techo, el origen del techo, la cota de la configuración y, con el prior por tabla, la tabla.
+emr_fuente <- function(b) {
+  cfg <- b$cfg
+  pg <- b$prior_gbd
+  banda <- function(m) list(sex_id = A(m$sex_id), inicio = A(m$age_start), fin = A(m$age_end), val = A(m$val),
+                            sigma_log = A(m$sigma_log))
+  dado <- b$prior_emr_dado
+  list(tipo = cfg$emr_prior$tipo, fraccion_aguda = dl$.dl_fraccion_aguda(cfg), factor_sd = dl$.dl_factor_sd_emr(cfg),
+       factor_techo = as.numeric(cfg$emr_prior$factor_techo %||% 3), techo_origen = b$techo_emr$origen,
+       cota_cfg = A(as.numeric(unlist(cfg$emr_prior$cota))),
+       prev = banda(pg[measure_id == 5L]), csmr = banda(pg[measure_id == 900006L]),
+       dado = if (!is.null(dado)) list(sex_id = A(dado$sex_id), inicio = A(dado$age_start), fin = A(dado$age_end),
+                                       mu_log = A(dado$mu_log), sd_log = A(dado$sd_log)))
+}
 
 # Ajuste corto del ejemplo (las simulaciones son theta posteriores reales) y su cascada (la renormalización).
 op <- dl_opciones_mcmc(simulaciones = 50, cadenas = 2, iteraciones = 1000, calentamiento = 400)
@@ -304,11 +394,31 @@ thetas_de <- function(nombre, ctx, sexo) {
       piso <- base; piso[K + 1L] <- log(ctx$emr$cota[1] / 2)
       out[[length(out) + 1L]] <- list(nombre = "bajo_el_piso", theta = A(piso))
     }
+    # (d) log f de un nudo en log(techo) y a un ulp de él: exp(log f) puede quedar justo en el techo o a un ulp, y la
+    # cota es cerrada (fuera solo si f > techo o f < piso). Lo mismo en el piso, si es mayor que 0.
+    l2 <- log(ctx$emr$cota[2])
+    for (d in -1:1) {
+      th <- base; th[K + 2L] <- l2 + d * ulp(l2)
+      out[[length(out) + 1L]] <- list(nombre = sprintf("techo_%+d_ulp", d), theta = A(th))
+    }
+    if (ctx$emr$cota[1] > 0) {
+      l1 <- log(ctx$emr$cota[1])
+      for (d in -1:1) {
+        th <- base; th[K + 1L] <- l1 + d * ulp(l1)
+        out[[length(out) + 1L]] <- list(nombre = sprintf("piso_%+d_ulp", d), theta = A(th))
+      }
+    }
   }
   desborde <- base; desborde[seq_len(K)] <- 50
   out[[length(out) + 1L]] <- list(nombre = "desborde", theta = A(desborde))
   rugosa <- base; rugosa[seq_len(K)] <- rugosa[seq_len(K)] + c(0.8, -0.8)[(seq_len(K) %% 2) + 1L]
   out[[length(out) + 1L]] <- list(nombre = "rugosa", theta = A(rugosa))
+  # (d) i = exp(-800) = 0: p = 0, q del ancla 0 (ancla, datos y total -Inf; suavidad y EMR finitas). Y RK4 inestable:
+  # i h = 3 supera el límite 2.785 de RK4 y p oscila con amplitud creciente.
+  q_cero <- base; q_cero[seq_len(K)] <- -800
+  out[[length(out) + 1L]] <- list(nombre = "q_cero", theta = A(q_cero))
+  inestable <- base; inestable[seq_len(K)] <- log(3 * ctx$nsub)
+  out[[length(out) + 1L]] <- list(nombre = "rk4_inestable", theta = A(inestable))
   lapply(out, function(o) {
     lp <- dl$.dl_lp_componentes(as.numeric(o$theta), ctx)
     c(o, list(lp = as.list(lp)))
@@ -334,7 +444,7 @@ fx$contextos <- lapply(names(variantes), function(nombre) {
            edo_theta2 = list(p = A(sol1$p), i = A(sol1$i), f = A(sol1$f))),
          thetas = th)
   })
-  list(nombre = nombre, nota = variantes[[nombre]]$nota, sexos = sexos)
+  list(nombre = nombre, nota = variantes[[nombre]]$nota, sexos = sexos, emr_fuente = emr_fuente(b))
 })
 names(fx$contextos) <- names(variantes)
 
@@ -503,6 +613,104 @@ fx$avd <- list(
          como = como[sex_id == s[1] & age_group_id == s[2], factor],
          avd = yld$draws_yld[location_id == b$loc_ancla & sex_id == s[1] & age_group_id == s[2] & draw == s[3], val])
   }))
+
+# ==== (d) Casos adversarios sueltos ==================================================================================
+
+set.seed(99)
+adv <- list()
+
+# chol() de la correlación AR(1) (LAPACK dpotrf) con rho cerca de 1, n = 1 y rho = 0, y L_ancla con lambda 0.25.
+adv$cholesky <- lapply(list(c(1, 0.5), c(2, 0.99), c(3, 0.999), c(13, 0.95), c(13, 0.999), c(20, 0.9999), c(20, 0)),
+  function(caso) {
+    n <- as.integer(caso[1]); rho <- caso[2]
+    U <- dl$.dl_chol_ar1(n, rho); z <- rnorm(n, 0, 0.3); sl <- runif(n, 0.05, 0.4)
+    list(n = n, rho = rho, U = filas(U), z = A(z), sigma_log = A(sl), lambda = 0.25,
+         valor = dl$.dl_lp_mvn_ar1(z, sl, U, 0.25))
+  })
+# chol() de matrices simétricas definidas positivas cualesquiera (la forma de la propuesta usa chol de una covarianza)
+adv$cholesky_general <- lapply(c(1L, 2L, 5L, 9L), function(n) {
+  A0 <- crossprod(matrix(rnorm(n * (n + 2)), n + 2)) + diag(1e-3, n)
+  list(A = filas(A0), U = filas(chol(A0)))
+})
+
+# Cadenas cortas: n_sim 4 (el mínimo de dl_ess), 5 y 7 (impares: la última simulación queda fuera del R-hat), t_max
+# impar (el último rezago no forma par) y una cadena anticorrelacionada (el primer par de Geyer es negativo).
+cadenas_de <- function(n_cad, n_sim, gen) lapply(seq_len(n_cad), function(c) gen(n_sim, c))
+cad <- list(
+  n4 = cadenas_de(3, 4, function(n, c) cbind(a = ar1(n, 0.5), b = rnorm(n))),
+  n5 = cadenas_de(2, 5, function(n, c) cbind(a = ar1(n, -0.9), b = ar1(n, 0.95))),
+  n7 = cadenas_de(4, 7, function(n, c) cbind(a = ar1(n, 0.2), b = rnorm(n, c))),
+  anti = cadenas_de(3, 60, function(n, c) cbind(a = ar1(n, -0.95), b = ar1(n, 0.99) + c)))
+adv$diagnosticos <- lapply(cad, function(cs) list(
+  cadenas = lapply(cs, filas), rhat = A(unname(dl_rhat(cs))), ess = A(unname(dl_ess(cs))),
+  ess_lag2 = A(unname(dl_ess(cs, max_lag = 2L))), ess_lag3 = A(unname(dl_ess(cs, max_lag = 3L)))))
+adv$geyer <- lapply(list(c(-0.1, 0.05), c(0.3, -0.4, 0.2), c(0.2, 0.1, 0.05, -0.2, 0.9), c(0.5, 0.4),
+                         c(0.9, 0.8, 0.7, 0.6, 0.5, 0.4, -0.5, -0.4)),
+                    function(a) list(autocor = A(a), valor = dl$.dl_suma_geyer(a)))
+# Forma de la propuesta con un parámetro que no se movió en la primera mitad del calentamiento (varianza 0: solo el
+# 1e-8 de la diagonal la hace definida positiva).
+theta_quieta <- cbind(cumsum(rnorm(100, 0, 0.1)), rep(-3, 100), rnorm(100))
+adv$forma_quieta <- list(theta_b = filas(theta_quieta), L = filas(dl$.dl_mh_forma_propuesta(theta_quieta)))
+
+# Pesos de las bandas del proxy con huecos ([30, 40) y [50, 60)), una banda abierta (60+, punto medio con 85), bandas
+# pasadas sin ordenar, edades más allá de la última banda y empates de distancia (34.5 entre [20, 30) y [40, 45); 54.5
+# entre [45, 50) y [60, 125)): con fuera = vecina gana la más joven.
+cat_adv <- data.table(age_group_id = c(901L, 902L, 903L, 904L), age_start = c(20, 40, 60, 45),
+                      age_end = c(30, 45, 125, 50))
+ids_desordenados <- c(903L, 901L, 904L, 902L)
+edades_P2 <- seq(0, 130, by = 0.5)
+adv$pesos_edad <- list(
+  edades = A(edades_P2),
+  bandas = list(age_group_id = A(ids_desordenados),
+                inicio = A(cat_adv$age_start[match(ids_desordenados, cat_adv$age_group_id)]),
+                fin = A(cat_adv$age_end[match(ids_desordenados, cat_adv$age_group_id)])),
+  casos = lapply(list(c("cero", "lineal"), c("vecina", "lineal"), c("cero", "escalon"), c("vecina", "escalon")),
+                 function(o) {
+                   P <- dl$.dl_pesos_edad(edades_P2, ids_desordenados, cat_adv, o[1], o[2])
+                   list(fuera = o[1], interp = o[2], filas_id = A(as.integer(rownames(P))), P = filas(P))
+                 }))
+# desplazamiento con esas bandas (filas de dX en el orden de las bandas ordenadas, como rownames(P))
+P_adv <- dl$.dl_pesos_edad(edades_P2, ids_desordenados, cat_adv, "vecina", "lineal")
+dX_adv <- data.table(draw = rep(1:3, each = 4), location_id = "15", age_group_id = rep(ids_desordenados, 3),
+                     dX = c(0.3, -0.1, 0.2, 0.05, -0.4, 0.25, 0.1, -0.05, 0, 0.5, -0.5, 0.2))
+delta_adv <- dl$.dl_desplazamiento_log(dX_adv, P_adv, beta = c(0.8, -1.1, 2.5), kappa = 0.35, n_dptos = 1L)[["15"]]
+adv$desplazamiento <- list(
+  dX = lapply(1:3, function(k) { d <- dX_adv[draw == k]; A(d$dX[match(as.integer(rownames(P_adv)), d$age_group_id)]) }),
+  beta = A(c(0.8, -1.1, 2.5)), kappa = 0.35, delta = filas(delta_adv))
+
+# Bordes de la Beta por momentos: v = ((superior - inferior) / 3.92)^2 justo en media (1 - media) (>=: infactible) y
+# justo en 1e-12 (<: degenerado), a unos ulps de distancia; y un intervalo invertido (superior < inferior).
+beta_bordes <- list()
+for (m in c(0.5, 0.3, 0.9)) {
+  s <- 3.92 * sqrt(m * (1 - m))
+  for (d in -3:3) beta_bordes[[length(beta_bordes) + 1L]] <- c(m, 0, s + d * ulp(s))
+}
+s <- 3.92e-6
+for (d in -3:3) beta_bordes[[length(beta_bordes) + 1L]] <- c(0.5, 0, s + d * ulp(s))
+beta_bordes[[length(beta_bordes) + 1L]] <- c(0.3, 0.4, 0.2)
+adv$beta_bordes <- lapply(beta_bordes, function(x) {
+  m <- suppressWarnings(dl$.dl_beta_momentos(x[1], x[2], x[3]))
+  v <- ((x[3] - x[2]) / 3.92)^2
+  c(list(media = x[1], inferior = x[2], superior = x[3], v = v,
+         motivo = if (is.null(m$constante)) "beta"
+                  else if (x[1] <= 0 || x[1] >= 1 || v < 1e-12) "degenerado" else "infactible"), m)
+})
+
+# El techo de la cascada justo en log(techo): .dl_edo_log_media trunca solo si log f > log(techo) en algún punto. Con
+# el máximo de log f igual a log(techo) no trunca; a un ulp por encima, sí.
+ctx_e <- dl$.dl_ctx(variantes$ejemplo$b, 1L)
+lm_e <- dl$.dl_log_tasas_media(unname(ajuste$draws_par[["1"]][1, ]), ctx_e)
+adv$techo_cascada <- lapply(c(0.3, 0.07), function(techo) {
+  lt <- log(techo)
+  igual <- pmin(lm_e$log_f + 2, lt)
+  arriba <- igual; arriba[which.max(igual)] <- lt + ulp(lt)
+  list(techo_f = techo, log_techo = lt, log_i_media = A(lm_e$log_i),
+       casos = lapply(list(igual, arriba), function(lf) {
+         s <- dl$.dl_edo_log_media(lm_e$log_i, lf, ctx_e, techo_f = techo)
+         list(log_f_media = A(lf), truncado = s$truncado, p = A(s$p), f = A(s$f))
+       }))
+})
+fx$adversario <- adv
 
 # ==== Escritura ======================================================================================================
 

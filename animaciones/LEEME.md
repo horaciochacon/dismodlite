@@ -50,7 +50,7 @@ node herramientas/render.mjs escenas/01-enfermedad-muerte --hoja       # borrado
 node herramientas/render.mjs escenas/01-enfermedad-muerte --cuadros 0,24,48
 node herramientas/render.mjs escenas/01-enfermedad-muerte --cebolla 1200-1260:4   # piel de cebolla
 node herramientas/auditar.mjs escenas/01-enfermedad-muerte             # la auditoría
-node --test pruebas/                           # modelo.js frente al paquete (Rscript pruebas/fixtures.R antes)
+node --test pruebas/*.test.mjs                 # modelo.js frente al paquete (Rscript pruebas/fixtures.R antes)
 ```
 
 Todo va a `salida/<escena>/` (fuera de git). Si la red pasa por un proxy, `render.mjs` toma `HTTPS_PROXY`.
@@ -136,5 +136,5 @@ cada lado, compararlos y corregir solo la línea que lo causa.
   `curva`, `banda`, `puntos`), `cabecera`, `rotulo`, `pie`; formatos `num`, `sig`, `miles`.
 - `modelo.js` (`DL.modelo`): la matemática del paquete en JavaScript (matriz W, RK4 de `dl_edo_resolver()`,
   `dl_edo()`, bandas, log-posterior, R-hat, ESS, renormalización, momentos de la Beta), comprobada contra el paquete
-  en `pruebas/` (`Rscript pruebas/fixtures.R && node --test pruebas/`). Sirve para lo que una escena calcula cuadro
+  en `pruebas/` (`Rscript pruebas/fixtures.R && node --test pruebas/*.test.mjs`). Sirve para lo que una escena calcula cuadro
   a cuadro (un nudo que se mueve y la curva que responde); lo demás viene de `datos/`.

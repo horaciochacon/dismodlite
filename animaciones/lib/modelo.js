@@ -224,6 +224,7 @@
   //   a en [nudo_k, nudo_k+1): W[j][k] = 1 - w, W[j][k+1] = w, w = (a - nudo_k) / (nudo_k+1 - nudo_k);
   //   a = nudo_K: W[j][K] = 1. Cada fila suma 1.
   function matrizW(nudos, edades) {
+    exigirOrdenado(nudos, '`nudos`');
     var K = nudos.length, W = new Array(edades.length);
     for (var j = 0; j < edades.length; j++) {
       var fila = new Array(K);
@@ -265,7 +266,26 @@
     if (remision.length !== n_media)
       throw new Error('`remision` debe ser un número o un vector de la longitud de `i_media` (' + n_media +
         '), no de longitud ' + remision.length);
-    return remision.slice();
+    return Array.from(remision);
+  }
+
+  // r en la malla h/2 desde cualquiera de las formas de la remisión que acepta la API: un número, un arreglo (o un
+  // Float64Array) con un valor por punto de la malla (.dl_r_media) o la configuración {valor, por_edad}
+  // (.dl_remision_por_edad). Sin remisión, 0.
+  function remisionEn(remision, edades_media) {
+    if (remision == null) remision = 0;
+    if (typeof remision === 'number' || Array.isArray(remision) || ArrayBuffer.isView(remision))
+      return remisionMedia(remision, edades_media.length);
+    return remisionPorEdad(remision, edades_media);
+  }
+
+  // Error si v no es creciente (no decreciente) o trae NaN: lo que exige findInterval() de R a su `vec` (los nudos en
+  // .dl_base_interp, los inicios de las bandas en .dl_banda_de). Sin esta comprobación, la búsqueda binaria daría un
+  // resultado sin sentido en silencio.
+  function exigirOrdenado(v, que) {
+    for (var k = 0; k < v.length; k++)
+      if (isNaN(v[k]) || (k > 0 && v[k] < v[k - 1]))
+        throw new Error(que + ' debe ser creciente y sin NaN (findInterval de R lo exige)');
   }
 
   // r(a) en `edades` según la configuración {valor, por_edad: [{edad_inicio, edad_fin, valor}]}: valor (0 si
@@ -363,9 +383,7 @@
     var i_media = mapa(productoW(W, log_i_nudos), Math.exp);
     var f_media = log_f_nudos == null ? mapa(edades_media, function () { return 0; })
       : mapa(productoW(W, log_f_nudos), Math.exp);
-    var rem = opciones.remision == null ? 0 : opciones.remision;
-    var r_media = (typeof rem === 'object' && !Array.isArray(rem)) ? remisionPorEdad(rem, edades_media)
-      : remisionMedia(rem, edades_media.length);
+    var r_media = remisionEn(opciones.remision, edades_media);
     var p_malla = resolverEdo(i_media, f_media, r_media, p0, nsub);
     var anuales = aEdadesEnteras(p_malla, i_media, f_media, idxAnualMalla(edad_fin - edad_inicio, nsub),
       idxAnualMedia(i_media.length, nsub));
@@ -392,6 +410,7 @@
   // Gemela: .dl_banda_de().
   function bandaDe(edades, bandas) {
     var inicios = mapa(bandas, function (b) { return b.inicio; });
+    exigirOrdenado(inicios, 'el inicio de las bandas');
     return mapa(edades, function (a) {
       var k = findInterval(a, inicios);
       return (k >= 1 && a < bandas[k - 1].fin) ? k - 1 : -1;
@@ -488,23 +507,52 @@
     return R;
   }
 
-  // Cholesky: U triangular superior con A = U'U (chol() de R). Error si A no es definida positiva.
+  // Cholesky: U triangular superior con A = U'U, como chol() de R. Solo lee el triángulo superior de A (como R) y no
+  // la modifica. Error si A no es definida positiva.
+  // chol() llama a dpotrf("U") de LAPACK; con n < 64 (el tamaño de bloque de ILAENV), dpotrf usa DPOTRF2, que es
+  // recursivo: parte la matriz en n1 = floor(n / 2) y n2 = n - n1 columnas, factoriza A11, resuelve A12 con DTRSM,
+  // actualiza A22 con DSYRK y factoriza A22. Aquí se repiten esas tres rutinas de referencia (LAPACK y BLAS 3.12) con
+  // sus bucles en el mismo orden, así que U sale idéntica bit a bit a la de R con la BLAS y la LAPACK de referencia.
+  // Un algoritmo por columnas (la otra forma clásica) da la misma U salvo el último bit, pero con rho cerca de 1 la
+  // precisión del ancla amplifica ese bit: con rho = 0.999 movía L_ancla 2e-10.
   function cholesky(A) {
     var n = A.length, U = [];
-    for (var b = 0; b < n; b++) { var fila = new Array(n); for (var c = 0; c < n; c++) fila[c] = 0; U.push(fila); }
-    for (var j = 0; j < n; j++) {
-      var s = A[j][j];
-      for (var k = 0; k < j; k++) s -= U[k][j] * U[k][j];
-      if (!(s > 0)) throw new Error('la matriz no es definida positiva (cholesky, columna ' + (j + 1) + ')');
-      var ujj = Math.sqrt(s);
-      U[j][j] = ujj;
-      for (c = j + 1; c < n; c++) {
-        var t = A[j][c];
-        for (k = 0; k < j; k++) t -= U[k][j] * U[k][c];
-        U[j][c] = t / ujj;
-      }
+    for (var b = 0; b < n; b++) {
+      var fila = new Array(n);
+      for (var c = 0; c < n; c++) fila[c] = c >= b ? A[b][c] : 0;   // R pone en cero el triángulo inferior
+      U.push(fila);
     }
+    dpotrf2(U, 0, n);
     return U;
+  }
+
+  // DPOTRF2 (LAPACK 3.12, UPLO = 'U') sobre el bloque diagonal U[o..o+n-1][o..o+n-1], en el lugar.
+  function dpotrf2(U, o, n) {
+    if (n === 0) return;
+    if (n === 1) {
+      var a = U[o][o];
+      if (a <= 0 || isNaN(a)) throw new Error('la matriz no es definida positiva (cholesky, menor de orden ' + (o + 1) + ')');
+      U[o][o] = Math.sqrt(a);
+      return;
+    }
+    var n1 = Math.floor(n / 2), n2 = n - n1, i, j, k, t;
+    dpotrf2(U, o, n1);
+    // DTRSM('L', 'U', 'T', 'N', n1, n2, 1, A11, A12): A12 <- inv(A11') A12, columna a columna (alpha = 1: B(I,J) tal cual)
+    for (j = 0; j < n2; j++)
+      for (i = 0; i < n1; i++) {
+        t = U[o + i][o + n1 + j];
+        for (k = 0; k < i; k++) t = t - U[o + k][o + i] * U[o + k][o + n1 + j];
+        U[o + i][o + n1 + j] = t / U[o + i][o + i];
+      }
+    // DSYRK('U', 'T', n2, n1, -1, A12, 1, A22): A22 <- -A12' A12 + A22 en el triángulo superior
+    // (C(I,J) = ALPHA*TEMP + BETA*C(I,J) con alpha = -1 y beta = 1, ambos productos exactos)
+    for (j = 0; j < n2; j++)
+      for (i = 0; i <= j; i++) {
+        t = 0;
+        for (k = 0; k < n1; k++) t = t + U[o + k][o + n1 + i] * U[o + k][o + n1 + j];
+        U[o + n1 + i][o + n1 + j] = -t + U[o + n1 + i][o + n1 + j];
+      }
+    dpotrf2(U, o + n1, n2);
   }
 
   // chol(R) de la correlación AR(1). Gemela: .dl_chol_ar1().
@@ -705,6 +753,12 @@
       return mapa(inicio, function (a, k) { return pesosIntervalo(anual, a, fin[k], bandas_pobl, N); });
     };
     var nb = ctx.ancla.val.length;
+    // .dl_ancla_sexo() ordena las bandas por edad: es el orden de la correlación AR(1) (|b - c| cuenta bandas). Un
+    // contexto con otro orden daría otra correlación sin aviso.
+    for (var b = 1; b < nb; b++)
+      if (!(ctx.ancla.inicio[b] > ctx.ancla.inicio[b - 1]))
+        throw new Error('ancla.inicio debe ser creciente: las bandas del ancla van ordenadas por edad (el orden de la ' +
+          'correlación AR(1))');
     var ancla = { inicio: ctx.ancla.inicio, fin: ctx.ancla.fin, val: ctx.ancla.val, sigma_log: ctx.ancla.sigma_log,
       lambda: ctx.ancla.lambda, rho: ctx.ancla.rho,
       chol_R: ctx.ancla.chol_R || cholAr1(nb, ctx.ancla.rho) };
@@ -726,7 +780,7 @@
       sigma_suavidad: ctx.sigma_suavidad, edades_media: edades_media, anual: anual,
       W: matrizW(ctx.nudos, edades_media), idx_anual_malla: idxAnualMalla(edad_fin - ctx.edad_inicio, nsub),
       idx_anual_media: idxAnualMedia(edades_media.length, nsub),
-      r_media: ctx.r_media ? ctx.r_media.slice() : remisionPorEdad(ctx.remision, edades_media),
+      r_media: ctx.r_media ? remisionMedia(ctx.r_media, edades_media.length) : remisionEn(ctx.remision, edades_media),
       emr: { cero: !!emr.cero, plano: !!emr.plano, mu_log: emr.mu_log || [], sd_log: emr.sd_log || [],
         cota: emr.cota },
       ancla: ancla, poblacion: ctx.poblacion, bandas_pobl: bandas_pobl,
@@ -740,9 +794,20 @@
   function logTasasMedia(theta, ctx) {
     ctx = prepararCtx(ctx);
     var K = ctx.nudos.length;
+    exigirLargoTheta(theta, ctx);
     var log_i = productoW(ctx.W, theta.slice(0, K));
     if (ctx.emr.cero) return { log_i: log_i, log_f: mapa(log_i, function () { return -Infinity; }) };
     return { log_i: log_i, log_f: productoW(ctx.W, theta.slice(K, 2 * K)) };
+  }
+
+  // theta debe traer log i en los K nudos y, salvo con la EMR fija en cero, log f en los K nudos (2 K valores). R lee
+  // theta[1:K] y theta[K + 1:K]: un theta más corto da NA y un error; aquí, el error explícito (sin él, los log f
+  // faltantes valdrían 0, f = 1 por persona-año, en silencio). Valores de más se ignoran, como en R.
+  function exigirLargoTheta(theta, ctx) {
+    var K = ctx.nudos.length, falta = ctx.emr.cero ? K : 2 * K;
+    if (!theta || theta.length < falta)
+      throw new Error('theta trae ' + (theta ? theta.length : 0) + ' valores y hacen falta ' + falta +
+        (ctx.emr.cero ? ' (log i en los nudos)' : ' (log i y log f en los nudos)'));
   }
 
   // log i, log f en la malla h/2 -> p, i, f anuales con la malla y r del contexto; con techo_f, log f se recorta a
@@ -778,6 +843,7 @@
   // Gemela: .dl_lp_componentes().
   function lpComponentes(theta, ctx) {
     ctx = prepararCtx(ctx);
+    exigirLargoTheta(theta, ctx);
     var K = ctx.nudos.length, cero = ctx.emr.cero;
     var log_i_nudos = theta.slice(0, K), log_f_nudos = null;
     if (!cero) {
@@ -818,11 +884,23 @@
 
   function comoMatriz(cadena) { return typeof cadena[0] === 'number' ? mapa(cadena, function (v) { return [v]; }) : cadena; }
 
+  // Las cadenas como matrices, con las mismas filas y columnas y al menos min_filas filas (.dl_exigir_cadenas).
+  function cadenasComoMatrices(cadenas, min_filas) {
+    if (!cadenas || !cadenas.length) throw new Error('hace falta al menos una cadena');
+    var m = mapa(cadenas, comoMatriz), filas = m[0].length, cols = filas ? m[0][0].length : 0;
+    m.forEach(function (c) {
+      if (c.length !== filas || (filas && c[0].length !== cols))
+        throw new Error('las cadenas deben tener las mismas filas (simulaciones) y columnas (parámetros)');
+    });
+    if (filas < (min_filas || 0)) throw new Error('cada cadena necesita al menos ' + min_filas + ' simulaciones; tiene ' + filas);
+    return m;
+  }
+
   // R-hat partido de varias cadenas (un valor por parámetro). Gemela: dl_rhat().
   //   n = floor(filas / 2) por mitad; var_entre = n Var(medias de las mitades); var_dentro = media de sus
   //   varianzas; R-hat = sqrt(((n - 1) / n var_dentro + var_entre / n) / var_dentro).
   function rhat(cadenas) {
-    cadenas = mapa(cadenas, comoMatriz);
+    cadenas = cadenasComoMatrices(cadenas, 0);
     var n = Math.floor(cadenas[0].length / 2), d = cadenas[0][0].length, out = [];
     var mitades = [];
     cadenas.forEach(function (c) { mitades.push(c.slice(0, n)); mitades.push(c.slice(n, 2 * n)); });
@@ -865,9 +943,9 @@
   // el promedio entre cadenas de la autocorrelación hasta t_max = min(max_lag, n_sim - 2). Gemela: dl_ess().
   function ess(cadenas, max_lag) {
     if (max_lag == null) max_lag = 200;
-    cadenas = mapa(cadenas, comoMatriz);
+    if (!(max_lag >= 2) || max_lag !== Math.floor(max_lag)) throw new Error('`max_lag` debe ser un número entero >= 2');
+    cadenas = cadenasComoMatrices(cadenas, 4);
     var nc = cadenas.length, n_sim = cadenas[0].length, d = cadenas[0][0].length, out = [];
-    if (n_sim < 4) throw new Error('cada cadena necesita al menos 4 simulaciones');
     var t_max = Math.min(max_lag, n_sim - 2);
     for (var j = 0; j < d; j++) {
       var acfs = mapa(cadenas, function (c) { return autocorrelacion(columna(c, j), t_max); });
