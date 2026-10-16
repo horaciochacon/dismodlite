@@ -69,7 +69,9 @@ Dos revisores independientes, en paralelo, sobre los fotogramas de cada marca, l
    1080.
 10. Techo en otras unidades que el eje y dominio vacío arriba: unidades del eje y dominio hasta 0.3.
 
-**Mensaje del coordinador** (base movida a 8098d7d): se fusionó; la narración, ahora a 42 px, se reescribió para caber
+**Mensajes del coordinador.** Segundo mensaje (hallazgos repetidos de otras escenas): «por 1000» sin denominador en
+el techo pasó a «por 1000 personas-año», y la comprobación de κ (una constante contra otra, no podía fallar) se
+reemplazó por la de los δ mostrados contra κ β_c Σ_b dX_b P_ba y contra log(i_d / i_nac) del paquete. Primero (base movida a 8098d7d): se fusionó; la narración, ahora a 42 px, se reescribió para caber
 en una línea; los subrayados de KaTeX llevan `text-decoration-skip-ink:none`; la comprobación «la p dibujada es la del
 arreglo» (que no podía fallar) se cambió por una independiente: la p dibujada cumple dp/da = i_d (1 − p) − f_d p (1 − p)
 por diferencia central, fuera de los nudos (en los nudos las tasas tienen quiebres y la diferencia central se aleja
@@ -103,7 +105,8 @@ Todo en orden.
 ```
 
 Las ocho comprobaciones: los sorteos repetidos reproducen `cascada$dX` y la dX mostrada es la del paquete; la línea
-Σ_b dX_b P_ba es la de `.dl_pesos_edad()` en cada edad (< 1e-12); κ en pantalla es el de la cascada; las curvas
+Σ_b dX_b P_ba es la de `.dl_pesos_edad()` en cada edad (< 1e-12); cada δ_c(70) que se lee en la tabla es
+κ β_c Σ_b dX_b P_ba y los de log i suman log(i_d / i_nac) del paquete a los 70 (1e-12); las curvas
 desplazadas de i y f son las que resolvió el paquete (1e-12); la p dibujada cumple dp/da fuera de los nudos (< 1 %); el
 factor recalculado es el del paquete (1e-12) y el mostrado su redondeo; después de renormalizar, Σ_d N_d q_d =
 N_nac q_nac (1e-10) para p y para i(1 − p), y q_d es la de `cascada$draws_q`; en el modo plano el factor es 1 y los

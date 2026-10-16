@@ -399,7 +399,9 @@
       s.push(D.formula(CANAL[c.canal], cols[1], y - 8, { tam: 26, o: oF, estilos: SUBRAYADO, ancho: 120, alto: 44 }));
       s.push(D.texto(cols[2], y, fmt(c.beta_k, nombre === 'HAQ' ? 4 : 3), { fuente: 'mono', tam: 24, o: oF }));
       s.push(D.texto(cols[3], y, fmt(c.desplazamiento.dX_a[k70], nombre === 'HAQ' ? 2 : 3), { fuente: 'mono', tam: 24, o: oF }));
-      s.push(D.texto(cols[4], y, fmt(c.desplazamiento.delta[k70], 3), { fuente: 'mono', tam: 24, o: oF }));
+      var textoDelta = fmt(c.desplazamiento.delta[k70], 3);
+      s.push(D.texto(cols[4], y, textoDelta, { fuente: 'mono', tam: 24, o: oF }));
+      DL.__c.dato('delta_mostrado_' + nombre, textoDelta);
     });
     return s.join('');
   }
@@ -522,7 +524,7 @@
       c.svg(D.formula('\\htmlClass{tf}{f}', GT.x(99) + 12, GT.y(datos.f_nac[edades.length - 1]) - 6, { tam: 30, o: Math.min(oT, M.visible(t, 38.4, 49.0)), estilos: SUBRAYADO, ancho: 40, alto: 50, id: 'gt-f', palabras: 1 }));
       var oTe = Math.min(oT, M.visible(t, 44.4, 49.0));
       c.svg(D.linea(GT.izq, GT.y(datos.techo_f), GT.der, GT.y(datos.techo_f), { color: P.tinta, grosor: 2, guiones: '3 5', o: oTe }));
-      c.svg(D.parrafo(GT.der, GT.y(datos.techo_f) + 4, 680, 'techo $f_{max}$ = ' + D.num(1000 * datos.techo_f, 0) + ' por 1000 (' + D.num(datos.techo_f, 2) + ' por persona-año); aquí no se alcanza', { tam: 22, color: P.suave, ancla: 'end', o: oTe, id: 'gt-techo', alto: 36 }));
+      c.svg(D.parrafo(GT.der, GT.y(datos.techo_f) + 4, 680, 'techo $f_{max}$ = ' + D.num(1000 * datos.techo_f, 0) + ' por 1000 personas-año; aquí no se alcanza', { tam: 22, color: P.suave, ancla: 'end', o: oTe, id: 'gt-techo', alto: 36 }));
       if (uI >= 1) { c.dato('i_d_70', iD[k70]); c.dato('f_d_70', fD[k70]); }
     }
 
@@ -609,7 +611,17 @@
         A.en('pesos', 'la línea del SEV, Σ_b dX_b P_ba, es la de .dl_pesos_edad() del paquete en cada edad', function (e) {
           return e.sev_dif_max < 1e-12 || 'diferencia máxima ' + e.sev_dif_max;
         }),
-        A.en('delta', 'κ en pantalla es el de la cascada', function (e) { return e.kappa_mostrado === datos.kappa || 'κ = ' + e.kappa_mostrado; }),
+        A.en('delta', 'cada δ_c(70) que se muestra es κ β_c Σ_b dX_b P_ba (κ y β_c de la cascada) y los de i suman log(i_d / i_nac) del paquete a los 70', function (e) {
+          if (e.kappa_mostrado !== datos.kappa) return 'κ = ' + e.kappa_mostrado;
+          var sumaI = 0;
+          for (var j = 0; j < ORDEN.length; j++) {
+            var c = COV[ORDEN[j]], d = datos.kappa * c.beta_k * c.desplazamiento.dX_a[k70];
+            if (c.canal === 'i') sumaI += d;
+            if (Math.abs(parseFloat(String(e['delta_mostrado_' + ORDEN[j]]).replace('\u2212', '-')) - d) > 0.0005) return ORDEN[j] + ': se muestra ' + e['delta_mostrado_' + ORDEN[j]] + ', da ' + d;
+          }
+          var logRazon = Math.log(datos.i_d[k70] / datos.i_nac[k70]);
+          return A.cerca(sumaI, logRazon, 1e-12) || 'Σ δ de i = ' + sumaI + ' frente a log(i_d / i_nac) = ' + logRazon;
+        }),
         A.en('desplazamiento', 'log i_d = log i_nac + Σ δ_c y log f_d = min(log f_nac + Σ δ_c, log f_max): las curvas dibujadas son las del paquete', function (e) {
           if (cmp.dif_log_i > 1e-12 || cmp.dif_log_f > 1e-12) return 'diferencias ' + cmp.dif_log_i + ', ' + cmp.dif_log_f;
           if (!A.cerca(e.i_d_70, datos.i_d[k70], 1e-12)) return 'i_d(70) dibujada ' + e.i_d_70 + ' frente a ' + datos.i_d[k70];
