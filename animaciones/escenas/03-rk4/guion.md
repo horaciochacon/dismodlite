@@ -19,7 +19,8 @@ h = 1/n_sub = 0.2 años desde p(a0) = 0; que cada paso evalúa cuatro pendientes
 las predicciones de medio paso, k4 en a + h) con las tasas de la malla h/2 (puntos 2n - 1, 2n, 2n + 1) y las
 promedia con pesos 1, 2, 2, 1; que las edades enteras son cada quinto punto de la malla h; que el error frente a
 la solución exacta es despreciable (8.5e-11, el número de R); y que con una remisión alta el paso se vuelve
-inestable, por eso dl_insumos() exige k h <= 2.5 y pide más pasos (avanzado: {nsub: 10}).
+inestable; por eso dl_insumos() acota (max r + techo de f) h a 2.5 (sin i, con margen) y pide más pasos
+(avanzado: {nsub: 10}).
 
 SALIDA: un HTML autocontenido, SVG + KaTeX 0.16.11 (jsDelivr), 1920 x 1080, con lib/contrato.js y lib/modelo.js.
 
@@ -39,8 +40,9 @@ MOVIMIENTO: textos que entran en 0.3-0.4 s (EASE.entrarSuave) y salen en 0.24 s;
 dibujan en 0.6 s (EASE.mover); la curva p de 30 a 99 años lineal en la edad (3.6 s); los puntos que caen, lineales
 en el número de paso. Tres movimientos de cámara declarados (EASE.camara), entre frases o con la narración quieta:
 10.4-12.9 s el gráfico pasa de [30, 99] años a [59.94, 60.26] (zoom geométrico, 216x en la edad) y se achica a la
-mitad de arriba; 36.9-39.0 s sale a [59.85, 61.15] y vuelve a su alto. Acento final con EASE.pop (0.4 s) en el
-borde del recuadro del paso, de 3 a 6 px. Nada se mueve mientras se lee.
+mitad de arriba (el recuadro de 60 crece con él hasta 12.6 s); 36.9-39.0 s sale a [59.85, 61.15] y vuelve a su alto,
+con el paso calculado quieto hasta 39.3 s. Acento final con EASE.pop (0.4 s, a los 75.4 s) en el borde del recuadro
+del paso, de 3 a 6 px. Nada se mueve mientras se lee.
 
 TOMAS (segundos):
 0.0       cabecera; ecuación en un recuadro de la marca (660 x 104 px) con «con p(a0) = 0 en a0 = 30 años»; ejes
@@ -53,14 +55,15 @@ TOMAS (segundos):
           («aún no calculado»).
 14.2-19.0 panel de pendientes debajo (por 1000 al año, eje que no empieza en 0, rotulado), eje de edad compartido
           con a, a + h/2, a + h y los puntos 301, 302, 303 de la malla h/2 (escalonado 0.12 s).
-19.3-22.9 k1: su línea a la izquierda (k1 = F(a, p1), 1.82503); segmento desde p1 con pendiente k1 hasta a + h/2,
-          punto hueco p2; punto k1 en el panel de pendientes. El movimiento principal es el segmento.
+19.3-22.9 k1, en este orden (en ‰ de p por año): su fórmula a la izquierda (19.5), el segmento desde p1 con pendiente
+          k1 hasta a + h/2 (19.9, el movimiento principal), el punto hueco p2 (20.5), el punto k1 en el panel de
+          pendientes (20.7) y su valor 1.82503 (21.0). Las etapas 2-4 repiten ese orden.
 23.2-27.8 k2 (23.5) y k3 (25.6): ídem, en a + h/2; k2 y k3 casi coinciden (1.83012, 1.83011).
 28.1-31.7 k4 en a + h, con p4 = p1 + h k3.
-32.0-36.6 el promedio (k1 + 2k2 + 2k3 + k4)/6 (línea de la marca en el panel, 32.3), pesos ×1 ×2 ×2 ×1, y el
+32.0-36.6 el promedio (k1 + 2k2 + 2k3 + k4)/6 (línea de la marca en el panel, 32.3; las guías se apagan) y el
           recuadro del paso p(a + h) = p(a) + (h/6)(k1 + 2k2 + 2k3 + k4) (32.6); el segmento final y el punto
-          p(60.2) = 0.0312103 caen sobre el punto fantasma de dl_edo_resolver() (33.6). Etiqueta «= dl_edo_resolver(),
-          punto 152».
+          p(60.2) = 3.12103 % caen sobre el punto fantasma de dl_edo_resolver() (33.6); p4 queda como un anillo
+          alrededor (difiere en 1e-9). Etiqueta «dl_edo_resolver(), punto 152 de la malla h».
 36.7      salen las etapas y el panel de pendientes (0.24 s).
 36.9-39.0 cámara: el gráfico sale a [59.85, 61.15] y vuelve a su alto; lo posterior a 60.2 deja de ser fantasma.
 39.0-43.3 los seis puntos de la malla h de 60 a 61, cinco arcos numerados 1-5 (escalonado 0.12 s), las marcas de la
@@ -69,13 +72,16 @@ TOMAS (segundos):
           derecha; la exacta se traza (44.4-46.4).
 48.2-55.4 los 70 puntos RK4 de dl_edo() (escalonados en 1.2 s); recuadro «error relativo máximo 8.5 × 10^-11»
           (49.6); narración: muchísimo menor que la incertidumbre.
-55.5      sale lo de la precisión; 55.7-59.6 k = i + r + f(1 - 2p) a la izquierda (56.0).
-59.9-64.0 «RK4 es estable si k h < 2.785» (60.2) y «dl_insumos(): (r + techo de f) h <= 2.5» (61.4).
-64.3-68.9 ilustración (valores inventados, i = 0.05, r = 15, f = 0) a la derecha: la exacta (64.6), los 6 pasos con
-          h = 0.2 (k h = 3.01) que caen a negativos (65.4-67.4, un punto por paso).
-69.2-73.4 el mensaje real de dl_insumos() (69.5); con avanzado: {nsub: 10} (k h = 1.51) los 12 pasos siguen a la
-          exacta (70.4-72.4); la curva inestable baja al 40 %.
-73.7-80.0 todo lo demás baja al 40 %; el recuadro del paso y la ecuación quedan; pop del borde del recuadro del paso.
+55.5      sale lo de la precisión; 55.7-59.6 k = i + r + f(1 - 2p) a la izquierda (56.0); a la derecha, los ejes de la
+          ilustración (56.2; valores inventados, i = 0.05, r = 15, f = 0 por persona-año) y la exacta, que se traza
+          en 2 s (56.8-58.8): lo principal mientras se lee k.
+59.9-64.0 «RK4 es estable si k h < 2.785» (60.2) y «dl_insumos() exige (max r + techo de f) h <= 2.5» (61.4).
+64.3-68.9 los 6 pasos con h = 0.2 (k h = 3.01) caen a negativos (65.4-67.4, un punto por paso).
+69.2-73.4 un extracto del mensaje de dl_insumos() (69.3, los cortes con «…»; dice 3.00 porque no suma i); con
+          avanzado: {nsub: 10} (k h = 1.505) los 12 pasos siguen a la exacta (70.4-72.4); la curva inestable baja
+          al 40 %.
+73.7-80.0 lo de la izquierda baja al 40 %; la ilustración sale (74.7) y vuelve el año de cinco pasos (75.0); pop del
+          borde del recuadro del paso (75.4).
 
 PROHIBIDO: degradados morados o azules, brillos, destellos, partículas decorativas, todo apareciendo a la vez,
 aparecer-y-subir en cada elemento, todo centrado, texto que se mueve mientras se lee, 3D, sombras, emojis, números
@@ -92,4 +98,12 @@ a, a + h/2 y a + h; las edades enteras son cada quinto punto de la malla h y coi
 relativo máximo escrito es el de R y el que se recalcula con DL.modelo y la fórmula exacta; la curva inestable es
 la de dl_edo_resolver() con n_sub = 5 (y se recalcula con resolverEdo) y se vuelve negativa; k h escrito es
 (i + r + f)/n_sub; el límite 2.785 es la raíz de R(z) = 1.
+
+REVISIÓN ADVERSARIAL (metodólogo y diseñador, en paralelo; detalle en notas.md): corrigió dos «k h» distintos sin
+nombre (3.01 con i, 3.00 del paquete sin i), la narración que decía que el paquete acota k h, el mensaje del paquete
+recortado sin marcar, «por 1000 al año» ambiguo (ahora ‰ de p por año), «el promedio da el valor del paquete», «la
+ecuación decae», la condición p(a0) = 0 de la solución exacta, «cada quinto punto», el p4 oculto, comprobaciones
+que se comparaban consigo mismas; y en lo visual, las etapas atropelladas, 8.5 s con la mitad derecha vacía, el final
+que no aterrizaba, el zoom que no se leía como cámara, la salida de cámara sin ancla, trazos de pendiente que
+ensuciaban, dos choques de texto y números chicos para un teléfono.
 ```
