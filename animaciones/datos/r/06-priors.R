@@ -29,8 +29,8 @@ exportar <- function(ctx) {
   techo_defecto <- dismodlite:::.DL_EMR_TECHO_K * max(exp(prior$mu_log))
 
   list(
-    fuente = paste0("Datos sintéticos del ejemplo (causa 9100), hombres: dl_prior_emr() y media posterior de ",
-                    "dl_ajustar(). Ilustrativos: las deformaciones de log i y σ = 1"),
+    fuente = paste0("Datos sintéticos (causa 9100), hombres; el techo por defecto, en los dos sexos. dl_prior_emr() y ",
+                    "media posterior de dl_ajustar(). Ilustrativos: deformaciones de log i y σ = 1"),
     sexo = sexo, nudos = nudos, sigma = sigma,
     log_i = log_i, d2 = d2,
     l_suavidad = dismodlite:::.dl_lp_suavidad(log_i, sigma),

@@ -23,8 +23,8 @@ es -∞, y qué cambian los priors plano, cero y tabla.
 
 SALIDA: un HTML autocontenido, SVG + KaTeX 0.16.11 (jsDelivr), 1920 x 1080, con lib/contrato.js.
 
-TIEMPO: 82 s a 30 cuadros/s = 2460 cuadros. Sin bucle: el cuadro 0 es una composición terminada (cabecera, gráfico
-de log i en los nudos con sus siete puntos y el pie). El final se sostiene 2 s.
+TIEMPO: 82.5 s a 30 cuadros/s = 2475 cuadros. Sin bucle: el cuadro 0 es una composición terminada (cabecera, gráfico
+de log i en los nudos con sus siete puntos y el pie). El final se sostiene 2 s (más de los 50-80 s pedidos: la escena cubre dos priors y tres variantes).
 
 ASPECTO: fondo F5F7F6, tinta 16211E, tinta suave 55645F, rejilla DCE4E1, guía B4C2BD, marca 0E6B62.
 Series: log i en 2a78d6 (puntos de 9 px y trazo de 4 px), f posterior en eb6834 (puntos de 8 px, trazo de 3 px,
@@ -45,32 +45,38 @@ D2_k: un triplete cada 0.6 s; la barra k crece en 0.4 s (EASE.entrar) cuando el 
 log i: suben en 0.9 s y vuelven en 0.9 s (EASE.mover), 0.9 s quietas entre ida y vuelta; la de doblar se queda.
 σ de 0.5 a 1 en 1.0 s (EASE.mover). Bandas del ancla escalonadas 60 ms (ESCALONADO.item), entran en 0.4 s. Nudos
 del prior: uno cada 0.45 s. Flecha del nudo 30 en 0.8 s (EASE.mover). Curva posterior de f trazada lineal en la
-edad en 1.6 s (MS.trazo). Cámara: el eje y de f pasa de [5, 600] a [0.1, 600] en escala log en 0.9 s
-(EASE.camara), entre dos frases. El cambio de la parte 1 a la parte 2 es salida (0.24 s) y entrada, sin mover nada.
+edad en 1.6 s (MS.trazo). Dos cámaras, entre frases: el eje de las barras D2 se abre de ±0.08 a ±1.8 (11.95-12.85 s, EASE.camara; las
+D2 del ejemplo, 0.02-0.05, se leen acercadas y luego se ven diminutas junto a σ), y el eje y de f pasa de [5, 600] a
+[0.1, 600] en escala log en 0.9 s (67.5-68.4 s, EASE.camara). El cambio de la parte 1 a la parte 2 es salida (0.24 s) y entrada, sin mover nada.
 
 TOMAS (segundos):
 0.0       cabecera + gráfico de log i (siete puntos, media posterior) + pie (cuadro 0).
 0.4-5.8   narración 1. log i en los nudos, equiespaciados en x.
-6.1-11.9  L_suavidad y D2_k (KaTeX 34 px) entran; ejes de D2 en 7.0; barrido 7.4-10.4: recta de k y k+1 prolongada
-          a trazos hasta k+2, la separación en marca, la barra k crece y su valor aparece.
-12.2-18.2 franja ±σ y densidad N(0, σ) de lado (12.4); lectura L_suavidad = -1.15 con σ = 0.5 (13.0).
-18.5-25.6 subir log i +0.8 (18.8-21.6) y luego inclinarlo +0.25 por nudo (22.0-24.8), con la curva original en guía:
-          las barras y L_suavidad no se mueven.
-25.9-30.0 doblar: +0.6 en el nudo de 60 (26.1-27.0, se queda); D2_2, D2_3 y D2_4 cambian; lectura ΔL = -4.29 (27.4).
-30.3-35.0 σ de 0.5 a 1 (30.6-31.6): la franja y la densidad se ensanchan; lectura ΔL = -1.08 con σ = 1 (31.8).
+6.1-11.9  L_suavidad y D2_k (KaTeX 34 px) entran; ejes de D2 (acercados a ±0.08) en 7.0; barrido 7.4-10.4: recta de
+          k y k+1 prolongada a trazos hasta k+2, la separación en marca, la barra k crece y su valor (26 px) aparece.
+11.95-12.85 cámara: el eje de D2 se abre a ±1.8.
+12.2-18.2 franja ±σ y densidad N(0, σ) de lado (12.9); lectura L_suavidad = -1.15 con σ = 0.5 (13.3).
+18.5-25.0 subir log i +0.8 (18.8-21.5) y luego inclinarlo +0.25 por nudo (22.0-24.7), con la curva original en guía:
+          los valores de D2 van en marca como testigos y «Las cinco D2_k y L_suavidad: sin cambio» (19.9).
+25.3-30.3 «nivel y pendiente por nudo los fija el ancla»; doblar: +0.6 en el nudo de 60 (26.8-27.7, se queda);
+          D2_2, D2_3 y D2_4 cambian (en marca); lectura «doblarla resta 4.29» (28.0, 28 px, en marca).
+30.6-35.0 σ de 0.5 a 1 (30.9-31.9): la franja y la densidad se ensanchan; lectura «con σ = 1, solo 1.07» (32.1).
 35.0-35.24 la parte 1 sale.
 35.6-41.9 csmr = f p (KaTeX 40 px, 35.8) y su lectura «muertes por persona-año de toda la población» (36.4).
-42.2-48.4 ⇒ f = csmr / p (42.3); μ_log y sd_log (43.2, 43.6), nota fracción aguda 0, factor_sd 1, sd_log 0.212 (44.2);
-          ejes de f (43.0); bandas del ancla escalonadas (44.4): centro exp(μ_log) y su 95 %, exp(μ_log ± 1.96 sd_log).
+42.2-48.4 ⇒ f = csmr / p (42.3); μ_log y sd_log (43.2, 43.6); ejes de f (43.0); bandas del ancla escalonadas (44.4):
+          centro exp(μ_log) y su 95 %, exp(μ_log ± 1.96 sd_log); nota sd_log 0.212, fracción aguda 0, factor_sd 1 (46.2).
 48.7-56.2 nudos 40 a 95 (48.9, uno cada 0.45 s): guía vertical, la banda que lo contiene resaltada en marca, bigote
-          del prior; nudo 30 (52.2): flecha desde la banda 40-45, bigote del doble de alto, etiqueta «sd × 2».
-56.5-62.3 L_emr (56.7); media posterior de f e intervalo del 95 % (57.6), curva log-lineal entre nudos (58.0-59.6).
-62.6-67.3 techo: línea en 250 por 1000 y rayado encima (62.8), etiquetas f_max = 0.25 y «por defecto 3 × máx csmr/p».
-67.3-68.3 cámara: el eje y se abre a [0.1, 600]; la columna derecha sale.
-68.4-73.4 tarjeta «plano» (68.5); el prior por nudo y las bandas bajan al 25 %; franja uniforme de 0.25 a 250 por 1000
-          (69.2), con sus dos bordes rotulados.
-73.7-80.0 tarjetas «cero» (73.8) y «tabla» (75.6); la curva de f baja al 30 % mientras se lee «cero».
-80.0-82.0 se sostiene.
+          del prior dentro de esa banda; nudo 30 (52.2): flecha desde la banda 40-45, bigote del doble, «sd_log × 2».
+56.5-62.2 L_emr (56.7); las guías de los nudos salen; media posterior de f e intervalo del 95 % en la edad del nudo
+          (57.6), curva log-lineal entre nudos (58.0-59.6); leyenda en la columna derecha.
+62.4-67.4 techo: línea en 250 por 1000 y rayado encima (62.5), rótulo sobre placa mate, «f_max = 0.25:
+          mortalidad_exceso.techo del ejemplo» y «sin mortalidad_exceso.techo, 3 × la mayor csmr/p (dos sexos): 0.234».
+67.5-68.4 cámara: el eje y se abre a [0.1, 600]; la columna derecha sale.
+68.5-73.5 tarjeta «plano» (68.9); bandas y prior por nudo al 25 %, la posterior (ajustada con desde_ancla) sale;
+          franja uniforme de 0.25 a 250 por 1000 (69.4), con sus dos bordes rotulados.
+73.8-80.5 tarjeta «cero» (74.2): el gráfico baja al 25 % y la franja plana sale; tarjeta «tabla» (76.6): vuelven
+          las bandas y el prior por nudo, bajo el techo.
+80.5-82.5 se sostiene.
 
 PROHIBIDO: degradados morados o azules, brillos, destellos, partículas decorativas, todo apareciendo a la vez,
 aparecer-y-subir en cada elemento, todo centrado, texto que se mueve mientras se lee, 3D, sombras, emojis, más de
