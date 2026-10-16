@@ -69,8 +69,8 @@ exportar <- function(ctx) {
   etiqueta <- ifelse(bandas$age_end >= 125, paste0(bandas$age_start, "+"),
                      paste0(bandas$age_start, "-", bandas$age_end - 1))
   list(
-    fuente = paste0("Datos sintéticos del ejemplo (causa 9100), mujeres: dl_factor_comorbilidad() y dl_avd() sobre el ",
-                    "ajuste nacional, semilla 1"),
+    fuente = sprintf(paste0("Datos sintéticos del ejemplo (causa 9100, Perú, %d), mujeres: dl_factor_comorbilidad() y ",
+                            "dl_avd() sobre el ajuste nacional, %d simulaciones, semilla %d"), b$cfg$years$ajuste, n_sim, semilla),
     semilla = semilla, n_sim = n_sim, sexo = sexo,
     estados = estados,
     beta_leve = list(x = x_beta, y = y_beta),
