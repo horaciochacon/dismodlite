@@ -63,8 +63,8 @@ exportar <- function(ctx) {
 
   ancla <- b$prior_gbd[measure_id == 5L & sex_id == sexo][order(age_start)]
   list(
-    fuente = paste0("Media posterior por edad del ajuste nacional del ejemplo (hombres; datos sintéticos) y ",
-                    "población del ejemplo, Perú 2023"),
+    fuente = paste0("Datos sintéticos del ejemplo (causa 9100, hombres, 2023): media posterior por edad del ajuste ",
+                    "nacional, ancla y población. Caso 3: 80-84 … 95+ juntas en 80+"),
     edad_inicio = b$cfg$edad_inicio, edades = edades, p = medias$p, ipop = medias$ipop, pf = medias$pf,
     bandas = list(id = bandas$age_group_id, inicio = bandas$age_start, fin = bandas$age_end, N = N),
     bandas80 = list(id = bandas80$age_group_id, inicio = bandas80$age_start, fin = bandas80$age_end,

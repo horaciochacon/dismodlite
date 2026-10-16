@@ -6,8 +6,8 @@ MOVIMIENTO, TOMAS, PROHIBIDO, REVISIÓN). Cada adjetivo es un número. Si cambia
 **Fuente del método:** `vignettes/el-modelo.qmd`, sección 4; la cabecera y las funciones de `R/bandas.R`
 (`.dl_pesos_intervalo()`, `.dl_q_intervalos()`, `.dl_agregar_bandas()`); `insumos$bandas_pobl` de `dl_insumos()`.
 **Datos:** `datos/r/04-bandas.R`: la media posterior por edad simple de p, i (1 - p) y p f del ajuste nacional del
-ejemplo (`ctx$ajuste()`, hombres, datos sintéticos), la población del ejemplo (Perú 2023, hombres, suma de los 25
-departamentos) por banda fina, y para cada intervalo los pesos y el promedio que calcula el propio paquete.
+ejemplo (`ctx$ajuste()`, hombres), la población del ejemplo (2023, hombres, suma de los 25 departamentos) por banda
+fina (todo sintético, y el pie lo dice), y para cada intervalo los pesos y el promedio que calcula el propio paquete.
 
 ```text
 OBJETIVO: quien mira entiende que el modelo da cantidades por edad simple a (30 a 99) y que, para compararlas con el
@@ -45,20 +45,23 @@ TOMAS (segundos):
 6.2-10.9   narración 2. Las 12 cajas del ancla (40-44 ... 95+, la abierta dibujada en [95, 100)) entran
            escalonadas; leyenda «ancla, por banda [inicio, fin)».
 11.1-12.1  CÁMARA: el gráfico se estrecha a la izquierda (x 200-1150, y 280-500).
-12.3-17.6  narración 3. A la derecha, q = Σ w_a x(a), A = {...} y w_a (las tres de la guía), 0.7 s entre ellas.
-17.9-24.4  narración 4. Panel de población (y 610-810): 14 cajas de bandas finas, escalonadas.
+12.3-17.7  narración 3. A la derecha, q = Σ w_a x(a), A = {...} y w_a (las tres de la guía), 0.7 s entre ellas.
+17.9-24.4  narración 4. Panel de población (y 610-810, desde 18.3 s): 14 cajas de bandas finas, escalonadas.
 24.7-31.0  narración 5. Las rayas que separan las edades del modelo dentro de cada caja (n_b = 5); la caja 95+ se
-           señala: «95 y más: edades 95 a 99».
-31.3-38.3  narración 6. Caso 1, [40, 45): velo A, el resto de la población baja al 35 %; tarjeta con 5 barras
-           w_a = 0.200.
-38.6-43.6  narración 7. El segmento q sobre [40, 45) y q = 0.0120 en la tarjeta; la caja 40-44 del ancla queda al
-           100 %, las demás al 35 %.
-43.9-50.6  narración 8. Caso 2, [50, 65): el velo se desliza; 15 barras en tres escalones (N_b); w_a = N_b / Σ N_b.
-50.9-57.6  narración 9. Caso 3: las cajas 80-84 ... 95+ se funden en 80+ (alto N_80+/20); fantasma punteado del alto
-           sin dividir (N_80+/5, cuatro veces).
-57.9-64.6  narración 10. El velo pasa a [60, 125); 40 barras, con las de 80+ y su fantasma punteado; sumas:
+           señala: «95 y más (abierta): edades 95 a 99». Rayas de 18 x 3 px (legibles en un teléfono).
+31.3-38.3  narración 6. Caso 1, [40, 45): velo A (31.5) y, 200 ms después, la tarjeta con 5 barras w_a = 0.200;
+           la leyenda del gráfico se va; los puntos fuera de A bajan al 40 %.
+38.6-43.6  narración 7. El segmento q sobre [40, 45) (38.8) y q = 0.0120 en la tarjeta; desde 39.0 s la caja 40-44
+           del ancla queda al 100 % y las demás bajan al 35 %; lectura «ancla 0.0120 · q 0.0120» con guía a la caja.
+43.9-50.6  narración 8. Caso 2, [50, 65): el velo se desliza (44.1); tarjeta a 44.3: 15 barras en tres escalones
+           (N_b); w_a ∝ N_b. La tarjeta del caso 2 se va en 50.9, cuando empieza el caso 3.
+50.9-57.6  narración 9. Caso 3: las cajas 80-84 ... 95+ (al 100 %: son la toma) se funden en 80+ (alto N_80+/20);
+           fantasma punteado del alto sin dividir (N_80+/5, cuatro veces: «20 edades frente a 5»).
+57.9-64.6  narración 10. El velo pasa a [60, 125); 40 barras y, encima, un escalón punteado con los pesos sin
+           dividir por n_b (las 40 edades, en la misma escala); sumas:
            80+ pesa 0.214 = N_80+ / Σ N_b (sin dividir: 0.521); q de 60 y más.
-64.9-72.0  narración 11. La tarjeta cambia a la tabla de medidas: p, i(1 - p), p f y su q en 60 y más.
+64.9-72.0  narración 11. La tarjeta cambia a la tabla de medidas: p, i(1 - p), p f y su q en [60, 125) con la
+           población del caso 3 (así lo dice la cabecera); el segmento q de 60 y más se queda hasta el final.
 
 PROHIBIDO: degradados morados o azules, brillos, destellos, partículas decorativas, todo apareciendo a la vez,
 aparecer-y-subir en cada elemento, todo centrado, texto que se mueve mientras se lee, 3D, sombras, emojis, números
