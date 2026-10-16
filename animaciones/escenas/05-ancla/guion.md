@@ -21,13 +21,13 @@ con el intervalo del ajuste.
 
 SALIDA: un HTML autocontenido, SVG + KaTeX 0.16.11 (jsDelivr), 1920 x 1080, con lib/contrato.js.
 
-TIEMPO: 77 s a 30 cuadros/s = 2310 cuadros. Sin bucle: el cuadro 0 es una composición terminada (cabecera y los
-ejes de la prevalencia por edad, con sus títulos); el final se sostiene 3.2 s.
+TIEMPO: 75 s a 30 cuadros/s = 2250 cuadros. Sin bucle: el cuadro 0 es una composición terminada (cabecera, los
+ejes de la prevalencia por edad con sus títulos y las 12 rayas val_b del ancla); el final se sostiene 3.6 s.
 
 ASPECTO: fondo F5F7F6, tinta 16211E, tinta suave 55645F, rejilla DCE4E1, marca 0E6B62. El ancla va en tinta: una
 caja por banda de lower_b a upper_b (relleno FFFFFF, borde 16211E de 2 px, 4 px de margen a cada lado de la banda)
 con una raya de 3 px en val_b. Lo del modelo, q_b, en verde p 1baf7a: raya de 4 px en la media, con 44 % del ancho
-de la banda; su IC 95 % como caja verde al 30 % de opacidad. La matriz R en la marca 0E6B62 con opacidad = R_bc
+de la banda; su IC 95 % como caja verde al 30 % de opacidad con topes verdes de 2 px. La matriz R en la marca 0E6B62 con opacidad = R_bc
 (celdas de 30 px, 2 px de separación). Ninguna letra en color de serie. Títulos Source Serif 4 600 a 54 px (la
 cabecera); texto Source Sans 3; números IBM Plex Mono; fórmulas KaTeX a 34 px (la principal) y 30 px (las de
 apoyo); etiquetas a 24-26 px; nada por debajo de 22 px. Narración abajo a 36 px.
@@ -44,11 +44,12 @@ media en 0.75 s (MS.heroe, EASE.entrarSuave); el paso de un ajuste a otro es un 
 de los bordes de las cajas. Las barras de ancho crecen en 0.5 s (EASE.entrarSuave). Nada se mueve mientras se lee.
 
 TOMAS (segundos):
-0.0        cabecera + ejes (y lineal, 0 a 22 %) quietos (cuadro 0).
-0.4-5.2    narración 0. Las 12 cajas del ancla entran escalonadas desde 0.8 s.
+0.0        cabecera + ejes (y lineal, proporción de 0 a 0.22) + las 12 rayas val_b, quietos (cuadro 0).
+0.4-5.2    narración 0. Las 12 cajas del ancla se abren desde su val_b, escalonadas, desde 0.8 s.
 5.5-10.0   narración 1. La banda 65-69 se marca (borde de la marca, 3 px); las demás bajan al 35 %. A la derecha,
            la lupa: una regla vertical con lower_b, val_b y upper_b y sus valores.
-10.0-11.0  CÁMARA: el eje y pasa a escala logarítmica (0.007 a 0.25); la regla de la lupa también. En log, las 12
+10.0-11.0  CÁMARA: el eje y pasa a escala logarítmica (0.007 a 0.25); la regla de la lupa también. Las marcas
+           lineales se van antes de u = 1/3 y las logarítmicas llegan después de u = 1/2. En log, las 12
            cajas miden lo mismo (σ_log = 0.15 en las 12 bandas del ejemplo).
 11.1-16.8  narración 2. La campana normal (en log) se traza junto a la regla, con ±1.96 σ_log; debajo,
            σ_log,b = (log upper_b − log lower_b) / 3.92 y su cuenta con los números de la banda.
@@ -62,17 +63,19 @@ TOMAS (segundos):
 35.9-41.4  narración 7. Entran las diagonales a 1, 2 y 3 bandas (0.5, 0.25, 0.125) con su leyenda, y después el
            resto de una vez.
 41.7-46.8  narración 8. Las bandas 90-94 y 95+ se marcan en el gráfico y su celda en la matriz: a una banda,
-           correlación 0.5, aunque 95+ abarque 30 años.
+           correlación 0.5, aunque 95+ sea abierta (se desmarcan a 47.0 s).
 47.1-52.0  narración 9. Σ/λ se subraya con la marca; al lado, λ = 1 peso entero, λ = 0.5 la mitad.
-52.3-58.1  narración 10. El doble conteo; nada nuevo entra.
+52.5-58.1  narración 10. El doble conteo; Σ, R y la matriz bajan al 40 % desde 52.8 s: solo L_ancla y la nota de λ
+           quedan enteras.
 58.1-58.4  la fórmula y la matriz se van; el gráfico vuelve al 100 %.
 58.4-63.3  narración 11. Las cajas verdes del IC 95 % del ajuste (λ = 1, ρ = 0.5) crecen sobre las del ancla;
            las rayas (medias) caen dentro de las cajas del ancla;
-           rótulo de estado arriba a la derecha del gráfico.
+           rótulo de estado arriba a la derecha del gráfico. Desde 61.0 s se arma el panel de barras, vacío
+           (título, nota, filas ρ, leyenda), para que en 64.0 s solo se muevan las cajas y su barra.
 63.6-69.1  narración 12. Las cajas pasan a los ajustes cortos λ = 1 con ρ = 0, 0.5 y 0.9 (64.0, 65.8, 67.6 s); a
            la derecha, una barra de ancho medio del IC por ρ (λ = 1) entra con cada paso.
 69.4-73.8  narración 13. Las cajas pasan a λ = 0.5, ρ = 0.5 (69.8 s); entran las barras de λ = 0.5 (la de ρ = 0.5
-           primero, 70.4 s; las otras dos 0.6 s después). Se sostiene hasta 77.0.
+           primero, 70.0 s; las otras dos 0.6 s después). Se sostiene hasta 75.0.
 
 PROHIBIDO: degradados morados o azules, brillos, destellos, partículas decorativas, todo apareciendo a la vez,
 aparecer-y-subir en cada elemento, todo centrado, texto que se mueve mientras se lee, 3D, sombras, emojis, números
