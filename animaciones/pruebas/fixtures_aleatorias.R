@@ -272,7 +272,7 @@ proxy_azar <- lapply(seq_len(30L), function(k) {
   if (!length(bp$inicio)) bp <- list(inicio = 60, fin = 125)
   nb <- length(bp$inicio)
   cat_p <- data.table(age_group_id = 300L + seq_len(nb), age_start = bp$inicio, age_end = bp$fin)
-  ids <- sample(cat_p$age_group_id)                       # en cualquier orden: R las ordena por edad
+  ids <- cat_p$age_group_id[sample.int(nb)]              # en cualquier orden: R las ordena por edad
   nsub <- sample(c(1L, 5L, 7L), 1); a0 <- sample(c(0, 30, 33), 1); aF <- sample(c(97, 99, 104), 1)
   edades <- dl$.dl_edades_media(a0, aF, nsub)
   fuera <- sample(c("cero", "vecina"), 1); interp <- sample(c("lineal", "escalon"), 1)
