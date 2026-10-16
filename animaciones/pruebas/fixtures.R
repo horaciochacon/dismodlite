@@ -712,6 +712,10 @@ adv$techo_cascada <- lapply(c(0.3, 0.07), function(techo) {
 })
 fx$adversario <- adv
 
+# ==== (e) Casos aleatorios: contextos sintéticos y entradas al azar (pruebas/fixtures_aleatorias.R) ===================
+
+source(file.path(carpeta, "fixtures_aleatorias.R"), local = TRUE, encoding = "UTF-8")
+
 # ==== Escritura ======================================================================================================
 
 texto <- toJSON(fx, digits = I(17), na = "string", auto_unbox = TRUE, null = "null", matrix = "rowmajor")

@@ -1,0 +1,476 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>05 · El ancla · dismodlite</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="stylesheet" href="../../lib/escena.css">
+<script src="../../lib/contrato.js"></script>
+<script src="../../lib/movimiento.js"></script>
+<script src="../../lib/dibujo.js"></script>
+<script src="../../datos/05-ancla.js"></script>
+</head>
+<body>
+<script>
+// Escena 05: el ancla. Guion: guion.md. Datos: datos/r/05-ancla.R (dl_insumos(), dl_ajustar(), como dl_sensibilidad()).
+(function () {
+  'use strict';
+  var D = DL.dib, M = DL.mov, P = D.paleta, E = M.EASE;
+  var datos = DL_DATOS['05-ancla'];
+  var A = datos.ancla;
+  var nb = A.val.length;
+  var K = A.age_start.indexOf(65);          // la banda de la lupa: 65-69
+  var K90 = A.age_start.indexOf(90), K95 = A.age_start.indexOf(95);
+  var rho = datos.rho;
+
+  // ---- Narración: cada línea dura al menos 0,3 s por palabra + 0,5 s ----
+  var NARRACION = [
+    [0.4, 5.2, 'El ancla es una estimación publicada de la prevalencia, banda por banda de edad.'],
+    [5.5, 10.0, 'Cada banda $b$ trae su valor $val_b$ y su intervalo del 95 %.'],
+    [11.1, 17.0, 'En escala log, el intervalo se lee como el de una normal: su ancho entre 3.92 da $\\sigma_{log,b}$.'],
+    [17.3, 22.7, 'El modelo da $q_b$: el promedio de $p$ en la banda, ponderado por la población.'],
+    [23.0, 26.4, 'Los dos se comparan en logaritmos: $z_b = \\log q_b - \\log val_b$.'],
+    [26.7, 30.4, 'Todas las bandas entran juntas, en una normal multivariada.'],
+    [30.7, 35.6, 'Una estimación publicada no tiene errores independientes entre edades: $R$ los correlaciona.'],
+    [35.9, 41.4, 'Con $\\rho = 0.5$, la correlación a una, dos y tres bandas es 0.5, 0.25 y 0.125.'],
+    [41.7, 46.8, 'Se cuenta en bandas, no en años: 90-94 y 95+ están a una banda.'],
+    [47.1, 52.2, '$\\lambda$ multiplica la precisión del ancla: con $\\lambda = 0.5$ cuenta como la mitad de la información.'],
+    [52.5, 58.1, 'Se baja si los datos del ajuste ya estaban en la referencia: no cuentan dos veces.'],
+    [58.4, 63.3, 'El ajuste: la media de cada banda cae dentro del intervalo del ancla.'],
+    [63.6, 69.1, 'Con $\\rho = 0$ las bandas cuentan como independientes y el intervalo se estrecha; con 0.9, se abre.'],
+    [69.4, 75.0, 'Con $\\lambda = 0.5$ el ancla pesa la mitad, y el intervalo se ensancha.'],
+  ];
+
+  // ---- El gráfico: x lineal en la edad; y lineal hasta 10 s y logarítmica desde 11 s (cámara declarada) ----
+  var GX = 200, GY = 300, GW = 800, GH = 500;
+  var XMAX = 100;                              // la banda 95+ (95-125) se dibuja de 95 a 100, abierta a la derecha
+  var LIN = [0, 0.22], LOG = [0.007, 0.25];
+  function gx(a) { return GX + (Math.min(a, XMAX) - 40) / (XMAX - 40) * GW; }
+  function yLin(v) { return GY + GH - (v - LIN[0]) / (LIN[1] - LIN[0]) * GH; }
+  function yLog(v) { return GY + GH - (Math.log(v) - Math.log(LOG[0])) / (Math.log(LOG[1]) - Math.log(LOG[0])) * GH; }
+  function gy(v, u) {
+    if (u <= 0) return yLin(v);
+    var lg = v > 0 ? yLog(v) : GY + GH + 60;   // el 0 % de la escala lineal cae bajo el eje en log
+    return u >= 1 ? lg : (1 - u) * yLin(v) + u * lg;
+  }
+  var T_CAM = [10.0, 11.0];
+  function uLog(t) { return E.camara(M.tramo(t, T_CAM[0], T_CAM[1])); }
+
+  function ejes(t, u, o) {
+    var s = [];
+    [0, 0.05, 0.10, 0.15, 0.20].forEach(function (v) {
+      var ol = Math.max(0, 1 - 3 * u) * o, yy = gy(v, u);
+      if (ol <= 0.01) return;
+      s.push(D.linea(GX, yy, GX + GW, yy, { color: P.rejilla, grosor: 1.5, o: ol }));
+      s.push(D.texto(GX - 14, yy, D.num(v, 2), { tam: 22, color: P.suave, ancla: 'end', base: 'middle', o: ol }));
+    });
+    [0.01, 0.02, 0.05, 0.10, 0.20].forEach(function (v) {
+      var ol = Math.max(0, 2 * u - 1) * o, yy = gy(v, u);
+      if (ol <= 0.01) return;
+      s.push(D.linea(GX, yy, GX + GW, yy, { color: P.rejilla, grosor: 1.5, o: ol }));
+      s.push(D.texto(GX - 14, yy, v < 0.1 ? D.num(v, 2) : D.num(v, 1), { tam: 22, color: P.suave, ancla: 'end', base: 'middle', o: ol }));
+    });
+    s.push(D.linea(GX, GY + GH, GX + GW, GY + GH, { color: P.guia, grosor: 2, o: o }));
+    [40, 50, 60, 70, 80, 90, 97.5].forEach(function (a) {
+      s.push(D.linea(gx(a), GY + GH, gx(a), GY + GH + 8, { color: P.guia, grosor: 2, o: o }));
+      s.push(D.texto(gx(a), GY + GH + 36, a === 97.5 ? '95+' : String(a), { tam: 22, color: P.suave, ancla: 'middle', o: o }));
+    });
+    s.push(D.texto(GX + GW, GY + GH + 74, 'Edad (años)', { tam: 24, color: P.suave, ancla: 'end', id: 'x-titulo', o: o }));
+    s.push(D.texto(GX - 14, GY - 26, u < 0.5 ? 'Prevalencia (proporción)' : 'Prevalencia (proporción), escala log',
+      { tam: 24, color: P.suave, id: u < 0.5 ? 'y-titulo' : 'y-titulo-log', o: o }));
+    return s.join('');
+  }
+
+  // La caja del ancla de la banda k: de lower a upper, con la raya en val; crece desde val (g de 0 a 1).
+  function cajaAncla(k, u, g, o, marcada) {
+    if (o <= 0.01) return '';
+    var x0 = gx(A.age_start[k]) + 4, x1 = gx(A.age_end[k]) - 4;
+    var yv = gy(A.val[k], u);
+    if (g <= 0) return D.linea(x0, yv, x1, yv, { color: P.tinta, grosor: 3, extremo: 'butt', o: o });   // val_b desde el cuadro 0
+    var yu = yv + (gy(A.upper[k], u) - yv) * g, yl = yv + (gy(A.lower[k], u) - yv) * g;
+    var s = D.rect(x0, yu, x1 - x0, yl - yu, { relleno: P.superficie, borde: marcada ? P.marca : P.tinta, grosor: marcada ? 3 : 2, o: o });
+    s += D.linea(x0, yv, x1, yv, { color: P.tinta, grosor: 3, extremo: 'butt', o: o });
+    if (A.age_end[k] > XMAX) {   // 95+: abierta a la derecha
+      s += D.flecha(x1 + 2, yv, x1 + 22, yv, { color: P.tinta, grosor: 2, cabeza: 8, o: o * g });
+    }
+    return s;
+  }
+
+  // La prevalencia del modelo en la banda k: raya en la media y, si e > 0, la caja del IC 95 % (crece desde la media).
+  function cajaModelo(k, u, est, raya, e, o) {
+    if (o <= 0.01) return '';
+    var cx = (gx(A.age_start[k]) + gx(Math.min(A.age_end[k], XMAX))) / 2, w = 0.44 * (gx(A.age_start[k] + 5) - gx(A.age_start[k]));
+    var yv = gy(est.val[k], u), s = '';
+    if (e > 0) {
+      var yu = yv + (gy(est.upper[k], u) - yv) * e, yl = yv + (gy(est.lower[k], u) - yv) * e;
+      s += D.rect(cx - w / 2, yu, w, yl - yu, { relleno: P.p, o: 0.30 * o });
+      s += D.linea(cx - w / 2, yu, cx + w / 2, yu, { color: P.p, grosor: 2, extremo: 'butt', o: o * e });
+      s += D.linea(cx - w / 2, yl, cx + w / 2, yl, { color: P.p, grosor: 2, extremo: 'butt', o: o * e });
+    }
+    if (raya > 0) s += D.linea(cx - w / 2 * raya, yv, cx + w / 2 * raya, yv, { color: P.p, grosor: 4, extremo: 'butt', o: o });
+    return s;
+  }
+
+  // ---- La lupa: la banda 65-69 en una regla vertical (lineal hasta 10 s, log desde 11 s) ----
+  var LU = { x: 1440, w: 40, arriba: 340, abajo: 690, dom: [0.036, 0.080] };
+  function ly(v, u) {
+    var lin = LU.abajo - (v - LU.dom[0]) / (LU.dom[1] - LU.dom[0]) * (LU.abajo - LU.arriba);
+    var lg = LU.abajo - (Math.log(v) - Math.log(LU.dom[0])) / (Math.log(LU.dom[1]) - Math.log(LU.dom[0])) * (LU.abajo - LU.arriba);
+    return (1 - u) * lin + u * lg;
+  }
+  var sigmaK = (Math.log(A.upper[K]) - Math.log(A.lower[K])) / datos.ancho_ic95_en_sd;
+  var qK = datos.ajuste.val[K];
+  var zK = Math.log(qK) - Math.log(A.val[K]);
+
+  function lupa(t, u, o) {
+    if (o <= 0.01) return '';
+    var s = [];
+    var g = M.entra(t, 5.8, 0.4, E.entrarSuave);
+    var yU = ly(A.upper[K], u), yV = ly(A.val[K], u), yL = ly(A.lower[K], u), yQ = ly(qK, u);
+    s.push(D.rect(1110, 294, 24, 24, { relleno: P.superficie, borde: P.marca, grosor: 3, o: M.visible(t, 5.8, Infinity) }));
+    s.push(D.texto(1146, 316, 'Banda ' + A.age_start[K] + '-' + (A.age_end[K] - 1), { tam: 28, peso: 600, id: 'lupa-titulo', o: M.visible(t, 5.8, Infinity) }));
+    s.push(D.rect(LU.x, yV + (yU - yV) * g, LU.w, (yL - yU) * g, { relleno: P.superficie, borde: P.marca, grosor: 3, o: g }));
+    s.push(D.linea(LU.x, yV, LU.x + LU.w, yV, { color: P.tinta, grosor: 3, extremo: 'butt', o: g }));
+    // val_b primero; upper_b y lower_b, un escalón (ESCALONADO.fila) después cada una.
+    var esc = M.seg(M.ESCALONADO.fila);
+    s.push(D.parrafo(LU.x - 16, yV - 18, 320, '$val_b$ = ' + D.num(A.val[K], 4), { tam: 26, ancla: 'end', alto: 40, o: M.visible(t, 6.3, Infinity), id: 'lupa-val' }));
+    s.push(D.parrafo(LU.x - 16, yU - 18, 320, '$\\text{upper}_b$ = ' + D.num(A.upper[K], 4), { tam: 26, ancla: 'end', alto: 40, o: M.visible(t, 6.3 + 2 * esc, Infinity), id: 'lupa-upper' }));
+    s.push(D.parrafo(LU.x - 16, yL - 18, 320, '$\\text{lower}_b$ = ' + D.num(A.lower[K], 4), { tam: 26, ancla: 'end', alto: 40, o: M.visible(t, 6.3 + 3 * esc, Infinity), id: 'lupa-lower' }));
+
+    // La campana: normal en log centrada en log val_b con sd sigma_log,b, de -2.6 a 2.6 sd, de lado.
+    if (t >= 11.3) {
+      var uc = M.entra(t, 11.3, 0.8, E.mover);
+      var pts = [], base = LU.x + LU.w + 10, alto = 150;
+      for (var j = 0; j <= 60; j++) {
+        var zz = -2.6 + 5.2 * j / 60;
+        var v = Math.exp(Math.log(A.val[K]) + zz * sigmaK);
+        pts.push([base + alto * Math.exp(-zz * zz / 2), ly(v, u)]);
+      }
+      s.push(D.trazo(pts, { color: P.tinta, grosor: 2.5, progreso: uc }));
+      var oG = M.entra(t, 11.9, 0.4, E.entrarSuave);
+      s.push(D.linea(LU.x + LU.w, yU, base + 40, yU, { color: P.guia, grosor: 2, guiones: '5 5', o: oG }));
+      s.push(D.linea(LU.x + LU.w, yL, base + 40, yL, { color: P.guia, grosor: 2, guiones: '5 5', o: oG }));
+      s.push(D.parrafo(base + 50, yU - 20, 260, '$+1.96\\,\\sigma_{log,b}$', { tam: 24, alto: 40, o: M.visible(t, 12.1, Infinity), id: 'lupa-mas' }));
+      s.push(D.parrafo(base + 50, yL - 20, 260, '$-1.96\\,\\sigma_{log,b}$', { tam: 24, alto: 40, o: M.visible(t, 12.1, Infinity), id: 'lupa-menos' }));
+    }
+    // q_b sobre la regla y, después, el tramo z_b.
+    if (t >= 17.6) {
+      var gq = M.entra(t, 17.6, 0.4, E.entrarSuave);
+      s.push(D.linea(LU.x - 6, yQ, LU.x + LU.w + 6, yQ, { color: P.p, grosor: 4, extremo: 'butt', o: gq }));
+      s.push(D.parrafo(LU.x + LU.w + 175, yQ - 4, 200, '$q_b$ = ' + D.num(qK, 4) + '\nmedia posterior', { tam: 24, alto: 72, palabras: 4, o: M.visible(t, 18.4, Infinity), id: 'lupa-q' }));
+      var zq = (Math.log(qK) - Math.log(A.val[K])) / sigmaK;
+      s.push(D.linea(LU.x + LU.w + 10 + 150 * Math.exp(-zq * zq / 2) + 8, yQ + 13, LU.x + LU.w + 170, yQ + 13, { color: P.guia, grosor: 1.5, o: gq }));
+    }
+    if (t >= 23.0) {
+      var gz = M.entra(t, 23.0, 0.4, E.entrarSuave);
+      var xz = LU.x + LU.w + 16;
+      s.push(D.linea(xz, yV, xz, yV + (yQ - yV) * gz, { color: P.marca, grosor: 4, extremo: 'butt' }));
+      s.push(D.linea(xz - 6, yV, xz + 6, yV, { color: P.marca, grosor: 3, o: gz }));
+      s.push(D.linea(xz - 6, yQ, xz + 6, yQ, { color: P.marca, grosor: 3, o: gz }));
+      s.push(D.parrafo(xz + 12, (yV + yQ) / 2 - 18, 60, '$z_b$', { tam: 24, alto: 36, o: M.visible(t, 23.3, Infinity), id: 'lupa-z' }));
+    }
+    return D.grupo(s, { o: o });
+  }
+
+  // ---- Fórmulas ----
+  var SUB = {
+    tq: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;text-decoration-skip-ink:none;',
+    lam: 'box-shadow: inset 0 -5px 0 ' + P.marca + ';',
+  };
+  var EC_SIGMA = '\\sigma_{log,b} = (\\log \\text{upper}_b - \\log \\text{lower}_b) / 3.92';
+  var EC_SIGMA_N = '= (\\log ' + D.num(A.upper[K], 4) + ' - \\log ' + D.num(A.lower[K], 4) + ') / 3.92 = ' + D.num(sigmaK, 3);
+  var EC_Z = 'z_b = \\log \\htmlClass{tq}{q_b} - \\log val_b';
+  var EC_Z_N = '= \\log ' + D.num(qK, 4) + ' - \\log ' + D.num(A.val[K], 4) + ' = ' + '{' + D.num(zK, 3) + '}';
+  function ecL(subrayar) {
+    return 'L_{ancla} = \\log MVN(z;\\ 0,\\ ' + (subrayar ? '\\htmlClass{lam}{\\Sigma / \\lambda}' : '\\Sigma / \\lambda') + ')';
+  }
+  var EC_SIGMA_M = '\\Sigma = \\text{diag}(\\sigma_{log})\\, R\\, \\text{diag}(\\sigma_{log})';
+  var EC_R = 'R_{bc} = \\rho^{|b - c|}, \\quad \\rho = ' + rho;
+
+  // ---- La matriz R ----
+  var MX = { x: 1190, y: 470, paso: 30, celda: 28 };
+  var DIAG = [[0, 31.2], [1, 36.3], [2, 37.5], [3, 38.7]];   // [distancia en bandas, segundo en que entra]
+  var T_RESTO = 39.9;
+  function entraDiag(t, d) {
+    for (var j = 0; j < DIAG.length; j++) if (DIAG[j][0] === d) return M.entra(t, DIAG[j][1], 0.4, E.entrarSuave);
+    return M.entra(t, T_RESTO, 0.4, E.entrarSuave);
+  }
+
+  function matriz(t, c, o) {
+    if (o <= 0.01) return '';
+    var s = [];
+    var celdas = [];
+    var oMarco = M.entra(t, 30.9, 0.4, E.entrarSuave);
+    for (var b = 0; b < nb; b++) {
+      var fila = [];
+      for (var cc = 0; cc < nb; cc++) {
+        var v = datos.R[b][cc];
+        var x = MX.x + cc * MX.paso, y = MX.y + b * MX.paso;
+        var e = entraDiag(t, Math.abs(b - cc));
+        s.push(D.rect(x, y, MX.celda, MX.celda, { relleno: P.superficie, borde: P.rejilla, grosor: 1, o: oMarco }));
+        if (e > 0) { s.push(D.rect(x, y, MX.celda, MX.celda, { relleno: P.marca, o: v * e })); fila.push(v); } else { fila.push(null); }
+      }
+      celdas.push(fila);
+      s.push(D.texto(MX.x - 10, MX.y + b * MX.paso + MX.celda / 2, A.age_end[b] > XMAX ? '95+' : String(A.age_start[b]),
+        { tam: 22, color: P.suave, ancla: 'end', base: 'middle', o: oMarco }));
+    }
+    c.dato('R_dibujada', celdas);
+    // Leyenda de las diagonales.
+    var LX = 1580, filas = [[0, 'diagonal: 1'], [1, '1 banda: ' + rho], [2, '2 bandas: ' + Math.pow(rho, 2)], [3, '3 bandas: ' + Math.pow(rho, 3)]];
+    filas.forEach(function (f, j) {
+      var y = 500 + j * 52, t0 = DIAG[j][1];
+      var ol = M.visible(t, t0 + 0.1, Infinity);
+      s.push(D.rect(LX, y - 14, 26, 26, { relleno: P.superficie, borde: P.rejilla, grosor: 1, o: ol }));
+      s.push(D.rect(LX, y - 14, 26, 26, { relleno: P.marca, o: Math.pow(rho, f[0]) * ol }));
+      s.push(D.texto(LX + 38, y, f[1], { tam: 24, base: 'middle', o: ol, id: 'leyenda-r-' + j, palabras: 3 }));
+    });
+    // 90-94 y 95+: a una banda.
+    var oB = M.visible(t, 42.0, 47.0);
+    if (oB > 0) {
+      [[K90, K95], [K95, K90]].forEach(function (bc) {
+        s.push(D.rect(MX.x + bc[1] * MX.paso - 2, MX.y + bc[0] * MX.paso - 2, MX.celda + 4, MX.celda + 4, { borde: P.tinta, grosor: 3, o: oB }));
+      });
+      s.push(D.parrafo(LX, 716, 236, '90-94 y 95+: a una banda, aunque 95+ sea abierta', { tam: 24, alto: 140, o: M.visible(t, 42.4, 47.0), id: 'nota-bandas' }));
+    }
+    return D.grupo(s, { o: o });
+  }
+
+  // ---- Sensibilidad: estados del gráfico y barras de ancho ----
+  function sens(lam, r) {
+    for (var j = 0; j < datos.sensibilidad.length; j++) {
+      var x = datos.sensibilidad[j];
+      if (x.lambda === lam && x.rho === r) return x;
+    }
+    throw new Error('sin ajuste para lambda ' + lam + ', rho ' + r);
+  }
+  // [segundo en que empieza el paso, estado, etiqueta]
+  var ESTADOS = [
+    [58.6, datos.ajuste, { lambda: datos.lambda, rho: datos.rho, ejemplo: true }],
+    [64.0, sens(1, 0), { lambda: 1, rho: 0 }],
+    [65.8, sens(1, 0.5), { lambda: 1, rho: 0.5 }],
+    [67.6, sens(1, 0.9), { lambda: 1, rho: 0.9 }],
+    [69.8, sens(0.5, 0.5), { lambda: 0.5, rho: 0.5 }],
+  ];
+  var DUR_PASO = M.seg(M.MS.heroe);
+  // El estado en t: entre dos estados, los bordes se mueven en escala log (EASE.mover).
+  function estadoEn(t) {
+    var j = 0;
+    while (j + 1 < ESTADOS.length && t >= ESTADOS[j + 1][0]) j++;
+    var a = ESTADOS[j][1];
+    if (j === 0) return { est: a, k: 0 };
+    var prev = ESTADOS[j - 1][1], w = M.entra(t, ESTADOS[j][0], DUR_PASO, E.mover);
+    if (w >= 1) return { est: a, k: j };
+    function mez(x, y) { return x.map(function (v, i) { return Math.exp((1 - w) * Math.log(v) + w * Math.log(y[i])); }); }
+    return { est: { val: mez(prev.val, a.val), lower: mez(prev.lower, a.lower), upper: mez(prev.upper, a.upper) }, k: j, w: w };
+  }
+
+  var BX = { x0: 1250, escala: 520, filas: [0, 0.5, 0.9], y0: 452, dy: 104 };
+  var T_BARRA = { '1|0': 64.2, '1|0.5': 66.0, '1|0.9': 67.8, '0.5|0.5': 70.0, '0.5|0': 70.6, '0.5|0.9': 70.6 };
+  function barras(t, actual, c) {
+    var s = [], o = M.visible(t, 61.0, Infinity);
+    if (o <= 0) return '';
+    s.push(D.parrafo(1110, 278, 714, 'Ancho relativo del IC 95 % de $q_b$, promedio de las 12 bandas', { tam: 28, peso: 600, alto: 44, o: o, id: 'barras-titulo' }));
+    s.push(D.texto(1110, 360, '(superior − inferior) / valor · cadenas de dl_sensibilidad()', { tam: 24, color: P.suave, o: M.visible(t, 61.8, Infinity), id: 'barras-nota' }));
+    var dibujadas = {};
+    BX.filas.forEach(function (r, j) {
+      var yc = BX.y0 + j * BX.dy;
+      s.push(D.parrafo(1110, yc - 20, 120, '$\\rho = ' + r + '$', { tam: 26, alto: 40, o: M.visible(t, 61.3 + j * M.seg(M.ESCALONADO.fila), Infinity), id: 'barras-rho-' + j }));
+      [1, 0.5].forEach(function (lam, m) {
+        var x = sens(lam, r), t0 = T_BARRA[lam + '|' + r];
+        var g = M.entra(t, t0, M.seg(M.MS.mover), E.entrarSuave);
+        if (g <= 0) return;
+        var y = yc - 30 + m * 32, w = x.ancho * BX.escala * g;
+        s.push(m === 0 ? D.rect(BX.x0, y, w, 26, { relleno: P.p })
+                       : D.rect(BX.x0 + 1.5, y + 1.5, Math.max(0, w - 3), 23, { borde: P.p, grosor: 3 }));
+        s.push(D.texto(BX.x0 + x.ancho * BX.escala + 12, y + 13, D.num(x.ancho, 2), { tam: 26, fuente: 'mono', base: 'middle',
+          o: M.visible(t, t0 + 0.3, Infinity), id: 'barra-' + lam + '-' + r }));
+        dibujadas[lam + '|' + r] = x.ancho * BX.escala;
+        if (actual && actual.lambda === lam && actual.rho === r && !actual.ejemplo) {
+          s.push(D.circulo(BX.x0 - 14, y + 13, 6, { relleno: P.marca }));
+        }
+      });
+    });
+    c.dato('barras_px', dibujadas);
+    // Leyenda: λ = 1 llena, λ = 0.5 hueca.
+    var oL = M.visible(t, 62.1, Infinity), yl = 770;
+    s.push(D.rect(1250, yl - 12, 40, 24, { relleno: P.p, o: oL }));
+    s.push(D.parrafo(1300, yl - 19, 160, '$\\lambda = 1$', { tam: 24, alto: 40, o: oL, id: 'barras-ley-1' }));
+    var oL2 = M.visible(t, 70.0, Infinity);
+    s.push(D.rect(1461.5, yl - 10.5, 37, 21, { borde: P.p, grosor: 3, o: oL2 }));
+    s.push(D.parrafo(1510, yl - 19, 160, '$\\lambda = 0.5$', { tam: 24, alto: 40, o: oL2, id: 'barras-ley-05' }));
+    return D.grupo(s, { o: o });
+  }
+
+  function etiquetaEstado(e) {
+    return '$\\lambda = ' + e.lambda + ',\\ \\rho = ' + e.rho + '$' + (e.ejemplo ? ' · ajuste del ejemplo' : '');
+  }
+
+  function dibujar(t, c) {
+    c.svg(D.cabecera(5, 11, 'El ancla: la estimación de referencia', { funcion: 'dl_ajustar()' }));
+    var u = uLog(t);
+    c.dato('u_log', u);
+
+    // Opacidad del gráfico: baja al 55 % mientras la fórmula y la matriz ocupan el panel (26.4 a 58.1 s).
+    var oG = 1 - 0.45 * M.entra(t, 26.4, 0.4, E.entrarSuave) + 0.45 * M.entra(t, 58.1, 0.4, E.entrarSuave);
+    // Las demás bandas bajan al 35 % mientras se mira la 65-69 (5.6 a 17.0 s).
+    var oOtras = 1 - 0.65 * M.entra(t, 5.6, 0.4, E.entrarSuave) + 0.65 * M.entra(t, 17.0, 0.4, E.entrarSuave);
+
+    c.svg(ejes(t, u, oG));
+    var marcadaK = t >= 5.6 && t < 26.4;
+    var marcadas90 = t >= 41.9 && t < 47.0;
+    var o90 = Math.min(M.entra(t, 41.9, M.seg(M.MS.retro), E.entrarSuave), M.sale(t, 47.0));
+    var alturas = [];
+    for (var k = 0; k < nb; k++) {
+      var g = M.escalonado(t, 0.8, k, M.ESCALONADO.item, 0.4, E.entrarSuave);
+      var ok = (k === K ? 1 : oOtras) * oG;
+      if (k === K90 || k === K95) ok = ok + (1 - ok) * o90;
+      c.svg(cajaAncla(k, u, g, ok, (marcadaK && k === K) || (marcadas90 && (k === K90 || k === K95))));
+      alturas.push(gy(A.lower[k], u) - gy(A.upper[k], u));
+    }
+    c.dato('alturas_px', alturas);
+
+    // q_b: rayas desde 17.6 s (media posterior del ajuste del ejemplo); IC desde 58.6 s; ajustes cortos desde 64 s.
+    var st = estadoEn(t);
+    var eIC = M.entra(t, 58.6, DUR_PASO, E.entrarSuave);
+    for (var j = 0; j < nb; j++) {
+      var raya = M.escalonado(t, 17.6, j, M.ESCALONADO.item, 0.4, E.entrarSuave);
+      c.svg(cajaModelo(j, u, st.est, raya, eIC, oG));
+    }
+    if (t >= 17.6) {
+      // Para la auditoría: la raya q_b de cada banda en px y las marcas 0.05 y 0.1 del eje, tal como se rotulan.
+      c.dato('q_px', st.est.val.map(function (v) { return gy(v, u); }));
+      c.dato('marcas_px', [gy(0.05, u), gy(0.1, u)]);
+    }
+    if (eIC > 0) {
+      c.dato('ic_dibujado', { lower: st.est.lower.slice(), upper: st.est.upper.slice(), val: st.est.val.slice() });
+      c.dato('estado', st.w === undefined ? ESTADOS[st.k][2] : null);
+    }
+
+    // Leyenda del gráfico (desde 17.6 s).
+    var oLey = M.visible(t, 17.9, Infinity) * oG, oLeyQ = M.visible(t, 18.05, Infinity) * oG;
+    if (oLey > 0) {
+      var oIC = M.visible(t, 59.0, Infinity) * oG;
+      c.svg(D.rect(214, 310, 372, 96, { relleno: P.fondo, o: oLey }));   // tapa la rejilla detrás de la leyenda
+      c.svg(D.rect(214, 406, 230, 44, { relleno: P.fondo, o: oIC }));    // sin tapar las cajas de 70-79
+      c.svg(D.rect(224, 318, 30, 34, { relleno: P.superficie, borde: P.tinta, grosor: 2, o: oLey }));
+      c.svg(D.linea(224, 335, 254, 335, { color: P.tinta, grosor: 3, extremo: 'butt', o: oLey }));
+      c.svg(D.parrafo(268, 318, 420, 'ancla: $val_b$ e intervalo del 95 %', { tam: 24, alto: 40, o: oLey, id: 'ley-ancla' }));
+      c.svg(D.linea(226, 380, 252, 380, { color: P.p, grosor: 4, extremo: 'butt', o: oLeyQ }));
+      c.svg(D.parrafo(268, 362, 440, '$q_b$ del modelo: media posterior', { tam: 24, alto: 40, o: oLeyQ, id: 'ley-q' }));
+      c.svg(D.rect(231, 406, 16, 36, { relleno: P.p, o: 0.30 * oIC }));
+      c.svg(D.parrafo(268, 406, 440, 'IC 95 % de $q_b$', { tam: 24, alto: 40, o: oIC, id: 'ley-ic' }));
+    }
+
+    // Estado del gráfico en la toma final (arriba a la derecha del área de datos).
+    for (var s = 0; s < ESTADOS.length; s++) {
+      var t0 = ESTADOS[s][0] + (s === 0 ? 0.2 : 0), t1 = s + 1 < ESTADOS.length ? ESTADOS[s + 1][0] - 0.25 : Infinity;
+      var oe = M.visible(t, t0, t1);
+      if (oe > 0) c.svg(D.parrafo(GX + GW, 246, 600, etiquetaEstado(ESTADOS[s][2]), { tam: 26, ancla: 'end', alto: 44, o: oe, id: 'estado-' + s }));
+    }
+
+    // Panel derecho 1: la lupa (5.8 a 26.4 s) y sus fórmulas.
+    var oLupa = M.visible(t, 5.8, 26.4, { entrada: 0 });
+    c.svg(lupa(t, u, oLupa));
+    c.svg(D.formula(EC_SIGMA, 1110, 776, { tam: 30, ancho: 704, alto: 60, o: M.visible(t, 12.6, 22.9), id: 'ec-sigma', palabras: 5 }));
+    c.svg(D.formula(EC_SIGMA_N, 1110, 836, { tam: 30, ancho: 704, alto: 60, o: M.visible(t, 13.4, 22.9), id: 'ec-sigma-n', palabras: 5 }));
+    if (t >= 13.4 && t < 23.2) c.dato('sigma_lupa', sigmaK);
+    c.svg(D.formula(EC_Z, 1110, 776, { tam: 30, ancho: 704, alto: 60, o: M.visible(t, 23.2, 26.4), id: 'ec-z', palabras: 4, estilos: SUB }));
+    c.svg(D.formula(EC_Z_N, 1110, 836, { tam: 30, ancho: 704, alto: 60, o: M.visible(t, 23.5, 26.4), id: 'ec-z-n', palabras: 4 }));
+    if (t >= 23.5 && t < 26.6) c.dato('z_lupa', zK);
+
+    // Panel derecho 2: L_ancla, Σ, R y la matriz (26.7 a 58.1 s).
+    var subL = t >= 47.3;
+    c.svg(D.formula(ecL(subL), 1110, 300, { tam: 34, ancho: 480, alto: 64, o: M.visible(t, 26.8, 58.1), id: subL ? 'ec-l-lam' : 'ec-l', palabras: 4, estilos: SUB }));
+    var oBaja = 1 - 0.6 * M.entra(t, 52.8, 0.4, E.entrarSuave);   // al hablar del doble conteo, solo L_ancla queda entera
+    c.svg(D.formula(EC_SIGMA_M, 1110, 366, { tam: 30, ancho: 480, alto: 56, o: oBaja * M.visible(t, 27.6, 58.1), id: 'ec-sigma-m', palabras: 4 }));
+    c.svg(D.formula(EC_R, 1110, 430, { tam: 30, ancho: 480, alto: 56, o: oBaja * M.visible(t, 30.9, 58.1), id: 'ec-r', palabras: 4 }));
+    c.svg(matriz(t, c, oBaja * M.visible(t, 30.9, 58.1, { entrada: 0 })));
+    c.svg(D.parrafo(1610, 270, 214, '$\\lambda = 1$: peso entero\n$\\lambda = 0.5$: la mitad', { tam: 24, alto: 80, o: M.visible(t, 47.6, 58.1), id: 'nota-lambda' }));
+    if (t > 58.0 && t < 58.4) c.dato('panel', 'limpio');
+
+    // Panel derecho 3: las barras de ancho (desde 63.7 s).
+    c.svg(barras(t, st.w === undefined ? ESTADOS[st.k][2] : null, c));
+
+    c.svg(D.rotulo(t, NARRACION));
+    c.svg(D.pie(datos.fuente));
+  }
+
+  DL.escena({
+    id: '05-ancla',
+    titulo: 'El ancla: la estimación de referencia',
+    duracion: 75, fps: 30,
+    marcas: {
+      ancla: 4.6, banda: 9.0, log: 11.4, sigma: 16.0, q: 21.6, z: 25.8, mvn: 30.0, diagonal: 35.0, matriz: 41.0,
+      bandas: 46.2, lambda: 51.4, doble: 57.4, ajuste: 63.0, rho: 68.8, final: 74.0,
+    },
+    camaras: [T_CAM],
+    dibujar: dibujar,
+    auditoria: function (Au) {
+      return [
+        Au.en('sigma', 'σ_log recalculado desde lower y upper es el sigma_log del paquete en las 12 bandas', function (e) {
+          for (var k = 0; k < nb; k++) {
+            var s = (Math.log(A.upper[k]) - Math.log(A.lower[k])) / 3.92;
+            if (Math.abs(s - A.sigma_log[k]) > 1e-12) return 'banda ' + A.age_start[k] + ': ' + s + ' frente a ' + A.sigma_log[k];
+          }
+          if (datos.ancho_ic95_en_sd !== 3.92) return '.DL_ANCHO_IC95_EN_SD = ' + datos.ancho_ic95_en_sd;
+          return Au.cerca(e.sigma_lupa, A.sigma_log[K], 1e-12) || 'la lupa muestra ' + e.sigma_lupa;
+        }),
+        Au.en('log', 'en escala log las 12 cajas del ancla miden lo mismo (σ_log igual en todas)', function (e) {
+          if (e.u_log !== 1) return 'la cámara no terminó: u = ' + e.u_log;
+          var mn = Math.min.apply(null, e.alturas_px), mx = Math.max.apply(null, e.alturas_px);
+          var sMn = Math.min.apply(null, A.sigma_log), sMx = Math.max.apply(null, A.sigma_log);
+          return (mx - mn < 0.01 && sMx - sMn < 1e-12) || 'alturas de ' + mn + ' a ' + mx + ' px';
+        }),
+        Au.en('z', 'z_b de la lupa = log q_b − log val_b del ajuste del ejemplo', function (e) {
+          return Au.cerca(e.z_lupa, datos.z[K], 1e-12) || 'z dibujada ' + e.z_lupa + ' frente a ' + datos.z[K];
+        }),
+        Au.en('q', 'cada raya q_b cae, contra las marcas rotuladas 0.05 y 0.1 del eje log, donde dice la media posterior del paquete', function (e) {
+          var y05 = e.marcas_px[0], y10 = e.marcas_px[1];
+          for (var k = 0; k < nb; k++) {
+            var leido = 0.05 * Math.pow(2, (e.q_px[k] - y05) / (y10 - y05));   // el valor que se lee en el eje
+            if (Math.abs(leido / datos.ajuste.val[k] - 1) > 1e-9) return 'banda ' + A.age_start[k] + ': se lee ' + leido;
+          }
+          return true;
+        }),
+        Au.en('mvn', 'L_ancla con la matriz densa de la guía = .dl_lp_mvn_ar1() del paquete', function () {
+          return Au.cerca(datos.l_ancla.formula, datos.l_ancla.paquete, 1e-9) || datos.l_ancla.formula + ' frente a ' + datos.l_ancla.paquete;
+        }),
+        Au.en('matriz', 'cada celda dibujada de R es ρ^|b−c| (la R = U\'U de .dl_chol_ar1())', function (e) {
+          for (var b = 0; b < nb; b++) for (var cc = 0; cc < nb; cc++) {
+            var v = e.R_dibujada[b][cc];
+            if (v === null) return 'celda ' + b + ',' + cc + ' sin dibujar';
+            if (Math.abs(v - Math.pow(rho, Math.abs(b - cc))) > 1e-12) return 'celda ' + b + ',' + cc + ' = ' + v;
+          }
+          return rho === 0.5 || 'rho = ' + rho;
+        }),
+        Au.en('ajuste', 'las cajas verdes son el IC 95 % del ajuste del ejemplo y su media cae dentro del intervalo del ancla', function (e) {
+          if (!e.estado || !e.estado.ejemplo) return 'el estado no es el ajuste del ejemplo';
+          for (var k = 0; k < nb; k++) {
+            if (e.ic_dibujado.lower[k] !== datos.ajuste.lower[k] || e.ic_dibujado.upper[k] !== datos.ajuste.upper[k]) return 'IC de la banda ' + A.age_start[k];
+            if (!(datos.ajuste.val[k] > A.lower[k] && datos.ajuste.val[k] < A.upper[k])) return 'la banda ' + A.age_start[k] + ' cae fuera';
+          }
+          return true;
+        }),
+        Au.en('rho', 'con λ = 1 el gráfico muestra ρ = 0.9 y el ancho del IC crece con ρ', function (e) {
+          if (!e.estado || e.estado.lambda !== 1 || e.estado.rho !== 0.9) return 'estado ' + JSON.stringify(e.estado);
+          var x = sens(1, 0.9);
+          for (var k = 0; k < nb; k++) if (e.ic_dibujado.upper[k] !== x.upper[k]) return 'IC de la banda ' + A.age_start[k];
+          var a0 = sens(1, 0).ancho, a5 = sens(1, 0.5).ancho, a9 = sens(1, 0.9).ancho;
+          if (!(a0 < a5 && a5 < a9)) return 'anchos ' + a0 + ', ' + a5 + ', ' + a9;
+          return Au.cerca(e.barras_px['1|0.9'], a9 * BX.escala, 1e-12) || 'barra ' + e.barras_px['1|0.9'];
+        }),
+        Au.en('final', 'con ρ = 0.5, el IC de λ = 0.5 es más ancho que el de λ = 1, y el gráfico muestra λ = 0.5', function (e) {
+          if (!e.estado || e.estado.lambda !== 0.5 || e.estado.rho !== 0.5) return 'estado ' + JSON.stringify(e.estado);
+          var x = sens(0.5, 0.5);
+          for (var k = 0; k < nb; k++) if (e.ic_dibujado.lower[k] !== x.lower[k]) return 'IC de la banda ' + A.age_start[k];
+          return sens(0.5, 0.5).ancho > sens(1, 0.5).ancho || 'anchos ' + sens(0.5, 0.5).ancho + ' y ' + sens(1, 0.5).ancho;
+        }),
+      ];
+    },
+  });
+})();
+</script>
+</body>
+</html>
