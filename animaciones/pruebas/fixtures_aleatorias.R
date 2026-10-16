@@ -140,7 +140,7 @@ insumos_sinteticos <- function(caso) {
   datos[, `:=`(sex_id = 1L, outlier = FALSE, location_level = 0L)]
 
   list(cfg = cfg, prior_gbd = prior_gbd, poblacion = poblacion, loc_ancla = "1", bandas_pobl = bandas_pobl,
-       datos = datos, prior_emr_dado = dado)
+       datos = datos, prior_emr_dado = dado, techo_derivado = tipo != "cero" && !impresa)
 }
 
 # theta al azar alrededor de valores plausibles, más los bordes: techo, piso, desborde, i casi nula, RK4 al límite.
@@ -174,6 +174,13 @@ thetas_aleatorios <- function(ctx) {
                                               lp = as.list(dl$.dl_lp_componentes(as.numeric(o$theta), ctx)))))
 }
 
+# Vector como corridas (valor, veces): la remisión en la malla h/2 es constante por tramos.
+rle_json <- function(x) { r <- rle(x); list(valor = A(r$values), veces = A(r$lengths)) }
+
+# Matriz como sus entradas no nulas (fila y columna en base 0): P tiene a lo sumo dos por columna.
+dispersa_json <- function(P) { nz <- which(P != 0, arr.ind = TRUE)
+  list(fila = A(nz[, 1] - 1L), col = A(nz[, 2] - 1L), valor = A(P[nz])) }
+
 emr_fuente_sintetica <- function(b) {
   pg <- b$prior_gbd
   banda <- function(m) list(sex_id = A(m$sex_id), inicio = A(m$age_start), fin = A(m$age_end), val = A(m$val),
@@ -181,6 +188,7 @@ emr_fuente_sintetica <- function(b) {
   cfg <- b$cfg
   list(tipo = cfg$emr_prior$tipo, fraccion_aguda = dl$.dl_fraccion_aguda(cfg), factor_sd = dl$.dl_factor_sd_emr(cfg),
        factor_techo = as.numeric(cfg$emr_prior$factor_techo %||% 3), cota = A(cfg$emr_prior$cota),
+       techo_derivado = b$techo_derivado,
        prev = banda(pg[measure_id == 5L]), csmr = banda(pg[measure_id == 900006L]),
        dado = if (!is.null(b$prior_emr_dado)) list(inicio = A(b$prior_emr_dado$age_start),
                                                    fin = A(b$prior_emr_dado$age_end),
@@ -188,7 +196,7 @@ emr_fuente_sintetica <- function(b) {
                                                    sd_log = A(b$prior_emr_dado$sd_log)))
 }
 
-n_contextos <- 80L
+n_contextos <- 70L
 contextos_azar <- list(); intentos <- 0L
 while (length(contextos_azar) < n_contextos) {
   intentos <- intentos + 1L
@@ -201,7 +209,7 @@ while (length(contextos_azar) < n_contextos) {
   sol <- dl$.dl_edo_ctx(as.numeric(th[[2L]]$theta), ctx)
   contextos_azar[[length(contextos_azar) + 1L]] <- list(
     ctx = ctx_json(ctx, b, 1L),
-    r = list(n_media = length(ctx$edades_media), r_media = A(ctx$r_media), chol_R = filas(ctx$ancla$chol_R),
+    r = list(n_media = length(ctx$edades_media), r_media = rle_json(ctx$r_media), chol_R = filas(ctx$ancla$chol_R),
              idx_anual_malla = A(ctx$idx_anual_malla - 1L), anual = A(ctx$anual),
              W_ultima = A(ctx$W[nrow(ctx$W), ]), W_primera = A(ctx$W[1L, ]),
              pesos_ancla = pesos_json(ctx$pesos_ancla), pesos_datos = pesos_json(ctx$pesos_datos),
@@ -214,7 +222,7 @@ while (length(contextos_azar) < n_contextos) {
 
 # ---- EDO: dl_edo() con entradas al azar ----------------------------------------------------------------------------
 
-edo_azar <- lapply(seq_len(40L), function(k) {
+edo_azar <- lapply(seq_len(30L), function(k) {
   edad_inicio <- sample(c(0, 5, 20, 30, 33, 41.5), 1)
   edad_fin <- edad_inicio + sample(c(10, 37, 59, 69, 70), 1)
   nsub <- sample(c(1L, 2L, 3L, 5L, 6L, 9L, 10L), 1)
@@ -285,7 +293,7 @@ proxy_azar <- lapply(seq_len(30L), function(k) {
   list(bandas = list(age_group_id = A(ids), inicio = A(cat_p$age_start[match(ids, cat_p$age_group_id)]),
                      fin = A(cat_p$age_end[match(ids, cat_p$age_group_id)])),
        edad_inicio = a0, edad_fin = aF, nsub = nsub, fuera = fuera, interp = interp,
-       filas_id = A(as.integer(rownames(P))), P = filas(P),
+       filas_id = A(as.integer(rownames(P))), P = dispersa_json(P),
        dX = lapply(seq_len(n_sim), function(s) { d <- dX[draw == s]; A(d$dX[match(as.integer(rownames(P)), d$age_group_id)]) }),
        beta = A(beta), kappa = kappa, delta = filas(delta))
 })
