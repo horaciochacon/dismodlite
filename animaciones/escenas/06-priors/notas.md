@@ -65,6 +65,24 @@ pantalla estaba mal. Encontró cuatro rótulos engañosos y siete imprecisos:
 Después de corregir: las marcas se volvieron a renderizar y mirar. Apareció un choque entre los rótulos ±0.05 y 0.0
 al abrir el eje de D2 y se corrigió.
 
+### Después de fusionar la base (commit b002e7d de animaciones-metodologicas)
+
+- **Narración a 42 px, en una línea:** las trece líneas caben en una línea (la auditoría lo comprueba ahora). No hizo
+  falta acortar ninguna.
+- **Lecciones de la revisión de la escena 01, aplicadas aquí:**
+  - Subrayados de KaTeX con `text-decoration-skip-ink:none`.
+  - El supuesto se dice como supuesto: «En el modelo solo muere por la causa quien la tiene».
+  - Dos comprobaciones de la auditoría podían no fallar nunca: «techo dibujado == datos.techo» y «piso ==
+    techo/1000». Ahora miden el píxel de la línea del techo y del piso contra el eje log escrito aparte en la
+    auditoría.
+  - La posterior se lee de vuelta desde los píxeles de sus puntos y se compara con la media de R.
+  - Las demás comprobaciones ya comparaban con algo independiente: las D2 y L_suavidad de R, el prior por nudo de
+    `.dl_ctx_emr()` y L_emr de R.
+  - Las transformaciones animadas se rederivaron: f = csmr/p, D2 bajo subir, inclinar y doblar, y el costo ΔL. Ya
+    las había verificado en R el metodólogo.
+- **Queda a juicio:** de 35.6 a 43 s el gráfico de f está vacío mientras se lee csmr = f p. El diseñador prefirió
+  eso a unos ejes vacíos durante 6 s.
+
 ## (b) Cambios que sugeriría para la biblioteca compartida (no aplicados: `lib/` no se toca)
 
 - **`D.ejes` con `yLog`:** no permite cambiar el dominio y los ticks con suavidad. Aquí se reconstruye el eje en cada
@@ -104,11 +122,12 @@ Las diez comprobaciones numéricas:
 - σ llega a 1 y el costo baja;
 - el prior de cada nudo calculado en la escena es el de `.dl_ctx_emr()`, y el nudo 30 lleva sd × 2;
 - L_emr desde lo dibujado = la de R;
-- techo 0.25;
-- piso del prior plano = f_max/1000.
+- los puntos de la posterior, leídos en el eje, son la media de R;
+- la línea del techo está en el píxel de 250 por 1000 sobre el eje log;
+- el piso del prior plano está en el píxel de 0.25 por 1000 sobre el eje abierto.
 
 ## (d) Tiempo de render
 
 El render completo (`node herramientas/render.mjs escenas/06-priors`: 2475 cuadros, MP4 y hoja de contactos) tardó
-2 min 55 s en el contenedor de la nube. Exportar los datos (`Rscript datos/exportar.R 06-priors`, con el ajuste de
+2 min 55 s en el contenedor de la nube (2 min 52 s tras fusionar la base). Exportar los datos (`Rscript datos/exportar.R 06-priors`, con el ajuste de
 4 cadenas) tarda unos 25 s.
