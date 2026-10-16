@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>09 · De lo nacional a lo subnacional · dismodlite</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="stylesheet" href="../../lib/escena.css">
+<script src="../../lib/contrato.js"></script>
+<script src="../../lib/movimiento.js"></script>
+<script src="../../lib/dibujo.js"></script>
+<script src="../../datos/09-subnacional.js"></script>
+</head>
+<body>
+<script>
+// Escena 09: de lo nacional a lo subnacional. Guion: guion.md. Datos: datos/r/09-subnacional.R (dl_cascada()).
+(function () {
+  'use strict';
+  var D = DL.dib, M = DL.mov, P = D.paleta, E = M.EASE;
+  var datos = DL_DATOS['09-subnacional'];
+  var edades = datos.edades;
+  var k70 = edades.indexOf(70);
+  var R = datos.renorm;
+  var HERO = datos.ubicacion.nombre;
+
+  // ---- Narración: cada línea dura al menos 0,3 s por palabra + 0,5 s ----
+  var NARRACION = [
+    [0.4, 5.1, 'Para cada sexo y simulación $k$, la cascada parte del ajuste nacional.'],
+    [5.4, 11.3, 'Cada ubicación se aparta del país según sus covariables y los $\\beta$ de la tabla betas.'],
+    [11.6, 17.5, 'Primero, la diferencia de cada covariable entre ubicación y país, en la escala de $T$.'],
+    [17.8, 24.2, 'Ambos se sortean: el nacional, de su intervalo; el de la ubicación, de su error estándar.'],
+    [24.5, 30.1, 'En la simulación 1, ' + HERO + ' queda por debajo del país en LDI y HAQ.'],
+    [30.4, 37.5, 'El SEV viene por grupo de edad: se interpola entre sus puntos medios; antes de los 40 vale 0.'],
+    [37.8, 43.1, 'Segundo, el desplazamiento: $\\kappa\\,\\beta_c$ por la diferencia, con $\\beta_c$ sorteada de su intervalo.'],
+    [43.4, 49.0, 'El SEV y el LDI mueven $\\log i$; el HAQ mueve $\\log f$, bajo su techo.'],
+    [49.3, 55.2, 'Tercero, se resuelve de nuevo la ecuación con las tasas desplazadas y la misma remisión.'],
+    [55.5, 60.6, 'Así en las ' + datos.n_ubicaciones + ' ubicaciones. Pero desplazar las tasas mueve también el total.'],
+    [60.9, 66.7, 'Cuarto, la renormalización: un factor por sexo, banda y simulación, para $p$ y para $i(1-p)$.'],
+    [67.0, 71.6, 'Después, los casos de las ubicaciones suman exactamente los nacionales.'],
+    [71.9, 77.9, 'En el modo plano, todas reciben las tasas nacionales: los casos cambian solo con la población.'],
+    [78.2, 84.7, 'El modo razón reparte cada medida con una razón por ubicación, y también cierra en el nacional.'],
+    [85.0, 90.0, 'Los datos subnacionales del año de validación no entran al ajuste: validan el gradiente.'],
+  ];
+
+  // ---- Formatos: punto decimal y signo menos tipográfico ----
+  function fmt(x, d) { return D.num(x, d).replace('-', '−'); }
+  function pct(x, d) { return D.num(100 * x, d === undefined ? 2 : d) + ' %'; }
+
+  // ---- Las fórmulas de la guía «El modelo» (sección 7); i, f y p subrayadas con su color ----
+  var SUBRAYADO = {
+    ti: 'text-decoration:underline 4px ' + P.i + ';text-underline-offset:7px;',
+    tf: 'text-decoration:underline 4px ' + P.f + ';text-underline-offset:7px;',
+    tp: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;',
+  };
+  var F = {
+    xnac: 'X_{nac} \\sim N(T(val),\\ sd_T)',
+    sdT: 'sd_T = (T(\\text{upper}) - T(\\text{lower}))\\,/\\,3.92',
+    xd: 'X_d \\sim N(T(valor_d),\\ se_T)',
+    dX: 'dX = (X_d - X_{nac}) \\times \\text{escala}',
+    suma: '\\sum_b dX_b\\, P_{ba}',
+    beta: '\\beta_c \\sim N(\\beta,\\ sd_\\beta), \\qquad sd_\\beta = (\\beta_{sup} - \\beta_{inf})\\,/\\,3.92',
+    delta: '\\delta_c(a) = \\kappa\\, \\beta_c \\sum_b dX_b\\, P_{ba}',
+    logi: '\\log \\htmlClass{ti}{i_d}(a) = \\log \\htmlClass{ti}{i_{nac}}(a) + \\sum_{c \\in i} \\delta_c(a)',
+    logf: '\\log \\htmlClass{tf}{f_d}(a) = \\min\\Big(\\log \\htmlClass{tf}{f_{nac}}(a) + \\sum_{c \\in f} \\delta_c(a),\\ \\log \\htmlClass{tf}{f_{max}}\\Big)',
+    edo: '\\frac{dp}{da} = \\htmlClass{ti}{i_d}\\,(1 - p) - r\\,p - \\htmlClass{tf}{f_d}\\,p\\,(1 - p)',
+    factor: '\\text{factor} = \\frac{N_{nac}\\, q_{nac}}{\\sum_d N_d\\, q_d}',
+    asig: 'q_d \\leftarrow q_d \\times \\text{factor}',
+    razonR: 'R_{dj} = \\text{razon}_d \\exp(\\text{error\\_log}_d\\, z_{dj}), \\qquad z_{dj} \\sim N(0, 1)',
+    razonQ: 'q_{dj} = q_{nac,j}\\, \\frac{R_{dj}\\, N_{nac}}{\\sum_d R_{dj}\\, N_d}',
+  };
+
+  // ---- Las covariables, en el orden de la tabla betas (SEV, LDI, HAQ) ----
+  var COV = {};
+  datos.covariables.forEach(function (c, j) { COV[c.corto] = c; c.desplazamiento = datos.desplazamiento[j]; });
+  var ORDEN = ['SEV', 'LDI', 'HAQ'];
+  var CANAL = { i: '\\log \\htmlClass{ti}{i}', f: '\\log \\htmlClass{tf}{f}' };
+
+  // ---- Retícula: columna de texto a la izquierda, gráfico a la derecha ----
+  var IZQ = 96, ANCHO_IZQ = 860;
+
+  // La fila de pasos: el activo en tinta con una barra de la marca debajo.
+  var PASOS = [
+    { texto: '1 · Diferencia', x: 96, w: 150, t0: 11.6, t1: 37.8 },
+    { texto: '2 · Desplazamiento', x: 312, w: 212, t0: 37.8, t1: 49.3 },
+    { texto: '3 · Nueva solución', x: 590, w: 200, t0: 49.3, t1: 60.9 },
+    { texto: '4 · Renormalización', x: 856, w: 228, t0: 60.9, t1: 71.9 },
+    { texto: 'Otros modos', x: 1150, w: 136, t0: 71.9, t1: Infinity },
+  ];
+  function pasos(t) {
+    var s = [];
+    PASOS.forEach(function (p, j) {
+      var activo = t >= p.t0 && t < p.t1;
+      s.push(D.texto(p.x, 252, p.texto, { tam: 24, peso: activo ? 600 : 400, color: activo ? P.tinta : P.suave, id: 'paso-' + j }));
+      var o = M.visible(t, p.t0, p.t1, { entrada: M.seg(M.MS.retro), salida: M.seg(M.MS.retro) });
+      s.push(D.rect(p.x, 262, p.w, 4, { relleno: P.marca, radio: 2, o: o }));
+    });
+    return s.join('');
+  }
+
+  // ---- Gráficos de líneas por edad (mismo lugar, uno por paso) ----
+  var CAJA = { x: 1160, y: 340, ancho: 640, alto: 440 };
+  var GP = D.ejes({
+    x: CAJA.x, y: CAJA.y, ancho: CAJA.ancho, alto: CAJA.alto, id: 'gp',
+    xDom: [30, 99], yDom: [0, 0.14],
+    xTicks: [30, 40, 50, 60, 70, 80, 90], yTicks: [0, 0.02, 0.04, 0.06, 0.08, 0.10, 0.12, 0.14],
+    yFormato: function (v) { return Math.round(v * 100) + ' %'; },
+    xTitulo: 'Edad (años)', yTitulo: 'Prevalencia $p$, mujeres, simulación 1',
+  });
+  var GS = D.ejes({
+    x: CAJA.x, y: CAJA.y, ancho: CAJA.ancho, alto: CAJA.alto, id: 'gs',
+    xDom: [30, 99], yDom: [-0.06, 0.15],
+    xTicks: [30, 40, 50, 60, 70, 80, 90], yTicks: [-0.05, 0, 0.05, 0.10, 0.15],
+    yFormato: function (v) { return fmt(v, 2); },
+    xTitulo: 'Edad (años)', yTitulo: 'Diferencia del SEV en log, ' + HERO,
+  });
+  var GT = D.ejes({
+    x: CAJA.x, y: CAJA.y, ancho: CAJA.ancho, alto: CAJA.alto, id: 'gt', yLog: true,
+    xDom: [30, 99], yDom: [0.0003, 0.4],
+    xTicks: [30, 40, 50, 60, 70, 80, 90], yTicks: [0.0005, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.2],
+    yFormato: function (v) { return String(Math.round(v * 10000) / 10); },
+    xTitulo: 'Edad (años)', yTitulo: 'Tasa por 1000 personas-año (escala log)',
+  });
+
+  // La curva de ys (en las edades anuales) hasta la edad a, con el punto interpolado en a.
+  function curvaHasta(ys, a, desde) {
+    var xs = [], vs = [];
+    for (var k = 0; k < edades.length; k++) {
+      if (edades[k] < (desde || 30)) continue;
+      if (edades[k] <= a) { xs.push(edades[k]); vs.push(ys[k]); continue; }
+      if (k > 0 && edades[k - 1] >= (desde || 30)) {
+        var w = (a - edades[k - 1]) / (edades[k] - edades[k - 1]);
+        xs.push(a); vs.push(ys[k - 1] + w * (ys[k] - ys[k - 1]));
+      }
+      break;
+    }
+    return { xs: xs, ys: vs };
+  }
+
+  // Leyenda nacional / ubicación: una muestra de trazo en tinta y su nombre.
+  function leyenda(x, y, o, idBase) {
+    return D.linea(x, y, x + 44, y, { color: P.tinta, grosor: 3, guiones: '10 6', o: o }) +
+      D.texto(x + 54, y + 8, 'Perú (nacional)', { tam: 22, color: P.suave, o: o, id: idBase + '-nac' }) +
+      D.linea(x + 226, y, x + 270, y, { color: P.tinta, grosor: 4, o: o }) +
+      D.texto(x + 280, y + 8, HERO, { tam: 22, color: P.suave, o: o, id: idBase + '-dep' });
+  }
+
+  // ---- Paso 1: las franjas de cada covariable, en la escala de T ----
+  var FRANJA = { x: 1180, ancho: 620, alto: 190, y0: 322 };
+  var DOMINIO = { SEV: [-0.25, 0.6], LDI: [8.2, 9.9], HAQ: [34, 64] };
+  var MARCAS_EJE = { SEV: [-0.2, 0, 0.2, 0.4], LDI: [8.4, 8.8, 9.2, 9.6], HAQ: [35, 40, 45, 50, 55, 60] };
+  var ETIQUETA_T = { log: '$T$ = log', lineal: '$T$ = lineal', logit: '$T$ = logit' };
+  // Cada ubicación es un círculo hueco sobre el eje; los que se tocan se apilan (posiciones fijas, sin azar).
+  var FRANJAS = ORDEN.map(function (nombre, j) {
+    var c = COV[nombre], dom = DOMINIO[nombre];
+    var y = FRANJA.y0 + j * FRANJA.alto;
+    var X = function (v) { return FRANJA.x + (v - dom[0]) / (dom[1] - dom[0]) * FRANJA.ancho; };
+    var ejeY = y + 128;
+    var orden = c.T_valor.map(function (v, k) { return k; }).sort(function (a, b) { return c.T_valor[a] - c.T_valor[b]; });
+    var nivel = [], ultimoX = [];
+    orden.forEach(function (k) {
+      var x = X(c.T_valor[k]), n = 0;
+      while (ultimoX[n] !== undefined && x - ultimoX[n] < 13) n++;
+      ultimoX[n] = x; nivel[k] = n;
+    });
+    var hero = c.ubicaciones.indexOf(datos.ubicacion.id);
+    return { c: c, nombre: nombre, y: y, ejeY: ejeY, X: X, orden: orden, nivel: nivel, hero: hero,
+             puntoY: function (k) { return ejeY - 14 - 13 * nivel[k]; } };
+  });
+
+  function franja(t, fr, j) {
+    var c = fr.c, s = [];
+    var t0 = 11.75 + 0.2 * j;
+    var o = M.visible(t, t0, 30.1);
+    if (o <= 0) return '';
+    var ejeY = fr.ejeY;
+    // Rótulo de la franja: la covariable, su T y la banda que se muestra.
+    s.push(D.texto(1000, fr.y + 70, fr.nombre, { tam: 30, peso: 600, o: o, id: 'franja-' + fr.nombre }));
+    s.push(D.parrafo(1000, fr.y + 84, 170, ETIQUETA_T[c.transformacion] + (c.banda_mostrada === 19 ? '\n70 a 74 años' : ''),
+      { tam: 22, color: P.suave, o: o, id: 'franja-t-' + fr.nombre, alto: 70 }));
+    // Eje en la escala de T.
+    s.push(D.linea(FRANJA.x, ejeY, FRANJA.x + FRANJA.ancho, ejeY, { color: P.guia, grosor: 2, o: o }));
+    MARCAS_EJE[fr.nombre].forEach(function (v) {
+      s.push(D.linea(fr.X(v), ejeY, fr.X(v), ejeY + 7, { color: P.guia, grosor: 2, o: o }));
+      s.push(D.texto(fr.X(v), ejeY + 32, fmt(v, fr.nombre === 'HAQ' ? 0 : 1), { tam: 22, color: P.suave, ancla: 'middle', o: o }));
+    });
+    // El intervalo del 95 % del valor nacional, N(T(val), sd_T): crece desde su raya en 18.1 s.
+    var uB = M.entra(t, 18.1 + 0.15 * j, 0.5, E.entrar);
+    if (uB > 0) {
+      var a = fr.X(c.T_val - 1.96 * c.sd_T), b = fr.X(c.T_val + 1.96 * c.sd_T), xm = fr.X(c.T_val);
+      s.push(D.rect(xm + (a - xm) * uB, ejeY - 70, (b - a) * uB, 70, { relleno: P.guia, o: 0.55 * o }));
+    }
+    s.push(D.linea(fr.X(c.T_val), ejeY - 74, fr.X(c.T_val), ejeY + 4, { color: P.tinta, grosor: 3, o: o }));
+    // Las ubicaciones (círculos huecos), escalonadas por rango.
+    fr.orden.forEach(function (k, r) {
+      var ok = Math.min(o, M.entra(t, t0 + 0.1 + r * M.seg(M.ESCALONADO.letra), 0.3, E.entrarSuave));
+      var heroAhora = k === fr.hero && t >= 18.6;
+      s.push(D.circulo(fr.X(c.T_valor[k]), fr.puntoY(k), 6, { borde: heroAhora ? P.marca : P.tinta, grosor: heroAhora ? 3 : 1.8, relleno: P.fondo, o: ok }));
+    });
+    // Huancavelica: anillo de la marca y su bigote ±1.96 se_T (18.6 s); los sorteos de la simulación 1 (18.9 s).
+    var oH = Math.min(o, M.entra(t, 18.6 + 0.1 * j, 0.4, E.entrarSuave));
+    if (oH > 0) {
+      var xh = fr.X(c.T_valor[fr.hero]), yh = fr.puntoY(fr.hero), se = 1.96 * c.se_T[fr.hero];
+      s.push(D.linea(fr.X(c.T_valor[fr.hero] - se), yh, fr.X(c.T_valor[fr.hero] + se), yh, { color: P.marca, grosor: 3, o: oH }));
+      s.push(D.circulo(xh, yh, 10, { borde: P.marca, grosor: 3, o: oH }));
+    }
+    var oS = Math.min(o, M.entra(t, 18.9 + 0.1 * j, 0.3, E.entrarSuave));
+    var xn = fr.X(c.x_nac_k), xd = fr.X(c.x_d_k), yh2 = fr.puntoY(fr.hero);
+    if (oS > 0) {
+      s.push('<path d="M' + (xn - 8) + ' ' + (ejeY - 92) + 'L' + (xn + 8) + ' ' + (ejeY - 92) + 'L' + xn + ' ' + (ejeY - 78) + 'Z" fill="' + P.tinta + '" opacity="' + oS.toFixed(2) + '"/>');
+      s.push(D.circulo(xd, yh2, 5, { relleno: P.marca, o: oS }));
+    }
+    // La flecha dX, del sorteo nacional al de la ubicación (24.8 s), con su valor.
+    var uF = M.entra(t, 24.8 + 0.2 * j, 0.6, E.mover);
+    if (uF > 0) {
+      var yF = ejeY - 100;
+      s.push(D.linea(xd, yh2 - 8, xd, yF, { color: P.marca, grosor: 1.5, guiones: '3 4', o: Math.min(o, uF) }));
+      s.push(D.flecha(xn, yF, xd, yF, { color: P.marca, grosor: 3, cabeza: 11, progreso: uF, o: o }));
+      var oV = Math.min(o, M.visible(t, 25.3 + 0.2 * j, 30.1));
+      s.push(D.texto((xn + xd) / 2, yF - 14, 'dX = ' + fmt(c.dX_k, fr.nombre === 'HAQ' ? 2 : 3), { fuente: 'mono', tam: 22, ancla: 'middle', o: oV, id: 'dx-' + fr.nombre }));
+    }
+    return s.join('');
+  }
+
+  function leyendaFranjas(t) {
+    var o = M.visible(t, 13.2, 30.1), oH = M.visible(t, 18.6, 30.1);
+    if (o <= 0) return '';
+    var y = 300, x = 1180;
+    return [
+      D.circulo(x + 6, y - 7, 6, { borde: P.tinta, grosor: 1.8, relleno: P.fondo, o: o }),
+      D.texto(x + 20, y, 'cada ubicación', { tam: 22, color: P.suave, o: o, id: 'ley-ubic' }),
+      D.linea(x + 186, y - 18, x + 186, y + 4, { color: P.tinta, grosor: 3, o: o }),
+      D.texto(x + 198, y, 'Perú', { tam: 22, color: P.suave, o: o, id: 'ley-peru' }),
+      D.circulo(x + 268, y - 7, 9, { borde: P.marca, grosor: 3, o: oH }),
+      D.texto(x + 284, y, HERO, { tam: 22, color: P.suave, o: oH, id: 'ley-hero' }),
+      '<path d="M' + (x + 432) + ' ' + (y - 14) + 'L' + (x + 446) + ' ' + (y - 14) + 'L' + (x + 439) + ' ' + (y - 2) + 'Z" fill="' + P.tinta + '"' + (oH < 1 ? ' opacity="' + oH.toFixed(2) + '"' : '') + '/>',
+      D.texto(x + 454, y, 'sorteos, k = 1', { tam: 22, color: P.suave, o: oH, id: 'ley-sorteo' }),
+    ].join('');
+  }
+
+  // ---- Paso 4: las ubicaciones ordenadas por su prevalencia de 70 a 74 años ----
+  var FILAS = R.ubicaciones.map(function (u, k) { return k; }).reverse();   // la más alta arriba
+  var PUNTOS = { x0: 1430, x1: 1800, dom: [0.045, 0.068], y0: 330, paso: 22 };
+  function XP(q) { return PUNTOS.x0 + (q - PUNTOS.dom[0]) / (PUNTOS.dom[1] - PUNTOS.dom[0]) * (PUNTOS.x1 - PUNTOS.x0); }
+  var ejePuntos = PUNTOS.y0 + 24 * PUNTOS.paso + 18;
+
+  // Posición de la ubicación k: antes de renormalizar, renormalizada (67.35 s) o nacional (modo plano, 72.3 s).
+  function qMostrada(t, k) {
+    var uR = M.entra(t, 67.35, 0.6, E.mover), uP = M.entra(t, 72.3, 0.8, E.mover);
+    var q = R.q_antes[k] + uR * (R.q_despues[k] - R.q_antes[k]);
+    return q + uP * (R.q_nac - q);
+  }
+
+  function puntos(t, c) {
+    var o = M.visible(t, 55.7, 78.2);
+    if (o <= 0) return '';
+    var s = [];
+    s.push(D.texto(1160, 296, 'Prevalencia de 70 a 74 años, mujeres, simulación 1', { tam: 24, color: P.suave, o: o, id: 'puntos-titulo' }));
+    // Eje.
+    s.push(D.linea(PUNTOS.x0 - 10, ejePuntos, PUNTOS.x1, ejePuntos, { color: P.guia, grosor: 2, o: o }));
+    [0.045, 0.05, 0.055, 0.06, 0.065].forEach(function (v) {
+      s.push(D.linea(XP(v), ejePuntos, XP(v), ejePuntos + 7, { color: P.guia, grosor: 2, o: o }));
+      s.push(D.texto(XP(v), ejePuntos + 30, D.num(100 * v, 1) + ' %', { tam: 22, color: P.suave, ancla: 'middle', o: o }));
+    });
+    // El valor nacional.
+    var xn = XP(R.q_nac);
+    s.push(D.linea(xn, PUNTOS.y0 - 14, xn, ejePuntos, { color: P.tinta, grosor: 2, guiones: '6 6', o: o }));
+    s.push(D.texto(xn + 8, PUNTOS.y0 - 2, 'Perú ' + pct(R.q_nac), { tam: 22, color: P.suave, o: Math.min(o, M.visible(t, 56.2, Infinity)), id: 'puntos-peru' }));
+    var relleno = M.entra(t, 67.35, 0.6, E.entrarSuave);
+    var maxDist = 0;
+    FILAS.forEach(function (k, r) {
+      var y = PUNTOS.y0 + 18 + r * PUNTOS.paso;
+      var u = R.ubicaciones[k], hero = u === datos.ubicacion.id;
+      var ok = Math.min(o, M.entra(t, 55.9 + r * M.seg(M.ESCALONADO.letra), 0.3, E.entrarSuave));
+      s.push(D.texto(PUNTOS.x0 - 22, y + 7, datos.nombres[u], { tam: 22, ancla: 'end', color: hero ? P.tinta : P.suave, peso: hero ? 600 : 400, o: ok }));
+      var x = XP(qMostrada(t, k));
+      maxDist = Math.max(maxDist, Math.abs(x - xn));
+      if (hero) s.push(D.circulo(x, y, 11, { borde: P.marca, grosor: 3, o: ok }));
+      s.push(D.circulo(x, y, 6.5, { borde: P.p, grosor: 2.5, relleno: P.fondo, o: ok }));
+      if (relleno > 0) s.push(D.circulo(x, y, 6.5, { relleno: P.p, o: Math.min(ok, relleno) }));
+    });
+    c.dato('dist_max_nacional_px', maxDist);
+    return s.join('');
+  }
+
+  // ---- Paso 4: la caja de los casos nacionales y la barra apilada de las ubicaciones ----
+  var BARRA = { x: 96, w: 700, h: 46, yNac: 424, ySub: 540 };
+  var casosNac = R.N_nac * R.q_nac;
+  var casosAntes = R.N.reduce(function (s, n, k) { return s + n * R.q_antes[k]; }, 0);
+  var factorJs = casosNac / casosAntes;
+  var escalaCasos = BARRA.w / casosNac;
+
+  function barras(t, c) {
+    var o = M.visible(t, 55.95, 71.6);
+    if (o <= 0) return '';
+    var s = [];
+    s.push(D.parrafo(IZQ, 300, ANCHO_IZQ, 'Casos prevalentes $N\\,q$, mujeres de 70 a 74 años, simulación 1', { tam: 26, color: P.suave, o: o, id: 'casos-titulo', alto: 44 }));
+    // Perú: la caja de N_nac q_nac.
+    var oN = Math.min(o, M.visible(t, 56.4, 71.6));
+    s.push(D.parrafo(IZQ, BARRA.yNac - 50, ANCHO_IZQ, 'Perú: $N_{nac}\\,q_{nac}$ = ' + D.miles(casosNac) + ' casos', { tam: 26, o: oN, id: 'casos-nac', alto: 44 }));
+    s.push(D.rect(BARRA.x, BARRA.yNac, BARRA.w, BARRA.h, { borde: P.tinta, grosor: 2.5, relleno: P.superficie, o: oN }));
+    // Las ubicaciones: un segmento por ubicación (N_d q_d), en el orden del gráfico; se revela de izquierda a derecha.
+    var uRev = M.entra(t, 56.8, 0.6, E.entrar);
+    var uHeroe = M.entra(t, 67.2, M.seg(M.MS.heroe), E.mover);
+    var esc = 1 + uHeroe * (R.factor - 1);
+    var x = BARRA.x, total = 0;
+    var tope = BARRA.x + uRev * BARRA.w / R.factor + 1;
+    var seg = [];
+    FILAS.forEach(function (k) {
+      var w = R.N[k] * R.q_antes[k] * esc * escalaCasos;
+      total += R.N[k] * R.q_antes[k] * esc;
+      var x2 = Math.min(x + w, tope);
+      if (x2 > x) {
+        var hero = R.ubicaciones[k] === datos.ubicacion.id;
+        seg.push(D.rect(x, BARRA.ySub, x2 - x, BARRA.h, { relleno: P.p, o: o }));
+        seg.push(D.linea(x2, BARRA.ySub, x2, BARRA.ySub + BARRA.h, { color: P.fondo, grosor: 1.5, o: o }));
+        if (hero) seg.push(D.rect(x + 1.5, BARRA.ySub + 1.5, x2 - x - 3, BARRA.h - 3, { borde: P.marca, grosor: 3, o: o }));
+      }
+      x += w;
+    });
+    s.push(seg.join(''));
+    c.dato('suma_mostrada', total);
+    c.dato('escala_barra', esc);
+    // La guía en el borde de la caja nacional.
+    s.push(D.linea(BARRA.x + BARRA.w, BARRA.yNac - 8, BARRA.x + BARRA.w, BARRA.ySub + BARRA.h + 10, { color: P.tinta, grosor: 2, guiones: '5 5', o: oN }));
+    // Antes: la suma y el exceso; después: la suma igual a la nacional.
+    s.push(D.parrafo(IZQ, BARRA.ySub - 50, ANCHO_IZQ, datos.n_ubicaciones + ' ubicaciones: $\\sum_d N_d\\,q_d$ = ' + D.miles(casosAntes) + ' casos',
+      { tam: 26, o: Math.min(o, M.visible(t, 57.1, 67.2)), id: 'casos-sub', alto: 44 }));
+    s.push(D.parrafo(IZQ, BARRA.ySub - 50, ANCHO_IZQ, 'Después: $\\sum_d N_d\\,q_d = N_{nac}\\,q_{nac}$ = ' + D.miles(total) + ' casos',
+      { tam: 26, o: Math.min(o, M.visible(t, 68.0, 71.6)), id: 'casos-sub-despues', alto: 44 }));
+    var oE = Math.min(o, M.visible(t, 58.0, 67.2));
+    if (oE > 0) {
+      var xe = BARRA.x + BARRA.w / R.factor;
+      s.push(D.linea(BARRA.x + BARRA.w, BARRA.ySub + BARRA.h + 14, xe, BARRA.ySub + BARRA.h + 14, { color: P.marca, grosor: 3, o: oE }));
+      s.push(D.texto(xe + 12, BARRA.ySub + 34, '+' + D.num(100 * (1 / R.factor - 1), 1) + ' %', { fuente: 'mono', tam: 24, o: oE, id: 'exceso' }));
+    }
+    // El factor (61.1 s) y la asignación (61.6 s); el de i(1 - p) (62.0 s).
+    var oF = Math.min(o, M.visible(t, 61.1, 71.6));
+    var textoFactor = D.num(R.factor, 4);
+    s.push(D.formula(F.factor + ' = ' + textoFactor, IZQ, 690, { tam: 34, o: oF, id: 'factor', palabras: 5 }));
+    s.push(D.formula(F.asig, IZQ, 776, { tam: 32, o: Math.min(o, M.visible(t, 61.6, 71.6)), id: 'asig', palabras: 4 }));
+    s.push(D.parrafo(IZQ + 330, 756, 530, 'con $q = \\htmlClass{ti}{i}(1-p)$, factor = ' + D.num(R.factor_i, 4),
+      { tam: 24, color: P.suave, o: Math.min(o, M.visible(t, 62.0, 71.6)), id: 'factor-i', alto: 44 }));
+    if (oF > 0) c.dato('factor_mostrado', textoFactor);
+    return s.join('');
+  }
+
+  // ---- Un bloque de texto de la columna izquierda: título, párrafo o fórmula ----
+  function titulo(t, t0, t1, y, cadena, id) {
+    return D.texto(IZQ, y, cadena, { fuente: 'titulo', tam: 34, peso: 600, o: M.visible(t, t0, t1), id: id });
+  }
+  function nota(t, t0, t1, y, cadena, id, op) {
+    op = op || {};
+    return D.parrafo(op.x || IZQ, y, op.ancho || ANCHO_IZQ, cadena, { tam: op.tam || 26, color: op.color || P.tinta, o: M.visible(t, t0, t1), id: id, alto: op.alto || 120 });
+  }
+  function ecuacion(t, t0, t1, y, tex, id, palabras, tam) {
+    return D.formula(tex, IZQ, y, { tam: tam || 32, o: M.visible(t, t0, t1), id: id, palabras: palabras, estilos: SUBRAYADO, ancho: ANCHO_IZQ + 40 });
+  }
+
+  // ---- La tabla betas (cada fila, un solo texto auditado) ----
+  var COLS = [96, 206, 452, 530, 878];
+  function tablaBetas(t) {
+    var o = M.visible(t, 5.6, 11.3);
+    if (o <= 0) return '';
+    var s = [];
+    var cab = ['covariable', 'efecto_sobre', '$T$', '$\\beta$ [inferior, superior]', 'mueve'];
+    cab.forEach(function (h, j) {
+      s.push(D.parrafo(COLS[j], 548, 330, h, { tam: 22, color: P.suave, o: o, id: j === 0 ? 'betas-cab' : undefined, palabras: 7, alto: 36 }));
+    });
+    s.push(D.linea(IZQ, 584, 956, 584, { color: P.rejilla, grosor: 2, o: o }));
+    ORDEN.forEach(function (nombre, j) {
+      var c = COV[nombre], y = 616 + j * 54;
+      var oF = Math.min(o, M.visible(t, 5.75 + 0.15 * j, 11.3));
+      s.push(D.texto(COLS[0], y, nombre, { tam: 26, peso: 600, o: oF, id: 'beta-' + nombre, palabras: 5 }));
+      s.push(D.texto(COLS[1], y, c.efecto_sobre, { fuente: 'mono', tam: 22, o: oF }));
+      s.push(D.texto(COLS[2], y, c.transformacion, { tam: 26, o: oF }));
+      s.push(D.texto(COLS[3], y, fmt(c.beta, nombre === 'HAQ' ? 3 : 2) + ' [' + fmt(c.beta_inf, nombre === 'HAQ' ? 3 : 2) + ', ' + fmt(c.beta_sup, nombre === 'HAQ' ? 3 : 2) + ']', { fuente: 'mono', tam: 24, o: oF }));
+      s.push(D.formula(CANAL[c.canal], COLS[4], y - 9, { tam: 28, o: oF, estilos: SUBRAYADO, ancho: 120, alto: 50 }));
+    });
+    return s.join('');
+  }
+
+  // ---- Paso 2: la tabla de beta_c y delta_c a los 70 años ----
+  function tablaDelta(t) {
+    var o = M.visible(t, 39.4, 49.0);
+    if (o <= 0) return '';
+    var s = [], cols = [96, 230, 420, 640];
+    ['covariable', 'mueve', '$\\beta_c$ (k = 1)', '$\\delta_c$ a los 70 años'].forEach(function (h, j) {
+      s.push(D.parrafo(cols[j], 498, 300, h, { tam: 22, color: P.suave, o: o, id: j === 0 ? 'delta-cab' : undefined, palabras: 8, alto: 36 }));
+    });
+    s.push(D.linea(IZQ, 534, 900, 534, { color: P.rejilla, grosor: 2, o: o }));
+    ORDEN.forEach(function (nombre, j) {
+      var c = COV[nombre], y = 564 + j * 40;
+      var oF = Math.min(o, M.visible(t, 39.55 + 0.15 * j, 49.0));
+      s.push(D.texto(cols[0], y, nombre, { tam: 24, peso: 600, o: oF, id: 'delta-' + nombre, palabras: 3 }));
+      s.push(D.formula(CANAL[c.canal], cols[1], y - 8, { tam: 26, o: oF, estilos: SUBRAYADO, ancho: 120, alto: 44 }));
+      s.push(D.texto(cols[2], y, fmt(c.beta_k, nombre === 'HAQ' ? 4 : 3), { fuente: 'mono', tam: 24, o: oF }));
+      s.push(D.texto(cols[3], y, fmt(c.desplazamiento.delta[k70], 3), { fuente: 'mono', tam: 24, o: oF }));
+    });
+    return s.join('');
+  }
+
+  // ---- La diferencia del SEV en la edad a, sum_b dX_b P_ba (.dl_pesos_edad con dx_interpolacion lineal y
+  // dx_fuera_de_banda cero): 0 antes de la primera banda, constante hasta el primer punto medio, lineal entre puntos
+  // medios y constante después del último. La auditoría la compara con la del paquete en cada edad anual. ----
+  function sevEn(a) {
+    var sev = datos.sev, m = sev.medio, v = sev.dX_b, n = m.length;
+    if (a < sev.inicio[0] || a >= sev.fin[n - 1]) return 0;
+    if (a <= m[0]) return v[0];
+    if (a >= m[n - 1]) return v[n - 1];
+    for (var b = 0; b < n - 1; b++) if (a <= m[b + 1]) return v[b] + (a - m[b]) / (m[b + 1] - m[b]) * (v[b + 1] - v[b]);
+    return v[n - 1];
+  }
+  // La polilínea exacta de sevEn desde el inicio de la primera banda hasta la edad a (vértices en los puntos medios).
+  function tramoSev(a) {
+    var sev = datos.sev, xs = [sev.inicio[0]], ys = [sevEn(sev.inicio[0])];
+    sev.medio.concat([99]).forEach(function (m) { if (m < a) { xs.push(m); ys.push(sevEn(m)); } });
+    xs.push(a); ys.push(sevEn(a));
+    return { xs: xs, ys: ys };
+  }
+
+  // ---- Las tasas desplazadas: de la nacional a la de la ubicación, en escala log ----
+  var SUMA_I = edades.map(function (a, k) {
+    return ORDEN.reduce(function (s, n) { return s + (COV[n].canal === 'i' ? COV[n].desplazamiento.delta[k] : 0); }, 0);
+  });
+  var SUMA_F = edades.map(function (a, k) {
+    return ORDEN.reduce(function (s, n) { return s + (COV[n].canal === 'f' ? COV[n].desplazamiento.delta[k] : 0); }, 0);
+  });
+  function desplazada(nac, suma, u, techo) {
+    return nac.map(function (v, k) {
+      var l = Math.log(v) + u * suma[k];
+      return Math.exp(techo ? Math.min(l, Math.log(techo)) : l);
+    });
+  }
+
+  function dibujar(t, c) {
+    c.defs(GP.recorte()); c.defs(GS.recorte()); c.defs(GT.recorte());
+    c.svg(D.cabecera(9, 11, 'De lo nacional a lo subnacional', { funcion: 'dl_cascada()' }));
+    c.svg(pasos(t));
+
+    // ===== Toma 0 (0-11.3 s): el punto de partida =====
+    var o0 = M.visible(t, 0, 11.3, { entrada: 0 });
+    if (o0 > 0) {
+      c.svg(GP.svg({ o: o0 }));
+      c.svg(GP.curva(edades, datos.p_nac, { color: P.p, grosor: 3, guiones: '10 6', o: o0 }));
+      c.svg(D.parrafo(GP.x(99), GP.y(datos.p_nac[edades.length - 1]) - 46, 300, 'Perú (nacional)', { tam: 24, ancla: 'end', o: o0, id: 'p0-peru', alto: 36 }));
+      c.svg(D.texto(IZQ, 340, 'El punto de partida', { fuente: 'titulo', tam: 34, peso: 600, o: o0, id: 'inicio-titulo' }));
+      c.svg(D.parrafo(IZQ, 366, ANCHO_IZQ, 'El ajuste nacional de dl_ajustar() da $p$, $i$ y $f$ del país por edad, para cada sexo y cada una de sus ' +
+        datos.n_simulaciones + ' simulaciones. Aquí, mujeres y $k = 1$.', { tam: 26, o: o0, id: 'inicio-texto', alto: 130 }));
+    }
+    c.svg(tablaBetas(t));
+
+    // ===== Paso 1 (11.6-30.1 s): la diferencia de cada covariable =====
+    c.svg(ecuacion(t, 12.45, 30.1, 340, F.xnac, 'f-xnac', 5));
+    c.svg(ecuacion(t, 12.85, 30.1, 404, F.sdT, 'f-sdT', 5));
+    c.svg(ecuacion(t, 18.1, 30.1, 500, F.xd, 'f-xd', 5));
+    c.svg(nota(t, 18.4, 30.1, 532, '$se_T$: del error estándar de su fila en la tabla covariables, por el método delta', 'n-seT', { tam: 24, color: P.suave }));
+    c.svg(ecuacion(t, 24.8, 30.1, 650, F.dX, 'f-dX', 5));
+    c.svg(nota(t, 25.1, 30.1, 682, 'escala solo con la transformación lineal (el HAQ, con escala ' + D.num(COV.HAQ.escala, 0) + ')', 'n-escala', { tam: 24, color: P.suave }));
+    c.svg(leyendaFranjas(t));
+    FRANJAS.forEach(function (fr, j) { c.svg(franja(t, fr, j)); });
+    if (t >= 24.8 && t < 30.4) {
+      c.dato('dX_mostrados', ORDEN.map(function (n) { return COV[n].dX_k; }));
+      c.dato('dX_paquete', ORDEN.map(function (n) { return COV[n].dX_paquete; }));
+    }
+
+    // ===== P_ba (30.4-37.5 s): el SEV por grupo de edad =====
+    var oS = M.visible(t, 30.55, 37.5);
+    if (oS > 0) {
+      var sev = datos.sev, dXa = COV.SEV.desplazamiento.dX_a;
+      c.svg(GS.svg({ o: oS }));
+      c.svg(D.linea(GS.izq, GS.y(0), GS.der, GS.y(0), { color: P.guia, grosor: 2, guiones: '6 6', o: oS }));
+      sev.medio.forEach(function (m, b) {
+        var ob = Math.min(oS, M.entra(t, 30.8 + b * M.seg(M.ESCALONADO.item), 0.3, E.entrarSuave));
+        c.svg(D.linea(GS.x(sev.inicio[b]) + 3, GS.y(sev.dX_b[b]), GS.x(Math.min(sev.fin[b], 99)) - 3, GS.y(sev.dX_b[b]), { color: P.guia, grosor: 3, o: ob }));
+        c.svg(D.circulo(GS.x(m), GS.y(sev.dX_b[b]), 7, { borde: P.tinta, grosor: 2, relleno: P.fondo, o: ob }));
+      });
+      // La línea sum_b dX_b P_ba, lineal en la edad de 30 a 99: 0 antes de 40 y, desde 40, la interpolación.
+      var uL = M.tramo(t, 31.4, 32.9);
+      if (uL > 0) {
+        var aL = 30 + uL * 69;
+        c.svg(GS.curva([30, Math.min(aL, sev.inicio[0])], [0, 0], { color: P.marca, grosor: 4 }));
+        if (aL > sev.inicio[0]) {
+          var tr = tramoSev(aL);
+          c.svg(GS.curva(tr.xs, tr.ys, { color: P.marca, grosor: 4 }));
+        }
+        if (aL >= 99) c.dato('sev_dif_max', edades.reduce(function (m, a, k) { return Math.max(m, Math.abs(sevEn(a) - dXa[k])); }, 0));
+      }
+      c.svg(D.parrafo(GS.x(30) + 8, GS.y(0) + 12, 200, 'vale 0 antes de los 40', { tam: 22, color: P.suave, o: Math.min(oS, M.visible(t, 33.1, 37.5)), id: 'sev-cero', alto: 64 }));
+      c.svg(D.parrafo(GS.x(42.5) - 10, GS.y(0.15) - 6, 520, 'círculos: $dX_b$ en el punto medio de cada banda $b$', { tam: 22, color: P.suave, o: Math.min(oS, M.visible(t, 31.0, 37.5)), id: 'sev-ley-b', alto: 36 }));
+    }
+    c.svg(nota(t, 30.7, 37.5, 316, 'El SEV de ' + HERO + ' trae una diferencia $dX_b$ por banda $b$ del proxy, de 40-44 a 80 y más años.', 'n-sev', { alto: 130 }));
+    c.svg(nota(t, 31.4, 37.5, 470, 'En la edad $a$, la diferencia es', 'n-sev-a', { tam: 26 }));
+    c.svg(ecuacion(t, 31.4, 37.5, 550, F.suma, 'f-suma', 3, 36));
+    c.svg(nota(t, 31.8, 37.5, 610, '$P_{ba}$: el peso de la banda $b$ en la edad $a$ (interpolación lineal entre puntos medios).', 'n-pba', { tam: 24, color: P.suave, alto: 100 }));
+
+    // ===== Paso 2 (37.8-49.0 s): el desplazamiento =====
+    c.svg(ecuacion(t, 38.2, 49.0, 340, F.beta, 'f-beta', 6));
+    c.svg(ecuacion(t, 38.6, 49.0, 410, F.delta, 'f-delta', 5));
+    c.svg(nota(t, 39.0, 49.0, 446, '$\\kappa$ = ' + D.num(datos.kappa, 0) + ' (subnacional.kappa): la fracción del gradiente que se aplica', 'n-kappa', { tam: 24, color: P.suave, alto: 40 }));
+    if (t >= 38.8 && t < 49.25) c.dato('kappa_mostrado', datos.kappa);
+    c.svg(tablaDelta(t));
+    c.svg(ecuacion(t, 43.7, 49.0, 720, F.logi, 'f-logi', 6));
+    c.svg(ecuacion(t, 44.1, 49.0, 806, F.logf, 'f-logf', 7));
+    var oT = M.visible(t, 38.0, 49.0);
+    if (oT > 0) {
+      c.svg(GT.svg({ o: oT }));
+      c.svg(leyenda(CAJA.x + 210, CAJA.y + CAJA.alto - 26, Math.min(oT, M.visible(t, 38.85, 49.0)), 'ley-t'));
+      c.svg(GT.curva(edades, datos.i_nac, { color: P.i, grosor: 3, guiones: '10 6', o: oT }));
+      c.svg(GT.curva(edades, datos.f_nac, { color: P.f, grosor: 3, guiones: '10 6', o: oT }));
+      var uI = M.entra(t, 43.7, 0.8, E.mover), uFf = M.entra(t, 44.6, 0.6, E.mover);
+      var iD = desplazada(datos.i_nac, SUMA_I, uI), fD = desplazada(datos.f_nac, SUMA_F, uFf, datos.techo_f);
+      var oD = Math.min(oT, M.entra(t, 43.7, 0.2, E.entrarSuave));
+      c.svg(GT.curva(edades, iD, { color: P.i, grosor: 4, o: oD }));
+      c.svg(GT.curva(edades, fD, { color: P.f, grosor: 4, o: Math.min(oT, M.entra(t, 44.6, 0.2, E.entrarSuave)) }));
+      c.svg(D.formula('\\htmlClass{ti}{i}', GT.x(99) + 12, GT.y(datos.i_nac[edades.length - 1]) - 6, { tam: 30, o: Math.min(oT, M.visible(t, 38.4, 49.0)), estilos: SUBRAYADO, ancho: 40, alto: 50, id: 'gt-i', palabras: 1 }));
+      c.svg(D.formula('\\htmlClass{tf}{f}', GT.x(99) + 12, GT.y(datos.f_nac[edades.length - 1]) - 6, { tam: 30, o: Math.min(oT, M.visible(t, 38.4, 49.0)), estilos: SUBRAYADO, ancho: 40, alto: 50, id: 'gt-f', palabras: 1 }));
+      var oTe = Math.min(oT, M.visible(t, 45.4, 49.0));
+      c.svg(D.linea(GT.izq, GT.y(datos.techo_f), GT.der, GT.y(datos.techo_f), { color: P.tinta, grosor: 2, guiones: '3 5', o: oTe }));
+      c.svg(D.parrafo(GT.der, GT.y(datos.techo_f) + 4, 400, 'techo $f_{max}$ = ' + D.num(datos.techo_f, 2), { tam: 22, color: P.suave, ancla: 'end', o: oTe, id: 'gt-techo', alto: 36 }));
+      if (uI >= 1) { c.dato('i_d_70', iD[k70]); c.dato('f_d_70', fD[k70]); }
+    }
+
+    // ===== Paso 3 (49.3-55.2 s): la nueva solución =====
+    c.svg(ecuacion(t, 49.7, 55.2, 360, F.edo, 'f-edo', 8, 36));
+    c.svg(nota(t, 50.2, 55.2, 420, 'con $i_d$ y $f_d$ de la ubicación y la misma remisión $r$ (0 aquí)', 'n-edo', { tam: 26 }));
+    var o4 = M.visible(t, 49.5, 55.2);
+    if (o4 > 0) {
+      c.svg(GP.svg({ o: o4 }));
+      c.svg(leyenda(CAJA.x + 40, CAJA.y + 20, Math.min(o4, M.visible(t, 49.95, 55.2)), 'ley-p'));
+      c.svg(GP.curva(edades, datos.p_nac, { color: P.p, grosor: 3, guiones: '10 6', o: o4 }));
+      var uP = M.tramo(t, 50.0, 53.0);   // lineal: la edad avanza a ritmo constante
+      if (uP > 0) {
+        var cp = curvaHasta(datos.p_d, 30 + uP * 69);
+        c.svg(GP.curva(cp.xs, cp.ys, { color: P.p, grosor: 4, o: o4 }));
+        if (uP < 1) c.svg(D.circulo(GP.x(cp.xs[cp.xs.length - 1]), GP.y(cp.ys[cp.ys.length - 1]), 7, { relleno: P.p, o: o4 }));
+        c.dato('p_puntos', cp.xs.length);
+        var o70 = Math.min(o4, M.entra(t, 53.2, 0.4, E.entrarSuave));
+        if (o70 > 0) {
+          var x70 = GP.x(70), yd = GP.y(datos.p_d[k70]), yn = GP.y(datos.p_nac[k70]);
+          c.svg(D.linea(x70, GP.abajo, x70, yd - 16, { color: P.guia, grosor: 2, guiones: '6 6', o: o70 }));
+          c.svg(D.circulo(x70, yd, 7, { relleno: P.p, borde: P.superficie, grosor: 2, o: o70 }));
+          c.svg(D.circulo(x70, yn, 7, { relleno: P.fondo, borde: P.p, grosor: 2.5, o: o70 }));
+          c.svg(D.texto(x70 - 16, yd - 8, pct(datos.p_d[k70]), { fuente: 'mono', tam: 22, ancla: 'end', o: o70, id: 'p70-dep' }));
+          c.svg(D.texto(x70 + 16, yn + 26, pct(datos.p_nac[k70]), { fuente: 'mono', tam: 22, o: Math.min(o4, M.visible(t, 53.4, 55.2)), id: 'p70-nac' }));
+          c.svg(D.texto(x70 + 8, GP.abajo - 12, '70 años', { tam: 22, color: P.suave, o: o70 }));
+        }
+        c.dato('p_d_final', cp.ys[cp.ys.length - 1]);
+      }
+    }
+
+    // ===== Paso 4 (55.5-71.6 s): las 25 ubicaciones y la renormalización =====
+    c.svg(puntos(t, c));
+    c.svg(barras(t, c));
+    if (t >= 67.95) {
+      var despues = R.N.reduce(function (s, n, k) { return s + n * R.q_antes[k] * R.factor; }, 0);
+      c.dato('suma_despues', despues);
+      c.dato('max_dif_q', R.q_antes.reduce(function (m, q, k) { return Math.max(m, Math.abs(q * R.factor - R.q_despues[k])); }, 0));
+      c.dato('max_dif_ipop', R.ipop_antes.reduce(function (m, q, k) { return Math.max(m, Math.abs(q * R.factor_i - R.ipop_despues[k])); }, 0));
+      c.dato('suma_ipop_despues', R.N.reduce(function (s, n, k) { return s + n * R.ipop_despues[k]; }, 0));
+    }
+
+    // ===== Otros modos (71.9-90 s) =====
+    c.svg(titulo(t, 72.1, 77.9, 340, 'Modo plano', 'plano-titulo'));
+    c.svg(nota(t, 72.4, 77.9, 370, 'Cada ubicación recibe las tasas nacionales: sin gradiente, sus casos difieren solo por su población.', 'n-plano', { alto: 130 }));
+    c.svg(D.formula(F.factor + ' = ' + D.num(datos.plano.factor, 4), IZQ, 580, { tam: 34, o: M.visible(t, 73.3, 77.9), id: 'plano-factor', palabras: 5 }));
+    c.svg(nota(t, 73.6, 77.9, 650, 'la población subnacional suma la nacional (cascada plana del paquete)', 'n-plano-f', { tam: 24, color: P.suave }));
+    if (t >= 73.1 && t < 78.2) c.dato('factor_plano', datos.plano.factor);
+
+    c.svg(titulo(t, 78.4, 84.7, 340, 'Modo razón', 'razon-titulo'));
+    c.svg(ecuacion(t, 78.5, 84.7, 450, F.razonR, 'f-razonR', 6, 36));
+    c.svg(ecuacion(t, 78.9, 84.7, 570, F.razonQ, 'f-razonQ', 5, 40));
+    c.svg(nota(t, 79.3, 84.7, 650, 'Va después de los AVD; la razón es la misma en todas las edades y sexos.', 'n-razon', { tam: 26, color: P.suave, alto: 80 }));
+
+    c.svg(titulo(t, 85.2, Infinity, 340, 'Validación', 'valid-titulo'));
+    c.svg(nota(t, 85.5, Infinity, 370, 'Las filas subnacionales de la tabla datos nunca entran al ajuste. Las del año subnacional.anio_validacion (' +
+      datos.anio_validacion + ' en el ejemplo) sirven para validar: dl_validar_ancla() compara la mortalidad observada en cada ubicación con la predicha.', 'n-valid', { alto: 170 }));
+
+    c.svg(D.rotulo(t, NARRACION));
+    c.svg(D.pie(datos.fuente + ' · mujeres, simulación 1'));
+  }
+
+  DL.escena({
+    id: '09-subnacional',
+    titulo: 'De lo nacional a lo subnacional',
+    duracion: 90, fps: 30,
+    marcas: {
+      inicio: 2.5, betas: 9.5, diferencia: 16.0, sorteos: 22.5, dX: 28.5, pesos: 35.5, delta: 42.0,
+      desplazamiento: 47.5, solucion: 54.5, total: 60.0, factor: 66.0, renorm: 70.5, plano: 76.5, razon: 83.5,
+      validacion: 88.5,
+    },
+    camaras: [],
+    dibujar: dibujar,
+    auditoria: function (A) {
+      var cmp = datos.comprobaciones;
+      return [
+        A.en('dX', 'los sorteos repetidos reproducen cascada$dX y la dX que se muestra es la del paquete', function (e) {
+          if (cmp.dif_dX !== 0) return 'los sorteos difieren de cascada$dX en ' + cmp.dif_dX;
+          for (var j = 0; j < 3; j++) if (!A.cerca(e.dX_mostrados[j], e.dX_paquete[j], 1e-14)) return ORDEN[j] + ': ' + e.dX_mostrados[j] + ' frente a ' + e.dX_paquete[j];
+          return true;
+        }),
+        A.en('pesos', 'la línea del SEV, Σ_b dX_b P_ba, es la de .dl_pesos_edad() del paquete en cada edad', function (e) {
+          return e.sev_dif_max < 1e-12 || 'diferencia máxima ' + e.sev_dif_max;
+        }),
+        A.en('delta', 'κ en pantalla es el de la cascada', function (e) { return e.kappa_mostrado === datos.kappa || 'κ = ' + e.kappa_mostrado; }),
+        A.en('desplazamiento', 'log i_d = log i_nac + Σ δ_c y log f_d = min(log f_nac + Σ δ_c, log f_max): las curvas dibujadas son las del paquete', function (e) {
+          if (cmp.dif_log_i > 1e-12 || cmp.dif_log_f > 1e-12) return 'diferencias ' + cmp.dif_log_i + ', ' + cmp.dif_log_f;
+          if (!A.cerca(e.i_d_70, datos.i_d[k70], 1e-12)) return 'i_d(70) dibujada ' + e.i_d_70 + ' frente a ' + datos.i_d[k70];
+          return A.cerca(e.f_d_70, datos.f_d[k70], 1e-12) || 'f_d(70) dibujada ' + e.f_d_70 + ' frente a ' + datos.f_d[k70];
+        }),
+        A.en('solucion', 'la p dibujada de la ubicación es la que resolvió el paquete, edad por edad hasta 99', function (e) {
+          if (e.p_puntos !== edades.length) return 'dibuja ' + e.p_puntos + ' puntos de ' + edades.length;
+          return A.cerca(e.p_d_final, datos.p_d[edades.length - 1], 1e-15) || 'p(99) ' + e.p_d_final;
+        }),
+        A.en('factor', 'el factor recalculado es el del paquete y el que se muestra es su redondeo', function (e) {
+          if (!A.cerca(factorJs, R.factor, 1e-12)) return 'factor ' + factorJs + ' frente a ' + R.factor;
+          return e.factor_mostrado === R.factor.toFixed(4) || 'se muestra ' + e.factor_mostrado;
+        }),
+        A.en('renorm', 'después de renormalizar, Σ_d N_d q_d = N_nac q_nac (1e-10) y q_d es la de cascada$draws_q', function (e) {
+          var rel = Math.abs(e.suma_despues - casosNac) / casosNac;
+          if (rel > 1e-10) return 'diferencia relativa ' + rel;
+          if (!A.cerca(e.suma_mostrada, casosNac, 1e-10)) return 'la barra suma ' + e.suma_mostrada;
+          if (e.max_dif_q > 1e-15) return 'q_d difiere de draws_q en ' + e.max_dif_q;
+          if (e.max_dif_ipop > 1e-15) return 'i(1-p) difiere de draws_q en ' + e.max_dif_ipop;
+          var relI = Math.abs(e.suma_ipop_despues - R.N_nac * R.ipop_nac) / (R.N_nac * R.ipop_nac);
+          return relI <= 1e-10 || 'i(1-p): diferencia relativa ' + relI;
+        }),
+        A.en('plano', 'modo plano: el factor del paquete es 1 y los puntos quedan en el valor nacional', function (e) {
+          if (!A.cerca(e.factor_plano, 1, 1e-12)) return 'factor ' + e.factor_plano;
+          return e.dist_max_nacional_px < 0.01 || 'un punto queda a ' + e.dist_max_nacional_px + ' px';
+        }),
+      ];
+    },
+  });
+})();
+</script>
+</body>
+</html>
