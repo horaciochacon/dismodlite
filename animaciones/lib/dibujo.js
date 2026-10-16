@@ -51,7 +51,8 @@
   };
 
   // Tamaños de letra (px a 1080p): nada legible por debajo de 22.
-  var tam = { titulo: 54, subtitulo: 30, rotulo: 36, cuerpo: 30, etiqueta: 26, eje: 22, nota: 22, kicker: 20 };
+  // La narración a 42 px: un video de 1080p también se ve chico (un teléfono lo reduce a un quinto).
+  var tam = { titulo: 54, subtitulo: 30, rotulo: 42, cuerpo: 30, etiqueta: 28, eje: 22, nota: 22, kicker: 20 };
 
   // ---- Utilidades ----
 
@@ -296,15 +297,16 @@
   }
 
   // rotulo(t, lineas): la narración. lineas = [[t0, t1, 'texto'], ...]: cada línea aparece en t0 y se va en t1, quieta
-  // en la franja inferior. La auditoría comprueba que cada una dure lo que pide su número de palabras.
+  // en la franja inferior. La auditoría comprueba que cada una dure lo que pide su número de palabras y que quepa en
+  // una sola línea (unos 75 caracteres a 42 px).
   function rotulo(t, lineas) {
     var s = '';
     for (var k = 0; k < lineas.length; k++) {
       var l = lineas[k];
       var o = DL.mov.visible(t, l[0], l[1], { entrada: 0.3, salida: 0.24 });
       if (o <= 0) continue;
-      s += parrafo(marco.izq + 28, marco.rotulo.y + 4, 1560, l[2], { tam: tam.rotulo, o: o, id: 'rotulo-' + k, alto: 90 });
-      s += rect(marco.izq, marco.rotulo.y + 8, 6, 44, { relleno: paleta.marca, radio: 3, o: o });
+      s += parrafo(marco.izq + 28, marco.rotulo.y, 1700, l[2], { tam: tam.rotulo, o: o, id: 'rotulo-' + k, alto: 96 });
+      s += rect(marco.izq, marco.rotulo.y + 8, 6, 50, { relleno: paleta.marca, radio: 3, o: o });
     }
     return s;
   }
