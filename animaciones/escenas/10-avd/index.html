@@ -41,14 +41,15 @@
     [40.0, 45.9, 'Con sus pesos sorteados, cada simulación tiene su propio peso medio por caso; aquí, las ' + datos.n_sim + '.'],
     [46.2, 52.1, 'En una banda $b$, cada simulación multiplica su prevalencia, su peso medio por caso y $\\mathrm{COMO}_b$.'],
     [52.9, 59.8, '$\\mathrm{COMO}_b$ calibra al ancla: su AVD dividido por el que daría la tabla con su prevalencia.'],
-    [60.1, 66.9, 'Absorbe la corrección por comorbilidad, el patrón por edad de la severidad y otras diferencias de la tabla: puede superar 1.'],
-    [67.2, 74.1, 'Al reemplazarlo, la tabla se cancela en el valor central: si la prevalencia sigue a la del ancla, los AVD también.'],
-    [74.4, 81.0, 'La tabla pesa en la incertidumbre. Aquí $\\mathrm{COMO}_b < 1$: sin él, los AVD quedarían por encima del ancla.'],
+    [60.1, 66.9, 'Absorbe comorbilidad, severidad por edad y otras diferencias: puede superar 1.'],
+    [67.2, 74.1, 'La tabla se cancela en el valor central: si $p$ sigue al ancla, los AVD también.'],
+    [74.4, 78.9, 'La tabla de severidad pesa en la incertidumbre, no en el valor central.'],
+    [79.2, 84.0, 'Aquí $\\mathrm{COMO}_b < 1$: sin él, los AVD quedarían sobre el ancla.'],
   ];
 
   // ---- La ecuación (arriba, quieta desde el cuadro 0) ----
   var EC = '\\mathrm{AVD}_{k,b} = \\htmlClass{tp}{p_{k,b}} \\times \\htmlClass{ts}{\\Big(\\sum_e \\pi_{k,e}\\, \\mathrm{DW}_{k,e}\\Big)} \\times \\htmlClass{tc}{\\mathrm{COMO}_b}';
-  var SUB_P = 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;';
+  var SUB_P = 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;text-decoration-skip-ink:none;';
   // Foco: los términos fuera de foco bajan al 30 %. foco = { p, s, c } en [0, 1] (1 = en foco).
   function focoEcuacion(t) {
     var sev = M.entra(t, 6.3, 0.4, E.entrarSuave) * (1 - M.entra(t, 46.0, 0.4, E.entrarSuave));
@@ -322,9 +323,9 @@
     var oMod = M.entra(t, 70.4, 0.4, E.entrarSuave);
     s.push(D.circulo(1192, ly, 6, { relleno: P.tinta, o: oMod }));
     s.push(D.texto(1206, GA.arriba - 23, 'modelo (IC 95 %)', { tam: 22, o: oMod, id: 'avd-ley-modelo' }));
-    var oSin = M.entra(t, 74.7, 0.4, E.entrarSuave);
+    var oSin = M.entra(t, 79.4, 0.4, E.entrarSuave);
     s.push(D.circulo(1394, ly, 6, { borde: P.suave, grosor: 2.5, o: oSin }));
-    s.push(D.texto(1408, GA.arriba - 23, 'sin COMO', { tam: 22, o: M.visible(t, 74.7, Infinity), id: 'avd-ley-sin' }));
+    s.push(D.texto(1408, GA.arriba - 23, 'sin COMO', { tam: 22, o: M.visible(t, 79.4, Infinity), id: 'avd-ley-sin' }));
     s.push(GA.svg());
     var puntos = [];
     for (var j = 0; j < B.avd_media.length; j++) {
@@ -336,7 +337,7 @@
       var om = M.escalonado(t, 70.4, j, M.ESCALONADO.item, 0.3, E.entrarSuave);
       s.push(D.linea(x, GA.y(1e5 * B.avd_inferior[j]), x, GA.y(1e5 * B.avd_superior[j]), { color: P.tinta, grosor: 2, o: om }));
       s.push(D.circulo(x, GA.y(1e5 * B.avd_media[j]), 6, { relleno: P.tinta, o: om }));
-      var os = M.escalonado(t, 74.7, j, M.ESCALONADO.item, 0.3, E.entrarSuave);
+      var os = M.escalonado(t, 79.4, j, M.ESCALONADO.item, 0.3, E.entrarSuave);
       s.push(D.circulo(x, GA.y(1e5 * B.avd_sin_factor[j]), 6, { relleno: P.fondo, borde: P.suave, grosor: 2.5, o: os }));
       // lo dibujado, leído de vuelta desde la escala del eje (para comprobarlo contra dl_avd())
       var inv = function (y) { return GA.y(0) === y ? 0 : 250 * (GA.y(0) - y) / (GA.y(0) - GA.y(250)) / 1e5; };
@@ -384,14 +385,14 @@
     c.svg(D.formula('\\text{70-74:}\\ \\dfrac{' + cTxt[0] + '}{' + cTxt[1] + ' \\times ' + cTxt[2] + '} = ' + cTxt[3], 96, 812,
       { tam: 30, o: M.visible(t, 54.2, 66.9), ancho: 900, alto: 90, id: 'como-cuenta', palabras: 6 }));
     if (t >= 55 && t < 67) c.dato('como_cuenta', { cuenta: cuenta, paquete: B.como[jb] });
-    var oSus = M.visible(t, 67.3, Infinity);
+    var oSus = M.visible(t, 67.3, Infinity) * (1 - 0.6 * M.entra(t, 79.2, 0.4, E.entrarSuave));   // el final: queda el gráfico
     c.svg(D.formula('\\mathrm{AVD}_{k,b} = \\mathrm{AVD}^{\\text{ancla}}_b\\, \\dfrac{\\htmlClass{tq}{p_{k,b}}}{p^{\\text{ancla}}_b}\\, \\dfrac{\\sum_e \\pi_{k,e} \\mathrm{DW}_{k,e}}{\\sum_e \\pi_e\\, \\mathrm{DW}_e}', 96, 600,
       { tam: 36, o: oSus, ancho: 900, alto: 120, id: 'sustitucion', palabras: 8, estilos: { tq: SUB_P } }));
     var cociente = 0;
     for (var k = 0; k < datos.suma_k.length; k++) cociente += datos.suma_k[k];
     cociente /= datos.suma_k.length * datos.suma_central;
     c.svg(D.texto(96, 730, 'el último cociente vale ' + num(cociente, 3) + ' en promedio: cerca de 1', { tam: 24, color: P.suave,
-      o: M.visible(t, 68.4, Infinity), id: 'cociente' }));
+      o: M.visible(t, 68.4, Infinity) * (1 - 0.6 * M.entra(t, 79.2, 0.4, E.entrarSuave)), id: 'cociente' }));
     if (t >= 68.4) c.dato('cociente_texto', num(cociente, 3));
     if (t >= 69) {
       var sus = [];
@@ -412,10 +413,10 @@
   DL.escena({
     id: '10-avd',
     titulo: 'Los años vividos con discapacidad',
-    duracion: 82, fps: 30,
+    duracion: 84, fps: 30,
     marcas: {
       inicio: 3.0, tabla: 11.0, central: 16.5, beta: 23.0, varianza: 28.0, crudas: 33.5, renorm: 38.5,
-      histograma: 44.5, banda: 50.5, como: 58.0, supera: 65.0, cancela: 71.5, final: 80.5,
+      histograma: 44.5, banda: 50.5, como: 58.0, supera: 65.0, cancela: 71.5, final: 82.5,
     },
     camaras: [[52.1, 52.9]],
     dibujar: dibujar,

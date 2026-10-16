@@ -20,7 +20,7 @@ valor central sigue al AVD del ancla y la tabla de severidad pesa en la incertid
 
 SALIDA: un HTML autocontenido, SVG + KaTeX 0.16.11 (jsDelivr), 1920 x 1080, con lib/contrato.js.
 
-TIEMPO: 82 s a 30 cuadros/s = 2460 cuadros. Sin bucle: el cuadro 0 es una composición terminada (cabecera y la
+TIEMPO: 84 s a 30 cuadros/s = 2520 cuadros. Sin bucle: el cuadro 0 es una composición terminada (cabecera y la
 ecuación de los AVD con su unidad) y el final se sostiene ~1 s después de la última frase leída.
 
 ASPECTO: fondo F5F7F6, tinta 16211E, tinta suave 55645F, rejilla DCE4E1, guía B4C2BD, verde azulado de la marca
@@ -32,7 +32,7 @@ con bigote del IC 95 %; sin COMO, círculo hueco de tinta suave relleno de fondo
 (\mathrm), como en la guía de carga (\text{}), y «ancla» en los superíndices como texto: los mismos símbolos de la
 guía «El modelo», sin el espaciado de letras sueltas de KaTeX. Títulos Source Serif 4 600 a 54 px; texto Source Sans 3 (26 px
 en tablas, 22 px en ejes y notas); números IBM Plex Mono; fórmulas KaTeX (46 px la ecuación, 30-38 px las demás).
-Narración abajo a 36 px.
+Narración abajo a 42 px, en una sola línea (≤ 75 caracteres).
 
 MOVIMIENTO: textos y fórmulas entran en 0.4 s con EASE.entrarSuave y salen en 0.24 s con EASE.salir; las filas de la
 tabla, escalonadas 120 ms (ESCALONADO.fila), su cabecera 0.3 s después de la narración; la densidad Beta se traza en 1.4 s con EASE.mover; las barras crecen en
@@ -68,7 +68,9 @@ TOMAS (segundos; una cosa principal por toma):
            AVD^ancla_b (p_{k,b}/p^ancla_b)(sum pi_{k,e} DW_{k,e} / sum pi_e DW_e) y «el último cociente vale 1.006 en
            promedio: cerca de 1»; desde 69.0 s a la derecha, los AVD por 100 000 (mujeres, Perú 2023): aspas del
            ancla y, desde 70.4 s, puntos del modelo con su IC 95 %.
-74.4-82.0  aparecen los círculos huecos sin COMO, por encima del ancla (aquí COMO_b < 1); se sostiene.
+74.4-78.9  «La tabla de severidad pesa en la incertidumbre, no en el valor central.»
+79.2-84.0  aparecen los círculos huecos sin COMO, por encima del ancla (aquí COMO_b < 1); la sustitución y su nota
+           bajan al 40 %: queda el gráfico; se sostiene.
 
 PROHIBIDO: degradados morados o azules, brillos, destellos, partículas decorativas, todo apareciendo a la vez,
 aparecer-y-subir en cada elemento, todo centrado, texto que se mueve mientras se lee (fuera de la cámara declarada),

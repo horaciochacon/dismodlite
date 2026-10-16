@@ -20,8 +20,19 @@ final y el tiempo de render.
   («AV D»).
 - **Sin cámara en la fase A.** Las tomas cambian de disposición con fundidos; la única cámara declarada es la del
   cálculo de la banda (52.1-52.9 s), que sube y se escala para dejar sitio a COMO.
-- **Duración.** 82 s (el objetivo era 50-80 s; el máximo es 90). Los 2 s de más vienen de las frases que la revisión
-  metodológica pidió completar (las condiciones de «el valor central sigue al ancla» y de «por encima del ancla»).
+- **Duración.** 84 s (el objetivo era 50-80 s; el máximo es 90). Los segundos de más vienen de las frases que la
+  revisión metodológica pidió completar (las condiciones de «el valor central sigue al ancla» y de «por encima del
+  ancla»), que con la narración a una sola línea quedaron en dos frases.
+
+## Después de unir la base (8098d7d)
+
+La base subió la narración a 42 px y la auditoría ahora falla con una línea partida. Tres frases se acortaron:
+«Absorbe comorbilidad, severidad por edad y otras diferencias: puede superar 1.», «La tabla se cancela en el valor
+central: si $p$ sigue al ancla, los AVD también.», y la última se partió en «La tabla de severidad pesa en la
+incertidumbre, no en el valor central.» y «Aquí COMO_b < 1: sin él, los AVD quedarían sobre el ancla.». De las
+lecciones de la escena 01: el subrayado de p lleva `text-decoration-skip-ink:none`, el final baja al 40 % lo que no
+es la conclusión, y se revisó que la escena no dibuje tasas sobre un eje de nivel ni anime transformaciones de
+ecuaciones fuera de la sustitución, que la revisión metodológica ya rehízo y la auditoría compara con `dl_avd()`.
 
 ## (a) Revisión adversarial
 
@@ -121,7 +132,7 @@ Quedan como avisos (no fallas) las filas de la tabla y del cálculo que entran c
 ## (c) Auditoría final
 
 ```text
-Auditoría de «10-avd» (2460 cuadros, 30 por segundo)
+Auditoría de «10-avd» (2520 cuadros, 30 por segundo)
   ✓ contrato
   ✓ pureza
   ✓ cuadro 0
@@ -136,8 +147,8 @@ Todo en orden.
 
 ## (d) Tiempo de render
 
-- Render completo (`node herramientas/render.mjs escenas/10-avd`: 2460 cuadros, MP4 y hoja de contactos):
-  **3 min 26 s** (real) en el contenedor de la sesión.
+- Render completo (`node herramientas/render.mjs escenas/10-avd`: 2520 cuadros, MP4 y hoja de contactos):
+  **3 min 27 s** (real) en el contenedor de la sesión.
 - Fotogramas en las marcas (`--marcas`): unos 5 s.
 - Auditoría: alrededor de 1 min.
 - Exportar los datos (`Rscript datos/exportar.R 10-avd`, con el ajuste de 4 × 4000 iteraciones): unos 40 s.
