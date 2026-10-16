@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>04 · De las edades simples a las bandas · dismodlite</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="stylesheet" href="../../lib/escena.css">
+<script src="../../lib/contrato.js"></script>
+<script src="../../lib/movimiento.js"></script>
+<script src="../../lib/dibujo.js"></script>
+<script src="../../datos/04-bandas.js"></script>
+</head>
+<body>
+<script>
+// Escena 04: de las edades simples a las bandas. Guion: guion.md. Datos: datos/r/04-bandas.R (R/bandas.R del paquete).
+(function () {
+  'use strict';
+  var D = DL.dib, M = DL.mov, P = D.paleta, E = M.EASE;
+  var datos = DL_DATOS['04-bandas'];
+  var edades = datos.edades;
+  var n = edades.length;
+  var A_FIN = 100;   // el eje de edades termina en 100: la banda abierta 95+ se dibuja con sus edades 95 a 99
+
+  // ---- Narración: cada línea dura al menos 0,3 s por palabra + 0,5 s ----
+  var NARRACION = [
+    [0.4, 5.9, 'El modelo da la prevalencia $p$ en cada edad simple $a$, de 30 a 99 años.'],
+    [6.2, 10.9, 'La estimación de referencia, el ancla, viene en cambio por bandas de edad.'],
+    [12.3, 17.6, 'Para compararlos, el modelo promedia las edades de cada banda, ponderadas por la población.'],
+    [17.9, 24.4, '$N_{b(a)}$ es la población de la banda fina de la tabla de población que contiene la edad $a$.'],
+    [24.7, 31.0, '$n_{b(a)}$ es el número de edades del modelo en esa banda: cinco, también en 95 y más.'],
+    [31.3, 38.3, 'Caso 1: la banda del ancla [40, 45) cabe en una sola banda fina; sus cinco edades pesan igual.'],
+    [38.6, 43.6, 'Su promedio $q$ es lo que se compara con el ancla de esa banda.'],
+    [43.9, 50.6, 'Caso 2: de 50 a 65 años cruza tres quinquenios; $n_b$ se cancela y cada edad pesa según $N_b$.'],
+    [50.9, 57.6, 'Caso 3: si la tabla trae 80 y más como una sola banda, esa banda tiene 20 edades del modelo.'],
+    [57.9, 64.6, 'En «60 y más», la banda 80+ cuenta por su población, no por su población por su número de edades.'],
+    [64.9, 72.0, 'Lo mismo vale para la incidencia y la mortalidad por la causa: solo cambia $x(a)$.'],
+  ];
+
+  // ---- Los pesos w_a, recalculados aquí con la regla de R/bandas.R (la auditoría los compara con el paquete) ----
+  // n_b: edades de la malla en la banda b (de toda la malla, no solo del intervalo); m_a = N_b(a) / n_b(a);
+  // w_a = m_a / suma de m_a' en A.
+  function bandaDe(a, bnd) {
+    for (var k = 0; k < bnd.inicio.length; k++) if (bnd.inicio[k] <= a && a < bnd.fin[k]) return k;
+    return -1;
+  }
+  function pesos(inicio, fin, bnd) {
+    var nb = bnd.inicio.map(function () { return 0; });
+    edades.forEach(function (a) { var b = bandaDe(a, bnd); if (b >= 0) nb[b]++; });
+    var idx = [], m = [], bs = [];
+    edades.forEach(function (a, k) {
+      if (a < inicio || a >= fin) return;
+      var b = bandaDe(a, bnd);
+      idx.push(k); bs.push(b); m.push(bnd.N[b] / nb[b]);
+    });
+    var suma = m.reduce(function (s, x) { return s + x; }, 0);
+    return { idx: idx, banda: bs, nb: nb, w: m.map(function (x) { return x / suma; }) };
+  }
+  function promedio(x, pw) {
+    var q = 0;
+    for (var k = 0; k < pw.idx.length; k++) q += pw.w[k] * x[pw.idx[k]];
+    return q;
+  }
+  var C1 = datos.casos[0], C2 = datos.casos[1], C3 = datos.casos[2];
+  var CASOS = [
+    { r: C1, bnd: datos.bandas, pw: pesos(C1.inicio, C1.fin, datos.bandas) },
+    { r: C2, bnd: datos.bandas, pw: pesos(C2.inicio, C2.fin, datos.bandas) },
+    { r: C3, bnd: datos.bandas80, pw: pesos(C3.inicio, C3.fin, datos.bandas80) },
+  ];
+  CASOS.forEach(function (c) { c.q = promedio(datos.p, c.pw); });
+  var c3 = CASOS[2];
+  var k80 = datos.bandas80.inicio.indexOf(80);
+  var peso80 = 0, peso80Sin = 0;
+  c3.pw.banda.forEach(function (b, k) { if (b === k80) { peso80 += c3.pw.w[k]; peso80Sin += C3.w_sin_n[k]; } });
+  var sumaN3 = datos.bandas80.N.slice(datos.bandas80.inicio.indexOf(60)).reduce(function (s, x) { return s + x; }, 0);
+
+  // Tiempos de cada caso: [entra la tarjeta, se dibuja q, sale].
+  var T_CASO = [[31.5, 38.8, 43.9], [44.1, 47.8, 57.9], [58.1, 61.6, 64.9]];
+  // El intervalo A en cada momento: se desliza de un caso al siguiente (EASE.mover, 0.75 s).
+  function intervalo(t) {
+    var ini = C1.inicio, fin = C1.fin;
+    var u2 = M.entra(t, 44.1, M.seg(M.MS.heroe), E.mover), u3 = M.entra(t, 58.1, M.seg(M.MS.heroe), E.mover);
+    ini = M.lerp(M.lerp(ini, C2.inicio, u2), C3.inicio, u3);
+    fin = M.lerp(M.lerp(fin, C2.fin, u2), A_FIN, u3);
+    return [ini, fin];
+  }
+
+  // ---- Las fórmulas (guía «El modelo», sección 4) ----
+  var F_Q = 'q = \\sum_{a \\in A} w_a\\, x(a)';
+  var F_A = 'A = \\{a \\text{ entera} : \\text{inicio} \\le a < \\text{fin}\\}';
+  var F_W = 'w_a = \\frac{N_{b(a)} / n_{b(a)}}{\\sum_{a\' \\in A} N_{b(a\')} / n_{b(a\')}}';
+  var SUBRAYADO = {
+    ti: 'text-decoration:underline 4px ' + P.i + ';text-underline-offset:7px;',
+    tf: 'text-decoration:underline 4px ' + P.f + ';text-underline-offset:7px;',
+    tp: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;',
+  };
+
+  // ---- Geometría ----
+  var COL = 1250;                       // columna derecha: fórmulas y tarjeta
+  var POB = { x: 200, y: 610, ancho: 950, alto: 200 };
+
+  function ejesP(cam) {
+    return D.ejes({
+      x: 200, y: M.lerp(300, 280, cam), ancho: M.lerp(1560, 950, cam), alto: M.lerp(500, 220, cam), id: 'p',
+      xDom: [30, A_FIN], yDom: [0, 0.22],
+      xTicks: [30, 40, 50, 60, 70, 80, 90, 100], yTicks: [0, 0.05, 0.10, 0.15, 0.20],
+      yFormato: function (v) { return D.num(v, 2); },
+      yTitulo: 'Prevalencia $p$',
+    });
+  }
+  var G2 = D.ejes({
+    x: POB.x, y: POB.y, ancho: POB.ancho, alto: POB.alto, id: 'pob',
+    xDom: [30, A_FIN], yDom: [0, 260000],
+    xTicks: [30, 40, 50, 60, 70, 80, 90, 100], yTicks: [0, 100000, 200000],
+    yFormato: function (v) { return D.miles(v); },
+    xTitulo: 'Edad (años)', yTitulo: 'Población por año de edad, $N_{b(a)}/n_{b(a)}$',
+  });
+
+  // ---- Piezas ----
+
+  // Las cajas del ancla: caja hueca de lower a upper y raya en val (tinta). La banda abierta se dibuja en [95, 100).
+  function ancla(G, t, foco) {
+    var s = [];
+    var A = datos.ancla;
+    for (var k = 0; k < A.inicio.length; k++) {
+      var o = M.escalonado(t, 6.1, k, M.ESCALONADO.item, 0.4, E.entrarSuave);
+      if (o <= 0) continue;
+      var dim = foco(k);
+      var x0 = G.x(A.inicio[k]) + 2, x1 = G.x(Math.min(A.fin[k], A_FIN)) - 2;
+      s.push(D.rect(x0, G.y(A.upper[k]), x1 - x0, G.y(A.lower[k]) - G.y(A.upper[k]), { borde: P.tinta, grosor: 2, o: o * dim }));
+      s.push(D.linea(x0, G.y(A.val[k]), x1, G.y(A.val[k]), { color: P.tinta, grosor: 3, extremo: 'butt', o: o * dim }));
+    }
+    return s.join('');
+  }
+
+  var selO = 0;   // opacidad del velo de A en el cuadro (la fija dibujar)
+
+  // Las edades del modelo: una raya por edad entera en la base de la población (n_b = rayas por caja).
+  function rayas(o) {
+    var s = [];
+    for (var k = 0; k < n; k++) s.push(D.linea(G2.x(edades[k]), G2.abajo - 12, G2.x(edades[k]), G2.abajo, { color: P.tinta, grosor: 2, extremo: 'butt' }));
+    return D.grupo(s, { o: o });
+  }
+
+  // La tarjeta de un caso: título, barras w_a, sus valores y el promedio q.
+  var TITULOS = [
+    '**Caso 1** · la banda del ancla [40, 45)\nuna sola banda fina: cinco pesos iguales',
+    '**Caso 2** · el intervalo [50, 65)\ntres quinquenios: $n_b$ se cancela, $w_a \\propto N_{b(a)}$',
+    '**Caso 3** · 60 y más, [60, 125)\nquinquenios y 80+ (20 edades del modelo)',
+  ];
+  var BARRAS = { x: 1300, y: 680, ancho: 510, alto: 110 };
+  function tarjeta(t, k, c) {
+    var T = T_CASO[k], caso = CASOS[k];
+    var o = M.visible(t, T[0], T[2] - 0.24);
+    if (o <= 0) return '';
+    var s = [];
+    s.push(D.parrafo(COL, 556, 574, TITULOS[k], { tam: 26, o: o, id: 'tarjeta-' + k, alto: 80 }));
+    var w = caso.pw.w, sin = k === 2 ? C3.w_sin_n : null;
+    var maximo = Math.max.apply(null, w.concat(sin || [])) * (sin ? 1.25 : 1.08);
+    var paso = BARRAS.ancho / w.length, ancho = paso * 0.72;
+    var base = BARRAS.y + BARRAS.alto;
+    s.push(D.linea(BARRAS.x - 6, base, BARRAS.x + BARRAS.ancho + 6, base, { color: P.guia, grosor: 2, o: o }));
+    for (var j = 0; j < w.length; j++) {
+      var u = M.escalonado(t, T[0] + 0.3, j, w.length > 20 ? 12 : M.ESCALONADO.letra, 0.5, E.entrarSuave);
+      var x = BARRAS.x + j * paso + (paso - ancho) / 2;
+      var h = BARRAS.alto * w[j] / maximo * u;
+      s.push(D.rect(x, base - h, ancho, h, { relleno: P.marca, o: o }));
+      if (sin) {
+        var uf = M.entra(t, T[0] + 1.2, 0.4, E.entrarSuave);
+        var hs = BARRAS.alto * sin[j] / maximo;
+        if (caso.pw.banda[j] === k80) s.push(D.rect(x, base - hs, ancho, hs, { borde: P.suave, grosor: 1.5, guiones: '4 3', o: o * uf }));
+      }
+    }
+    // Edades de los extremos (y del corte en 80, en el caso 3).
+    var marcas = [0, w.length - 1];
+    if (k === 2) marcas.splice(1, 0, caso.pw.banda.indexOf(k80));
+    marcas.forEach(function (j) {
+      s.push(D.texto(BARRAS.x + j * paso + paso / 2, base + 30, String(edades[caso.pw.idx[j]]), { fuente: 'mono', tam: 22, color: P.suave, ancla: 'middle', o: o }));
+    });
+    s.push(D.formula('w_a', BARRAS.x - 54, BARRAS.y + 14, { tam: 26, color: P.suave, ancho: 44, alto: 40, o: o }));
+    // Valores: uno por banda fina (casos 1 y 2); en el caso 3, cuánto pesa 80+ en total, bien y sin dividir por n_b.
+    var oV = M.visible(t, T[0] + 1.0, T[2] - 0.24);
+    if (k < 2) {
+      var vistas = {}, nv = 0;
+      caso.pw.banda.forEach(function (b, j) {
+        if (vistas[b] !== undefined) return;
+        var js = caso.pw.banda.reduce(function (acc, bb, jj) { if (bb === b) acc.push(jj); return acc; }, []);
+        vistas[b] = true;
+        var oVb = M.visible(t, T[0] + 1.0 + 0.2 * nv++, T[2] - 0.24);
+        var xc = BARRAS.x + (js[0] + js[js.length - 1] + 1) * paso / 2;
+        s.push(D.texto(xc, base - BARRAS.alto * w[js[0]] / maximo - 12, D.num(w[js[0]], 3), { fuente: 'mono', tam: 22, ancla: 'middle', o: oVb, id: 'w-' + k + '-' + b }));
+      });
+    } else {
+      s.push(D.parrafo(BARRAS.x + BARRAS.ancho, BARRAS.y - 22, 300, '80+ pesa ' + D.num(peso80, 3), { tam: 24, ancla: 'end', o: oV, id: 'peso80', alto: 34 }));
+      s.push(D.parrafo(BARRAS.x + BARRAS.ancho, BARRAS.y + 10, 330, 'sin dividir por $n_b$: ' + D.num(peso80Sin, 3), { tam: 22, color: P.suave, ancla: 'end', o: M.visible(t, T[0] + 1.4, T[2] - 0.24), id: 'peso80-sin', alto: 34 }));
+    }
+    // El promedio.
+    var oQ = M.visible(t, T[1] + 0.3, T[2] - 0.24);
+    s.push(D.formula('q = \\sum_{a \\in A} w_a\\, p(a) = ' + D.num(caso.q, 4), COL, 866, { tam: 32, o: oQ, id: 'q-' + k, palabras: 4, ancho: 574, alto: 90 }));
+    if (oQ > 0) { c.dato('q_' + (k + 1), caso.q); }
+    if (o > 0) { c.dato('caso', k + 1); }
+    return s.join('');
+  }
+
+  // La tabla de medidas: x(a) y su promedio en 60 y más.
+  function tablaMedidas(t, c) {
+    var o = M.visible(t, 65.1, Infinity);
+    if (o <= 0) return '';
+    var pw = c3.pw;
+    var filas = [
+      ['prevalencia', '\\htmlClass{tp}{p}', promedio(datos.p, pw), 'p'],
+      ['incidencia', '\\htmlClass{ti}{i}\\,(1 - \\htmlClass{tp}{p})', promedio(datos.ipop, pw), 'ipop'],
+      ['mortalidad por la causa', '\\htmlClass{tp}{p}\\,\\htmlClass{tf}{f}', promedio(datos.pf, pw), 'pf'],
+    ];
+    var s = [];
+    var oh = function (j) { return M.escalonado(t, 65.1, j, M.ESCALONADO.fila, 0.4, E.entrarSuave); };
+    s.push(D.texto(COL, 576, 'medida', { tam: 22, color: P.suave, o: oh(0), id: 'tm-h1' }));
+    s.push(D.parrafo(COL + 270, 554, 120, '$x(a)$', { tam: 22, color: P.suave, o: oh(1), id: 'tm-h2', alto: 34 }));
+    s.push(D.parrafo(COL + 574, 554, 220, '$q$, 60 y más', { tam: 22, color: P.suave, ancla: 'end', o: oh(2), id: 'tm-h3', alto: 34 }));
+    s.push(D.linea(COL, 592, COL + 574, 592, { color: P.rejilla, grosor: 2, o: o }));
+    filas.forEach(function (f, k) {
+      var celda = function (j) { return M.entra(t, 65.6 + 0.42 * k + 0.12 * j, 0.4, E.entrarSuave) * o; };
+      var y = 644 + k * 62;
+      s.push(D.texto(COL, y, f[0], { tam: 26, o: celda(0), id: 'tm-n' + k }));
+      s.push(D.formula(f[1], COL + 270, y - 9, { tam: 30, o: celda(1), id: 'tm-x' + k, palabras: 1, ancho: 180, alto: 56, estilos: SUBRAYADO }));
+      s.push(D.texto(COL + 574, y, D.sig(f[2], 3), { fuente: 'mono', tam: 26, ancla: 'end', o: celda(2), id: 'tm-q' + k }));
+      c.dato('tabla_' + f[3], f[2]);
+    });
+    s.push(D.parrafo(COL, 826, 574, 'incidencia y mortalidad: por persona-año de **toda** la población, como las publica GBD',
+      { tam: 22, color: P.suave, o: M.visible(t, 67.2, Infinity), id: 'tm-nota', alto: 70 }));
+    return s.join('');
+  }
+
+  function dibujar(t, c) {
+    var cam = E.camara(M.tramo(t, 11.1, 12.1));
+    var G = ejesP(cam);
+    c.defs(G.recorte());
+    c.svg(D.cabecera(4, 11, 'De las edades simples a las bandas', { funcion: 'dl_insumos()' }));
+    c.svg(G.svg());
+    // «Edad (años)» del gráfico grande: se va antes de la cámara (el panel de población trae el suyo).
+    c.svg(D.texto(G.der, G.abajo + 74, 'Edad (años)', { tam: 24, color: P.suave, ancla: 'end', o: M.visible(t, 0, 10.9), id: 'edad-p' }));
+
+    // El intervalo A y los casos.
+    var sel = intervalo(t);
+    selO = M.visible(t, 31.5, Infinity);   // la tabla de medidas sigue sobre 60 y más
+    var dentro = function (a) { return a >= sel[0] - 1e-9 && a < sel[1] - 1e-9; };
+
+    // Velo de A sobre los dos paneles; borde izquierdo cerrado (continuo) y derecho abierto (punteado).
+    if (selO > 0) {
+      var xa = G.x(sel[0]), xb = G.x(sel[1]);
+      c.svg(D.rect(xa, G.arriba, xb - xa, G2.abajo - G.arriba, { relleno: P.marca, o: 0.08 * selO }));
+      c.svg(D.linea(xa, G.arriba, xa, G2.abajo, { color: P.marca, grosor: 2, o: selO }));
+      c.svg(D.linea(xb, G.arriba, xb, G2.abajo, { color: P.marca, grosor: 2, guiones: '6 6', o: selO }));
+      c.svg(D.formula('A', (xa + xb) / 2, G.arriba + 22, { tam: 30, ancla: 'middle', ancho: 60, alto: 44, o: selO, id: 'A', seguir: true, palabras: 1 }));
+      c.dato('A', sel.slice());
+    }
+
+    // El ancla: tras el caso 1, solo la banda que se compara queda al 100 %.
+    var focoAncla = function (k) {
+      var es40 = datos.ancla.inicio[k] === 40;
+      return 1 - 0.65 * M.entra(t, es40 ? 43.9 : 31.5, 0.4, E.entrarSuave);
+    };
+    c.svg(ancla(G, t, focoAncla));
+
+    // Los puntos de p: se encienden de 30 a 99 a ritmo constante (0.6 a 2.8 s).
+    var aHasta = 30 + M.tramo(t, 0.6, 2.8) * (99 - 30);
+    var pts = [];
+    var dibujados = 0;
+    for (var k = 0; k < n; k++) {
+      if (edades[k] > aHasta + 1e-9) break;
+      var en = selO > 0 && dentro(edades[k]);
+      var oPt = selO > 0 ? (en ? 1 : 1 - 0.6 * selO) : 1;
+      pts.push(D.circulo(G.x(edades[k]), G.y(datos.p[k]), en ? 6 : 4.5, { relleno: P.p, o: oPt }));
+      dibujados++;
+    }
+    c.svg(pts);
+    c.dato('puntos', dibujados);
+    if (dibujados) c.dato('p_ultimo', datos.p[dibujados - 1]);
+
+    // Leyenda del gráfico de p.
+    var oL1 = M.visible(t, 1.0, Infinity), oL2 = M.visible(t, 6.4, Infinity);
+    c.svg(D.circulo(G.izq + 30, G.arriba + 22, 6, { relleno: P.p, o: oL1 * (1 - selO) }));
+    c.svg(D.parrafo(G.izq + 46, G.arriba + 6, 460, '$p(a)$, media posterior por edad simple', { tam: 22, color: P.suave, o: oL1 * (1 - selO), id: 'ley-p', alto: 34 }));
+    c.svg(D.rect(G.izq + 22, G.arriba + 46, 16, 22, { borde: P.tinta, grosor: 2, o: oL2 * (1 - selO) }));
+    c.svg(D.parrafo(G.izq + 46, G.arriba + 40, 460, 'ancla, por banda $[\\text{inicio}, \\text{fin})$', { tam: 22, color: P.suave, o: oL2 * (1 - selO), id: 'ley-ancla', alto: 34 }));
+
+    // El segmento q de cada caso, sobre su intervalo.
+    for (var j = 0; j < 3; j++) {
+      var T = T_CASO[j], caso = CASOS[j];
+      var oS = M.visible(t, T[1], T[2] - 0.24);
+      if (oS <= 0) continue;
+      var uq = M.entra(t, T[1], 0.5, E.mover);
+      var x0 = G.x(caso.r.inicio), x1 = G.x(Math.min(caso.r.fin, A_FIN));
+      c.svg(D.linea(x0, G.y(caso.q), x0 + (x1 - x0) * uq, G.y(caso.q), { color: P.p, grosor: 5, extremo: 'butt', o: oS }));
+      c.svg(D.formula('q', x1 + 22, G.y(caso.q), { tam: 28, o: oS * M.entra(t, T[1] + 0.4, 0.3, E.entrarSuave), id: 'q-et-' + j, palabras: 1, ancho: 40, alto: 40 }));
+    }
+
+    // Las fórmulas, a la derecha (una por vez, 0.7 s entre ellas).
+    var oF = [M.visible(t, 12.5, Infinity), M.visible(t, 13.2, Infinity), M.visible(t, 13.9, Infinity)];
+    c.svg(D.formula(F_Q, COL, 296, { tam: 36, o: oF[0], id: 'f-q', palabras: 4, ancho: 574, alto: 80 }));
+    c.svg(D.formula(F_A, COL, 368, { tam: 30, o: oF[1], id: 'f-A', palabras: 6, ancho: 574, alto: 60 }));
+    c.svg(D.formula(F_W, COL, 466, { tam: 38, o: oF[2], id: 'f-w', palabras: 6, ancho: 574, alto: 120 }));
+
+    // El panel de población (desde 17.9 s).
+    var oP = M.entra(t, 18.3, 0.4, E.entrarSuave);
+    if (oP > 0) {
+      c.svg(G2.svg({ o: oP }));
+      var u80 = M.entra(t, 52.2, M.seg(M.MS.heroe), E.mover);
+      var oFuera = selO > 0 ? 1 - 0.65 * selO : 1;
+      c.svg(poblacionCajas(t, sel, u80, oFuera));
+      c.svg(rayas(M.entra(t, 24.9, 0.4, E.entrarSuave)));
+      // n_b = 5 y la banda abierta.
+      var oNb = M.visible(t, 25.3, 31.3);
+      c.svg(D.parrafo(G2.der, G2.arriba - 6, 420, '$n_{b(a)} = 5$ edades en cada banda', { tam: 24, ancla: 'end', o: oNb, id: 'nb', alto: 36 }));
+      var o95 = M.visible(t, 26.4, 31.3);
+      var x95 = G2.x(97.5), y95 = G2.y(datos.bandas.N[datos.bandas.N.length - 1] / 5);
+      c.svg(D.linea(x95, y95 - 8, x95, y95 - 70, { color: P.marca, grosor: 2, o: o95 }));
+      c.svg(D.parrafo(x95 - 12, y95 - 100, 240, '95 y más:\nedades 95 a 99', { tam: 22, ancla: 'end', o: o95, id: 'b95', alto: 64 }));
+      // Caso 3: 80+ fundida y el fantasma de su alto sin dividir por n_b (cuatro veces).
+      if (u80 > 0) {
+        var N80 = datos.bandas80.N[k80];
+        var oG = M.visible(t, 53.2, 64.9);
+        var yG = G2.y(N80 / 5), yB = G2.y(N80 / 20);
+        c.svg(D.rect(G2.x(80), yG, G2.x(A_FIN) - G2.x(80), yB - yG, { borde: P.suave, grosor: 2, guiones: '6 5', o: oG }));
+        c.svg(D.parrafo(G2.x(80) + 8, yG - 66, 340, 'sin dividir por $n_b$:\n$N_{80+}$ en cada edad, ×4', { tam: 22, color: P.suave, o: oG, id: 'fantasma', alto: 64 }));
+        c.svg(D.parrafo(G2.x(A_FIN) - 8, yB - 36, 200, '80+ · $n_b = 20$', { tam: 22, ancla: 'end', o: M.visible(t, 52.9, Infinity), id: 'b80', alto: 34 }));
+        c.dato('n80', pesos(30, A_FIN, datos.bandas80).nb[k80]);
+      }
+    }
+
+    // La tarjeta de cada caso y, al final, la tabla de medidas.
+    for (var kc = 0; kc < 3; kc++) c.svg(tarjeta(t, kc, c));
+    c.svg(tablaMedidas(t, c));
+
+    c.svg(D.rotulo(t, NARRACION));
+    c.svg(D.pie(datos.fuente));
+  }
+
+  // Cajas de población (envoltura con el velo de A).
+  function poblacionCajas(t, sel, u80, oFuera) {
+    var s = [];
+    var B = datos.bandas;
+    var nb = pesos(30, A_FIN, B).nb;
+    var n80 = datos.bandas80.N[k80] / pesos(30, A_FIN, datos.bandas80).nb[k80];
+    for (var k = 0; k < B.inicio.length; k++) {
+      var o = M.escalonado(t, 18.5, k, M.ESCALONADO.item, 0.5, E.entrarSuave);
+      if (o <= 0) continue;
+      var alto = B.N[k] / nb[k];
+      if (B.inicio[k] >= 80) alto = M.lerp(alto, n80, u80);
+      var x0 = G2.x(B.inicio[k]), x1 = G2.x(Math.min(B.fin[k], A_FIN));
+      var y = G2.y(alto * o);
+      s.push(D.rect(x0, y, x1 - x0, G2.abajo - y, { relleno: P.superficie }));
+      var a0 = Math.max(x0, G2.x(sel[0])), a1 = Math.min(x1, G2.x(sel[1]));
+      if (selO > 0 && a1 > a0) s.push(D.rect(a0, y, a1 - a0, G2.abajo - y, { relleno: P.marca, o: 0.22 * selO }));
+      var oB = (selO > 0 && !(a1 > a0)) ? oFuera : 1;
+      s.push(D.linea(x0, y, x1, y, { color: P.suave, grosor: 2, extremo: 'butt', o: oB }));
+      var interno = B.inicio[k] > 80 ? 1 - u80 : 1;
+      s.push(D.linea(x0, y, x0, G2.abajo, { color: P.suave, grosor: 2, extremo: 'butt', o: interno * oB }));
+      if (k === B.inicio.length - 1) s.push(D.linea(x1, y, x1, G2.abajo, { color: P.suave, grosor: 2, extremo: 'butt', o: oB }));
+    }
+    return s.join('');
+  }
+
+  // ---- Auditoría ----
+  function maxDif(a, b) {
+    if (a.length !== b.length) return Infinity;
+    var d = 0;
+    for (var k = 0; k < a.length; k++) d = Math.max(d, Math.abs(a[k] - b[k]));
+    return d;
+  }
+  function sumar(v) { return v.reduce(function (s, x) { return s + x; }, 0); }
+  function chequeoCaso(A, k, extra) {
+    var caso = CASOS[k];
+    return function (e) {
+      if (e.caso !== k + 1) return 'la tarjeta visible es la del caso ' + e.caso;
+      var edadesA = caso.pw.idx.map(function (j) { return edades[j]; });
+      if (maxDif(edadesA, caso.r.edades) !== 0) return 'A no son las edades del paquete';
+      var dw = maxDif(caso.pw.w, caso.r.w);
+      if (dw > 1e-12) return 'pesos distintos de .dl_pesos_intervalo(): ' + dw;
+      if (!A.cerca(sumar(caso.pw.w), 1, 1e-12)) return 'los pesos suman ' + sumar(caso.pw.w);
+      var q = e['q_' + (k + 1)];
+      if (!A.cerca(q, caso.r.q_p, 1e-12)) return 'q ' + q + ' frente a .dl_q_intervalos() ' + caso.r.q_p;
+      if (!A.cerca(q, caso.r.q_sim, 1e-12)) return 'q ' + q + ' frente a la media de .dl_agregar_bandas() ' + caso.r.q_sim;
+      return extra ? extra(e) : true;
+    };
+  }
+
+  DL.escena({
+    id: '04-bandas',
+    titulo: 'De las edades simples a las bandas',
+    duracion: 72, fps: 30,
+    marcas: {
+      puntos: 4.5, ancla: 9.5, formula: 16.5, poblacion: 23.0, n_b: 29.5, caso1: 36.5, q1: 42.5, caso2: 49.5,
+      fusion: 56.5, caso3: 63.5, medidas: 70.5,
+    },
+    camaras: [[11.1, 12.1]],
+    dibujar: dibujar,
+    auditoria: function (A) {
+      return [
+        A.en('puntos', 'los 70 puntos de p son la media posterior exportada, de 30 a 99', function (e) {
+          if (e.puntos !== n) return 'dibuja ' + e.puntos + ' puntos de ' + n;
+          return e.p_ultimo === datos.p[n - 1] || 'p(99) ' + e.p_ultimo;
+        }),
+        A.en('q1', 'caso 1: pesos iguales y q igual al promedio del paquete (y al de .dl_q_bandas() en 40-44)', chequeoCaso(A, 0, function (e) {
+          var w = CASOS[0].pw.w;
+          if (maxDif(w, w.map(function () { return 1 / w.length; })) > 1e-15) return 'pesos no iguales';
+          return A.cerca(e.q_1, C1.q_bandas_ancla, 1e-12) || 'q frente a .dl_q_bandas(): ' + C1.q_bandas_ancla;
+        })),
+        A.en('caso2', 'caso 2: w_a proporcional a N_b y q igual al del paquete', chequeoCaso(A, 1, function () {
+          var pw = CASOS[1].pw, B = datos.bandas;
+          var suma = sumar(pw.banda.map(function (b) { return B.N[b]; }));
+          var d = maxDif(pw.w, pw.banda.map(function (b) { return B.N[b] / suma; }));
+          return d < 1e-15 || 'w_a frente a N_b / suma N_b: ' + d;
+        })),
+        A.en('caso3', 'caso 3: 80+ tiene 20 edades, pesa N_80+ / suma N_b y q igual al del paquete', chequeoCaso(A, 2, function (e) {
+          if (e.n80 !== 20) return 'n_b de 80+ = ' + e.n80;
+          if (!A.cerca(peso80, datos.bandas80.N[k80] / sumaN3, 1e-12)) return '80+ pesa ' + peso80;
+          return A.cerca(sumar(C3.w_sin_n), 1, 1e-12) || 'los pesos sin dividir no suman 1';
+        })),
+        A.en('medidas', 'la tabla: q de p, i(1 - p) y p f iguales a los del paquete en 60 y más', function (e) {
+          if (!A.cerca(e.tabla_p, C3.q_p, 1e-12)) return 'p: ' + e.tabla_p + ' frente a ' + C3.q_p;
+          if (!A.cerca(e.tabla_ipop, C3.q_ipop, 1e-12) || !A.cerca(e.tabla_ipop, C3.q_sim_ipop, 1e-12)) return 'i(1 - p): ' + e.tabla_ipop;
+          return (A.cerca(e.tabla_pf, C3.q_pf, 1e-12) && A.cerca(e.tabla_pf, C3.q_sim_pf, 1e-12)) || 'p f: ' + e.tabla_pf;
+        }),
+      ];
+    },
+  });
+})();
+</script>
+</body>
+</html>
