@@ -22,22 +22,27 @@
   var n = datos.edades.length;
   var k60 = datos.edades.indexOf(60);
 
-  // ---- Narración: cada línea dura al menos 0,3 s por palabra + 0,5 s ----
+  // ---- Narración: una línea por vez; cada una dura al menos 0,3 s por palabra + 0,5 s ----
   var NARRACION = [
     [0.4, 4.3, 'Cada persona está sin la enfermedad ($S$) o con ella ($C$).'],
     [4.6, 8.3, 'Quien no la tiene la adquiere con la incidencia $i$.'],
     [8.6, 12.0, 'Quien la tiene se cura con la remisión $r$…'],
     [12.3, 16.4, '…o muere por la enfermedad, con la mortalidad en exceso $f$.'],
-    [16.7, 22.0, 'Todos mueren además por otras causas, con la tasa $m$, igual en los dos grupos.'],
-    [22.3, 25.8, 'Al avanzar la edad, los dos grupos cambian así.'],
-    [26.1, 29.9, 'La prevalencia es la proporción con la enfermedad: $p = C/(S+C)$.'],
-    [30.2, 35.6, 'Al derivar el cociente, $m$ pesa igual sobre $S$ y sobre $C$, y se cancela.'],
-    [35.9, 39.4, 'Queda una sola ecuación: la que resuelve el paquete.'],
-    [39.7, 44.4, 'Parte de $p = 0$ en la edad de inicio y avanza año a año.'],
-    [44.7, 49.4, 'En cada edad, la pendiente es lo que entra menos lo que sale.'],
-    [49.7, 54.2, 'Entran los casos nuevos, $i(1-p)$; salen las muertes en exceso, $f\\,p\\,(1-p)$.'],
-    [54.5, 60.0, 'Lo que se estima son $i$ y $f$ por edad; de ellas sale $p$.'],
+    [16.7, 22.4, 'Se supone que en los dos grupos se muere por otras causas con la misma tasa $m$.'],
+    [23.3, 26.8, 'Al avanzar la edad, los dos grupos cambian así.'],
+    [27.1, 30.9, 'La prevalencia es la proporción con la enfermedad: $p = C/(S+C)$.'],
+    [31.2, 36.6, 'Al derivar el cociente, $m$ pesa igual sobre $S$ y sobre $C$, y se cancela.'],
+    [36.9, 40.4, 'Queda una sola ecuación: la que resuelve el paquete.'],
+    [41.4, 46.1, 'Desde $p = 0$ en la edad de inicio, avanza en pasos de 0.2 años.'],
+    [46.4, 51.0, 'La pendiente es lo que entra menos lo que sale; aquí $r = 0$.'],
+    [51.3, 56.4, 'Entran los casos nuevos, $i(1-p)$; las muertes en exceso restan $f\\,p\\,(1-p)$.'],
+    [56.7, 63.0, 'Se estiman $i$ y $f$ en los nudos de edad; de ellas sale $p$.'],
   ];
+
+  // Movimientos de cámara del bloque del diagrama, entre dos frases: el primero lo achica para que entren las
+  // ecuaciones; el segundo lo corre a la izquierda para que entre el gráfico.
+  var CAM1 = [22.5, 23.2], CAM2 = [40.5, 41.3];
+  var BLOQUE_DX = 445;   // desplazamiento que centra el bloque del diagrama antes de que entre el gráfico
 
   // ---- El diagrama ----
   var S = { x: 150, y: 300, w: 250, h: 140 };
@@ -46,7 +51,7 @@
   function caja(b, letra, nombre) {
     return D.rect(b.x, b.y, b.w, b.h, { relleno: P.superficie, borde: P.tinta, grosor: 2.5, radio: 14 }) +
       D.formula(letra, b.x + b.w / 2, b.y + 50, { tam: 58, ancla: 'middle', ancho: b.w, alto: 84, id: 'caja-' + letra, palabras: 1 }) +
-      D.texto(b.x + b.w / 2, b.y + 118, nombre, { tam: 26, color: P.suave, ancla: 'middle', id: 'nombre-' + letra });
+      D.texto(b.x + b.w / 2, b.y + 118, nombre, { tam: 28, color: P.suave, ancla: 'middle', id: 'nombre-' + letra });
   }
 
   // Una flecha del diagrama con su etiqueta: la flecha se dibuja en 0,8 s y la etiqueta entra cuando la flecha llega.
@@ -55,23 +60,23 @@
     if (u <= 0) return '';
     var eti = M.visible(t, t0 + 0.55, Infinity, { entrada: 0.3 }) * o;
     return D.flecha(f.x1, f.y1, f.x2, f.y2, { color: f.color, grosor: f.grosor || 4, curva: f.curva, progreso: u, o: o }) +
-      D.parrafo(f.ex, f.ey, f.ancho || 230, f.etiqueta, { tam: 26, ancla: 'middle', o: eti, id: f.id, alto: 80 });
+      D.parrafo(f.ex, f.ey, f.ancho || 240, f.etiqueta, { tam: 28, ancla: 'middle', o: eti, id: f.id, alto: 90, interlineado: 1.2 });
   }
 
   // ---- Las fórmulas: cada tasa subrayada con el color de su flecha (las letras quedan en tinta) ----
-  var SUBRAYADO = {
-    ti: 'text-decoration:underline 4px ' + P.i + ';text-underline-offset:7px;',
-    tf: 'text-decoration:underline 4px ' + P.f + ';text-underline-offset:7px;',
-    tr: 'text-decoration:underline 4px ' + P.suave + ';text-underline-offset:7px;',
-    tm: 'text-decoration:underline 4px ' + P.suave + ';text-underline-offset:7px;',
-  };
-  function sistema(cancelada) {
-    var m = cancelada ? '\\htmlClass{tm}{\\cancel{m}}' : '\\htmlClass{tm}{m}';
-    return [
-      '\\frac{dS}{da} = -(\\htmlClass{ti}{i} + ' + m + ')\\,S + \\htmlClass{tr}{r}\\,C',
-      '\\frac{dC}{da} = \\htmlClass{ti}{i}\\,S - (\\htmlClass{tr}{r} + ' + m + ' + \\htmlClass{tf}{f})\\,C',
-    ];
+  function subrayado(color) {
+    return 'text-decoration:underline 4px ' + color + ';text-underline-offset:7px;text-decoration-skip-ink:none;';
   }
+  var SUBRAYADO = { ti: subrayado(P.i), tf: subrayado(P.f), tr: subrayado(P.suave), tm: subrayado(P.suave) };
+  // El sistema, completo: m sigue en las dos ecuaciones (m solo se anula en la derivada del cociente).
+  var SISTEMA = [
+    '\\frac{dS}{da} = -(\\htmlClass{ti}{i} + \\htmlClass{tm}{m})\\,S + \\htmlClass{tr}{r}\\,C',
+    '\\frac{dC}{da} = \\htmlClass{ti}{i}\\,S - (\\htmlClass{tr}{r} + \\htmlClass{tm}{m} + \\htmlClass{tf}{f})\\,C',
+  ];
+  var P_DEF = 'p = \\frac{C}{S + C}';
+  // La derivada del cociente: dp/da = (dC/da) / N - p (dN/da) / N, con N = S + C y dN/da = -m N - f C. Los dos términos
+  // con m se anulan: i(1 - p) - (r + m + f) p + p (m + f p) = i(1 - p) - r p - f p (1 - p).
+  var DERIVADA = '\\frac{dp}{da} = \\htmlClass{ti}{i}\\,(1-p) - (\\htmlClass{tr}{r} + \\htmlClass{tm}{\\cancel{m}} + \\htmlClass{tf}{f})\\,p + p\\,(\\htmlClass{tm}{\\cancel{m}} + \\htmlClass{tf}{f}\\,p)';
   var EC_P = '\\frac{dp}{da} = \\htmlClass{ti}{i}\\,(1 - p) - \\htmlClass{tr}{r}\\,p - \\htmlClass{tf}{f}\\,p\\,(1 - p)';
 
   // ---- El gráfico de p ----
@@ -95,98 +100,127 @@
     return { xs: xs, ys: ys };
   }
 
-  var POR_MIL = 60;      // px por (1 por 1000 personas-año) en las flechas de flujo
-  var BLOQUE_DX = 445;   // desplazamiento que centra el bloque del diagrama antes de que entre el gráfico
+  // ---- Lo que entra y lo que resta en la edad 60 ----
+  // Una cascada en su propio recuadro, por 1000 al año: es una tasa de cambio de p, no un nivel, así que no se dibuja
+  // sobre el eje de la prevalencia.
+  // En el hueco de arriba a la izquierda del gráfico (edades 30-64, p > 4 %), donde no pasa la curva.
+  var CASCADA = { x: 1125, y: 312, w: 332, h: 284, base: 526, px: 56, col: [1188, 1291, 1394] };   // px por (1 por 1000 al año)
+  var HOR = 12;   // años: la tangente se dibuja de 60 - HOR a 60 + HOR
+
+  var p60 = datos.p[k60], i60 = datos.i[k60], f60 = datos.f[k60], r = datos.remision;
+  var ENTRA = i60 * (1 - p60), RESTA = f60 * p60 * (1 - p60), PEND = ENTRA - r * p60 - RESTA;
+
+  function cascada(t, o) {
+    var k = CASCADA, b = k.base;
+    var yE = b - 1000 * ENTRA * k.px, yN = b - 1000 * PEND * k.px;
+    var oc = M.visible(t, 51.4, Infinity) * o;
+    if (oc <= 0) return { svg: '', yE: yE, yN: yN };
+    var s = [];
+    s.push(D.rect(k.x, k.y, k.w, k.h, { relleno: P.superficie, borde: P.rejilla, grosor: 2, radio: 10, o: oc }));
+    s.push(D.texto(k.x + 22, k.y + 38, 'En la edad 60, por 1000 al año', { tam: 24, color: P.suave, o: oc, id: 'cascada-titulo' }));
+    s.push(D.linea(k.x + 22, b, k.x + k.w - 22, b, { color: P.guia, grosor: 2, o: oc }));
+    // Entra (azul, sube desde 0), resta (naranja, baja desde la punta de lo que entra) y la pendiente (verde azulado).
+    var uE = M.entra(t, 51.7, 0.6, E.mover), uR = M.entra(t, 52.7, 0.5, E.mover), uP = M.entra(t, 53.7, 0.6, E.mover);
+    s.push(D.flecha(k.col[0], b, k.col[0], yE, { color: P.i, grosor: 5, progreso: uE, o: o }));
+    s.push(D.linea(k.col[0] + 8, yE, k.col[1] - 8, yE, { color: P.guia, grosor: 2, guiones: '5 5', o: M.entra(t, 52.4, 0.3) * o }));
+    s.push(D.flecha(k.col[1], yE, k.col[1], yN, { color: P.f, grosor: 5, progreso: uR, cabeza: 12, o: o }));
+    s.push(D.linea(k.col[1] + 8, yN, k.col[2] - 8, yN, { color: P.guia, grosor: 2, guiones: '5 5', o: M.entra(t, 53.3, 0.3) * o }));
+    s.push(D.flecha(k.col[2], b, k.col[2], yN, { color: P.marca, grosor: 5, progreso: uP, o: o }));
+    [
+      [k.col[0], 52.1, '$i\\,(1-p)$\n' + D.num(1000 * ENTRA, 3), 'cas-entra'],
+      [k.col[1], 53.0, '$f\\,p\\,(1-p)$\n−' + D.num(1000 * RESTA, 3), 'cas-resta'],
+      [k.col[2], 54.1, '$dp/da$\n' + D.num(1000 * PEND, 3), 'cas-pend'],
+    ].forEach(function (e) {
+      s.push(D.parrafo(e[0], b + 6, 108, e[2], { tam: 24, ancla: 'middle', o: M.visible(t, e[1], Infinity) * o, id: e[3], alto: 64, interlineado: 1.15 }));
+    });
+    return { svg: s.join(''), yE: yE, yN: yN };
+  }
 
   function dibujar(t, c) {
-    // Atenuación final: todo lo que no es i ni f baja al 40 % desde 54.6 s.
-    var aten = 1 - 0.6 * M.entra(t, 54.6, 0.4, E.entrarSuave);
-    var acento = E.pop(M.tramo(t, 54.6, 54.8));
-    var mBaja = 1 - 0.65 * M.entra(t, 31.4, 0.5, E.entrarSuave);
+    // Final: todo lo que no es i, f ni la curva p baja al 40 % desde 56.8 s; las flechas i y f engordan.
+    var aten = 1 - 0.6 * M.entra(t, 56.8, 0.4, E.entrarSuave);
+    var acento = E.pop(M.tramo(t, 56.8, 57.2));
+    var mBaja = 1 - 0.65 * M.entra(t, 34.1, 0.5, E.entrarSuave);
 
     c.defs(G.recorte());
     c.svg(D.cabecera(1, 11, 'El modelo enfermedad-muerte', { funcion: 'dl_edo()' }));
 
-    // El bloque del diagrama y las ecuaciones: centrado hasta 39.4 s; entre 39.4 y 40.2 s (movimiento de cámara
-    // declarado, entre dos frases) se corre a la izquierda para dejar sitio al gráfico de p.
-    var dx = BLOQUE_DX * (1 - E.camara(M.tramo(t, 39.4, 40.2)));
+    // El bloque del diagrama y las ecuaciones. Primer acto: solo, centrado y a 1.4x. CAM1 lo lleva a 1x; CAM2 lo corre
+    // a la izquierda para dejar sitio al gráfico.
+    var acto1 = 1 - E.camara(M.tramo(t, CAM1[0], CAM1[1]));
+    var dx = BLOQUE_DX * (1 - E.camara(M.tramo(t, CAM2[0], CAM2[1])));
     var b = [];
 
-    // Compartimentos (quietos desde el cuadro 0).
     b.push(caja(S, 'S', 'sin la enfermedad'), caja(C, 'C', 'con la enfermedad'));
-
-    // Flechas, una por vez.
-    b.push(flujo(t, 4.6, 1, { x1: 410, y1: 338, x2: 590, y2: 338, color: P.i, grosor: 4 + 2 * acento,
-      ex: 500, ey: 268, etiqueta: '$i$ · incidencia', id: 'et-i' }));
+    b.push(flujo(t, 4.6, 1, { x1: 410, y1: 338, x2: 590, y2: 338, color: P.i, grosor: 4 + 4 * acento,
+      ex: 500, ey: 262, etiqueta: '$i$ · incidencia', id: 'et-i' }));
     b.push(flujo(t, 8.6, aten, { x1: 590, y1: 402, x2: 410, y2: 402, color: P.suave, grosor: 3, curva: -34,
-      ex: 500, ey: 444, ancho: 280, etiqueta: '$r$ · remisión\nun dato: 0 por defecto', id: 'et-r' }));
-    b.push(flujo(t, 12.3, 1, { x1: 790, y1: 448, x2: 790, y2: 548, color: P.f, grosor: 4 + 2 * acento,
-      ex: 790, ey: 556, ancho: 190, etiqueta: '$f$ · en exceso', id: 'et-f' }));
+      ex: 500, ey: 444, ancho: 320, etiqueta: '$r$ · remisión\nno se estima (aquí, 0)', id: 'et-r' }));
+    b.push(flujo(t, 12.3, 1, { x1: 790, y1: 448, x2: 790, y2: 548, color: P.f, grosor: 4 + 4 * acento,
+      ex: 790, ey: 556, ancho: 230, etiqueta: '$f$ · mortalidad\nen exceso', id: 'et-f' }));
     b.push(flujo(t, 16.7, mBaja * aten, { x1: 275, y1: 448, x2: 275, y2: 548, color: P.suave, grosor: 3,
-      ex: 275, ey: 556, ancho: 240, etiqueta: '$m$ · otras causas', id: 'et-m-s' }));
+      ex: 275, ey: 556, ancho: 250, etiqueta: '$m$ · mortalidad\npor otras causas', id: 'et-m-s' }));
     b.push(flujo(t, 16.85, mBaja * aten, { x1: 650, y1: 448, x2: 650, y2: 548, color: P.suave, grosor: 3,
       ex: 650, ey: 556, ancho: 60, etiqueta: '$m$', id: 'et-m-c' }));
 
-    // Ecuaciones: el sistema (22.5 a 35.9 s), con m tachada desde 31.4 s; después, dp/da.
-    var oSis = M.visible(t, 22.5, 35.9);
-    var tachada = t >= 31.4;
-    var sis = sistema(tachada);
-    b.push(D.formula(sis[0], 150, 668, { tam: 38, o: oSis, id: tachada ? 'sis-1b' : 'sis-1', palabras: 6, estilos: SUBRAYADO }));
-    b.push(D.formula(sis[1], 150, 746, { tam: 38, o: Math.min(oSis, M.visible(t, 23.2, 35.9)), id: tachada ? 'sis-2b' : 'sis-2', palabras: 6, estilos: SUBRAYADO }));
-    b.push(D.formula('p = \\frac{C}{S + C}', 150, 836, { tam: 38, o: M.visible(t, 26.3, 35.9), id: 'p-def', palabras: 4 }));
-    if (oSis > 0) c.dato('m_tachada', tachada);
+    // El sistema (23.5 a 36.9 s), intacto. Debajo, p = C/(S+C) (27.3 s) y, en su lugar desde 31.5 s, la derivada del
+    // cociente, con los dos términos con m tachados en verde azulado (el movimiento principal, de 33.4 a 33.9 s).
+    var oSis = M.visible(t, 23.5, 36.9);
+    b.push(D.formula(SISTEMA[0], 150, 668, { tam: 38, o: oSis, id: 'sis-1', palabras: 6, estilos: SUBRAYADO }));
+    b.push(D.formula(SISTEMA[1], 150, 746, { tam: 38, o: Math.min(oSis, M.visible(t, 24.2, 36.9)), id: 'sis-2', palabras: 6, estilos: SUBRAYADO }));
+    b.push(D.formula(P_DEF, 150, 836, { tam: 38, o: M.visible(t, 27.3, 31.2), id: 'p-def', palabras: 4 }));
+    var uTacha = M.entra(t, 33.4, 0.5, E.mover);
+    var estDer = Object.assign({}, SUBRAYADO, {
+      'tm line': 'stroke:' + P.marca + ';stroke-width:0.1em;stroke-linecap:round;stroke-dasharray:60;stroke-dashoffset:' + (60 * (1 - uTacha)).toFixed(2) + ';',
+    });
+    b.push(D.formula(DERIVADA, 150, 836, { tam: 38, o: M.visible(t, 31.5, 36.9), id: 'derivada', palabras: 10, estilos: estDer }));
+    if (oSis > 0) {
+      c.dato('m_en_sistema', SISTEMA.every(function (x) { return x.indexOf('cancel') < 0 && x.indexOf('{m}') >= 0; }));
+      c.dato('m_tachada_en_derivada', t >= 31.5 && DERIVADA.split('\\cancel{m}').length === 3 ? uTacha : 0);
+    }
 
-    var oEc = M.visible(t, 36.1, Infinity);
-    b.push(D.rect(132, 636, 760, 120, { borde: P.marca, grosor: 3, radio: 12, o: oEc }));
+    var oEc = M.visible(t, 37.1, Infinity) * aten;
+    b.push(D.rect(132, 636, 630, 120, { borde: P.marca, grosor: 3, radio: 12, o: oEc }));
     b.push(D.formula(EC_P, 156, 696, { tam: 42, o: oEc, id: 'ec-p', palabras: 8, estilos: SUBRAYADO }));
-    b.push(D.parrafo(150, 790, 760, 'con $p(a_0) = 0$ en $a_0$ = edad_inicio (30 años)', { tam: 28, color: P.suave, o: M.visible(t, 40.2, Infinity), id: 'cond-inicial' }));
-    c.svg(D.grupo(b, { tx: dx }));
+    b.push(D.parrafo(150, 790, 760, 'con $p(a_0) = 0$ en $a_0$ = edad_inicio (30 años)', { tam: 28, color: P.suave, o: M.visible(t, 42.1, Infinity) * aten, id: 'cond-inicial' }));
+    c.svg(D.grupo(b, { tx: dx, ty: 110 * acto1, escala: 1 + 0.4 * acto1, origen: [512, 429] }));
 
     // Gráfico de p.
-    var oEjes = M.entra(t, 39.9, 0.4, E.entrarSuave);
-    c.svg(G.svg({ o: oEjes }));
-    if (t >= 40.0) {
-      var oP0 = M.visible(t, 40.0, Infinity);
-      c.svg(D.circulo(G.x(30), G.y(0), 8, { relleno: P.p, borde: P.superficie, grosor: 3, o: oP0 }));
-      c.svg(D.formula('p(a_0) = 0', G.x(30) + 18, G.y(0) - 62, { tam: 28, o: M.visible(t, 40.2, 44.4), id: 'p0' }));
+    c.svg(G.svg({ o: M.entra(t, 41.2, 0.4, E.entrarSuave) }));
+    if (t >= 41.7) {
+      c.svg(D.circulo(G.x(30), G.y(0), 8, { relleno: P.p, borde: P.superficie, grosor: 3, o: M.visible(t, 41.7, Infinity) }));
       c.dato('p_inicio', datos.p[0]);
     }
-    if (t >= 40.6) {
-      var u = M.tramo(t, 40.6, 44.0);   // lineal: la edad avanza a ritmo constante
+    if (t >= 42.4) {
+      var u = M.tramo(t, 42.4, 45.8);   // lineal: la edad avanza a ritmo constante
       var cu = curvaHasta(30 + u * (99 - 30));
       c.svg(G.curva(cu.xs, cu.ys, { color: P.p, grosor: 4 }));
       if (u < 1) c.svg(D.circulo(G.x(cu.xs[cu.xs.length - 1]), G.y(cu.ys[cu.ys.length - 1]), 7, { relleno: P.p }));
-      c.dato('puntos', cu.xs.length);
-      c.dato('p_final', cu.ys[cu.ys.length - 1]);
+      c.dato('curva_x', cu.xs);
+      c.dato('curva_p', cu.ys);
+      c.dato('curva_px', G.puntos(cu.xs, cu.ys));
     }
 
-    // La pendiente en 60: guía, punto y tangente.
-    var p60 = datos.p[k60], i60 = datos.i[k60], f60 = datos.f[k60], r = datos.remision;
-    var entra = i60 * (1 - p60), sale = f60 * p60 * (1 - p60);
-    var pend = entra - r * p60 - sale;
-    if (t >= 44.7) {
-      var oG = M.entra(t, 44.7, 0.4, E.entrarSuave);
+    // La pendiente en 60: guía, punto y tangente de 60 - HOR a 60 + HOR.
+    if (t >= 46.5) {
+      var oG = M.entra(t, 46.5, 0.4, E.entrarSuave) * aten;
       var x60 = G.x(60), y60 = G.y(p60);
       c.svg(D.linea(x60, G.abajo, x60, y60, { color: P.guia, grosor: 2, guiones: '6 6', o: oG }));
-      var uT = M.entra(t, 45.1, 0.6, E.mover);
-      c.svg(D.trazo([[G.x(60 - 7 * uT), G.y(p60 - 7 * uT * pend)], [G.x(60 + 7 * uT), G.y(p60 + 7 * uT * pend)]], { color: P.marca, grosor: 3 }));
-      c.svg(D.texto(G.x(67) + 12, G.y(p60 + 7 * pend) + 8, 'pendiente', { tam: 24, color: P.suave, o: M.visible(t, 45.6, 49.4), id: 'et-pend' }));
-      c.svg(D.circulo(x60, y60, 9, { relleno: P.p, borde: P.superficie, grosor: 3, o: oG }));
-      c.dato('pendiente', pend);
-      c.dato('dif_central', (datos.p[k60 + 1] - datos.p[k60 - 1]) / 2);
+      var uT = M.entra(t, 46.9, 0.6, E.mover);
+      var tan = [[G.x(60 - HOR * uT), G.y(p60 - HOR * uT * PEND)], [G.x(60 + HOR * uT), G.y(p60 + HOR * uT * PEND)]];
+      c.svg(D.trazo(tan, { color: P.marca, grosor: 4, o: aten }));
+      c.svg(D.texto(G.x(60 + HOR) + 14, G.y(p60 + HOR * PEND) + 38, 'pendiente', { tam: 26, color: P.suave, o: M.visible(t, 47.5, Infinity) * aten, id: 'et-pend' }));
+      c.svg(D.circulo(x60, y60, 9, { relleno: P.p, borde: P.superficie, grosor: 3 }));
+      if (uT >= 1) c.dato('tangente_px', tan);
     }
-    // Lo que entra y lo que sale en 60 (por 1000 personas-año).
-    if (t >= 49.7) {
-      var uE = M.entra(t, 49.9, 0.6, E.mover), uS = M.entra(t, 50.6, 0.6, E.mover);
-      var x0 = G.x(60), y0 = G.y(p60);
-      c.svg(D.flecha(x0 - 16, y0 - 12, x0 - 16, y0 - 12 - 1000 * entra * POR_MIL, { color: P.i, grosor: 4, progreso: uE }));
-      c.svg(D.parrafo(x0 - 32, y0 - 12 - 1000 * entra * POR_MIL - 14, 260, 'entra $i(1-p)$\n' + D.num(1000 * entra, 2) + ' por 1000',
-        { tam: 26, ancla: 'end', o: M.visible(t, 50.4, Infinity), id: 'entra', alto: 90 }));
-      c.svg(D.flecha(x0 + 16, y0 + 12, x0 + 16, y0 + 12 + 1000 * sale * POR_MIL, { color: P.f, grosor: 4, progreso: uS, cabeza: 12 }));
-      c.svg(D.parrafo(x0 + 34, y0 + 12 + 1000 * sale * POR_MIL - 22, 380, 'sale $f\\,p\\,(1-p)$ = ' + D.num(1000 * sale, 2) + ' por 1000',
-        { tam: 26, o: M.visible(t, 51.1, Infinity), id: 'sale', alto: 60 }));
-      c.dato('entra', entra);
-      c.dato('sale', sale);
+
+    // La cascada de lo que entra y lo que resta.
+    var cas = cascada(t, aten);
+    c.svg(cas.svg);
+    if (t >= 54.5) {
+      c.dato('cas_entra', ENTRA);
+      c.dato('cas_resta', RESTA);
+      c.dato('cas_px', [CASCADA.base - cas.yE, cas.yN - cas.yE, CASCADA.base - cas.yN]);
     }
 
     c.svg(D.rotulo(t, NARRACION));
@@ -196,28 +230,64 @@
   DL.escena({
     id: '01-enfermedad-muerte',
     titulo: 'El modelo enfermedad-muerte',
-    duracion: 60, fps: 30,
+    duracion: 63, fps: 30,
     marcas: {
-      compartimentos: 2.0, flecha_i: 6.5, flecha_r: 10.5, flecha_f: 14.5, flechas_m: 19.5, sistema: 25.0,
-      p_def: 28.0, cancela: 33.0, ecuacion: 38.0, p0: 40.5, curva: 44.2, pendiente: 47.5, flujos: 52.5, final: 58.0,
+      compartimentos: 2.0, flecha_i: 6.5, flecha_r: 10.5, flecha_f: 14.5, flechas_m: 20.0, sistema: 26.0,
+      p_def: 29.5, cancela: 34.5, ecuacion: 39.0, p0: 42.0, curva: 46.0, pendiente: 49.0, cascada: 55.0, final: 60.0,
     },
-    camaras: [[39.4, 40.2]],
+    camaras: [CAM1, CAM2],
     dibujar: dibujar,
     auditoria: function (A) {
+      // Las comprobaciones miden lo dibujado contra algo independiente de cómo se dibujó: la propia ecuación (la
+      // pendiente de la curva, por diferencia central) y la posición en el eje.
+      // El residuo se mide contra la escala de la pendiente (su máximo), no contra la pendiente de cada edad: cerca del
+      // pico de p la pendiente pasa por 0 y un cociente edad por edad no dice nada.
+      function residuoEdo(e) {
+        var peor = 0, escala = 0;
+        for (var k = 1; k < n - 1; k++) {
+          // En un nudo las tasas cambian de pendiente y p'' salta: ahí la diferencia central no aproxima dp/da.
+          if (datos.nudos.indexOf(datos.edades[k]) >= 0) continue;
+          var dif = (e.curva_p[k + 1] - e.curva_p[k - 1]) / 2;
+          var edo = datos.i[k] * (1 - e.curva_p[k]) - r * e.curva_p[k] - datos.f[k] * e.curva_p[k] * (1 - e.curva_p[k]);
+          peor = Math.max(peor, Math.abs(dif - edo));
+          escala = Math.max(escala, Math.abs(edo));
+        }
+        return peor / escala;
+      }
       return [
         A.en('p0', 'p(a0) = 0 en la edad de inicio', function (e) { return e.p_inicio === 0 || 'p(30) = ' + e.p_inicio; }),
-        A.en('curva', 'la curva dibujada es la de dl_edo(), edad por edad hasta 99', function (e) {
-          if (e.puntos !== n) return 'dibuja ' + e.puntos + ' puntos de ' + n;
-          return A.cerca(e.p_final, datos.p[n - 1], 1e-15) || 'p(99) dibujada ' + e.p_final + ' frente a ' + datos.p[n - 1];
+        A.en('curva', 'la curva dibujada cumple dp/da = i(1-p) - r p - f p (1-p) en cada edad (diferencia central fuera de los nudos, residuo < 1 % de la pendiente máxima)', function (e) {
+          if (e.curva_x.length !== n) return 'dibuja ' + e.curva_x.length + ' edades de ' + n;
+          var rel = residuoEdo(e);
+          return rel < 0.01 || 'residuo relativo máximo ' + rel.toFixed(4);
         }),
-        A.en('pendiente', 'la pendiente en 60 es dp/da y coincide con la diferencia central de p', function (e) {
-          var rel = Math.abs(e.pendiente - e.dif_central) / e.dif_central;
+        A.en('curva', 'cada punto dibujado está en la posición del eje que le toca', function (e) {
+          for (var k = 0; k < n; k++) {
+            var px = 1110 + (e.curva_x[k] - 30) / 69 * 690, py = 300 + 500 - e.curva_p[k] / 0.10 * 500;
+            if (Math.abs(e.curva_px[k][0] - px) > 0.01 || Math.abs(e.curva_px[k][1] - py) > 0.01) return 'edad ' + e.curva_x[k] + ' fuera de lugar';
+          }
+          return true;
+        }),
+        A.en('pendiente', 'la tangente dibujada en 60 tiene la pendiente de la curva (diferencia central, < 1 %)', function (e) {
+          var tg = e.tangente_px;
+          var pendPx = (tg[0][1] - tg[1][1]) / (tg[1][0] - tg[0][0]);
+          var dif = (datos.p[k60 + 1] - datos.p[k60 - 1]) / 2;
+          var difPx = dif * (500 / 0.10) / (690 / 69);
+          var rel = Math.abs(pendPx - difPx) / difPx;
           return rel < 0.01 || 'diferencia relativa ' + rel.toFixed(4);
         }),
-        A.en('flujos', 'entra - sale = pendiente (r = 0)', function (e) {
-          return A.cerca(e.entra - e.sale, e.pendiente, 1e-12) || 'entra - sale = ' + (e.entra - e.sale) + ', pendiente ' + e.pendiente;
+        A.en('cascada', 'en la cascada, entra - resta = la pendiente de la curva (diferencia central, < 1 %), y las flechas cierran', function (e) {
+          var dif = (datos.p[k60 + 1] - datos.p[k60 - 1]) / 2;
+          var rel = Math.abs((e.cas_entra - e.cas_resta) - dif) / dif;
+          if (rel >= 0.01) return 'diferencia relativa ' + rel.toFixed(4);
+          return A.cerca(e.cas_px[0] - e.cas_px[1], e.cas_px[2], 1e-9) || 'las flechas no cierran: ' + e.cas_px.join(', ');
         }),
-        A.en('cancela', 'm está tachada en el sistema', function (e) { return e.m_tachada === true || 'm sin tachar'; }),
+        A.en('cascada', 'lo que resta es f p (1 - p), el efecto neto de las muertes en exceso sobre la proporción', function (e) {
+          return A.cerca(e.cas_resta, f60 * p60 * (1 - p60), 1e-15) || 'resta = ' + e.cas_resta;
+        }),
+        A.en('cancela', 'm sigue en dS/da y dC/da y se anula solo en la derivada del cociente', function (e) {
+          return (e.m_en_sistema === true && e.m_tachada_en_derivada >= 1) || 'm mal tachada (sistema ' + e.m_en_sistema + ', derivada ' + e.m_tachada_en_derivada + ')';
+        }),
       ];
     },
   });
