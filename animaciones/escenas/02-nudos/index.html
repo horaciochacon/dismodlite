@@ -30,20 +30,20 @@
 
   // ---- Narración: una línea por vez; cada una dura al menos 0,3 s por palabra + 0,5 s ----
   var NARRACION = [
-    [0.4, 5.2, 'La incidencia y la mortalidad en exceso se fijan en unos pocos nudos.'],
+    [0.4, 5.2, 'La incidencia y la mortalidad en exceso se describen en unos pocos nudos.'],
     [5.5, 9.8, 'En cada nudo hay un valor de $i$ y uno de $f$.'],
-    [10.1, 14.4, 'Los parámetros son sus logaritmos: $\\theta$ reúne $2K = 14$ números.'],
+    [10.1, 14.4, 'Los parámetros son sus logaritmos: con $K = 7$ nudos, $\\theta$ reúne 14 números.'],
     [14.7, 19.0, 'Entre nudos, $\\log i$ y $\\log f$ son lineales en la edad.'],
-    [19.3, 24.2, 'Fuera de los nudos, constantes: de 95 a 99 valen lo del nudo 95.'],
+    [19.3, 24.2, 'Fuera del rango de los nudos, constantes: de 95 a 99, lo del 95.'],
     [24.5, 29.2, 'En una malla de edades, eso es multiplicar por una matriz $W$.'],
     [29.5, 35.4, 'En la edad 63, $w = 0.3$: la fila pesa 0.7 al nudo 60 y 0.3 al 70.'],
     [35.7, 41.6, 'Cada fila suma 1; en un nudo devuelve su valor y desde 95, el del 95.'],
-    [42.0, 46.4, 'Como $\\log i$ es lineal, $i$ crece exponencialmente entre nudos.'],
+    [42.0, 46.4, 'Como $\\log i$ es lineal por tramos, $i$ crece o decrece exponencialmente.'],
     [46.7, 50.6, 'En escala logarítmica, las mismas tasas vuelven a ser rectas.'],
     [51.0, 56.6, 'dl_edo() interpola, resuelve la ecuación y devuelve $p$, $i$ y $f$ por edad.'],
     [57.0, 62.8, 'Si el nudo de $i$ en 60 sube al triple, $i$ cambia solo entre 50 y 70…'],
-    [63.1, 68.6, '…pero $p$ cambia desde 50 en adelante: acumula lo que entró antes.'],
-    [69.0, 78.0, 'Al bajar el nudo, todo vuelve: $\\theta$ fija $i$ y $f$ en cada edad, y con ellas $p$.'],
+    [63.1, 68.6, '…pero $p$ cambia desde 50: guarda los casos nuevos, que $f$ va quitando.'],
+    [69.0, 78.0, 'Todo vuelve: $\\theta$ fija $i$ y $f$; con $r = 0$ y $p(30) = 0$, también $p$.'],
   ];
 
   // ---- Tiempos de las tomas (guion.md) ----
@@ -70,10 +70,11 @@
   // u = 0, escala log; u = 1, escala lineal. Cada punto va de su altura en una a su altura en la otra.
   function yTasa(v, u) { return u <= 0 ? yLog(v) : (u >= 1 ? yLin(v) : (1 - u) * yLog(v) + u * yLin(v)); }
 
-  // Ejes de las tasas: el eje x de G y las marcas de y de las dos escalas, cruzadas en opacidad.
+  // Ejes de las tasas: el eje x de G y las marcas de y de las dos escalas, que se relevan (una sale en la primera
+  // mitad del cambio y la otra entra en la segunda).
   function ejesTasas(u, o) {
     var s = [G.svg({ o: o })];
-    [[LOG_TICKS, 1 - u, yLog], [LIN_TICKS, u, yLin]].forEach(function (e) {
+    [[LOG_TICKS, Math.max(0, 1 - 2 * u), yLog], [LIN_TICKS, Math.max(0, 2 * u - 1), yLin]].forEach(function (e) {
       if (e[1] <= 0.001) return;
       e[0].forEach(function (v) {
         var yy = e[2](v);
@@ -125,41 +126,45 @@
   var W1 = '\\log \\htmlClass{ti}{i}(a_j) = \\sum_k W_{jk} \\log \\htmlClass{ti}{i}_k';
   var W2 = 'W_{jk} = 1 - w,\\quad W_{j,k+1} = w';
   var W3 = 'w = \\dfrac{a_j - \\text{nudo}_k}{\\text{nudo}_{k+1} - \\text{nudo}_k}';
-  var CADENA = '\\theta \\;\\xrightarrow{\\;W\\;}\\; \\htmlClass{ti}{i}(a),\\ \\htmlClass{tf}{f}(a) \\;\\xrightarrow{\\;\\text{RK4}\\;}\\; \\htmlClass{tp}{p}(a)';
+  var CADENA = '\\theta \\;\\xrightarrow{\\;W,\\ \\exp\\;}\\; \\htmlClass{ti}{i}(a),\\ \\htmlClass{tf}{f}(a) \\;\\xrightarrow{\\;\\text{RK4}\\;}\\; \\htmlClass{tp}{p}(a)';
 
   // ---- La fila de W ----
-  var COL = { x: 1110, w: 76, gap: 8, y: 756, h: 52 };
+  var COL = { x: 1110, w: 74, gap: 6, y: 768, h: 56 };
   function filaW(a, o, oNum) {
     var fila = MOD.matrizW(NUDOS, [a])[0];
-    var s = [], suma = 0;
+    var s = [], suma = 0, textos = [];
     for (var k = 0; k < K; k++) {
       var x = COL.x + k * (COL.w + COL.gap), wk = fila[k];
       suma += wk;
       s.push(D.rect(x, COL.y, COL.w, COL.h, { relleno: P.superficie, borde: P.rejilla, grosor: 2, radio: 6, o: o }));
       if (wk > 0) s.push(D.rect(x, COL.y, COL.w, COL.h, { relleno: P.marca, radio: 6, o: o * (0.15 + 0.85 * wk) }));
       var txt = wk === 0 ? '0' : (wk === 1 ? '1' : D.num(wk, 2));
-      s.push(D.texto(x + COL.w / 2, COL.y + COL.h / 2 + 1, txt, { fuente: 'mono', tam: 24, ancla: 'middle', base: 'middle',
+      textos.push(txt);
+      s.push(D.texto(x + COL.w / 2, COL.y + COL.h / 2 + 1, txt, { fuente: 'mono', tam: 26, ancla: 'middle', base: 'middle',
         color: wk > 0.55 ? P.superficie : P.tinta, o: o * oNum }));
       s.push(D.texto(x + COL.w / 2, COL.y + COL.h + 30, String(NUDOS[k]), { tam: D.tam.eje, color: P.suave, ancla: 'middle', o: o }));
     }
-    return { svg: s.join(''), fila: fila, suma: suma };
+    return { svg: s.join(''), fila: fila, suma: suma, textos: textos };
   }
 
-  // Edad del cursor: quieta en 63, vuelve a 30 y recorre la malla h/2 hasta 99, siempre sobre un punto a_j de la malla
-  // (pasos de 0.1 años = 1/(2 nsub)).
+  // Edad del cursor: quieta en 63, vuelve a 30 y va de nudo en nudo hasta 99, siempre sobre un punto a_j de la malla h/2
+  // (se redondea a pasos de 0.1 años = 1/(2 nsub)).
   function edadCursor(t) {
     var a;
     if (t < T.vuelve[0]) a = 63;
     else if (t < T.barre[0]) a = 63 + (30 - 63) * E.mover(M.tramo(t, T.vuelve[0], T.vuelve[1]));
-    else a = 30 + 69 * M.tramo(t, T.barre[0], T.barre[1]);   // lineal: la edad avanza a ritmo constante
+    else {   // de nudo en nudo: la mitad de cada tramo se mueve (EASE.mover) y la otra mitad se queda en el nudo
+      var PAR = NUDOS.concat([99]), dT = (T.barre[1] - T.barre[0]) / (PAR.length - 1);
+      var s = Math.min(PAR.length - 2, Math.floor((t - T.barre[0]) / dT));
+      a = PAR[s] + (PAR[s + 1] - PAR[s]) * E.mover(M.tramo(t - T.barre[0] - s * dT, 0, 0.5 * dT));
+    }
     return datos.edad_inicio + Math.round((a - datos.edad_inicio) * 10) / 10;
   }
 
   function dibujar(t, c) {
     var aten = 1 - 0.6 * M.entra(t, T.final, 0.4, E.entrarSuave);   // el final: lo que no es θ ni las curvas, al 40 %
-    var acento = E.pop(M.tramo(t, T.final, T.final + 0.4));
     var u = E.camara(M.tramo(t, T.lineal[0], T.lineal[1])) - E.camara(M.tramo(t, T.log[0], T.log[1]));
-    var oF = 1 - u;   // f no cabe en la escala lineal de i: se apaga mientras dura
+    var oF = 1 - M.tramo(u, 0, 0.15);   // f no cabe en la escala lineal de i: se apaga al empezar el cambio
 
     // El nudo que se mueve: log i en 60 + delta, de 0 a delta y de vuelta. Con el nudo quieto, la solución de base.
     var mov = E.mover(M.tramo(t, T.sube[0], T.sube[1])) - E.mover(M.tramo(t, T.baja[0], T.baja[1]));
@@ -179,26 +184,13 @@
       c.svg(D.linea(G.x(a), Y0 + ALTO, G.x(a), Y0 + ALTO - g * ALTO, { color: P.guia, grosor: 2, guiones: '4 7', o: aten }));
     });
 
-    // Leyenda, fija abajo a la derecha del gráfico, donde no pasan las curvas (no se pega a ellas, que se mueven con
-    // la escala); su fondo tapa las guías de los nudos.
-    var oLi = M.visible(t, T.puntosI + 0.3, Infinity) * aten, oLf = M.visible(t, T.puntosF + 0.3, Infinity) * aten * oF;
-    var LEY = { x: 694, y: 690 };
-    if (oLi > 0) {
-      c.svg(D.rect(LEY.x, LEY.y, 300, 92, { relleno: P.fondo, o: M.visible(t, T.puntosI + 0.3, Infinity) }));
-      c.svg(D.linea(LEY.x + 14, LEY.y + 24, LEY.x + 50, LEY.y + 24, { color: P.i, grosor: 4, o: oLi }));
-      c.svg(D.parrafo(LEY.x + 62, LEY.y + 8, 236, 'incidencia $i$', { tam: 24, o: oLi, id: 'ley-i', alto: 34 }));
-    }
-    if (oLf > 0) {
-      c.svg(D.linea(LEY.x + 14, LEY.y + 64, LEY.x + 50, LEY.y + 64, { color: P.f, grosor: 4, o: oLf }));
-      c.svg(D.parrafo(LEY.x + 62, LEY.y + 48, 236, 'mortalidad en exceso $f$', { tam: 24, o: oLf, id: 'ley-f', alto: 34 }));
-    }
-
     // Banda de 50 a 70 en las tasas: lo que cambia con el nudo de 60.
     var oBi = Math.min(M.visible(t, T.bandaI, T.baja[0]), aten);
     if (oBi > 0) {
       c.svg(D.rect(G.x(50), Y0, G.x(70) - G.x(50), ALTO, { relleno: P.marca, o: 0.09 * oBi }));
-      c.svg(D.rect(G.x(60) - 104, Y0 + 8, 208, 32, { relleno: FONDO_BANDA, o: oBi }));
-      c.svg(D.texto(G.x(60), Y0 + 30, 'solo entre 50 y 70', { tam: 24, ancla: 'middle', o: oBi, id: 'banda-i' }));
+      c.dato('banda_i_px', [G.x(50), G.x(70)]);
+      c.svg(D.rect(G.x(60) - 120, Y0 + 6, 240, 38, { relleno: FONDO_BANDA, o: oBi }));
+      c.svg(D.texto(G.x(60), Y0 + 33, 'solo entre 50 y 70', { tam: D.tam.etiqueta, ancla: 'middle', o: oBi, id: 'banda-i' }));
     }
 
     // Los tramos: de 30 a 95 (lineales en escala log) y de 95 a 99 (constantes).
@@ -218,9 +210,11 @@
     // El corchete de lo constante, de 95 a 99.
     var oCo = Math.min(M.visible(t, T.corchete, 24.2), aten);
     if (oCo > 0) {
-      var xa = G.x(95), xb = G.x(99), yc = yLog(7) + 34;
+      var xa = G.x(95), xb = G.x(99), yc = yLog(7) + 34, ycf = yLog(90) + 34;
+      c.svg(D.trazo([[xa, ycf - 10], [xa, ycf], [xb, ycf], [xb, ycf - 10]], { color: P.marca, grosor: 3, o: oCo }));
       c.svg(D.trazo([[xa, yc - 10], [xa, yc], [xb, yc], [xb, yc - 10]], { color: P.marca, grosor: 3, o: oCo }));
-      c.svg(D.texto((xa + xb) / 2, yc + 34, 'constante', { tam: 24, ancla: 'middle', o: oCo, id: 'constante' }));
+      c.svg(D.rect(xb - 116, yc + 12, 118, 32, { relleno: P.fondo, o: oCo }));
+      c.svg(D.texto(xb, yc + 34, 'constante', { tam: 24, ancla: 'end', o: oCo, id: 'constante' }));
     }
 
     // El cursor de la edad a_j y sus puntos en i y f.
@@ -235,31 +229,63 @@
       c.svg(D.circulo(xc, yLog(1000 * iCur), 8, { relleno: P.i, borde: P.superficie, grosor: 3, o: oPc }));
       var oI63 = M.visible(t, T.i63, T.vuelve[0] - 0.3);
       if (oI63 > 0) {
+        c.svg(D.rect(xc + 10, yLog(1000 * iCur) + 20, 212, 36, { relleno: P.fondo, o: oI63 }));
         c.svg(D.parrafo(xc + 14, yLog(1000 * iCur) + 22, 300, '$i(63)$ = ' + D.num(1000 * iCur, 2) + ' por 1000', { tam: 24, o: oI63, id: 'i63', alto: 36 }));
         c.dato('i63', iCur);
+        c.dato('i63_texto', D.num(1000 * iCur, 2));
       }
       c.dato('cursor_edad', aCur);
       c.dato('cursor_px', [xc, yLog(1000 * iCur), yLog(1000 * fCur)]);
     }
 
+    // Leyenda, fija abajo a la derecha del gráfico, donde no pasan las curvas (no se pega a ellas, que se mueven con
+    // la escala); su fondo tapa las guías de los nudos y el cursor.
+    var oLi = M.visible(t, T.puntosI + 0.3, Infinity) * aten, oLf = M.visible(t, T.puntosF + 0.3, Infinity) * aten * oF;
+    var LEY = { x: 694, y: 690 };
+    if (oLi > 0) {
+      c.svg(D.rect(LEY.x, LEY.y, 300, 92, { relleno: P.fondo, o: M.visible(t, T.puntosI + 0.3, Infinity) }));
+      c.svg(D.linea(LEY.x + 14, LEY.y + 24, LEY.x + 50, LEY.y + 24, { color: P.i, grosor: 4, o: oLi }));
+      c.svg(D.parrafo(LEY.x + 62, LEY.y + 8, 236, 'incidencia $i$', { tam: 24, o: oLi, id: 'ley-i', alto: 34 }));
+    }
+    if (oLf > 0) {
+      c.svg(D.linea(LEY.x + 14, LEY.y + 64, LEY.x + 50, LEY.y + 64, { color: P.f, grosor: 4, o: oLf }));
+      c.svg(D.parrafo(LEY.x + 62, LEY.y + 48, 236, 'mortalidad en exceso $f$', { tam: 24, o: oLf, id: 'ley-f', alto: 34 }));
+    }
+    // f, apagada en la escala lineal: se dice por qué.
+    var oNf = M.tramo(u, 0.3, 0.6) * aten;
+    if (oNf > 0) {
+      c.svg(D.rect(LEY.x - 200, LEY.y + 44, 500, 44, { relleno: P.fondo, o: oNf }));
+      c.svg(D.parrafo(LEY.x + 290, LEY.y + 48, 490, '$f$ (10 a 90 por 1000) no cabe en esta escala', { tam: 24, color: P.suave, ancla: 'end', o: oNf, id: 'nota-f', alto: 34 }));
+    }
+
     // Los puntos de los nudos: i y f (pop sobre el radio, escalonados 90 ms). El de i en 60 es el que se mueve.
     NUDOS.forEach(function (a, k) {
-      var rf = 7 * E.pop(M.tramo(t, T.puntosF + k * 0.09, T.puntosF + k * 0.09 + 0.4)) + 3 * acento;
-      var ri = 7 * E.pop(M.tramo(t, T.puntosI + k * 0.09, T.puntosI + k * 0.09 + 0.4)) + 3 * acento;
+      var acento = 5 * E.pop(M.tramo(t, T.final + k * 0.06, T.final + k * 0.06 + 0.4));   // el final, de izquierda a derecha
+      var rf = 7 * E.pop(M.tramo(t, T.puntosF + k * 0.09, T.puntosF + k * 0.09 + 0.4)) + acento;
+      var ri = 7 * E.pop(M.tramo(t, T.puntosI + k * 0.09, T.puntosI + k * 0.09 + 0.4)) + acento;
       var vf = 1000 * Math.exp(datos.log_f[k]), vi = 1000 * Math.exp(logI[k]);
-      c.svg(D.circulo(G.x(a), yTasa(vf, u), rf, { relleno: P.f, borde: P.superficie, grosor: 3, o: oF }));
-      if (k === K60 && mov > 0) {
-        c.svg(D.circulo(G.x(a), yTasa(vi, u), ri + 6, { borde: P.marca, grosor: 3 }));
-      }
-      c.svg(D.circulo(G.x(a), yTasa(vi, u), ri, { relleno: P.i, borde: P.superficie, grosor: 3 }));
+      // Recortados al gráfico: en la escala lineal, f queda miles de píxeles por encima.
+      c.svg(recortado(D.circulo(G.x(a), yTasa(vf, u), rf, { relleno: P.f, borde: P.superficie, grosor: 3, o: oF })));
+      var oAn = M.visible(t, T.sube[0] - 0.2, T.baja[1] - 0.24);
+      if (k === K60 && oAn > 0) c.svg(recortado(D.circulo(G.x(a), yTasa(vi, u), ri + 6, { borde: P.marca, grosor: 3, o: oAn })));
+      c.svg(recortado(D.circulo(G.x(a), yTasa(vi, u), ri, { relleno: P.i, borde: P.superficie, grosor: 3 })));
     });
     c.dato('nudos_px', NUDOS.map(function (a, k) {
       return [G.x(a), yTasa(1000 * Math.exp(logI[k]), u), yTasa(1000 * Math.exp(datos.log_f[k]), u)];
     }));
     c.dato('u', u);
-    if (mov > 0.02) {
+    c.dato('oF', oF);
+    var oV = M.visible(t, T.sube[0], T.baja[0]);
+    if (oV > 0) {
       var v60 = 1000 * Math.exp(logI[K60]);
-      c.svg(D.texto(G.x(60) - 22, yLog(v60) - 20, D.num(v60, 1) + ' por 1000', { tam: 24, ancla: 'end', id: 'nudo-valor', seguir: true }));
+      c.svg(D.texto(G.x(60) - 22, yLog(v60) - 20, D.num(v60, 1) + ' por 1000', { tam: 24, ancla: 'end', id: 'nudo-valor', seguir: true, o: oV }));
+      c.dato('nudo_texto', D.num(v60, 1));
+    }
+    // El final: lo que queda es θ.
+    var oTf = M.visible(t, T.final + 0.5, Infinity);
+    if (oTf > 0) {
+      c.svg(D.rect(214, 304, 420, 46, { relleno: P.fondo, o: oTf }));
+      c.svg(D.parrafo(222, 308, 420, '$\\theta$: estos 14 puntos, en escala log', { tam: D.tam.etiqueta, o: oTf, id: 'theta-final', alto: 40 }));
     }
     if (ci) {
       c.dato('curva_i', { xs: ci.xs, vs: ci.vs, pts: ci.pts });
@@ -267,30 +293,33 @@
     }
 
     // ---- Columna derecha, primer acto: configuración, θ y W ----
-    var oCfg = M.visible(t, T.config, T.salTheta);
+    var bajaCfg = 1 - 0.6 * M.entra(t, T.W[0], 0.4, E.entrarSuave);   // config y θ ceden el paso a W y al cambio de escala
+    var oCfg = M.visible(t, T.config, T.salTheta) * bajaCfg;
     c.svg(D.texto(1110, 286, 'nudos: [30, 40, 50, 60, 70, 80, 95]', { fuente: 'mono', tam: 26, o: oCfg, id: 'config', palabras: 8 }));
-    c.svg(D.parrafo(1110, 302, 714, 'por defecto, cada 10 años desde edad_inicio hasta 80, y 95', { tam: 24, color: P.suave, o: M.visible(t, T.config + 0.5, T.salTheta), id: 'config-nota', alto: 36 }));
-    c.svg(D.formula(THETA, 1110, 400, { tam: 38, o: M.visible(t, T.theta, T.salTheta), id: 'theta', palabras: 6, estilos: SUBRAYADO, ancho: 714, alto: 80 }));
+    c.svg(D.parrafo(1110, 302, 714, 'por defecto, cada 10 años desde edad_inicio hasta 80, y 95', { tam: 24, color: P.suave, o: M.visible(t, T.config + 0.5, T.salTheta) * bajaCfg, id: 'config-nota', alto: 36 }));
+    c.svg(D.formula(THETA, 1110, 400, { tam: 38, o: M.visible(t, T.theta, T.salTheta) * bajaCfg, id: 'theta', palabras: 6, estilos: SUBRAYADO, ancho: 714, alto: 80 }));
     c.svg(D.formula(W1, 1110, 474, { tam: 36, o: M.visible(t, T.W[0], T.salW), id: 'w1', palabras: 5, estilos: SUBRAYADO, ancho: 714, alto: 80 }));
     c.svg(D.formula(W2, 1110, 538, { tam: 34, o: M.visible(t, T.W[1], T.salW), id: 'w2', palabras: 4, ancho: 714, alto: 60 }));
     c.svg(D.formula(W3, 1110, 612, { tam: 32, o: M.visible(t, T.W[2], T.salW), id: 'w3', palabras: 3, ancho: 714, alto: 90 }));
-    c.svg(D.parrafo(1110, 660, 714, 'con $a_j$ llevada primero al rango de los nudos', { tam: 24, color: P.suave, o: M.visible(t, T.W[3], T.salW), id: 'w-rango', alto: 36 }));
+    c.svg(D.parrafo(1110, 662, 714, 'para $a_j$ entre $\\text{nudo}_k$ y $\\text{nudo}_{k+1}$, con $a_j$ llevada primero al rango de los nudos', { tam: 22, color: P.suave, o: M.visible(t, T.W[3], T.salW), id: 'w-rango', alto: 36 }));
 
     var oFila = M.visible(t, T.fila, T.salW);
     if (oFila > 0) {
       var fw = filaW(aCur, oFila, 1);
-      c.svg(D.parrafo(1110, 712, 600, 'fila $j$ de $W$, con $a_j$ = ' + D.num(aCur, 1), { tam: 24, o: oFila, id: 'fila-titulo', alto: 36, palabras: 6 }));
+      c.svg(D.parrafo(1110, 726, 600, 'fila $j$ de $W$, con $a_j$ = ' + D.num(aCur, 1), { tam: 24, o: oFila, id: 'fila-titulo', alto: 36, palabras: 6 }));
       c.svg(fw.svg);
       c.svg(D.texto(COL.x + K * (COL.w + COL.gap) + 6, COL.y + COL.h / 2 + 1, 'Σ = ' + D.num(fw.suma, 2),
-        { fuente: 'mono', tam: 24, base: 'middle', o: M.visible(t, T.suma, T.salW), id: 'fila-suma', palabras: 3 }));
+        { fuente: 'mono', tam: 28, base: 'middle', o: M.visible(t, T.suma, T.salW), id: 'fila-suma', palabras: 3 }));
       c.dato('fila', fw.fila);
       c.dato('fila_edad', aCur);
       c.dato('fila_suma', fw.suma);
+      c.dato('fila_textos', fw.textos.concat(['Σ = ' + D.num(fw.suma, 2)]));
+      c.dato('cursor_i_px', yLog(1000 * Math.exp(MOD.interpolar(datos.log_i, NUDOS, [aCur])[0])));
     }
 
     // ---- Columna derecha, segundo acto: dl_edo() y la prevalencia ----
     c.svg(D.formula(CADENA, 1110, 288, { tam: 36, o: M.visible(t, T.cadena, Infinity), id: 'cadena', palabras: 6, estilos: SUBRAYADO, ancho: 714, alto: 70 }));
-    c.svg(D.parrafo(1110, 322, 714, 'RK4 en la malla h/2 (escena 03); da las edades enteras', { tam: 24, color: P.suave, o: M.visible(t, T.nota, Infinity) * aten, id: 'cadena-nota', alto: 36 }));
+    c.svg(D.parrafo(1110, 322, 714, 'dl_edo(): RK4 con paso $h = 0.2$ (escena 03), $r = 0$ y $p(30) = 0$', { tam: 24, color: P.suave, o: M.visible(t, T.nota, Infinity) * aten, id: 'cadena-nota', alto: 36 }));
     var oGP = M.entra(t, T.ejesP, 0.4, E.entrarSuave);
     if (oGP > 0) c.svg(GP.svg({ o: oGP * aten }));
     if (t >= T.curvaP[0]) {
@@ -300,13 +329,16 @@
       var oBp = Math.min(M.visible(t, T.bandaP, T.baja[0]), aten);
       if (oBp > 0) {
         c.svg(D.rect(GP.x(50), GP.arriba, GP.x(99) - GP.x(50), GP.alto, { relleno: P.marca, o: 0.09 * oBp }));
-        c.svg(D.texto(GP.x(50) + 12, GP.arriba + 30, 'desde 50 en adelante', { tam: 24, o: oBp, id: 'banda-p' }));
+        c.dato('banda_p_px', [GP.x(50), GP.x(99)]);
+        c.svg(D.texto(GP.x(50) + 12, GP.arriba + 33, 'desde 50 en adelante', { tam: D.tam.etiqueta, o: oBp, id: 'banda-p' }));
       }
+      // Mientras sube el nudo, p queda al 40 %: su momento es la frase siguiente.
+      var oPd = 1 - 0.6 * (M.entra(t, T.sube[0] - 0.4, 0.4, E.entrarSuave) - M.entra(t, T.bandaP - 0.3, 0.4, E.entrarSuave));
       if (mov > 0) {
         c.svg(GP.banda(xsP, psB, psP, { relleno: P.p, o: 0.22 * M.visible(t, T.area, T.baja[0]) }));
-        c.svg(GP.curva(xsP, psB, { color: P.p, grosor: 3, guiones: '8 8', o: 0.45 }));
+        c.svg(GP.curva(xsP, psB, { color: P.p, grosor: 3, guiones: '8 8', o: 0.45 * oPd }));
       }
-      c.svg(GP.curva(xsP, psP, { color: P.p, grosor: 4 }));
+      c.svg(GP.curva(xsP, psP, { color: P.p, grosor: 4, o: oPd }));
       c.dato('curva_p', { xs: xsP, ps: psP, pts: GP.puntos(xsP, psP) });
       c.dato('sol_i', SOL.i);
     }
@@ -322,7 +354,7 @@
     duracion: 78, fps: 30,
     marcas: {
       nudos: 3.5, puntos: 9.0, theta: 13.5, tramos: 18.2, constante: 23.0, matriz: 28.5, fila63: 34.0,
-      barrido: 39.0, lineal: 45.5, log: 50.0, edo: 56.0, sube: 61.5, p_responde: 67.5, final: 76.0,
+      barrido_nudo: 37.3, barrido: 39.0, barrido_fin: 41.2, cambio: 43.0, lineal: 45.5, log: 50.0, edo: 56.0, sube: 61.5, p_responde: 67.5, final: 76.0,
     },
     camaras: [],
     dibujar: dibujar,
@@ -356,8 +388,9 @@
           return true;
         }),
         A.en('tramos', 'entre nudos, los tramos dibujados son rectos en la escala log (en píxeles, cada punto sobre la cuerda de sus nudos)', function (e) {
-          var peor = 0;
+          var peor = 0, tramos = 0;
           [e.curva_i, e.curva_f].forEach(function (cur) {
+            for (var m0 = 0; m0 < K - 1; m0++) if (cur.xs.indexOf(NUDOS[m0]) >= 0 && cur.xs.indexOf(NUDOS[m0 + 1]) >= 0) tramos++;
             for (var k = 0; k < cur.xs.length; k++) {
               var a = cur.xs[k];
               for (var m = 0; m < K - 1; m++) {
@@ -369,31 +402,39 @@
               }
             }
           });
+          if (tramos !== 2 * (K - 1)) return 'compara ' + tramos + ' tramos de ' + 2 * (K - 1);
           return peor < 0.01 || 'se aparta ' + peor.toFixed(3) + ' px de la recta';
         }),
         A.en('constante', 'las curvas dibujadas son las i y f de dl_edo() en cada edad entera, en su lugar del eje log', function (e) {
           var r1 = curvaContraR(e.curva_i, datos.i, yEjeLog);
           return r1 === true ? curvaContraR(e.curva_f, datos.f, yEjeLog) : r1;
         }),
-        A.en('constante', 'de 95 a 99 las tasas dibujadas son las del nudo 95 (planas en píxeles)', function (e) {
-          var ok = true;
+        A.en('constante', 'de 95 a 99 las tasas dibujadas son las del nudo 95 y están, en píxeles, a la altura del nudo 95', function (e) {
+          var ok = true, n = 0;
           [[e.curva_i, datos.log_i[K - 1]], [e.curva_f, datos.log_f[K - 1]]].forEach(function (x) {
             x[0].xs.forEach(function (a, k) {
-              if (a >= 95 && Math.abs(x[0].vs[k] - 1000 * Math.exp(x[1])) > 1e-9 * x[0].vs[k]) ok = 'en ' + a + ' no es la del nudo 95';
+              if (a < 95) return;
+              n++;
+              if (Math.abs(x[0].vs[k] - 1000 * Math.exp(x[1])) > 1e-9 * x[0].vs[k]) ok = 'en ' + a + ' no es la del nudo 95';
+              if (Math.abs(x[0].pts[k][1] - yEjeLog(1000 * Math.exp(x[1]))) > 0.01) ok = 'en ' + a + ' no está a la altura del nudo 95';
             });
           });
-          return ok;
+          return ok === true && n < 2 * 41 ? 'compara ' + n + ' puntos de la malla de 95 a 99' : ok;
         }),
         A.en('fila63', 'la fila de W dibujada en 63 es la de .dl_base_interp() del paquete, suma 1 y w = (63 - 60)/(70 - 60)', function (e) {
           var rR = datos.W_filas[datos.edades_fila.indexOf(63)];
           if (e.fila_edad !== 63) return 'el cursor está en ' + e.fila_edad;
           for (var k = 0; k < K; k++) if (Math.abs(e.fila[k] - rR[k]) > 1e-15) return 'columna ' + (k + 1) + ': ' + e.fila[k] + ' frente a ' + rR[k];
           if (!A.cerca(e.fila_suma, 1, 1e-12)) return 'suma ' + e.fila_suma;
-          return A.cerca(e.fila[K60 + 1], (63 - 60) / (70 - 60), 1e-15) || 'w = ' + e.fila[K60 + 1];
+          if (!A.cerca(e.fila[K60 + 1], (63 - 60) / (70 - 60), 1e-15)) return 'w = ' + e.fila[K60 + 1];
+          // Lo que se lee en las celdas: la fila de R con dos decimales.
+          var esperado = rR.map(function (v) { return v === 0 ? '0' : (v === 1 ? '1' : v.toFixed(2)); }).concat(['Σ = 1.00']);
+          return esperado.join('|') === e.fila_textos.join('|') || 'se lee ' + e.fila_textos.join(' ') + ', R da ' + esperado.join(' ');
         }),
         A.en('fila63', 'i(63) mostrada es la i de dl_edo() en la edad 63, y su punto está sobre el cursor y en su altura', function (e) {
           var iR = datos.i[idx(63)];
           if (Math.abs(e.i63 / iR - 1) > 1e-12) return 'i(63) = ' + e.i63 + ', dl_edo() da ' + iR;
+          if (e.i63_texto !== (1000 * iR).toFixed(2)) return 'se lee ' + e.i63_texto + ', dl_edo() da ' + (1000 * iR).toFixed(2);
           return (Math.abs(e.cursor_px[0] - xEje(63)) < 0.01 && Math.abs(e.cursor_px[1] - yEjeLog(1000 * iR)) < 0.01) || 'punto fuera de lugar';
         }),
         A.en('barrido', 'durante el barrido, la fila dibujada es la fila de W del paquete en ese punto a_j de la malla h/2, y suma 1', function (e) {
@@ -402,9 +443,31 @@
           if (e.fila_edad === Math.round(e.fila_edad) && NUDOS.indexOf(e.fila_edad) >= 0) return 'la marca cae en un nudo: elige otra para que la prueba diga algo';
           var rR = datos.W_media[j];
           for (var k = 0; k < K; k++) if (Math.abs(e.fila[k] - rR[k]) > 1e-12) return 'columna ' + (k + 1) + ' en ' + e.fila_edad + ': ' + e.fila[k] + ' frente a ' + rR[k];
-          return A.cerca(e.fila_suma, 1, 1e-12) || 'suma ' + e.fila_suma;
+          if (!A.cerca(e.fila_suma, 1, 1e-12)) return 'suma ' + e.fila_suma;
+          // El punto de i bajo el cursor: exp(fila de R · log i) en la escala log recalculada.
+          var li = 0;
+          for (k = 0; k < K; k++) li += rR[k] * datos.log_i[k];
+          return Math.abs(e.cursor_i_px - yEjeLog(1000 * Math.exp(li))) < 0.01 || 'el punto de i bajo el cursor está fuera de lugar';
         }),
-        A.en('final', 'las filas del paquete: en cada nudo un 1 en su columna, y desde 95 un 1 en la última (las celdas que barre el cursor)', function (e) {
+        A.en('barrido_nudo', 'con el cursor en el nudo 40, la fila dibujada es la del paquete: un 1 bajo el 40 y ceros', function (e) {
+          if (e.fila_edad !== 40) return 'el cursor está en ' + e.fila_edad + ', no en el nudo 40';
+          var rR = datos.W_media[Math.round((40 - 30) * 10)];
+          for (var k = 0; k < K; k++) if (e.fila[k] !== rR[k] || e.fila[k] !== (k === 1 ? 1 : 0)) return 'columna ' + (k + 1) + ': ' + e.fila[k];
+          return true;
+        }),
+        A.en('barrido_fin', 'desde 95, la fila dibujada es la del paquete en esa a_j: un 1 en el último nudo', function (e) {
+          if (!(e.fila_edad > 95)) return 'el cursor está en ' + e.fila_edad;
+          var rR = datos.W_media[Math.round((e.fila_edad - 30) * 10)];
+          for (var k = 0; k < K; k++) if (e.fila[k] !== rR[k]) return 'columna ' + (k + 1) + ': ' + e.fila[k] + ' frente a ' + rR[k];
+          return e.fila[K - 1] === 1 || 'la última columna no es 1';
+        }),
+        A.en('cambio', 'a mitad del cambio de escala, f ya está apagada (lo que no cabe no se ve) y todo punto de i visible queda dentro del gráfico', function (e) {
+          if (!(e.u > 0.2 && e.u < 0.8)) return 'u = ' + e.u;
+          if (e.oF !== 0) return 'f se ve al ' + e.oF;
+          for (var k = 0; k < K; k++) if (e.nudos_px[k][1] < 290 - 0.01 || e.nudos_px[k][1] > 790 + 0.01) return 'el punto de i en ' + NUDOS[k] + ' sale del gráfico';
+          return true;
+        }),
+        A.en('final', 'prueba del modelo (no del dibujo): matrizW de modelo.js da en toda la malla h/2 las filas de .dl_base_interp(); en cada nudo un 1, desde 95 un 1 en la última', function () {
           for (var j = 0; j < datos.edades_media.length; j++) {
             var a = datos.edades_media[j], fila = MOD.matrizW(NUDOS, [a])[0], rR = datos.W_media[j];
             for (var k = 0; k < K; k++) if (Math.abs(fila[k] - rR[k]) > 1e-12) return 'en a_j = ' + a + ', columna ' + (k + 1);
@@ -448,13 +511,23 @@
           }
           return A.cerca(e.nudos_px[K60][1], yEjeLog(3 * 2.5), 0.01) || 'el nudo no está en 7.5 por 1000';
         }),
-        A.en('sube', 'mover el nudo de 60 cambia i solo en (50, 70) y p solo desde 51: lo de R con el nudo movido frente a lo de R sin mover', function (e) {
-          for (var k = 0; k < datos.edades.length; k++) {
-            var a = datos.edades[k], cambiaI = datos.i_mov[k] !== datos.i[k], cambiaP = datos.p_mov[k] !== datos.p[k];
-            if (cambiaI !== (a > 50 && a < 70)) return 'i en ' + a + (cambiaI ? ' cambia' : ' no cambia');
-            if (cambiaP !== (a > 50)) return 'p en ' + a + (cambiaP ? ' cambia' : ' no cambia');
+        A.en('sube', 'en lo dibujado, i cambia solo en (50, 70) y p solo desde 51 frente a dl_edo() sin mover; la banda de las tasas marca 50-70; el valor leído del nudo es 7.5', function (e) {
+          for (var k = 0; k < e.curva_i.xs.length; k++) {
+            var a = e.curva_i.xs[k];
+            if (Math.abs(a - Math.round(a)) > 1e-9) continue;
+            var cambiaI = Math.abs(e.curva_i.vs[k] / (1000 * datos.i[idx(Math.round(a))]) - 1) > 1e-12;
+            if (cambiaI !== (a > 50 && a < 70)) return 'i dibujada en ' + a + (cambiaI ? ' cambia' : ' no cambia');
           }
-          return true;
+          for (k = 0; k < e.curva_p.xs.length; k++) {
+            var cambiaP = Math.abs(e.curva_p.ps[k] - datos.p[k]) > 1e-12;
+            if (cambiaP !== (e.curva_p.xs[k] > 50)) return 'p dibujada en ' + e.curva_p.xs[k] + (cambiaP ? ' cambia' : ' no cambia');
+          }
+          if (Math.abs(e.banda_i_px[0] - xEje(50)) > 0.01 || Math.abs(e.banda_i_px[1] - xEje(70)) > 0.01) return 'la banda de las tasas no va de 50 a 70';
+          return e.nudo_texto === (3 * 2.5).toFixed(1) || 'se lee ' + e.nudo_texto + ' por 1000';
+        }),
+        A.en('p_responde', 'la banda de p marca de 50 a 99 en el eje de la prevalencia', function (e) {
+          var xP = function (a) { return 1180 + (a - 27) / 74 * 620; };
+          return (Math.abs(e.banda_p_px[0] - xP(50)) < 0.01 && Math.abs(e.banda_p_px[1] - xP(99)) < 0.01) || 'la banda de p no va de 50 a 99';
         }),
         A.en('final', 'con el nudo de vuelta, lo dibujado es otra vez la solución de dl_edo() con los valores de la guía', function (e) {
           if (e.mov !== 0) return 'mov = ' + e.mov;

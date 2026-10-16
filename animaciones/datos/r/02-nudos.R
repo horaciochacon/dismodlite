@@ -25,7 +25,7 @@ exportar <- function(ctx) {
   s_mov <- dl_edo(log_i_mov, log_f, nudos, edad_inicio = edad_inicio)
 
   list(
-    fuente = "Valores inventados de la guía «El modelo» (sección 2), resueltos con dl_edo()",
+    fuente = "Valores inventados de la guía «El modelo» (sección 2), resueltos con dl_edo(); el nudo ×3 es ilustrativo",
     nudos = nudos, log_i = log_i, log_f = log_f, edad_inicio = edad_inicio, remision = 0,
     edades = s$edades, p = s$p, i = s$i, f = s$f,
     edades_media = edades_media,
