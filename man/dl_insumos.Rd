@@ -57,8 +57,8 @@ medida entra al ajuste, un error pide bajar el peso del ancla; si ninguna entra,
 se arman, un mensaje dice cuántas fuentes son y la corrida lo declara entre las limitaciones de su manifiesto. Con
 un proyecto (\code{dl_insumos(dl_proyecto(...))}), los
 mensajes citan sus claves y sus tablas (\code{datos_en_ajuste}, la tabla \code{covariables}, ...) en lugar de los del formato
-completo; si su traducción ya no está (cambió la configuración o una tabla y se volvió a traducir, o es de otra
-sesión), un error pide volver a llamar a \code{\link[=dl_proyecto]{dl_proyecto()}}.
+completo. La traducción del proyecto dura lo que dura la sesión (\code{\link[=dl_proyecto]{dl_proyecto()}}): si ya no está (el proyecto es de
+otra sesión o se borró su carpeta temporal), un error pide volver a llamar a \code{\link[=dl_proyecto]{dl_proyecto()}}.
 }
 \examples{
 \donttest{

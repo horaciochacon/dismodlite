@@ -647,23 +647,44 @@ test_that("dos proyectos con la configuración como lista no se borran la traduc
 
 # ---- La traducción y su caché ----
 
-test_that("la traducción se reutiliza mientras no cambia lo que traduce; la nueva borra la anterior", {
+test_that("la traducción se reutiliza mientras no cambia lo que traduce; la nueva conserva la anterior", {
   d <- proyecto_ficticio()
   p <- dl_proyecto(d)
   r <- p$rutas
   # el mismo contenido con otra fecha: la misma traducción
   Sys.setFileTime(file.path(d, "severidad.csv"), Sys.time() + 60)
   expect_identical(dl_proyecto(d)$rutas, r)
-  # otro contenido de una tabla: otra traducción, y la anterior se borra
-  pob <- leer_texto(file.path(d, "poblacion.csv"))
+  # otro contenido de una tabla: otra traducción, y la anterior se conserva
+  pob0 <- leer_texto(file.path(d, "poblacion.csv"))
+  pob <- data.table::copy(pob0)
   pob$poblacion[1] <- "999999"
   escribir_texto(pob, d, "poblacion.csv")
   r2 <- dl_proyecto(d)$rutas
   expect_false(identical(r2$poblacion, r$poblacion))
-  expect_false(file.exists(r$poblacion))
+  expect_true(file.exists(r$poblacion))
   expect_true("999999" %in% leer_texto(r2$poblacion)$val)
-  # un proyecto leído antes de ese cambio: sus insumos piden volver a leerlo
-  expect_error(dl_insumos(p), "la traducción de este proyecto ya no está .*vuelve a llamar a dl_proyecto\\(")
+  expect_false("999999" %in% leer_texto(r$poblacion)$val)
+  # un proyecto leído antes de ese cambio da los insumos de lo que leyó
+  expect_identical(suppressMessages(dl_insumos(p))$rutas$poblacion, r$poblacion)
+  # el contenido de antes, otra vez: la primera traducción, sin una carpeta nueva
+  escribir_texto(pob0, d, "poblacion.csv")
+  expect_identical(dl_proyecto(d)$rutas, r)
+})
+
+test_that("los insumos de una configuración siguen leyendo su traducción después de leer el proyecto con otra", {
+  # un análisis de sensibilidad a mano: la misma carpeta y la misma causa con otra configuración (`configuracion =`)
+  # escriben otra traducción, y las etapas que leen de las rutas de los insumos de antes (dl_factor_comorbilidad(),
+  # el AVD del ancla) las siguen encontrando
+  a <- suppressMessages(dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100)))
+  como_a <- dl_factor_comorbilidad(a)
+  cfg <- yaml::read_yaml(file.path(dl_ejemplo(), "config", "9100.yaml"))
+  cfg$ancla <- list(peso = 0.5)
+  b <- suppressMessages(dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100, configuracion = cfg)))
+  expect_false(identical(dirname(b$rutas$poblacion), dirname(a$rutas$poblacion)))
+  expect_true(all(file.exists(unlist(unclass(a$rutas)))))
+  expect_identical(dl_factor_comorbilidad(a), como_a)
+  # el peso del ancla no entra en el factor
+  expect_identical(dl_factor_comorbilidad(b), como_a)
 })
 
 test_that("la traducción escribe las covariables nacionales, las fuentes y las bandas que no son de GBD", {
@@ -1319,21 +1340,21 @@ test_that("un ancla.anio posterior al `anio` de la configuración es un error; s
                    list(valor = 2019L, procedencia = .dl_procedencia_ancla_anterior(2019L, 2025L)))
 })
 
-test_that("las traducciones de dos años del mismo proyecto conviven; la del mismo año se reemplaza", {
+test_that("las traducciones de dos años del mismo proyecto conviven, y con ellas las anteriores del mismo año", {
   d <- copia_ejemplo()
   p19 <- dl_proyecto(d, 9101, anio = 2019)
   p23 <- dl_proyecto(d, 9101)
   expect_identical(unique(suppressMessages(dl_insumos(p19))$prior_gbd$year), 2019L)
   expect_identical(unique(suppressMessages(dl_insumos(p23))$prior_gbd$year), 2023L)
-  # cambia una tabla: la traducción nueva de 2023 borra la anterior de 2023 y deja la de 2019
+  # cambia una tabla: la traducción nueva de 2023 deja la anterior de 2023 y la de 2019
   pob <- leer_texto(file.path(d, "poblacion.csv"))
   pob$poblacion[pob$anio == "2023"][1] <- "999999"
   escribir_texto(pob, d, "poblacion.csv")
   q23 <- dl_proyecto(d, 9101)
   expect_false(identical(q23$rutas$poblacion, p23$rutas$poblacion))
-  expect_false(file.exists(p23$rutas$poblacion))
+  expect_true(file.exists(p23$rutas$poblacion))
   expect_true(file.exists(p19$rutas$poblacion))
-  expect_error(dl_insumos(p23), "la traducción de este proyecto ya no está")
+  expect_identical(unique(suppressMessages(dl_insumos(p23))$prior_gbd$year), 2023L)
 })
 
 test_that("un año anterior a todos los del ancla: el error de las reglas, que no hay de dónde proyectar", {

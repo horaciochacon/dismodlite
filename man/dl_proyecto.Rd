@@ -35,8 +35,9 @@ Objeto de clase \code{dl_proyecto}: una lista con
 \item \code{configuracion}: la configuración de la causa, de clase \code{dl_config}, como la de \code{\link[=dl_configuracion]{dl_configuracion()}}. Trae
 \code{origen$por_defecto}: las claves tomadas por defecto, con su valor.
 \item \code{rutas}: las rutas de los insumos, de clase \code{dl_paths}, como las de \code{\link[=dl_rutas]{dl_rutas()}}. Apuntan a la traducción, en
-la carpeta temporal de la sesión: en otra sesión, o después de cambiar la configuración o una tabla (la
-traducción anterior del mismo año se borra), vuelve a llamar a \code{dl_proyecto()}.
+la carpeta temporal de la sesión, que dura lo que dura la sesión: leer el proyecto otra vez con otra
+configuración o con otras tablas escribe otra traducción y conserva esta. En otra sesión, vuelve a llamar a
+\code{dl_proyecto()}.
 \item \code{carpeta}: la carpeta del proyecto (\code{NULL} sin carpeta).
 \item \code{formato}: \code{"simple"} (un proyecto con las tablas del contrato) o \code{"completo"} (el formato de la 0.2.2).
 \item \code{tablas}: las tablas del contrato, una lista nombrada de \code{\link[=dl_tabla]{dl_tabla()}} (\code{NULL} en el formato completo), tal
@@ -80,7 +81,11 @@ El proyecto se traduce al formato completo de la versión 0.2.2, el que usa el r
 las tablas a una carpeta temporal de la sesión, que se reutiliza mientras no cambien. Los números leídos pasan tal
 cual; solo se calcula lo que sale de la población (el total nacional, si no viene) y la agrupación del ancla en las
 bandas de la población (con \code{poblacion_detalle}, si el ancla es más fina; sus filas de ambos sexos, que el modelo no
-usa, no piden ese detalle y se dejan fuera si no lo traen).
+usa, no piden ese detalle y se dejan fuera si no lo traen). Cada configuración y cada contenido de las tablas tiene
+su traducción, y ninguna se borra mientras dura la sesión: los insumos guardan sus rutas y algunas etapas leen de
+ellas después (\code{\link[=dl_factor_comorbilidad]{dl_factor_comorbilidad()}} el AVD del ancla, por ejemplo), así que los insumos de dos
+configuraciones del mismo proyecto se pueden usar en la misma sesión. R borra la carpeta temporal al cerrar la
+sesión.
 
 \code{print()} muestra la causa, el año, las tablas que encontró, el modo subnacional, la calibración de
 \code{proxies_crudos} (por covariable: el método, q y las ediciones) y las claves de la configuración que tomaron su

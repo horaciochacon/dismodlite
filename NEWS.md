@@ -1,3 +1,35 @@
+# dismodlite (en desarrollo)
+
+## Las traducciones de un proyecto duran toda la sesión
+
+* Leer un proyecto otra vez con otra configuración o con otras tablas (la misma carpeta con otra lista en
+  `configuracion =`, por ejemplo) ya no borra la traducción anterior del mismo proyecto, causa y año. Los insumos
+  armados con ella guardan sus rutas y algunas etapas leen de ellas después: `dl_factor_comorbilidad()` el AVD del
+  ancla, `dl_validar_ancla()` la incidencia del ancla, `dl_resumir()` los catálogos, `dl_exportar_corrida()` las
+  covariables. Esos insumos fallaban porque la ruta de `ancla_avd` ya no existía, y para comparar dos configuraciones
+  de un proyecto en la misma sesión había que calcular todo lo de la primera antes de leer la segunda.
+
+  ```r
+  a <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))
+  cfg <- yaml::read_yaml(file.path(dl_ejemplo(), "config", "9100.yaml"))
+  cfg$ancla <- list(peso = 0.5)
+  b <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100, configuracion = cfg))
+  dl_factor_comorbilidad(a)   # antes, un error; ahora, el factor
+  ```
+
+* Las traducciones están en la carpeta temporal de la sesión, que R borra al cerrarla. Cada una se identifica por
+  su contenido, así que leer otra vez lo mismo reutiliza su carpeta. Ocupan poco (unos 650 kB la del ejemplo) y la
+  memoria no crece: una traducción nueva olvida las lecturas memorizadas de las anteriores, que se vuelven a leer del
+  disco si se piden. `dl_limpiar_cache()` no las borra, porque también se usa para volver a ajustar los mismos
+  insumos.
+* Por qué así y no leyendo todo en `dl_insumos()`: las rutas de los insumos son las que usan las etapas siguientes
+  cuando no se les pasan otras, también en el formato completo, donde apuntan a los archivos del usuario. Copiar a los
+  insumos lo que esas etapas leen (catálogos, anclas, covariables) agrandaría el objeto sin cambiar el modelo, y
+  bastaría con olvidar una etapa para que el error volviera.
+* `dl_insumos()` de un proyecto leído antes de cambiar una tabla de su carpeta da los insumos de lo que se leyó (sus
+  `tablas`), en lugar del error «la traducción de este proyecto ya no está». Ese error queda para un proyecto de otra
+  sesión o cuya carpeta temporal se borró.
+
 # dismodlite 2.4.0
 
 ## Prior de la mortalidad en exceso dado por tabla

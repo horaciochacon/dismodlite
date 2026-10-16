@@ -15,6 +15,10 @@ opciones del muestreo salvo \code{nucleos}, la semilla y si es un ajuste solo co
 muestrear. Esta función vacía esa caché, por ejemplo para liberar memoria después de muchas corridas. La caché
 vive en la sesión: una sesión nueva empieza vacía.
 }
+\details{
+No borra las traducciones de los proyectos de \code{\link[=dl_proyecto]{dl_proyecto()}}: los insumos armados con ellas las siguen leyendo, y
+esta función se usa también para volver a ajustar los mismos insumos. Duran lo que dura la sesión.
+}
 \examples{
 \donttest{
 b <- dl_insumos(dl_proyecto(dl_ejemplo(), causa = 9100))

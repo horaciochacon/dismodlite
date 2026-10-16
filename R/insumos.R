@@ -472,8 +472,8 @@
 #' se arman, un mensaje dice cuántas fuentes son y la corrida lo declara entre las limitaciones de su manifiesto. Con
 #' un proyecto (`dl_insumos(dl_proyecto(...))`), los
 #' mensajes citan sus claves y sus tablas (`datos_en_ajuste`, la tabla `covariables`, ...) en lugar de los del formato
-#' completo; si su traducción ya no está (cambió la configuración o una tabla y se volvió a traducir, o es de otra
-#' sesión), un error pide volver a llamar a [dl_proyecto()].
+#' completo. La traducción del proyecto dura lo que dura la sesión ([dl_proyecto()]): si ya no está (el proyecto es de
+#' otra sesión o se borró su carpeta temporal), un error pide volver a llamar a [dl_proyecto()].
 #'
 #' @param configuracion Configuración de [dl_configuracion()], o un proyecto de [dl_proyecto()]: entonces `rutas`,
 #'   si no se da, son las del proyecto.
@@ -530,8 +530,8 @@ dl_insumos <- function(configuracion, rutas = dl_rutas()) {
                          else configuracion)$cause_id))
   if (inherits(configuracion, "dl_proyecto")) {
     if (simple && !file.exists(file.path(dirname(configuracion$rutas$poblacion), "listo")))
-      .dl_stop(paste0("la traducci\u00f3n de este proyecto ya no est\u00e1 (cambi\u00f3 la configuraci\u00f3n o una ",
-                      "tabla, o es de otra sesi\u00f3n): vuelve a llamar a %s"),
+      .dl_stop(paste0("la traducci\u00f3n de este proyecto ya no est\u00e1 (es de otra sesi\u00f3n o se borr\u00f3 su ",
+                      "carpeta temporal): vuelve a llamar a %s"),
                if (is.null(configuracion$carpeta)) "dl_proyecto() con la misma configuraci\u00f3n y las mismas tablas"
                else sprintf("dl_proyecto(\"%s\")", configuracion$carpeta))
     if (missing(rutas)) rutas <- configuracion$rutas

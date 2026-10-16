@@ -568,12 +568,18 @@
 }
 
 # Rutas del proyecto traducido para `cfg` (`tablas`: las del contrato; `causas`: .dl_causas_config), en la carpeta
-# temporal <proyecto>_<causa>_<clave>. <clave> resume lo que se traduce: la versión del paquete, la configuración
-# traducida, las causas y el contenido de las tablas, sin su origen (las dos puertas comparten la traducción). `donde`
-# identifica el proyecto (.dl_proyecto_contrato): su carpeta, el archivo de su configuración o un resumen de la
-# lista. Una traducción nueva borra las anteriores del mismo proyecto, causa y año que se estima, y sus lecturas
-# memorizadas: las de otros años del mismo proyecto (dl_proyecto(anio = )) conviven. El nombre de la carpeta lleva el
-# año después de la clave (<proyecto>_<causa>_<clave>_<año>), y las anteriores se buscan por los dos extremos.
+# temporal <proyecto>_<causa>_<clave>_<año>. <clave> resume lo que se traduce: la versión del paquete, la
+# configuración traducida, las causas y el contenido de las tablas, sin su origen (las dos puertas comparten la
+# traducción). `donde` identifica el proyecto (.dl_proyecto_contrato): su carpeta, el archivo de su configuración o un
+# resumen de la lista.
+# Las traducciones no se borran mientras dura la sesión (R borra tempdir() al cerrarla). Los insumos guardan sus rutas
+# y las etapas siguientes leen de ellas cuando se las pide: el ancla de AVD (dl_factor_comorbilidad()), la de
+# incidencia (dl_validar_ancla()), los catálogos (dl_resumir()), las covariables que copia dl_exportar_corrida()...
+# Borrar la traducción anterior al leer el mismo proyecto con otra configuración o con otras tablas rompía los
+# insumos armados con ella, como los de un análisis de sensibilidad que compara dos configuraciones. Como la clave es
+# el contenido, leer otra vez lo mismo reutiliza la carpeta y no la duplica. Una traducción nueva solo olvida las
+# lecturas memorizadas de las anteriores del mismo proyecto, causa y año (se buscan por los dos extremos del nombre;
+# si se vuelven a pedir, se leen del disco), para que la memoria no crezca con cada lectura del proyecto.
 .dl_traducir_proyecto <- function(donde, cfg, tablas, causas) {
   traducida <- cfg
   traducida$origen[c("archivo", "betas")] <- NULL   # la ruta de la configuración; las betas van en las tablas
@@ -585,11 +591,9 @@
   sufijo <- sprintf("_%d", .dl_anio_ajuste(cfg))
   destino <- file.path(raiz, paste0(prefijo, clave, sufijo))
   if (!file.exists(file.path(destino, "listo"))) {
-    for (v in list.files(raiz, paste0("^", prefijo, "[^_]*", sufijo, "$"), full.names = TRUE)) {
-      k <- ls(.dl_memo_env)
+    k <- ls(.dl_memo_env)
+    for (v in list.files(raiz, paste0("^", prefijo, "[^_]*", sufijo, "$"), full.names = TRUE))
       rm(list = k[startsWith(k, normalizePath(v, winslash = "/"))], envir = .dl_memo_env)
-      unlink(v, recursive = TRUE)
-    }
     .dl_escribir_traduccion(cfg, destino, .dl_traducir_contrato(tablas, cfg), causas)
   }
   .dl_rutas_con_codigos(.dl_rutas_completo(destino, cfg$cause_id), cfg)
@@ -641,7 +645,11 @@
 #' las tablas a una carpeta temporal de la sesión, que se reutiliza mientras no cambien. Los números leídos pasan tal
 #' cual; solo se calcula lo que sale de la población (el total nacional, si no viene) y la agrupación del ancla en las
 #' bandas de la población (con `poblacion_detalle`, si el ancla es más fina; sus filas de ambos sexos, que el modelo no
-#' usa, no piden ese detalle y se dejan fuera si no lo traen).
+#' usa, no piden ese detalle y se dejan fuera si no lo traen). Cada configuración y cada contenido de las tablas tiene
+#' su traducción, y ninguna se borra mientras dura la sesión: los insumos guardan sus rutas y algunas etapas leen de
+#' ellas después ([dl_factor_comorbilidad()] el AVD del ancla, por ejemplo), así que los insumos de dos
+#' configuraciones del mismo proyecto se pueden usar en la misma sesión. R borra la carpeta temporal al cerrar la
+#' sesión.
 #'
 #' `print()` muestra la causa, el año, las tablas que encontró, el modo subnacional, la calibración de
 #' `proxies_crudos` (por covariable: el método, q y las ediciones) y las claves de la configuración que tomaron su
@@ -761,8 +769,9 @@
 #'   - `configuracion`: la configuración de la causa, de clase `dl_config`, como la de [dl_configuracion()]. Trae
 #'     `origen$por_defecto`: las claves tomadas por defecto, con su valor.
 #'   - `rutas`: las rutas de los insumos, de clase `dl_paths`, como las de [dl_rutas()]. Apuntan a la traducción, en
-#'     la carpeta temporal de la sesión: en otra sesión, o después de cambiar la configuración o una tabla (la
-#'     traducción anterior del mismo año se borra), vuelve a llamar a `dl_proyecto()`.
+#'     la carpeta temporal de la sesión, que dura lo que dura la sesión: leer el proyecto otra vez con otra
+#'     configuración o con otras tablas escribe otra traducción y conserva esta. En otra sesión, vuelve a llamar a
+#'     `dl_proyecto()`.
 #'   - `carpeta`: la carpeta del proyecto (`NULL` sin carpeta).
 #'   - `formato`: `"simple"` (un proyecto con las tablas del contrato) o `"completo"` (el formato de la 0.2.2).
 #'   - `tablas`: las tablas del contrato, una lista nombrada de [dl_tabla()] (`NULL` en el formato completo), tal

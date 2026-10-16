@@ -142,6 +142,9 @@ print.dl_mcmc_opts <- function(x, ...) {
 #' muestrear. Esta función vacía esa caché, por ejemplo para liberar memoria después de muchas corridas. La caché
 #' vive en la sesión: una sesión nueva empieza vacía.
 #'
+#' No borra las traducciones de los proyectos de [dl_proyecto()]: los insumos armados con ellas las siguen leyendo, y
+#' esta función se usa también para volver a ajustar los mismos insumos. Duran lo que dura la sesión.
+#'
 #' @return `NULL`, invisible.
 #' @seealso [dl_ajustar()] (su argumento `cache`).
 #' @family utilidades
