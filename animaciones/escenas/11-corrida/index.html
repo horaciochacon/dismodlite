@@ -25,31 +25,34 @@
 
   // ---- Narración: cada línea dura al menos 0,3 s por palabra + 0,5 s ----
   var NARRACION = [
-    [0.4, 3.6, 'Una corrida son tres comandos, en este orden.'],
-    [3.9, 8.7, 'El primero crea la carpeta del proyecto: la configuración y las tablas del contrato.'],
-    [9.0, 13.6, 'El segundo revisa cada tabla y dice cómo corregir lo que falle.'],
-    [13.9, 18.3, 'El tercero lo corre todo; con la misma semilla, la misma corrida.'],
-    [19.4, 24.3, 'Doce pasos, en el orden del código, cada uno con su escena.'],
-    [24.6, 28.5, 'Primero, los insumos: las tablas armadas y con su hash.'],
-    [28.8, 32.7, 'El ajuste nacional muestrea por sexo; la prueba usa cadenas cortas.'],
-    [33.0, 37.2, 'La de producción: 1000 simulaciones y 4 cadenas de 50 000 iteraciones.'],
-    [37.5, 42.6, 'Compuerta 1, tras el ajuste: R-hat < 1.01 y ESS ≥ 400 en cada parámetro.'],
-    [42.9, 47.7, 'Esta prueba no pasa; rapido = TRUE la salta y el manifiesto lo declara.'],
-    [48.0, 51.9, 'Un ajuste solo con el ancla: la referencia de las etiquetas.'],
-    [52.2, 56.0, 'La cascada lleva lo nacional a los 25 departamentos.'],
-    [56.3, 59.9, 'La validación compara la prevalencia ajustada con la del ancla.'],
-    [60.2, 65.0, 'Compuerta 2: el error mediano no pasa de 0.05. Esta no se salta nunca.'],
-    [65.3, 69.5, 'Los AVD: la prevalencia por la discapacidad de sus estados de salud.'],
-    [69.8, 74.3, 'Las etiquetas dicen qué celdas movieron los datos y cuáles vienen del ancla.'],
-    [74.6, 78.5, 'La sensibilidad repite el ajuste con otros $\\lambda$, $\\rho$ y $\\kappa$.'],
-    [78.8, 83.0, 'El resumen: una fila por ubicación, sexo y banda, en cada medida.'],
-    [83.3, 90.0, 'Todo queda en la carpeta de la corrida, con su manifiesto: se puede repetir.'],
+    [0.4, 3.5, 'Una corrida son tres comandos, en este orden.'],
+    [3.8, 7.8, 'El primero crea la carpeta, con la configuración y las plantillas.'],
+    [8.1, 12.4, 'El segundo revisa cada tabla y dice cómo corregir lo que falle.'],
+    [12.7, 15.9, 'El tercero lo corre todo, con una semilla.'],
+    [17.0, 21.6, 'Los pasos, en el orden del código, cada uno con su escena.'],
+    [21.9, 25.1, 'Primero, los insumos, armados y con su hash.'],
+    [25.4, 29.2, 'El ajuste nacional, por sexo; la prueba usa cadenas cortas.'],
+    [29.5, 33.5, 'Producción: 1000 simulaciones y 4 cadenas de 50 000 iteraciones.'],
+    [33.8, 38.1, 'Compuerta 1: R-hat < 1.01 y ESS ≥ 400 en cada parámetro.'],
+    [38.4, 42.8, 'Esta prueba no pasa: rapido = TRUE la salta y lo declara.'],
+    [43.1, 47.1, 'Un ajuste solo con el ancla, la referencia de las etiquetas.'],
+    [47.4, 51.4, 'La cascada lleva lo nacional a los 25 departamentos.'],
+    [51.7, 55.4, 'La validación compara la prevalencia ajustada con la del ancla.'],
+    [55.7, 60.0, 'Compuerta 2: error mediano hasta 0.05; ni rapido ni forzar la saltan.'],
+    [60.3, 63.9, 'El factor de comorbilidad calibra los AVD al ancla.'],
+    [64.2, 68.0, 'Los AVD: la prevalencia por la discapacidad de sus estados.'],
+    [68.3, 72.5, 'Las etiquetas: por sexo y banda, ¿movieron los datos la estimación?'],
+    [72.8, 77.5, 'Sensibilidad: otros $\\lambda$ y $\\rho$ en el ajuste, otros $\\kappa$ en la cascada.'],
+    [77.8, 81.5, 'El resumen: una fila por ubicación, sexo y banda.'],
+    [81.8, 90.0, 'Todo queda en la carpeta de la corrida, con su manifiesto.'],
   ];
+  // Momentos de la introducción: cada tarjeta, la producción y el veredicto de la compuerta 1 (inicio de su frase).
+  var TN = { tarjeta1: 3.8, tarjeta2: 8.1, tarjeta3: 12.7, pasos: 17.0, produccion: 29.5, salta: 38.4 };
 
   // Cuándo empieza cada paso (el marcador llega a su fila y entra su panel). Las claves son las exportadas.
   var T_PASO = {
-    insumos: 24.6, ajuste: 28.8, compuerta1: 37.5, solo_prior: 48.0, cascada: 52.2, validacion: 56.3,
-    compuerta2: 60.2, avd: 65.3, etiquetas: 69.8, sensibilidad: 74.6, resumen: 78.8, carpeta: 83.3,
+    insumos: 21.9, ajuste: 25.4, compuerta1: 33.8, solo_prior: 43.1, cascada: 47.4, validacion: 51.7,
+    compuerta2: 55.7, comorbilidad: 60.3, avd: 64.2, etiquetas: 68.3, sensibilidad: 72.8, resumen: 77.8, carpeta: 81.8,
   };
   var TP = ETAPAS.map(function (e) {
     if (T_PASO[e.clave] === undefined) throw new Error('El guion no tiene tiempo para el paso «' + e.clave + '».');
@@ -61,9 +64,10 @@
   // ---- Retícula ----
   var COL = { x: 96, der: 800 };
   var PX = 880, PDER = 1824;            // el panel derecho
-  var FILA0 = 312, FILA_H = 47;         // la lista de pasos
+  var FILA0 = 306, FILA_H = 44;         // la lista de pasos
   function filaY(k) { return FILA0 + FILA_H * k; }
-  var CAMARA = [18.5, 19.3];
+  var CAMARA = [16.1, 16.9];
+  var RECAP = 86.6;           // los doce pasos vuelven al 100 %, uno por uno
 
   // Formatos.
   function pct(x, d) { return D.num(100 * x, d === undefined ? 2 : d) + ' %'; }
@@ -103,15 +107,15 @@
     } else {
       s.push(D.texto(PX, 288, titulo, { tam: 40, fuente: 'titulo', peso: 600, o: v(t, t0, t1), id: 'tit-' + op.id }));
     }
-    s.push(D.texto(PX, 330, sub, { tam: 24, fuente: op.subSans ? 'texto' : 'mono', color: P.suave, o: v(t, t0 + 0.12, t1), id: 'sub-' + op.id }));
+    if (op.subSans) s.push(D.texto(PX, 330, sub, { tam: 24, fuente: op.subSans ? 'texto' : 'mono', color: P.suave, o: v(t, t0 + 0.12, t1), id: 'sub-' + op.id }));
     return s.join('');
   }
 
   // ---- Tomas 1-4: los tres comandos ----
   var TARJETAS = [
-    { y: 260, n: '1', f: datos.comandos[0], d: 'crea la carpeta: la configuración y las plantillas', t0: 3.9, t1: 8.7 },
-    { y: 410, n: '2', f: datos.comandos[1], d: 'revisa todo antes de correr', t0: 9.0, t1: 13.6 },
-    { y: 560, n: '3', f: datos.comandos[2], d: 'corre la causa, de principio a fin', t0: 13.9, t1: 18.3 },
+    { y: 260, n: '1', f: datos.comandos[0], d: 'crea la carpeta: la configuración y las plantillas', t0: TN.tarjeta1, t1: TN.tarjeta2 - 0.3 },
+    { y: 410, n: '2', f: datos.comandos[1], d: 'revisa todo antes de correr', t0: TN.tarjeta2, t1: TN.tarjeta3 - 0.3 },
+    { y: 560, n: '3', f: datos.comandos[2], d: 'corre la causa, de principio a fin', t0: TN.tarjeta3, t1: CAMARA[0] },
   ];
 
   function tarjeta(t, k) {
@@ -134,18 +138,18 @@
     return D.grupo(s, { o: o });
   }
 
-  // El contrato de insumos (3.9-13.6) y su revisión (9.0-13.6).
+  // El contrato de insumos (tarjeta 1) y su revisión (tarjeta 2).
   function contrato(t, c) {
-    var t0 = 4.0, t1 = 13.6;
+    var t0 = TN.tarjeta1 + 0.1, t1 = TN.tarjeta3 - 0.3;
     if (t < t0 || t > t1 + 0.3) return;
     var s = [];
     s.push(D.texto(PX, 288, 'El contrato de insumos', { tam: 40, fuente: 'titulo', peso: 600, o: v(t, t0, t1), id: 'tit-contrato' }));
-    s.push(D.texto(PX, 330, 'las tablas del proyecto de ejemplo, dl_ejemplo()', { tam: 24, color: P.suave, o: v(t, t0 + 0.12, t1), id: 'sub-contrato' }));
+    s.push(D.texto(PX, 330, 'las 8 tablas que trae dl_ejemplo()', { tam: 24, color: P.suave, o: v(t, t0 + 0.12, t1), id: 'sub-contrato' }));
     var mostradas = [];
     datos.revision.tablas.forEach(function (tb, k) {
       var y = 392 + 46 * k;
       s.push(D.texto(PX + 40, y, tb.tabla, { tam: 26, fuente: 'mono', o: v(t, t0 + 0.3 + 0.12 * k, t1), id: 'tabla-' + k }));
-      var tk = 9.3 + 0.12 * k;
+      var tk = TN.tarjeta2 + 0.3 + 0.12 * k;
       if (t >= tk) {
         var oc = v(t, tk, t1);
         s.push(check(PX, y - 10, 20, oc));
@@ -156,73 +160,80 @@
       }
     });
     var r = datos.revision;
-    var resumen = r.comprobaciones + ' comprobaciones: ' + r.errores + ' error(es) y ' + r.avisos + ' aviso(s)';
-    s.push(D.texto(PX, 792, resumen, { tam: 28, o: v(t, 10.6, t1), id: 'revision' }));
+    // Los avisos de la revisión del ejemplo son advertencias internas de data.table, no problemas del proyecto: no se
+    // cuentan aquí (ver notas.md).
+    var resumen = r.comprobaciones + ' comprobaciones, ' + r.errores + ' errores';
+    s.push(D.texto(PX, 792, resumen, { tam: 28, o: v(t, TN.tarjeta2 + 1.5, t1), id: 'revision' }));
     c.svg(s);
     c.dato('filas_mostradas', mostradas);
-    if (t >= 10.6) c.dato('revision_texto', resumen);
+    if (t >= TN.tarjeta2 + 1.5) c.dato('revision_texto', resumen);
   }
 
-  // La llamada (13.9-18.3).
+  // La llamada (tarjeta 3, hasta que entra el primer paso).
   var AVISO = 'Sus números no sirven para publicar';
   function llamada(t, c) {
-    var t0 = 14.0, t1 = CAMARA[0];
+    var t0 = TN.tarjeta3 + 0.1, t1 = T_PASO.insumos - 0.5;
     if (t < t0 || t > t1 + 0.3) return;
     var s = [];
     s.push(D.texto(PX, 288, 'La llamada', { tam: 40, fuente: 'titulo', peso: 600, o: v(t, t0, t1), id: 'tit-llamada' }));
-    // dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE), partida en dos líneas por la coma.
-    var corte = datos.llamada.indexOf('semilla');
-    var l1 = datos.llamada.slice(0, corte).trim(), l2 = datos.llamada.slice(corte);
-    s.push(D.texto(PX, 392, l1, { tam: 30, fuente: 'mono', o: v(t, t0 + 0.12, t1), id: 'llamada-1' }));
-    s.push(D.texto(PX + 10 * 18, 440, l2, { tam: 30, fuente: 'mono', o: v(t, t0 + 0.24, t1), id: 'llamada-2' }));
-    s.push(D.texto(PX, 530, 'la corrida avisa:', { tam: 24, color: P.suave, o: v(t, 15.0, t1), id: 'avisa' }));
-    s.push(D.texto(PX, 574, '«' + AVISO + '»', { tam: 28, o: v(t, 15.12, t1), id: 'aviso' }));
+    // La llamada exacta de la corrida, partida en tres líneas antes de «semilla» y de «carpeta_salida».
+    var c1 = datos.llamada.indexOf('semilla'), c2 = datos.llamada.indexOf('carpeta_salida');
+    var l1 = datos.llamada.slice(0, c1).trim(), l2 = datos.llamada.slice(c1, c2).trim(), l3 = datos.llamada.slice(c2);
+    s.push(D.texto(PX, 392, l1, { tam: 28, fuente: 'mono', o: v(t, t0 + 0.12, t1), id: 'llamada-1' }));
+    s.push(D.texto(PX + 10 * 16.8, 438, l2, { tam: 28, fuente: 'mono', o: v(t, t0 + 0.27, t1), id: 'llamada-2' }));
+    s.push(D.texto(PX + 10 * 16.8, 484, l3, { tam: 28, fuente: 'mono', o: v(t, t0 + 0.42, t1), id: 'llamada-3' }));
+    s.push(D.texto(PX, 574, 'la corrida avisa:', { tam: 24, color: P.suave, o: v(t, t0 + 0.9, t1), id: 'avisa' }));
+    s.push(D.texto(PX, 618, '«' + AVISO + '»', { tam: 28, o: v(t, t0 + 1.05, t1), id: 'aviso' }));
     c.svg(s);
-    c.dato('llamada', l1 + ' ' + l2);
+    c.dato('llamada', [l1, l2, l3].join(' '));
     c.dato('aviso_en_mensaje', datos.mensajes[0].indexOf(AVISO) >= 0);
   }
 
   // ---- La lista de pasos ----
   function pasoActivo(t) {
     var k = -1;
-    for (var j = 0; j < TP.length; j++) if (t >= TP[j] - 0.25) k = j;
+    for (var j = 0; j < TP.length; j++) if (t >= TP[j] - 0.5) k = j;
     return k;
   }
 
   function lista(t, c) {
-    if (t < 19.3) return;
+    if (t < CAMARA[1]) return;
     var kact = pasoActivo(t);
     var s = [];
-    s.push(D.texto(COL.der - 16, 276, ETAPAS.length + ' pasos', { tam: 24, color: P.suave, ancla: 'end', o: v(t, 19.6), id: 'n-pasos' }));
+    s.push(D.texto(COL.der - 16, 276, ETAPAS.length + ' pasos de esta corrida', { tam: 24, color: P.suave, ancla: 'end', o: v(t, TN.pasos + 0.2), id: 'n-pasos' }));
     // El marcador del paso activo: fondo blanco de la fila y barra de la marca; baja de fila en 0,5 s.
     if (kact >= 0) {
-      var u = E.mover(M.tramo(t, TP[kact] - 0.25, TP[kact] + 0.25));
+      var u = E.mover(M.tramo(t, TP[kact] - 0.5, TP[kact]));
       var y0 = kact === 0 ? filaY(0) : filaY(kact - 1);
       var y = y0 + (filaY(kact) - y0) * u;
-      var om = kact === 0 ? M.entra(t, TP[0] - 0.25, 0.4, E.entrarSuave) : 1;
-      s.push(D.rect(COL.x + 8, y, COL.der - COL.x - 8, 40, { relleno: P.superficie, borde: P.rejilla, grosor: 1.5, radio: 8, o: om }));
+      var om = kact === 0 ? M.entra(t, TP[0] - 0.5, 0.4, E.entrarSuave) : 1;
+      s.push(D.rect(COL.x + 8, y + 2, COL.der - COL.x - 8, 38, { relleno: P.superficie, borde: P.rejilla, grosor: 1.5, radio: 8, o: om }));
       s.push(D.rect(COL.x, y + 3, 6, 34, { relleno: P.marca, radio: 3, o: om }));
     }
     var orden = [], filasY = {};
-    var tenue = 1 - 0.5 * M.entra(t, 24.1, 0.3, E.entrarSuave);
+    var tenue = 1 - 0.6 * M.entra(t, T_PASO.insumos - 0.8, 0.3, E.entrarSuave);
     ETAPAS.forEach(function (e, k) {
-      var y = filaY(k) + 28;
-      var oe = v(t, 19.5 + 0.12 * k);
+      var y = filaY(k) + 29;
+      var oe = v(t, TN.pasos + 0.1 + 0.12 * k);
       if (oe <= 0) return;
-      var brillo = (k === 0 || t >= TP[k] - 0.25) ? Math.max(tenue, 0.5 + 0.5 * M.entra(t, TP[k] - 0.25, 0.25, E.entrarSuave)) : tenue;
-      if (k === 0) brillo = 1;
+      // Futuros al 40 %, el activo al 100 %, los hechos al 70 %; al final (87.5 s) los doce vuelven al 100 %, uno por uno.
+      var on = M.entra(t, TP[k] - 0.5, 0.25, E.entrarSuave);
+      var off = k + 1 < TP.length ? M.entra(t, TP[k + 1] - 0.5, 0.25, E.entrarSuave) : 0;
+      var brillo = Math.max(tenue, 0.4 + 0.6 * on - 0.3 * off);
+      if (k === 0 && t < TP[0]) brillo = 1;
+      if (t >= RECAP) brillo = Math.max(brillo, 0.7 + 0.3 * M.entra(t, RECAP + 0.06 * k, 0.4, E.entrarSuave));
       var o = oe * brillo;
       var compuerta = e.clave.indexOf('compuerta') === 0;
       s.push(D.texto(COL.x + 28, y, String(k + 1).padStart(2, '0'), { tam: 22, fuente: 'mono', color: P.suave, o: o }));
       if (compuerta) {
         s.push(D.rect(COL.x + 76, y - 20, 5, 24, { relleno: P.marca, radio: 2, o: o }));
         s.push(D.rect(COL.x + 88, y - 20, 5, 24, { relleno: P.marca, radio: 2, o: o }));
-        s.push(D.texto(COL.x + 108, y, e.funcion.replace(':', ' ·'), { tam: 24, peso: 600, color: P.marca, o: o, id: 'paso-' + k }));
+        s.push(D.texto(COL.x + 108, y, e.funcion.replace(':', ' ·'), { tam: 24, peso: 600, color: k === kact ? P.marca : P.tinta, o: o, id: 'paso-' + k }));
       } else {
         s.push(D.texto(COL.x + 76, y, e.funcion, { tam: 24, fuente: 'mono', peso: k === kact ? 500 : 400, o: o, id: 'paso-' + k }));
       }
       // La ficha de la escena que explica el paso.
-      var oc = v(t, 21.4 + 0.12 * k) * brillo;
+      var oc = v(t, TN.pasos + 1.7 + 0.08 * k) * (t < T_PASO.insumos - 0.5 ? 1 : 0.2 + 0.8 * Math.max(0, on - off));
       var etiqueta = 'esc. ' + e.escena.replace('-', '–').replace(', ', '·');
       var w = etiqueta.length * 13.2 + 20;
       s.push(D.rect(COL.der - 12 - w, y - 24, w, 32, { borde: P.guia, grosor: 1.5, radio: 16, o: oc }));
@@ -230,6 +241,8 @@
       orden.push(e.clave);
       filasY[e.clave] = y;
     });
+    // Todo lo que muestran los paneles sale de la corrida de prueba: lo dice una etiqueta fija, arriba a la derecha.
+    s.push(D.texto(PDER, 288, 'corrida de prueba', { tam: 24, color: P.suave, ancla: 'end', o: v(t, T_PASO.insumos + 0.6), id: 'prueba' }));
     c.svg(s);
     c.dato('orden', orden.join(','));
     c.dato('filas_y', filasY);
@@ -239,20 +252,24 @@
   // ---- Los paneles de cada paso ----
   function fin(clave) {
     var k = idx(clave);
-    if (clave === 'validacion') return TP[idx('compuerta2') + 1] - 0.3;
-    return k + 1 < TP.length ? TP[k + 1] - 0.3 : Infinity;
+    if (clave === 'validacion') return TP[idx('compuerta2') + 1] - 0.5;
+    return k + 1 < TP.length ? TP[k + 1] - 0.5 : Infinity;
   }
 
   function pInsumos(t, c) {
-    var t0 = T_PASO.insumos + 0.1, t1 = fin('insumos');
+    var t0 = T_PASO.insumos + 0.15, t1 = fin('insumos');
     if (t < t0 || t > t1 + 0.3) return;
     var s = [encabezado(t, t0, t1, 'Los insumos', 'dl_insumos()', { id: 'insumos' })];
-    s.push(D.texto(PX, 410, 'hash de los insumos', { tam: 26, color: P.suave, o: v(t, t0 + 0.3, t1), id: 'hash-et' }));
+    s.push(D.texto(PX, 410, 'hash de los insumos', { tam: 26, color: P.suave, o: v(t, t0 + 0.25, t1), id: 'hash-et' }));
     var hash = datos.bundle_hash.slice(0, 12) + '…';
-    s.push(D.texto(PX, 466, hash, { tam: 40, fuente: 'mono', o: v(t, t0 + 0.42, t1), id: 'hash' }));
-    var fuera = datos.datos_fuera + ' filas de datos, fuera del ajuste';
-    s.push(D.texto(PX, 560, fuera, { tam: 28, o: v(t, t0 + 0.6, t1), id: 'fuera' }));
-    s.push(D.texto(PX, 600, 'datos_en_ajuste: vacío', { tam: 24, fuente: 'mono', color: P.suave, o: v(t, t0 + 0.72, t1), id: 'fuera-2' }));
+    s.push(D.texto(PX, 466, hash, { tam: 40, fuente: 'mono', o: v(t, t0 + 0.37, t1), id: 'hash' }));
+    // Ninguna fila de datos entra al ajuste: las nacionales quedan fuera (datos_en_ajuste vacío) y las subnacionales
+    // solo validan la cascada. Las subnacionales son las filas de la tabla menos las nacionales del mensaje.
+    var datosFilas = datos.revision.tablas.filter(function (x) { return x.tabla === 'datos'; })[0].filas;
+    var fuera = datos.datos_fuera + ' nacionales: no entran';
+    var validan = (datosFilas - datos.datos_fuera) + ' subnacionales: solo validan';
+    s.push(D.texto(PX, 560, fuera, { tam: 28, o: v(t, t0 + 0.5, t1), id: 'fuera' }));
+    s.push(D.texto(PX, 604, validan, { tam: 28, o: v(t, t0 + 0.65, t1), id: 'fuera-2' }));
     c.svg(s);
     c.dato('hash', hash);
   }
@@ -270,7 +287,7 @@
     return s.join('');
   }
   function pAjuste(t, c) {
-    var t0 = T_PASO.ajuste + 0.1, t1 = fin('ajuste');
+    var t0 = T_PASO.ajuste + 0.15, t1 = fin('ajuste');
     if (t < t0 || t > t1 + 0.3) return;
     var pr = datos.prueba, pd = datos.produccion;
     var s = [encabezado(t, t0, t1, 'El ajuste nacional', 'dl_ajustar() · por sexo', { id: 'ajuste' })];
@@ -286,7 +303,7 @@
     s.push(D.texto(PDER, 460, txt1, { tam: 24, color: P.suave, ancla: 'end', o: v(t, t0 + 0.57, t1), id: 'aj-prueba-d' }));
     s.push(cadenas(t, 478, o1, 1, pr));
     // La producción: sus barras crecen en 1,2 s (el movimiento principal de la toma).
-    var tp = 33.1;
+    var tp = TN.produccion + 0.1;
     var o2 = v(t, tp, t1);
     var txt2 = pd.chains + ' cadenas × ' + D.miles(pd.iter) + ' iteraciones · ' + pd.draws + ' simulaciones';
     s.push(D.texto(PX, 572, 'por defecto (producción)', { tam: 26, fuente: 'mono', o: o2, id: 'aj-prod' }));
@@ -305,9 +322,9 @@
   }
 
   function pCompuerta1(t, c) {
-    var t0 = T_PASO.compuerta1 + 0.1, t1 = fin('compuerta1');
+    var t0 = T_PASO.compuerta1 + 0.15, t1 = fin('compuerta1');
     if (t < t0 || t > t1 + 0.3) return;
-    var s = [encabezado(t, t0, t1, 'Compuerta 1 · convergencia', 'R-hat < ' + CG.rhat_limite + ' y ESS ≥ ' + CG.ess_minimo + ' en los ' + CG.parametros + ' parámetros', { id: 'c1', subSans: true })];
+    var s = [encabezado(t, t0, t1, 'Compuerta 1 · convergencia', 'R-hat < ' + CG.rhat_limite + ' y ESS ≥ ' + CG.ess_minimo + ' en los ' + CG.parametros + ' parámetros (' + CG.parametros / 2 + ' por sexo)', { id: 'c1', subSans: true })];
     // R-hat: del límite al máximo de la corrida.
     var R = escala(PX + 20, PX + 820, 470, [1, 2.5], [1, 1.5, 2, 2.5], function (x) { return D.num(x, 1); });
     var oR = v(t, t0 + 0.3, t1);
@@ -315,31 +332,31 @@
     s.push(R.svg(oR));
     s.push(D.linea(R.x(CG.rhat_limite), 446, R.x(CG.rhat_limite), 478, { color: P.marca, grosor: 3, o: oR }));
     s.push(D.texto(R.x(CG.rhat_limite) + 10, 444, 'límite ' + CG.rhat_limite, { tam: 22, color: P.suave, o: oR, id: 'c1-rlim' }));
-    var uR = E.mover(M.tramo(t, 38.1, 38.85));
+    var uR = E.mover(M.tramo(t, t0 + 0.5, t0 + 1.25));
     var xR = R.x(CG.rhat_limite + (CG.rhat_max - CG.rhat_limite) * uR);
     s.push(D.circulo(xR, 470, 10, { relleno: P.fondo, borde: P.tinta, grosor: 3, o: oR }));
     var rhatTxt = D.num(CG.rhat_max, 2);
-    s.push(D.texto(R.x(CG.rhat_max), 444, rhatTxt, { tam: 26, fuente: 'mono', ancla: 'middle', o: v(t, 38.9, t1), id: 'c1-rhat' }));
+    s.push(D.texto(R.x(CG.rhat_max), 444, rhatTxt, { tam: 40, fuente: 'mono', ancla: 'middle', o: v(t, t0 + 1.3, t1), id: 'c1-rhat' }));
     // ESS: del mínimo exigido al mínimo de la corrida.
-    var S = escala(PX + 20, PX + 820, 620, [0, 500], [0, 100, 200, 300, 400, 500], function (x) { return String(x); });
+    var S = escala(PX + 20, PX + 820, 660, [0, 500], [0, 100, 200, 300, 400, 500], function (x) { return String(x); });
     var oS = v(t, t0 + 0.6, t1);
-    s.push(D.texto(PX, 546, 'ESS mínimo', { tam: 26, o: oS, id: 'c1-ess-et' }));
-    s.push(D.rect(S.x(CG.ess_minimo), 600, S.x(500) - S.x(CG.ess_minimo), 20, { relleno: P.marca, o: 0.14 * oS }));
+    s.push(D.texto(PX, 586, 'ESS mínimo', { tam: 26, o: oS, id: 'c1-ess-et' }));
+    s.push(D.rect(S.x(CG.ess_minimo), 640, S.x(500) - S.x(CG.ess_minimo), 20, { relleno: P.marca, o: 0.14 * oS }));
     s.push(S.svg(oS));
-    s.push(D.linea(S.x(CG.ess_minimo), 596, S.x(CG.ess_minimo), 628, { color: P.marca, grosor: 3, o: oS }));
-    s.push(D.texto(S.x(CG.ess_minimo) - 10, 594, 'mínimo ' + CG.ess_minimo, { tam: 22, color: P.suave, ancla: 'end', o: oS, id: 'c1-elim' }));
-    var uS = E.mover(M.tramo(t, 39.3, 40.05));
+    s.push(D.linea(S.x(CG.ess_minimo), 636, S.x(CG.ess_minimo), 668, { color: P.marca, grosor: 3, o: oS }));
+    s.push(D.texto(S.x(CG.ess_minimo) - 10, 634, 'mínimo ' + CG.ess_minimo, { tam: 22, color: P.suave, ancla: 'end', o: oS, id: 'c1-elim' }));
+    var uS = E.mover(M.tramo(t, t0 + 1.7, t0 + 2.45));
     var xS = S.x(CG.ess_minimo + (CG.ess_min - CG.ess_minimo) * uS);
-    s.push(D.circulo(xS, 620, 10, { relleno: P.fondo, borde: P.tinta, grosor: 3, o: oS }));
+    s.push(D.circulo(xS, 660, 10, { relleno: P.fondo, borde: P.tinta, grosor: 3, o: oS }));
     var essTxt = D.num(CG.ess_min, 1);
-    s.push(D.texto(S.x(CG.ess_min) + 18, 594, essTxt, { tam: 26, fuente: 'mono', o: v(t, 40.1, t1), id: 'c1-ess' }));
+    s.push(D.texto(S.x(CG.ess_min) + 18, 634, essTxt, { tam: 40, fuente: 'mono', o: v(t, t0 + 2.5, t1), id: 'c1-ess' }));
     // El veredicto (43.0): no pasa; la prueba la salta y el manifiesto lo declara.
-    var oV = v(t, 43.0, t1);
-    s.push(cruz(PX + 4, 732, 22, oV));
-    s.push(D.texto(PX + 44, 742, 'no pasa', { tam: 30, peso: 600, o: oV, id: 'c1-veredicto' }));
-    s.push(D.texto(PX + 44, 790, 'validacion.gates.force: ' + String(CG.force), { tam: 24, fuente: 'mono', color: P.suave, o: v(t, 43.3, t1), id: 'c1-force' }));
+    var oV = v(t, TN.salta + 0.1, t1);
+    s.push(cruz(PX + 4, 768, 22, oV));
+    s.push(D.texto(PX + 44, 778, 'no pasa', { tam: 30, peso: 600, o: oV, id: 'c1-veredicto' }));
+    s.push(D.texto(PX + 44, 826, 'validacion.gates.force: ' + String(CG.force), { tam: 24, fuente: 'mono', color: P.suave, o: v(t, TN.salta + 0.3, t1), id: 'c1-force' }));
     c.svg(s);
-    if (t >= 40.1) {
+    if (t >= t0 + 2.5) {
       c.dato('rhat_texto', rhatTxt); c.dato('ess_texto', essTxt);
       c.dato('x_rhat', xR); c.dato('x_rlim', R.x(CG.rhat_limite)); c.dato('x_ess', xS); c.dato('x_elim', S.x(CG.ess_minimo));
     }
@@ -347,7 +364,7 @@
   }
 
   function pSoloPrior(t, c) {
-    var t0 = T_PASO.solo_prior + 0.1, t1 = fin('solo_prior');
+    var t0 = T_PASO.solo_prior + 0.15, t1 = fin('solo_prior');
     if (t < t0 || t > t1 + 0.3) return;
     var s = [encabezado(t, t0, t1, 'Ajuste solo con el ancla', 'dl_ajustar_solo_prior()', { id: 'sp' })];
     var oa = v(t, t0 + 0.3, t1), ob = v(t, t0 + 0.5, t1);
@@ -380,7 +397,7 @@
     });
   })();
   function pCascada(t, c) {
-    var t0 = T_PASO.cascada + 0.1, t1 = fin('cascada');
+    var t0 = T_PASO.cascada + 0.15, t1 = fin('cascada');
     if (t < t0 || t > t1 + 0.3) return;
     var s = [encabezado(t, t0, t1, 'La cascada subnacional', 'dl_cascada()', { id: 'cas' })];
     var oe = v(t, t0 + 0.3, t1);
@@ -391,13 +408,16 @@
     s.push(D.texto(xn + 10, 418, 'nacional ' + pct(CEL.val), { tam: 24, o: v(t, t0 + 0.42, t1), id: 'cas-nac' }));
     var n = 0;
     ENJAMBRE.forEach(function (pu, k) {
-      var od = M.entra(t, t0 + 0.5 + 0.05 * k, 0.3, E.entrarSuave) * v(t, t0, t1);
+      // Cada departamento sale de la línea nacional hacia su valor (EASE.mover, MS.heroe).
+      var tk = t0 + 0.6 + 0.04 * k;
+      var od = M.entra(t, tk, 0.15, E.entrarSuave) * v(t, t0, t1);
+      var um = E.mover(M.tramo(t, tk, tk + M.seg(M.MS.heroe)));
       if (od > 0) n++;
-      s.push(D.circulo(pu.x, yc + pu.dy, 9, { relleno: P.p, borde: P.superficie, grosor: 2, o: od }));
+      s.push(D.circulo(xn + (pu.x - xn) * um, yc + pu.dy * um, 9, { relleno: P.p, borde: P.superficie, grosor: 2, o: od }));
     });
     s.push(D.texto(PX, 728, 'prevalencia, mujeres de 70 a 74 años', { tam: 24, color: P.suave, o: v(t, t0 + 0.3, t1), id: 'cas-et' }));
-    var ren = 'renormalización: factores de ' + D.num(datos.cascada.renorm_min, 3) + ' a ' + D.num(datos.cascada.renorm_max, 3);
-    s.push(D.texto(PX, 776, ren, { tam: 24, color: P.suave, o: v(t, t0 + 0.55, t1), id: 'cas-ren' }));
+    var ren = 'renormalización: ' + D.num(datos.cascada.renorm_min, 3) + ' a ' + D.num(datos.cascada.renorm_max, 3);
+    s.push(D.texto(PX, 776, ren, { tam: 24, color: P.suave, o: v(t, t0 + 1.6, t1), id: 'cas-ren' }));
     c.svg(s);
     c.dato('departamentos_dibujados', n);
     c.dato('x_nacional', xn);
@@ -406,14 +426,16 @@
   }
 
   function pValidacion(t, c) {
-    var t0 = T_PASO.validacion + 0.1, t1 = fin('validacion');
+    var t0 = T_PASO.validacion + 0.15, t1 = fin('validacion');
     if (t < t0 || t > t1 + 0.3) return;
-    var s = [encabezado(t, t0, t1, 'Validación contra el ancla', 'dl_validar_ancla()', { id: 'val' })];
+    var tc2 = T_PASO.compuerta2;
+    var s = [encabezado(t, t0, tc2 - 0.5, 'Validación contra el ancla', 'dl_validar_ancla()', { id: 'val' }),
+             encabezado(t, tc2 + 0.15, t1, 'Compuerta 2 · error del ancla', 'error mediano ≤ ' + D.num(CG.err_maximo, 2) + '; el máximo va en la configuración', { id: 'c2', subSans: true })];
     var X = escala(PX + 20, PX + 860, 520, [0, 0.06], [0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06], function (x) { return D.num(x, 2); });
     var oe = v(t, t0 + 0.3, t1);
     s.push(D.texto(PX, 420, 'error relativo mediano de la prevalencia, ajuste frente al ancla', { tam: 24, color: P.suave, o: oe, id: 'val-et' }));
     // La compuerta 2 (60.4): el máximo y la zona que pasa.
-    var t2 = T_PASO.compuerta2 + 0.2;
+    var t2 = T_PASO.compuerta2 + 0.45;
     var oc = v(t, t2, t1);
     s.push(D.rect(X.x(0), 500, X.x(CG.err_maximo) - X.x(0), 20, { relleno: P.marca, o: 0.14 * oc }));
     s.push(X.svg(oe));
@@ -422,20 +444,61 @@
     var u = E.mover(M.tramo(t, t0 + 0.4, t0 + 1.15));
     s.push(D.circulo(X.x(CG.err_ancla * u), 520, 10, { relleno: P.fondo, borde: P.tinta, grosor: 3, o: oe }));
     var errTxt = D.num(CG.err_ancla, 3);
-    s.push(D.texto(X.x(CG.err_ancla), 488, errTxt, { tam: 26, fuente: 'mono', ancla: 'middle', o: v(t, t0 + 1.2, t1), id: 'val-err' }));
+    s.push(D.texto(X.x(CG.err_ancla), 488, errTxt, { tam: 40, fuente: 'mono', ancla: 'middle', o: v(t, t0 + 1.2, t1), id: 'val-err' }));
     var ov = v(t, t2 + 0.3, t1);
     s.push(check(PX + 2, 640, 24, ov));
     s.push(D.texto(PX + 44, 650, 'pasa: compuerta 2', { tam: 30, peso: 600, o: ov, id: 'val-pasa' }));
-    s.push(D.texto(PX + 44, 698, 'ni rapido = TRUE ni forzar = TRUE la saltan', { tam: 24, color: P.suave, o: v(t, t2 + 0.6, t1), id: 'val-nunca' }));
+    s.push(D.texto(PX + 44, 698, 'ni rapido ni forzar la saltan', { tam: 24, color: P.suave, o: v(t, t2 + 0.6, t1), id: 'val-nunca' }));
+    s.push(D.texto(PX, 780, 'también valida la incidencia implícita y la amplitud subnacional', { tam: 24, color: P.suave, o: v(t, t0 + 1.4, t1), id: 'val-mas' }));
     c.svg(s);
     if (t >= t0 + 1.2) { c.dato('err_texto', errTxt); c.dato('x_err', X.x(CG.err_ancla * u)); c.dato('x_max', X.x(CG.err_maximo)); }
     if (ov > 0) c.dato('pasa', true);
   }
 
+  // El factor de comorbilidad COMO_b por banda y sexo (dl_factor_comorbilidad(), con los insumos de la corrida).
+  var EC_COMO = 'COMO_b = AVD^{ancla}_b / (p^{ancla}_b \\sum_e \\pi_e DW_e)';
+  function pComorbilidad(t, c) {
+    var t0 = T_PASO.comorbilidad + 0.15, t1 = fin('comorbilidad');
+    if (t < t0 || t > t1 + 0.3) return;
+    var CM = datos.comorbilidad;
+    var s = [encabezado(t, t0, t1, 'Factor de comorbilidad', 'dl_factor_comorbilidad()', { id: 'como' })];
+    s.push(D.formula(EC_COMO, PX, 410, { tam: 38, o: v(t, t0 + 0.3, t1), id: 'como-ec', palabras: 5, ancho: 940, alto: 90 }));
+    var nb = CM.factor.length / 2;
+    var Y0 = 520, Y1 = 760, dom = [0.6, 1.1];
+    function yv(f) { return Y1 - (f - dom[0]) / (dom[1] - dom[0]) * (Y1 - Y0); }
+    function xb(j) { return PX + 60 + j * 46; }
+    var oe = v(t, t0 + 0.5, t1);
+    [0.6, 0.8, 1.0].forEach(function (g) {
+      s.push(D.linea(PX + 40, yv(g), PX + 60 + (nb - 1) * 46 + 20, yv(g), { color: g === 1 ? P.guia : P.rejilla, grosor: g === 1 ? 2 : 1.5, guiones: g === 1 ? '6 6' : null, o: oe }));
+      s.push(D.texto(PX + 30, yv(g) + 7, D.num(g, 1), { tam: 22, fuente: 'mono', color: P.suave, ancla: 'end', o: oe }));
+    });
+    var n = 0;
+    for (var k = 0; k < CM.factor.length; k++) {
+      var j = k % nb, hombre = CM.sexo[k] === 1;
+      var od = M.entra(t, t0 + 0.6 + 0.03 * j, 0.3, E.entrarSuave) * v(t, t0, t1);
+      s.push(hombre ? D.circulo(xb(j) - 7, yv(CM.factor[k]), 7, { relleno: P.fondo, borde: P.tinta, grosor: 2.5, o: od })
+                    : D.rect(xb(j) + 1, yv(CM.factor[k]) - 6, 12, 12, { relleno: P.tinta, radio: 2, o: od }));
+      if (od > 0) n++;
+    }
+    s.push(D.texto(xb(0), Y1 + 34, CM.banda_nombre[0], { tam: 22, fuente: 'mono', color: P.suave, ancla: 'middle', o: oe }));
+    s.push(D.texto(xb(nb - 1), Y1 + 34, CM.banda_nombre[nb - 1], { tam: 22, fuente: 'mono', color: P.suave, ancla: 'middle', o: oe }));
+    var ol = v(t, t0 + 1.0, t1), lx = PX + 60 + nb * 46 + 40;
+    s.push(D.circulo(lx + 8, 560, 7, { relleno: P.fondo, borde: P.tinta, grosor: 2.5, o: ol }));
+    s.push(D.texto(lx + 26, 568, 'hombres', { tam: 24, color: P.suave, o: ol, id: 'como-h' }));
+    s.push(D.rect(lx + 2, 594, 12, 12, { relleno: P.tinta, radio: 2, o: ol }));
+    s.push(D.texto(lx + 26, 608, 'mujeres', { tam: 24, color: P.suave, o: ol, id: 'como-m' }));
+    var mn = Math.min.apply(null, CM.factor), mx = Math.max.apply(null, CM.factor);
+    s.push(D.texto(lx, 680, 'de ' + D.num(mn, 2) + ' a ' + D.num(mx, 2), { tam: 28, fuente: 'mono', o: v(t, t0 + 1.15, t1), id: 'como-rango' }));
+    s.push(D.texto(lx, 716, 'por sexo y banda', { tam: 24, color: P.suave, o: v(t, t0 + 1.3, t1), id: 'como-et' }));
+    c.svg(s);
+    c.dato('como_puntos', n);
+    c.dato('como_rango', [mn, mx]);
+  }
+
   var SUB_P = { tp: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;text-decoration-skip-ink:none;' };
   var EC_AVD = 'AVD_{k,b} = \\htmlClass{tp}{p_{k,b}} \\times \\Big(\\sum_e \\pi_{k,e}\\, DW_{k,e}\\Big) \\times COMO_b';
   function pAvd(t, c) {
-    var t0 = T_PASO.avd + 0.1, t1 = fin('avd');
+    var t0 = T_PASO.avd + 0.15, t1 = fin('avd');
     if (t < t0 || t > t1 + 0.3) return;
     var A = datos.celdas.avd;
     var s = [encabezado(t, t0, t1, 'Años vividos con discapacidad', 'dl_avd()', { id: 'avd' })];
@@ -451,7 +514,7 @@
 
   // Las etiquetas: un cuadrito por celda (26 ubicaciones x 2 sexos x 12 bandas).
   function pEtiquetas(t, c) {
-    var t0 = T_PASO.etiquetas + 0.1, t1 = fin('etiquetas');
+    var t0 = T_PASO.etiquetas + 0.15, t1 = fin('etiquetas');
     if (t < t0 || t > t1 + 0.3) return;
     var EQ = datos.etiquetas, CP = datos.celdas.prevalencia;
     var s = [encabezado(t, t0, t1, 'Cuánto informan los datos', 'dl_etiquetas()', { id: 'et' })];
@@ -464,23 +527,26 @@
         if (of > 0) n++;
       }
     }
-    s.push(D.texto(PX, 750, CP.ubicaciones + ' ubicaciones × ' + CP.sexos + ' sexos × ' + CP.bandas + ' bandas', { tam: 24, color: P.suave, o: v(t, t0 + 1.1, t1), id: 'et-dim' }));
+    s.push(D.texto(PX, 750, CP.ubicaciones + ' ubicaciones, ' + CP.sexos + ' sexos, ' + CP.bandas + ' bandas', { tam: 24, color: P.suave, o: v(t, t0 + 0.12, t1), id: 'et-dim' }));
     var nombres = ['prior-driven', 'prior-informed', 'data-driven'];
     var lx = PX + cols * paso + 70;
     nombres.forEach(function (nm, j) {
-      var y = 420 + 56 * j, oj = v(t, t0 + 0.45 + 0.15 * j, t1);
+      var y = 420 + 56 * j, oj = v(t, t0 + 0.3 + 0.15 * j, t1);
       var cuenta = EQ.tabla[nm] || 0;
       s.push(D.rect(lx, y - 18, 18, 18, cuenta ? { relleno: P.guia, radio: 2, o: oj } : { borde: P.guia, grosor: 2, radio: 2, o: oj }));
       s.push(D.texto(lx + 32, y, nm, { tam: 26, fuente: 'mono', o: oj, id: 'et-n' + j }));
       s.push(D.texto(PDER, y, String(cuenta), { tam: 26, fuente: 'mono', ancla: 'end', o: oj, id: 'et-c' + j }));
     });
-    s.push(D.parrafo(lx, 600, PDER - lx, 'Sin datos en el ajuste, todas son prior-driven.', { tam: 26, o: v(t, t0 + 0.95, t1), id: 'et-nota', alto: 80 }));
+    s.push(D.parrafo(lx, 600, PDER - lx, 'Sin datos en el ajuste: todas prior-driven.', { tam: 26, o: v(t, t0 + 0.75, t1), id: 'et-nota', alto: 80 }));
+    // Las etiquetas se calculan en las celdas nacionales; las subnacionales heredan la de su celda nacional.
+    var hereda = EQ.nacionales + ' nacionales; las subnacionales heredan';
+    s.push(D.texto(lx, 730, hereda, { tam: 24, color: P.suave, o: v(t, t0 + 0.9, t1), id: 'et-hereda' }));
     c.svg(s);
     c.dato('cuadritos', n);
   }
 
   function pSensibilidad(t, c) {
-    var t0 = T_PASO.sensibilidad + 0.1, t1 = fin('sensibilidad');
+    var t0 = T_PASO.sensibilidad + 0.15, t1 = fin('sensibilidad');
     if (t < t0 || t > t1 + 0.3) return;
     var G = datos.sensibilidad;
     var s = [encabezado(t, t0, t1, 'Sensibilidad a $\\lambda$, $\\rho$ y $\\kappa$', 'dl_sensibilidad()', { id: 'sen', formula: true })];
@@ -512,12 +578,12 @@
       s.push(D.circulo(kx + j * (lado + sep) + lado / 2, y0 + lado / 2, lado / 2, corrida ? { relleno: P.marca, o: oc } : { relleno: P.superficie, borde: P.tinta, grosor: 2, o: oc }));
       if (oc > 0) nk++;
     });
-    var oL = v(t, t0 + 1.3, t1);
+    var oL = v(t, t0 + 0.95, t1);
     s.push(D.rect(kx, y0 + 2 * (lado + sep) + 8, 18, 18, { relleno: P.marca, radio: 3, o: oL }));
     s.push(D.texto(kx + 30, y0 + 2 * (lado + sep) + 24, 'la de la corrida', { tam: 24, color: P.suave, o: oL, id: 'sen-ley' }));
-    var resumen = n + ' ajustes y ' + nk + ' cascadas';
-    s.push(D.texto(PX, 740, G.lambda.length * G.rho.length + ' ajustes y ' + G.kappa.length + ' cascadas', { tam: 28, o: v(t, t0 + 1.5, t1), id: 'sen-n' }));
-    s.push(D.texto(PX, 782, 'diagnostics/sensibilidad.csv', { tam: 24, fuente: 'mono', color: P.suave, o: v(t, t0 + 1.62, t1), id: 'sen-csv' }));
+    var resumen = n + ' ajustes × ' + nk + ' valores de κ = ' + n * nk + ' cascadas';
+    s.push(D.texto(PX, 740, G.lambda.length * G.rho.length + ' ajustes × ' + G.kappa.length + ' κ = ' + G.lambda.length * G.rho.length * G.kappa.length + ' cascadas', { tam: 28, o: v(t, t0 + 1.2, t1), id: 'sen-n' }));
+    s.push(D.texto(PX, 782, 'diagnostics/sensibilidad.csv', { tam: 24, fuente: 'mono', color: P.suave, o: v(t, t0 + 1.4, t1), id: 'sen-csv' }));
     c.svg(s);
     c.dato('sens_dibujados', resumen);
     c.dato('rho_dibujados', G.rho);
@@ -525,36 +591,36 @@
   }
 
   function pResumen(t, c) {
-    var t0 = T_PASO.resumen + 0.1, t1 = fin('resumen');
+    var t0 = T_PASO.resumen + 0.15, t1 = fin('resumen');
     if (t < t0 || t > t1 + 0.3) return;
     var CP = datos.celdas.prevalencia;
     var s = [encabezado(t, t0, t1, 'Las celdas de la corrida', 'dl_resumir()', { id: 'res' })];
     var filas = [];
     datos.files.forEach(function (f, k) {
-      var y = 410 + 46 * k, o = v(t, t0 + 0.3 + 0.15 * k, t1);
+      var y = 410 + 46 * k, o = v(t, t0 + 0.15 + 0.15 * k, t1);
       s.push(D.texto(PX, y, 'cause/' + f.path + '/', { tam: 26, fuente: 'mono', o: o, id: 'res-f' + k }));
       s.push(D.texto(PX + 420, y, D.miles(f.rows) + ' filas', { tam: 26, color: P.suave, o: o, id: 'res-n' + k }));
       if (o > 0) filas.push(f.rows);
     });
-    s.push(D.texto(PX, 580, CP.ubicaciones + ' ubicaciones × ' + CP.sexos + ' sexos × ' + CP.bandas + ' bandas', { tam: 26, o: v(t, t0 + 0.8, t1), id: 'res-dim' }));
-    s.push(D.texto(PX, 654, 'prevalencia nacional, mujeres de 70 a 74 años', { tam: 24, color: P.suave, o: v(t, t0 + 1.1, t1), id: 'res-et' }));
+    s.push(D.texto(PX, 580, CP.ubicaciones + ' ubicaciones, ' + CP.sexos + ' sexos, ' + CP.bandas + ' bandas', { tam: 26, o: v(t, t0 + 0.62, t1), id: 'res-dim' }));
+    s.push(D.texto(PX, 654, 'prevalencia nacional, mujeres 70–74', { tam: 24, color: P.suave, o: v(t, t0 + 0.85, t1), id: 'res-et' }));
     var val = pct(CP.val);
-    s.push(D.circulo(PX + 10, 698, 9, { relleno: P.p, o: v(t, t0 + 1.22, t1) }));
-    s.push(D.texto(PX + 32, 712, val, { tam: 40, fuente: 'mono', o: v(t, t0 + 1.22, t1), id: 'res-val' }));
-    s.push(D.texto(PX + 32, 756, 'intervalo ' + pct(CP.lower) + ' a ' + pct(CP.upper), { tam: 24, color: P.suave, o: v(t, t0 + 1.34, t1), id: 'res-ic' }));
+    s.push(D.circulo(PX + 10, 698, 9, { relleno: P.p, o: v(t, t0 + 1.0, t1) }));
+    s.push(D.texto(PX + 32, 712, val, { tam: 40, fuente: 'mono', o: v(t, t0 + 1.0, t1), id: 'res-val' }));
+    s.push(D.texto(PX + 32, 756, 'intervalo ' + D.num(100 * CP.lower, 2) + '–' + pct(CP.upper), { tam: 24, color: P.suave, o: v(t, t0 + 1.15, t1), id: 'res-ic' }));
     c.svg(s);
     c.dato('res_filas', filas);
     c.dato('res_val', val);
   }
 
   function pCarpeta(t, c) {
-    var t0 = T_PASO.carpeta + 0.1, t1 = Infinity;
+    var t0 = T_PASO.carpeta + 0.15, t1 = Infinity;
     if (t < t0) return;
     var s = [encabezado(t, t0, t1, 'La carpeta de la corrida', 'dl_exportar_corrida()', { id: 'car' })];
     s.push(D.texto(PX, 404, datos.run_id + '/', { tam: 24, fuente: 'mono', o: v(t, t0 + 0.3), id: 'car-raiz' }));
     var total = 0;
     datos.arbol.forEach(function (a, k) {
-      var y = 452 + 44 * k, o = v(t, t0 + 0.42 + 0.15 * k);
+      var y = 452 + 44 * k, o = v(t, t0 + 0.5 + 0.15 * k);
       var manifiesto = a.nombre === 'manifest.yaml';
       s.push(D.linea(PX + 12, y - 52 + (k === 0 ? 12 : 0), PX + 12, y - 8, { color: P.guia, grosor: 2, o: o }));
       s.push(D.linea(PX + 12, y - 8, PX + 30, y - 8, { color: P.guia, grosor: 2, o: o }));
@@ -564,12 +630,13 @@
       if (o > 0) total += manifiesto ? 1 : a.archivos;
     });
     // Lo que declara el manifiesto: claves reales de manifest.yaml.
-    var MX = 1420, om = v(t, t0 + 1.3);
+    var MX = 1300, om = v(t, t0 + 1.3);
+    s.push(D.linea(PX + 270, 663, MX - 20, 663, { color: P.marca, grosor: 2, o: om }));
     s.push(D.rect(MX - 20, 420, PDER - MX + 20, 290, { relleno: P.superficie, borde: P.rejilla, grosor: 2, radio: 12, o: om }));
     var campos = [
-      'bundle_hash: ' + datos.bundle_hash.slice(0, 12) + '…',
-      'por_defecto: ' + datos.por_defecto.length + ' claves',
-      'gates.force: ' + String(datos.compuertas.force),
+      'inputs.bundle_hash: ' + datos.bundle_hash.slice(0, 8) + '…',
+      'configuracion.por_defecto: ' + datos.por_defecto.length + ' claves',
+      'validacion.gates.force: ' + String(datos.compuertas.force),
       'limitaciones: ' + datos.limitaciones.length,
       'decisiones: ' + [].concat(datos.decisiones).length,
     ];
@@ -577,7 +644,7 @@
     campos.forEach(function (cp, k) {
       s.push(D.texto(MX, 508 + 42 * k, cp, { tam: 22, fuente: 'mono', color: k === 2 ? P.tinta : P.suave, o: v(t, t0 + 1.45 + 0.12 * k), id: 'car-c' + k }));
     });
-    s.push(D.texto(PX, 790, 'inputs/contrato/ es un proyecto: con dl_proyecto() se repite la corrida.', { tam: 26, o: v(t, 85.6), id: 'car-rep' }));
+    s.push(D.texto(PX, 790, 'inputs/contrato/ es la carpeta de un proyecto: con ella se repite la corrida.', { tam: 26, o: v(t, t0 + 2.4), id: 'car-rep' }));
     c.svg(s);
     c.dato('archivos_dibujados', total);
     c.dato('campos', campos);
@@ -590,16 +657,16 @@
     llamada(t, c);
     lista(t, c);
     pInsumos(t, c); pAjuste(t, c); pCompuerta1(t, c); pSoloPrior(t, c); pCascada(t, c);
-    pValidacion(t, c); pAvd(t, c); pEtiquetas(t, c); pSensibilidad(t, c); pResumen(t, c); pCarpeta(t, c);
+    pValidacion(t, c); pComorbilidad(t, c); pAvd(t, c); pEtiquetas(t, c); pSensibilidad(t, c); pResumen(t, c); pCarpeta(t, c);
     c.svg(D.rotulo(t, NARRACION));
     c.svg(D.pie(datos.fuente));
   }
 
   var MARCAS = {
-    comandos: 2.0, contrato: 8.0, revision: 13.0, llamada: 17.5, camara: 18.9, pasos: 24.0,
-    insumos: 27.8, ajuste: 31.8, produccion: 36.5, compuerta1: 41.5, salta: 46.8, solo_prior: 51.0,
-    cascada: 55.4, validacion: 59.4, compuerta2: 64.0, avd: 68.8, etiquetas: 73.6, sensibilidad: 77.8,
-    resumen: 82.4, carpeta: 87.0, final: 89.9,
+    comandos: 2.0, contrato: 7.4, revision: 12.0, llamada: 15.6, camara: 16.5, pasos: 21.2,
+    insumos: 24.8, ajuste: 28.9, produccion: 33.3, compuerta1: 37.9, salta: 42.6, solo_prior: 46.8,
+    cascada: 51.1, validacion: 55.1, compuerta2: 59.7, comorbilidad: 63.6, avd: 67.7, etiquetas: 72.2,
+    sensibilidad: 77.2, resumen: 81.2, carpeta: 85.5, final: 89.9,
   };
 
   DL.escena({
@@ -664,6 +731,10 @@
           if ((e.x_err <= e.x_max) !== (CG.err_ancla <= CG.err_maximo)) return 'el punto está del lado equivocado del máximo';
           return (CG.err_ancla <= CG.err_maximo && e.pasa === true) || 'no pasa';
         }),
+        A.en('comorbilidad', 'un punto de COMO_b por sexo y banda (las celdas nacionales de las etiquetas)', function (e) {
+          if (e.como_puntos !== datos.etiquetas.nacionales) return e.como_puntos + ' puntos, ' + datos.etiquetas.nacionales + ' celdas nacionales';
+          return e.como_rango.every(function (f) { return f > 0.6 && f < 1.1; }) || 'un factor cae fuera de la escala 0.6-1.1';
+        }),
         A.en('etiquetas', 'un cuadrito por celda: ubicaciones de la revisión x sexos x bandas = las filas de la tabla de etiquetas', function (e) {
           var CP = datos.celdas.prevalencia, EQ = datos.etiquetas;
           var ub = datos.revision.tablas.filter(function (x) { return x.tabla === 'ubicaciones'; })[0].filas;
@@ -678,7 +749,9 @@
           if (JSON.stringify(e.rho_dibujados) !== JSON.stringify(aLista(pd['sensibilidad.correlacion_edad']))) return 'ρ ' + e.rho_dibujados;
           if (JSON.stringify(e.kappa_dibujados) !== JSON.stringify(aLista(pd['sensibilidad.kappa']))) return 'κ ' + e.kappa_dibujados;
           var G = datos.sensibilidad;
-          return e.sens_dibujados === G.lambda.length * G.rho.length + ' ajustes y ' + G.kappa.length + ' cascadas' || e.sens_dibujados;
+          var nf = G.lambda.length * G.rho.length, nk = G.kappa.length;
+          if (G.filas !== nf * nk * datos.celdas.prevalencia.sexos * datos.celdas.prevalencia.bandas) return 'sensibilidad.csv no tiene una fila por ajuste, κ, sexo y banda';
+          return e.sens_dibujados === nf + ' ajustes × ' + nk + ' valores de κ = ' + nf * nk + ' cascadas' || e.sens_dibujados;
         }),
         A.en('resumen', 'las filas de cada tabla de celdas son las del manifiesto y valen ubicaciones x sexos x bandas', function (e) {
           var f = datos.files.map(function (x) { return x.rows; });
@@ -689,10 +762,10 @@
         }),
         A.en('carpeta', 'el árbol dibujado suma todos los archivos de la corrida y el hash es el del manifiesto', function (e) {
           if (e.archivos_dibujados !== datos.n_archivos) return e.archivos_dibujados + ' de ' + datos.n_archivos;
-          return e.campos[0].indexOf(datos.bundle_hash.slice(0, 12)) >= 0 || 'hash';
+          return e.campos[0].indexOf(datos.bundle_hash.slice(0, 8)) >= 0 || 'hash';
         }),
       ];
-      ['insumos', 'ajuste', 'compuerta1', 'solo_prior', 'cascada', 'validacion', 'compuerta2', 'avd', 'etiquetas', 'sensibilidad', 'resumen', 'carpeta'].forEach(function (cl) {
+      ['insumos', 'ajuste', 'compuerta1', 'solo_prior', 'cascada', 'validacion', 'compuerta2', 'comorbilidad', 'avd', 'etiquetas', 'sensibilidad', 'resumen', 'carpeta'].forEach(function (cl) {
         lista.push(A.en(cl, 'la fila activa en «' + cl + '» es la de ese paso', function (e) {
           return e.activa === cl || 'activa: ' + e.activa;
         }));

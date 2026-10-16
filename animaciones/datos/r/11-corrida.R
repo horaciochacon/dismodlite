@@ -18,13 +18,14 @@ exportar <- function(ctx) {
                                                      filas = filas_de(x)))
 
   # ---- 2. La corrida de prueba, con sus mensajes ----
-  salida <- file.path(tempdir(), "escena-11")
-  unlink(salida, recursive = TRUE)
-  dir.create(salida, recursive = TRUE)
+  # La llamada que se muestra es exactamente la que corre: el ejemplo vive en la instalación del paquete, así que la
+  # corrida se escribe en tempdir() (sin carpeta_salida, dl_correr() se niega a escribir dentro del paquete).
+  salida <- tempdir()
+  unlink(file.path(salida, "mod"), recursive = TRUE)
   mensajes <- character()
   run <- withCallingHandlers(
-    suppressWarnings(dl_correr(dl_ejemplo(), causa = 9100, semilla = ctx$semilla, rapido = TRUE,
-                               carpeta_salida = salida)),
+    suppressWarnings(dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE,
+                               carpeta_salida = tempdir())),
     message = function(m) {
       mensajes <<- c(mensajes, sub("\n$", "", sub("^dl_correr\\(\\): ", "", conditionMessage(m))))
       invokeRestart("muffleMessage")
@@ -49,10 +50,13 @@ exportar <- function(ctx) {
          mensaje = NA, escena = "05"),
     list(clave = "cascada", llamada = "dl_cascada(", funcion = "dl_cascada()", mensaje = "cascada subnacional",
          escena = "09"),
+    # La validación y la compuerta del ancla no tienen escena propia en la serie: se explican aquí (11).
     list(clave = "validacion", llamada = "dl_validar_ancla(", funcion = "dl_validar_ancla()",
-         mensaje = "validación contra el ancla", escena = "05"),
+         mensaje = "validación contra el ancla", escena = "11"),
     list(clave = "compuerta2", llamada = ".dl_compuerta_ancla(", funcion = "compuerta 2: error del ancla",
-         mensaje = NA, escena = "05"),
+         mensaje = NA, escena = "11"),
+    list(clave = "comorbilidad", llamada = "dl_factor_comorbilidad(", funcion = "dl_factor_comorbilidad()",
+         mensaje = NA, escena = "10"),
     list(clave = "avd", llamada = "dl_avd(", funcion = "dl_avd()", mensaje = NA, escena = "10"),
     list(clave = "etiquetas", llamada = "dl_etiquetas(", funcion = "dl_etiquetas()", mensaje = "etiquetas",
          escena = "07"),
@@ -104,6 +108,17 @@ exportar <- function(ctx) {
          subnacional_nombre = sub$location_name[order(sub$val)])
   }
 
+  # El factor de comorbilidad COMO_b por sexo y banda: el ancla del ejemplo trae AVD, así que la corrida lo calculó
+  # (sin el mensaje «el ancla no trae AVD»). Se recalcula con los mismos insumos: es determinista.
+  if (any(grepl("el ancla no trae AVD", mensajes))) stop("la corrida no calculó el factor de comorbilidad")
+  como <- as.data.frame(dl_factor_comorbilidad(ctx$insumos()))
+  como <- como[order(como$sex_id, como$age_group_id), ]
+  prev <- leer("cause", "prevalence", paste0(run$run_id, ".csv"))
+  nombres <- unique(prev[, c("age_group_id", "age_group_name")])
+  comorbilidad <- list(sexo = como$sex_id, banda = como$age_group_id, factor = como$factor,
+                       banda_nombre = sub(" years$", "", nombres$age_group_name[match(como$age_group_id,
+                                                                                       nombres$age_group_id)]))
+
   # ---- 6. El árbol de la carpeta ----
   archivos <- list.files(d, recursive = TRUE)
   primer <- sub("/.*$", "", archivos)
@@ -113,7 +128,7 @@ exportar <- function(ctx) {
 
   list(
     fuente = "Corrida de prueba del ejemplo (datos sintéticos): dl_correr(rapido = TRUE, semilla = 1)",
-    llamada = "dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE)",
+    llamada = "dl_correr(dl_ejemplo(), causa = 9100, semilla = 1, rapido = TRUE, carpeta_salida = tempdir())",
     comandos = c("dl_nuevo_proyecto()", "dl_revisar_proyecto()", "dl_correr()"),
     revision = list(tablas = tablas, errores = sum(revision$estado == "error"),
                     avisos = sum(revision$estado == "aviso"), comprobaciones = nrow(revision)),
@@ -136,6 +151,7 @@ exportar <- function(ctx) {
                      tabla = as.list(table(etiquetas$etiqueta))),
     sensibilidad = list(lambda = sort(unique(grilla$lambda)), rho = sort(unique(grilla$rho[!is.na(grilla$rho)])),
                         kappa = sort(unique(grilla$kappa[!is.na(grilla$kappa)])), filas = nrow(sens)),
+    comorbilidad = comorbilidad,
     sensibilidad_corrida = list(lambda = m$params$lambda, rho = m$params$rho, kappa = m$params$kappa),
     celdas = list(prevalencia = celda("prevalence"), avd = celda("yld")),
     run_id = run$run_id,
