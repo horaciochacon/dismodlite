@@ -27,14 +27,14 @@
   var NARRACION = [
     [0.4, 5.9, 'El modelo da la prevalencia $p$ en cada edad simple $a$, de 30 a 99 años.'],
     [6.2, 10.9, 'La estimación de referencia, el ancla, viene en cambio por bandas de edad.'],
-    [12.3, 17.7, 'Para compararlas, el modelo promedia $p$ sobre las edades de cada banda, ponderadas por la población.'],
+    [12.3, 17.7, 'Para compararlas, se promedia $p$ en cada banda con pesos de población.'],
     [17.9, 24.4, '$N_{b(a)}$ es la población de la banda fina de la tabla de población que contiene la edad $a$.'],
     [24.7, 31.0, '$n_{b(a)}$ es el número de edades del modelo en esa banda: cinco, también en 95 y más.'],
     [31.3, 38.3, 'Caso 1: la banda del ancla [40, 45) cabe en una sola banda fina; sus cinco edades pesan igual.'],
     [38.6, 43.6, 'Su promedio $q$ es lo que se compara con el ancla de esa banda.'],
     [43.9, 50.6, 'Caso 2: de 50 a 65 años cruza tres quinquenios; $n_b$ se cancela y cada edad pesa según $N_b$.'],
     [50.9, 57.6, 'Caso 3: si la tabla trae 80 y más como una sola banda, esa banda tiene 20 edades del modelo.'],
-    [57.9, 64.6, 'En «60 y más», 80+ cuenta por su población, no por su población multiplicada por su número de edades.'],
+    [57.9, 64.6, 'En 60 y más, 80+ cuenta por su población, no por ella × sus 20 edades.'],
     [64.9, 72.0, 'Lo mismo vale para la incidencia y la mortalidad por la causa: solo cambia $x(a)$.'],
   ];
 
@@ -91,9 +91,9 @@
   var F_A = 'A = \\{a \\text{ entera} : \\text{inicio} \\le a < \\text{fin}\\}';
   var F_W = '\\displaystyle w_a = \\frac{N_{b(a)} / n_{b(a)}}{\\sum_{a\' \\in A} N_{b(a\')} / n_{b(a\')}}';
   var SUBRAYADO = {
-    ti: 'text-decoration:underline 4px ' + P.i + ';text-underline-offset:7px;',
-    tf: 'text-decoration:underline 4px ' + P.f + ';text-underline-offset:7px;',
-    tp: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;',
+    ti: 'text-decoration:underline 4px ' + P.i + ';text-underline-offset:7px;text-decoration-skip-ink:none;',
+    tf: 'text-decoration:underline 4px ' + P.f + ';text-underline-offset:7px;text-decoration-skip-ink:none;',
+    tp: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;text-decoration-skip-ink:none;',
   };
 
   // ---- Geometría ----
@@ -282,7 +282,11 @@
     }
     c.svg(pts);
     c.dato('puntos', dibujados);
-    if (dibujados) c.dato('p_ultimo', datos.p[dibujados - 1]);
+    if (dibujados) {
+      // Para la auditoría: dónde quedó el último punto, leído de vuelta del eje (pixel -> p).
+      c.dato('y_ultimo', G.y(datos.p[dibujados - 1]));
+      c.dato('eje', { arriba: G.arriba, alto: G.alto });
+    }
 
     // Leyenda del gráfico de p.
     var oL1 = M.visible(t, 1.0, Infinity), oL2 = M.visible(t, 6.4, Infinity);
@@ -318,29 +322,32 @@
     // El panel de población (desde 17.9 s).
     var oP = M.entra(t, 18.3, 0.4, E.entrarSuave);
     if (oP > 0) {
-      c.svg(G2.svg({ o: oP }));
+      // Al final, el panel de población baja al 40 %: lo que queda es la tabla.
+      var pan = [];
+      pan.push(G2.svg({ o: oP }));
       var u80 = M.entra(t, 52.2, M.seg(M.MS.heroe), E.mover);
       var oFuera = selO > 0 ? 1 - 0.65 * selO : 1;
-      c.svg(poblacionCajas(t, sel, u80, oFuera));
-      c.svg(rayas(M.entra(t, 24.9, 0.4, E.entrarSuave)));
+      pan.push(poblacionCajas(t, sel, u80, oFuera));
+      pan.push(rayas(M.entra(t, 24.9, 0.4, E.entrarSuave)));
       // n_b = 5 y la banda abierta.
       var oNb = M.visible(t, 25.3, 31.3);
-      c.svg(D.parrafo(G2.der, G2.arriba - 6, 520, '$n_{b(a)} = 5$ edades del modelo en cada banda', { tam: 24, ancla: 'end', o: oNb, id: 'nb', alto: 36 }));
+      pan.push(D.parrafo(G2.der, G2.arriba - 6, 520, '$n_{b(a)} = 5$ edades del modelo en cada banda', { tam: 24, ancla: 'end', o: oNb, id: 'nb', alto: 36 }));
       var o95 = M.visible(t, 26.4, 31.3);
       var x95 = G2.x(97.5), y95 = G2.y(datos.bandas.N[datos.bandas.N.length - 1] / 5);
-      c.svg(D.linea(x95, y95 - 8, x95, y95 - 70, { color: P.marca, grosor: 2, o: o95 }));
-      c.svg(D.parrafo(x95 - 12, y95 - 100, 300, '95 y más (abierta):\nedades 95 a 99', { tam: 22, ancla: 'end', o: o95, id: 'b95', alto: 64 }));
+      pan.push(D.linea(x95, y95 - 8, x95, y95 - 70, { color: P.marca, grosor: 2, o: o95 }));
+      pan.push(D.parrafo(x95 - 12, y95 - 100, 300, '95 y más (abierta):\nedades 95 a 99', { tam: 22, ancla: 'end', o: o95, id: 'b95', alto: 64 }));
       // Caso 3: 80+ fundida y el fantasma de su alto sin dividir por n_b (cuatro veces).
       if (u80 > 0) {
         var N80 = datos.bandas80.N[k80];
         var oG = M.visible(t, 53.2, 64.9);
         var yG = G2.y(N80 / 5), yB = G2.y(N80 / 20);
         c.dato('alto_fantasma', N80 / 5);
-        c.svg(D.rect(G2.x(80), yG, G2.x(A_FIN) - G2.x(80), yB - yG, { borde: P.suave, grosor: 2, guiones: '6 5', o: oG }));
-        c.svg(D.parrafo(G2.x(80) + 8, yG - 66, 340, 'sin dividir por $n_b$: ×4\n(20 edades frente a 5)', { tam: 22, color: P.suave, o: oG, id: 'fantasma', alto: 64 }));
-        c.svg(D.parrafo(G2.x(A_FIN) - 8, yB - 36, 200, '80+ · $n_b = 20$', { tam: 22, ancla: 'end', o: M.visible(t, 52.9, Infinity), id: 'b80', alto: 34 }));
+        pan.push(D.rect(G2.x(80), yG, G2.x(A_FIN) - G2.x(80), yB - yG, { borde: P.suave, grosor: 2, guiones: '6 5', o: oG }));
+        pan.push(D.parrafo(G2.x(80) + 8, yG - 66, 340, 'sin dividir por $n_b$: ×4\n(20 edades frente a 5)', { tam: 22, color: P.suave, o: oG, id: 'fantasma', alto: 64 }));
+        pan.push(D.parrafo(G2.x(A_FIN) - 8, yB - 36, 200, '80+ · $n_b = 20$', { tam: 22, ancla: 'end', o: M.visible(t, 52.9, Infinity), id: 'b80', alto: 34 }));
         c.dato('n80', pesos(30, A_FIN, datos.bandas80).nb[k80]);
       }
+      c.svg(D.grupo(pan, { o: 1 - 0.6 * M.entra(t, 65.6, 0.5, E.entrarSuave) }));
     }
 
     // La tarjeta de cada caso y, al final, la tabla de medidas.
@@ -416,9 +423,12 @@
     dibujar: dibujar,
     auditoria: function (A) {
       return [
-        A.en('puntos', 'los 70 puntos de p son la media posterior exportada, de 30 a 99', function (e) {
-          if (e.puntos !== n) return 'dibuja ' + e.puntos + ' puntos de ' + n;
-          return e.p_ultimo === datos.p[n - 1] || 'p(99) ' + e.p_ultimo;
+        A.en('puntos', 'una edad entera por punto, de edad_inicio a 99; p(a0) = 0; el último punto está en su lugar del eje', function (e) {
+          if (e.puntos !== 99 - datos.edad_inicio + 1) return 'dibuja ' + e.puntos + ' puntos';
+          for (var k = 0; k < n; k++) if (edades[k] !== datos.edad_inicio + k) return 'falta la edad ' + (datos.edad_inicio + k);
+          if (datos.p[0] !== 0) return 'p(a0) = ' + datos.p[0];
+          var pLeido = 0.22 * (e.eje.arriba + e.eje.alto - e.y_ultimo) / e.eje.alto;
+          return A.cerca(pLeido, datos.p[n - 1], 1e-9) || 'p(99) leído del eje ' + pLeido;
         }),
         A.en('poblacion', 'cada caja de población mide N_b / n_b, con n_b = 5 en toda la malla (también 95+)', function (e) {
           var B = datos.bandas, esperado = B.N.map(function (x) { return x / 5; });

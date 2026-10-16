@@ -89,6 +89,21 @@ El metodólogo confirmó como correctos:
 Las notas menores del diseñador (columna derecha vacía de 12.5 a 31.5 s; el 80+ y el 95 sobre la línea de 100 000)
 quedan como están. El segmento q del caso 3 ahora se queda con la tabla hasta el final.
 
+## Después de mover la base (`animaciones-metodologicas`, 8098d7d)
+
+- La base se fusionó con merge, sin rebase. La narración pasa a 42 px y debe caber en una línea. Se acortaron dos
+  frases:
+  - «Para compararlas, se promedia $p$ en cada banda con pesos de población.»
+  - «En 60 y más, 80+ cuenta por su población, no por ella × sus 20 edades.»
+- Lecciones de la escena 01 aplicadas a esta:
+  - el subrayado de los términos lleva `text-decoration-skip-ink:none`;
+  - la comprobación «puntos» ya no compara lo dibujado con el arreglo del que se dibujó. Ahora comprueba las edades
+    enteras consecutivas desde edad_inicio y p(a0) = 0, y lee de vuelta del eje (píxel → p) la posición del último
+    punto;
+  - el final aterriza: el panel de población baja al 40 % y quedan la curva, q y la tabla.
+- No hay ninguna transformación de ecuaciones animada. Las tres fórmulas se muestran tal cual de la guía y los
+  casos son instancias numéricas de w_a, que la auditoría verifica contra el paquete.
+
 ## (b) Sugerencias para la biblioteca compartida (no se tocó `lib/`)
 
 - `dibujo.js`:
@@ -128,6 +143,6 @@ Comprobaciones de la escena:
 
 ## (d) Tiempo de render
 
-El render completo tomó 152 s: 2160 cuadros en 124.9 s con 3 páginas, más ffmpeg y la hoja de contactos. La salida
+El render completo, tras la fusión, tomó 151 s: 2160 cuadros en 124.9 s con 3 páginas, más ffmpeg y la hoja de contactos. La salida
 es `salida/04-bandas/04-bandas.mp4`, de 2.0 MB. El ajuste del ejemplo, en `datos/exportar.R`, tarda unos 23 s.
 Guarda 800 simulaciones, no 1000; `dl_opciones_mcmc()` lo avisa.
