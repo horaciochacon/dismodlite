@@ -1,0 +1,475 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>06 · Los priors · dismodlite</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="stylesheet" href="../../lib/escena.css">
+<script src="../../lib/contrato.js"></script>
+<script src="../../lib/movimiento.js"></script>
+<script src="../../lib/dibujo.js"></script>
+<script src="../../datos/06-priors.js"></script>
+</head>
+<body>
+<script>
+// Escena 06: los priors (suavidad de log i y mortalidad en exceso). Guion: guion.md. Datos: datos/r/06-priors.R
+// (dl_prior_emr(), el prior en los nudos del paquete y la media posterior de dl_ajustar(), hombres).
+(function () {
+  'use strict';
+  var D = DL.dib, M = DL.mov, P = D.paleta, E = M.EASE;
+  var datos = DL_DATOS['06-priors'];
+  var nudos = datos.nudos, nk = nudos.length;
+  var bandas = datos.bandas, nb = bandas.age_start.length;
+  var K60 = nudos.indexOf(60);
+
+  // ---- Narración: cada línea dura al menos 0,3 s por palabra + 0,5 s ----
+  var NARRACION = [
+    [0.4, 5.8, 'La suavidad mira $\\log i$ en los siete nudos: aquí, la media posterior del ejemplo, en hombres.'],
+    [6.1, 11.9, '$D2_k$ es la segunda diferencia, nudo a nudo y sin dividir por la distancia entre nudos.'],
+    [12.2, 18.2, 'Cada $D2_k$ se compara con una normal de media 0 y desviación $\\sigma$ = 0.5 (por defecto).'],
+    [18.5, 25.0, 'Subir la curva o inclinarla, con el mismo paso por nudo, no cambia ninguna $D2_k$.'],
+    [25.3, 30.3, 'Nivel y pendiente los fija el ancla. Doblarla sí: solo se penaliza la curvatura.'],
+    [30.6, 35.0, 'Con un $\\sigma$ mayor, doblarla cuesta menos: la curva puede quebrarse más.'],
+    [35.6, 41.9, 'Solo muere por la causa quien la tiene, a la tasa $f$; en toda la población, $\\text{csmr} = f\\,p$.'],
+    [42.2, 48.4, 'De ahí $f = \\text{csmr}/p$: con $p$ y csmr por banda, el ancla da un prior de $f$ por banda.'],
+    [48.7, 56.2, 'Cada nudo toma su banda; el de 30 queda fuera y toma la más cercana, con el doble de $sd_{log}$.'],
+    [56.5, 62.3, '$L_{emr}$ suma la log-densidad de cada $\\log f_k$; la media posterior queda cerca del centro del prior.'],
+    [62.6, 67.4, 'Sobre el techo $f_{max}$ la log-posterior es $-\\infty$; en el ejemplo, 0.25 por persona-año.'],
+    [68.5, 73.5, 'Con el prior plano, $L_{emr} = 0$: $\\log f$ es uniforme entre $\\log f_{max} - \\log 1000$ y $\\log f_{max}$.'],
+    [73.8, 80.5, 'Con cero, $f(a) = 0$ y $\\theta$ es solo $\\log i$; con tabla, $\\mu_{log}$ y $sd_{log}$ vienen de una tabla del proyecto.'],
+  ];
+
+  // ---- Matemática de la escena (la de R/verosimilitud.R y R/emr.R) ----
+  var LOG_2PI = Math.log(2 * Math.PI);
+  function logN(x, mu, sd) { return -Math.log(sd) - 0.5 * LOG_2PI - (x - mu) * (x - mu) / (2 * sd * sd); }
+  // D2_k = (log i_k+2 - log i_k+1) - (log i_k+1 - log i_k): nudo a nudo, sin dividir por la distancia.
+  function segundas(v) {
+    var d = [];
+    for (var k = 0; k + 2 < v.length; k++) d.push((v[k + 2] - v[k + 1]) - (v[k + 1] - v[k]));
+    return d;
+  }
+  function lSuavidad(d2, sigma) { var s = 0; for (var k = 0; k < d2.length; k++) s += logN(d2[k], 0, sigma); return s; }
+
+  // El prior de cada nudo desde las bandas (como .dl_emr_en_nudos): la banda [inicio, fin) que lo contiene; fuera de
+  // la cobertura, la más cercana con la sd multiplicada por datos.sd_fuera.
+  var priorNudo = nudos.map(function (a) {
+    var b = -1;
+    for (var j = 0; j < nb; j++) if (bandas.age_start[j] <= a && a < bandas.age_end[j]) b = j;
+    var fuera = a < bandas.age_start[0] || a >= bandas.age_end[nb - 1];
+    if (b < 0) b = a < bandas.age_start[0] ? 0 : nb - 1;
+    return { banda: b, fuera: fuera, mu: bandas.mu_log[b], sd: bandas.sd_log[b] * (fuera ? datos.sd_fuera : 1) };
+  });
+  var L_EMR = 0;
+  for (var q = 0; q < nk; q++) L_EMR += logN(datos.log_f[q], priorNudo[q].mu, priorNudo[q].sd);
+
+  // Deformaciones ilustrativas de log i (en el pie): subir, inclinar con el mismo paso por nudo, doblar en 60.
+  var SUBIR = 0.8, PASO = 0.25, DOBLAR = 0.6;
+  function idaVuelta(t, t0) { return M.entra(t, t0, 0.9, E.mover) - M.entra(t, t0 + 1.8, 0.9, E.mover); }
+  function deformacion(t) {
+    return { s: idaVuelta(t, 18.8), p: idaVuelta(t, 22.0), d: M.entra(t, 26.8, 0.9, E.mover) };
+  }
+  function logIEn(u) {
+    return datos.log_i.map(function (v, k) { return v + SUBIR * u.s + PASO * u.p * (k - K60) + (k === K60 ? DOBLAR * u.d : 0); });
+  }
+  var D2_BASE = segundas(datos.log_i);
+  var D2_DOBLADA = segundas(logIEn({ s: 0, p: 0, d: 1 }));
+  var COSTO_05 = lSuavidad(D2_BASE, 0.5) - lSuavidad(D2_DOBLADA, 0.5);
+  var COSTO_1 = lSuavidad(D2_BASE, 1) - lSuavidad(D2_DOBLADA, 1);
+
+  // Formatos: menos tipográfico y punto decimal, como en la guía.
+  function fmt(x, d) { var s = D.num(Math.abs(x), d); return (x < 0 && Number(s) !== 0 ? '−' : '') + s; }
+
+  // ---- Las fórmulas: i, f y p con el subrayado de su color (las letras quedan en tinta) ----
+  var SUBRAYADO = {
+    ti: 'text-decoration:underline 4px ' + P.i + ';text-underline-offset:7px;',
+    tf: 'text-decoration:underline 4px ' + P.f + ';text-underline-offset:7px;',
+    tp: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;',
+  };
+  var LI = '\\log \\htmlClass{ti}{i}';
+  var TEX_SUAV = 'L_{suavidad} = \\sum_k \\log N(D2_k;\\ 0, \\sigma)';
+  var TEX_D2 = 'D2_k = (' + LI + '_{k+2} - ' + LI + '_{k+1}) - (' + LI + '_{k+1} - ' + LI + '_k)';
+  var TEX_CSMR = '\\text{csmr} = \\htmlClass{tf}{f}\\,\\htmlClass{tp}{p}';
+  var TEX_DEAHI = '\\Rightarrow\\quad \\htmlClass{tf}{f} = \\text{csmr}/\\htmlClass{tp}{p}';
+  var TEX_MU = '\\mu_{log} = \\log(\\text{csmr}) + \\log(1 - \\text{fracción aguda}) - \\log(\\htmlClass{tp}{p})';
+  var TEX_SD = 'sd_{log} = \\sqrt{\\sigma_{log,p}^2 + \\sigma_{log,\\text{csmr}}^2}';
+  var TEX_EMR = 'L_{emr} = \\sum_k \\log N(\\log \\htmlClass{tf}{f}_k;\\ \\mu_{log,k}, sd_{log,k})';
+
+  // ================= Parte 1: la suavidad =================
+  var G1 = D.ejes({
+    x: 170, y: 300, ancho: 760, alto: 480, id: 'logi',
+    xDom: [0.6, nk + 0.4], yDom: [-8.5, -2.5],
+    xTicks: nudos.map(function (a, k) { return k + 1; }), yTicks: [-8, -7, -6, -5, -4, -3],
+    xFormato: function (v) { return String(nudos[v - 1]); }, yFormato: function (v) { return fmt(v, 0); },
+    xTitulo: 'Edad del nudo (años): a la misma distancia, como los ve $D2_k$', yTitulo: '$\\log i$, con $i$ por persona-año',
+  });
+  var G2 = D.ejes({
+    x: 1110, y: 530, ancho: 560, alto: 280, id: 'd2',
+    xDom: [0.4, nk - 2 + 0.6], yDom: [-1.8, 1.8],
+    xTicks: [1, 2, 3, 4, 5], yTicks: [-1.5, -1, -0.5, 0, 0.5, 1, 1.5],
+    yFormato: function (v) { return fmt(v, 1); }, xTitulo: 'barra $k$: $D2_k$',
+  });
+  var BARRIDO = 7.4, PASO_BARRIDO = 0.6;   // un triplete de nudos cada 0,6 s
+
+  function puntoG1(k, v) { return [G1.x(k + 1), G1.y(v)]; }
+
+  function parteSuavidad(t, c, o) {
+    if (o <= 0) return;
+    var u = deformacion(t);
+    var li = logIEn(u);
+    var d2 = segundas(li);
+    var sigma = 0.5 + 0.5 * M.entra(t, 30.9, 1.0, E.mover);
+    var s = [];
+
+    // Gráfico de log i: la curva original queda en guía mientras se deforma.
+    s.push(G1.svg());
+    var cuanto = Math.max(Math.abs(u.s), Math.abs(u.p), u.d);
+    if (cuanto > 0.001) {
+      s.push(G1.curva(nudos.map(function (a, k) { return k + 1; }), datos.log_i, { color: P.guia, grosor: 3, o: Math.min(1, 3 * cuanto) }));
+    }
+    var xs = nudos.map(function (a, k) { return k + 1; });
+    s.push(G1.curva(xs, li, { color: P.i, grosor: 4 }));
+
+    // Barrido de D2_k: la recta de los nudos k y k+1 prolongada hasta k+2, y lo que se aparta (en la marca).
+    var kAct = Math.floor((t - BARRIDO) / PASO_BARRIDO);
+    if (t >= BARRIDO && kAct < nk - 2) {
+      var p0 = puntoG1(kAct, li[kAct]), ext = puntoG1(kAct + 2, 2 * li[kAct + 1] - li[kAct]), p2 = puntoG1(kAct + 2, li[kAct + 2]);
+      var uL = M.entra(t, BARRIDO + kAct * PASO_BARRIDO, 0.3, E.mover);
+      s.push(D.trazo([p0, ext], { color: P.suave, grosor: 2.5, guiones: '8 7', progreso: uL }));
+      s.push(D.linea(ext[0] + 16, ext[1], p2[0] + 16, p2[1], { color: P.marca, grosor: 4, o: uL }));
+      s.push(D.circulo(p2[0], p2[1], 17, { borde: P.marca, grosor: 3, o: uL }));
+    }
+    xs.forEach(function (x, k) { s.push(D.circulo(G1.x(x), G1.y(li[k]), 9, { relleno: P.i, borde: P.superficie, grosor: 3 })); });
+
+    // Rótulos de las deformaciones (valores ilustrativos).
+    s.push(D.parrafo(196, 354, 560, 'todo $\\log i$ + 0.8', { tam: 26, o: M.visible(t, 19.0, 21.4), id: 'def-subir', alto: 44 }));
+    s.push(D.parrafo(196, 354, 560, '+ 0.25 por nudo', { tam: 26, o: M.visible(t, 22.2, 24.6), id: 'def-inclinar', alto: 44 }));
+    s.push(D.parrafo(196, 354, 560, '+ 0.6 solo en el nudo de 60', { tam: 26, o: M.visible(t, 26.9, Infinity), id: 'def-doblar', alto: 44 }));
+
+    // Fórmulas.
+    s.push(D.formula(TEX_SUAV, 1040, 300, { tam: 34, o: M.visible(t, 6.2, Infinity), id: 'f-suav', palabras: 5 }));
+    s.push(D.formula(TEX_D2, 1040, 362, { tam: 32, o: M.visible(t, 6.6, Infinity), id: 'f-d2', palabras: 8, estilos: SUBRAYADO }));
+
+    // Barras de D2_k, con la franja ±σ y la densidad N(0, σ) de lado.
+    var oEjes = M.entra(t, 7.0, 0.4, E.entrarSuave);
+    s.push(G2.svg({ o: oEjes }));
+    var oSig = M.entra(t, 12.4, 0.4, E.entrarSuave);
+    if (oSig > 0) {
+      s.push(D.rect(G2.izq, G2.y(sigma), G2.ancho, G2.y(-sigma) - G2.y(sigma), { relleno: P.rejilla, o: 0.75 * oSig }));
+      s.push(D.parrafo(G2.der - 10, G2.y(-sigma) - 38, 120, '$\\pm\\sigma$', { tam: 24, color: P.suave, o: oSig, id: 'banda-sigma', seguir: true, alto: 36, ancla: 'end' }));
+      var dens = [];
+      for (var y = -1.8; y <= 1.8001; y += 0.05) dens.push([G2.der + 22 + 90 * (0.5 / sigma) * Math.exp(-y * y / (2 * sigma * sigma)), G2.y(y)]);
+      s.push(D.trazo(dens, { color: P.suave, grosor: 2.5, o: oSig }));
+      s.push(D.linea(G2.der + 22, G2.arriba, G2.der + 22, G2.abajo, { color: P.guia, grosor: 2, o: oSig }));
+      s.push(D.parrafo(G2.der + 18, G2.abajo + 14, 150, '$N(0, \\sigma)$', { tam: 24, color: P.suave, o: oSig, id: 'densidad', alto: 36 }));
+    }
+    s.push(D.linea(G2.izq, G2.y(0), G2.der, G2.y(0), { color: P.guia, grosor: 2, o: oEjes }));
+    var dibujadas = [];
+    for (var k = 0; k < nk - 2; k++) {
+      var t0 = BARRIDO + k * PASO_BARRIDO;
+      var ub = M.entra(t, t0 + 0.1, 0.4, E.entrar);
+      if (ub <= 0) continue;
+      var v = d2[k] * ub;
+      dibujadas.push(d2[k]);
+      var activa = t >= t0 && t < t0 + PASO_BARRIDO && t < BARRIDO + (nk - 2) * PASO_BARRIDO;
+      var y0 = G2.y(0), y1 = G2.y(v);
+      s.push(D.rect(G2.x(k + 1) - 22, Math.min(y0, y1), 44, Math.max(2, Math.abs(y1 - y0)), { relleno: activa ? P.marca : P.suave }));
+      s.push(D.texto(G2.x(k + 1), v >= 0 ? Math.min(y0, y1) - 10 : Math.max(y0, y1) + 28, fmt(d2[k], 3),
+        { fuente: 'mono', tam: 22, ancla: 'middle', o: M.visible(t, t0 + 0.3, Infinity), id: 'd2-' + (k + 1), seguir: true, palabras: 1 }));
+    }
+
+    // Lecturas: L_suavidad con σ = 0.5 (en vivo) y el costo de doblar con σ = 0.5 y con σ = 1.
+    var lAhora = lSuavidad(d2, 0.5);
+    s.push(D.parrafo(1040, 396, 760, '$L_{suavidad}$ con $\\sigma$ = 0.5: ' + fmt(lAhora, 2),
+      { tam: 26, o: M.visible(t, 13.0, Infinity), id: 'lect-suav', alto: 40 }));
+    s.push(D.parrafo(1040, 430, 760, 'Doblarla resta ' + D.num(COSTO_05, 2) + ' a $L_{suavidad}$ con $\\sigma$ = 0.5',
+      { tam: 26, o: M.visible(t, 28.0, Infinity), id: 'lect-costo', alto: 40 }));
+    s.push(D.parrafo(1040, 464, 600, 'con $\\sigma$ = 1, solo ' + D.num(COSTO_1, 2),
+      { tam: 26, o: M.visible(t, 32.1, Infinity), id: 'lect-costo-1', alto: 40 }));
+
+    c.svg(D.grupo(s, { o: o }));
+    c.dato('d2_dibujadas', dibujadas);
+    c.dato('log_i_dibujado', li);
+    c.dato('l_suav', lAhora);
+    c.dato('deform', u);
+    c.dato('sigma', sigma);
+  }
+
+  // ================= Parte 2: la mortalidad en exceso =================
+  var CAMARA = [67.5, 68.4];
+  var Y_TICKS = [0.1, 0.3, 1, 3, 10, 30, 100, 300];
+  function ejesF(t) {
+    var u = E.camara(M.tramo(t, CAMARA[0], CAMARA[1]));
+    var lo = Math.exp(M.lerp(Math.log(5), Math.log(0.1), u));
+    return D.ejes({
+      x: 170, y: 300, ancho: 820, alto: 500, id: 'f',
+      xDom: [28, 100], yDom: [lo, 600], yLog: true,
+      xTicks: [30, 40, 50, 60, 70, 80, 90, 100], yTicks: Y_TICKS.filter(function (v) { return v >= lo * 0.999; }),
+      yFormato: function (v) { return String(v); },
+      xTitulo: 'Edad (años)', yTitulo: '$f$, por 1000 personas-año con la enfermedad',
+    });
+  }
+  var MIL = 1000, Z95 = 1.96;
+  var T_NUDO = 48.9, PASO_NUDO = 0.45, T_NUDO30 = 52.2;
+  // Orden del barrido: los nudos dentro de las bandas (40 a 95) y, al final, el de 30.
+  var ORDEN = [];
+  nudos.forEach(function (a, k) { if (!priorNudo[k].fuera) ORDEN.push(k); });
+
+  // La media posterior de log f, lineal en la edad entre nudos y constante después del último (hasta 99).
+  function logFEn(a) {
+    if (a <= nudos[0]) return datos.log_f[0];
+    if (a >= nudos[nk - 1]) return datos.log_f[nk - 1];
+    for (var k = 0; k + 1 < nk; k++) {
+      if (a <= nudos[k + 1]) {
+        var w = (a - nudos[k]) / (nudos[k + 1] - nudos[k]);
+        return datos.log_f[k] + w * (datos.log_f[k + 1] - datos.log_f[k]);
+      }
+    }
+  }
+
+  function bigote(x, ylo, yhi, op) {
+    return D.linea(x, ylo, x, yhi, { color: op.color, grosor: op.grosor, o: op.o }) +
+      D.linea(x - 7, ylo, x + 7, ylo, { color: op.color, grosor: op.grosor, o: op.o }) +
+      D.linea(x - 7, yhi, x + 7, yhi, { color: op.color, grosor: op.grosor, o: op.o });
+  }
+  function rombo(x, y, r, op) {
+    return D.trazo([[x, y - r], [x + r, y], [x, y + r], [x - r, y]], { cerrar: true, relleno: P.superficie, color: op.color, grosor: 2.5, o: op.o });
+  }
+
+  function parteEmr(t, c) {
+    if (t < 35.4) return;
+    var G = ejesF(t);
+    c.defs(G.recorte());
+    c.defs('<pattern id="rayado" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">' +
+      '<line x1="0" y1="0" x2="0" y2="12" stroke="' + P.tinta + '" stroke-width="2.5" stroke-opacity="0.18"/></pattern>');
+    var enCero = M.entra(t, 74.2, 0.4, E.entrarSuave);               // con el prior cero no hay f: el gráfico baja
+    var plano = M.entra(t, 69.0, 0.4, E.entrarSuave);                 // con el prior plano no hay prior por banda
+    var aten = 1 - 0.75 * plano;
+    var atenTodo = 1 - 0.75 * enCero;
+
+    // Ejes.
+    var oEjes = M.entra(t, 36.6, 0.4, E.entrarSuave);
+    c.svg(G.svg({ o: oEjes }));
+    var recorte = [];
+
+    // Techo: rayado encima de f_max y la línea.
+    var fMax = datos.techo * MIL;
+    var oTecho = M.entra(t, 62.8, 0.4, E.entrarSuave) * atenTodo;
+    if (oTecho > 0) {
+      recorte.push(D.rect(G.izq, G.arriba, G.ancho, G.y(fMax) - G.arriba, { relleno: 'url(#rayado)', o: oTecho }));
+      recorte.push(D.linea(G.izq, G.y(fMax), G.der, G.y(fMax), { color: P.tinta, grosor: 2.5, o: oTecho }));
+      c.dato('techo_dibujado', G.y(fMax));
+      c.dato('techo', datos.techo);
+    }
+    // El prior plano: log f uniforme entre log f_max - log 1000 y log f_max.
+    var fMin = fMax / datos.plano_rango;
+    var oPlano = M.entra(t, 69.4, 0.5, E.entrarSuave) * atenTodo;
+    if (oPlano > 0) {
+      recorte.push(D.rect(G.izq, G.y(fMax), G.ancho, G.y(fMin) - G.y(fMax), { relleno: P.marca, o: 0.14 * oPlano }));
+      recorte.push(D.linea(G.izq, G.y(fMin), G.der, G.y(fMin), { color: P.marca, grosor: 2.5, o: oPlano, guiones: '10 8' }));
+      c.dato('piso_plano', fMin / MIL);
+    }
+
+    // Bandas del ancla: centro exp(mu_log) y su intervalo del 95 %, exp(mu_log ± 1.96 sd_log).
+    var resaltada = -1;
+    ORDEN.forEach(function (k, j) {
+      var tj = T_NUDO + j * PASO_NUDO;
+      if (t >= tj && t < tj + PASO_NUDO + 0.3) resaltada = priorNudo[k].banda;
+    });
+    if (t >= T_NUDO30 && t < T_NUDO30 + 1.6) resaltada = priorNudo[0].banda;
+    for (var b = 0; b < nb; b++) {
+      var ob = M.escalonado(t, 44.4, b, M.ESCALONADO.item, 0.4, E.entrarSuave) * aten * atenTodo;
+      if (ob <= 0) continue;
+      var x0 = G.x(bandas.age_start[b]), x1 = G.x(Math.min(bandas.age_end[b], 100));
+      var mu = bandas.mu_log[b], sd = bandas.sd_log[b];
+      var yhi = G.y(MIL * Math.exp(mu + Z95 * sd)), ylo = G.y(MIL * Math.exp(mu - Z95 * sd));
+      var res = b === resaltada;
+      recorte.push(D.rect(x0 + 2, yhi, x1 - x0 - 4, ylo - yhi, { relleno: P.superficie, borde: res ? P.marca : P.suave, grosor: res ? 3 : 2, o: ob }));
+      recorte.push(D.linea(x0 + 2, G.y(MIL * Math.exp(mu)), x1 - 2, G.y(MIL * Math.exp(mu)), { color: P.tinta, grosor: 3, o: ob, extremo: 'butt' }));
+    }
+
+    // El prior en cada nudo: guía vertical, bigote del 95 % y rombo en el centro.
+    var nudosDibujados = [];
+    function priorEnNudo(k, tk, oExtra) {
+      var o = M.entra(t, tk, 0.35, E.entrarSuave) * oExtra;
+      if (o <= 0) return;
+      var a = nudos[k], pr = priorNudo[k];
+      var x = G.x(a) - 9;
+      recorte.push(D.linea(G.x(a), G.arriba, G.x(a), G.abajo, { color: P.guia, grosor: 2, guiones: '5 7', o: o * aten }));
+      var crece = M.entra(t, tk, 0.5, E.mover);
+      var ymu = G.y(MIL * Math.exp(pr.mu));
+      var yhi = G.y(MIL * Math.exp(pr.mu + Z95 * pr.sd)), ylo = G.y(MIL * Math.exp(pr.mu - Z95 * pr.sd));
+      recorte.push(bigote(x, ymu + (ylo - ymu) * crece, ymu + (yhi - ymu) * crece, { color: P.tinta, grosor: 3, o: o * aten * atenTodo }));
+      recorte.push(rombo(x, ymu, 8, { color: P.tinta, o: o * aten * atenTodo }));
+      nudosDibujados.push({ nudo: a, mu: pr.mu, sd: pr.sd });
+    }
+    ORDEN.forEach(function (k, j) { priorEnNudo(k, T_NUDO + j * PASO_NUDO, 1); });
+    // El nudo de 30: la flecha desde la banda más cercana y el bigote del doble de alto.
+    var k30 = 0, b30 = priorNudo[k30].banda;
+    var uFl = M.entra(t, T_NUDO30, 0.8, E.mover);
+    var oFl = uFl > 0 ? M.visible(t, T_NUDO30, 62.6) * aten : 0;
+    if (oFl > 0) {
+      var yb = G.y(MIL * Math.exp(bandas.mu_log[b30]));
+      recorte.push(D.flecha((G.x(bandas.age_start[b30]) + G.x(bandas.age_end[b30])) / 2, yb - 4, G.x(30) + 4, yb - 26,
+        { color: P.marca, grosor: 3, curva: 26, progreso: uFl, o: oFl, cabeza: 12 }));
+    }
+    priorEnNudo(k30, T_NUDO30 + 0.7, 1);
+
+    // La media posterior de f (log f en los nudos, lineal en la edad entre ellos) y su intervalo del 95 %.
+    var oPost = M.entra(t, 57.6, 0.4, E.entrarSuave) * aten * atenTodo;
+    if (oPost > 0) {
+      var uC = M.tramo(t, 58.0, 59.6);   // lineal: la edad avanza a ritmo constante
+      var xsC = [], ysC = [];
+      for (var a = 30; a <= 30 + uC * (99 - 30) + 1e-9; a += 0.5) { xsC.push(a); ysC.push(MIL * Math.exp(logFEn(a))); }
+      if (xsC.length > 1) recorte.push(G.curva(xsC, ysC, { color: P.f, grosor: 3, o: oPost }));
+      for (var kk = 0; kk < nk; kk++) {
+        var xp = G.x(nudos[kk]) + 9;
+        recorte.push(bigote(xp, G.y(MIL * Math.exp(datos.log_f_lo[kk])), G.y(MIL * Math.exp(datos.log_f_hi[kk])), { color: P.f, grosor: 2.5, o: oPost }));
+        recorte.push(D.circulo(xp, G.y(MIL * Math.exp(datos.log_f[kk])), 7, { relleno: P.f, borde: P.superficie, grosor: 2, o: oPost }));
+      }
+      c.dato('log_f_dibujado', datos.log_f.slice());
+    }
+    c.svg('<g clip-path="url(#' + G.idRecorte + ')">' + recorte.join('') + '</g>');
+    c.dato('nudos_prior', nudosDibujados);
+
+    // Leyenda del gráfico (sale antes de la cámara).
+    var oLey = M.visible(t, 44.6, 67.45);
+    var LX = 600, LY = 706;
+    c.svg(D.rect(LX, LY + 8, 26, 18, { relleno: P.superficie, borde: P.suave, grosor: 2, o: oLey }));
+    c.svg(D.linea(LX, LY + 17, LX + 26, LY + 17, { color: P.tinta, grosor: 3, o: oLey, extremo: 'butt' }));
+    c.svg(D.parrafo(LX + 38, LY, 360, 'banda del ancla: $e^{\\mu_{log}}$ y su 95 %', { tam: 24, o: oLey, id: 'ley-banda', alto: 36 }));
+    var oLeyP = M.visible(t, 57.8, 67.45);
+    c.svg(D.circulo(LX + 13, LY + 57, 7, { relleno: P.f, o: oLeyP }));
+    c.svg(D.parrafo(LX + 38, LY + 40, 360, 'media posterior de $\\log f_k$ y su 95 %', { tam: 24, o: oLeyP, id: 'ley-post', alto: 36 }));
+    c.svg(D.parrafo(G.x(30) - 6, G.y(MIL * Math.exp(priorNudo[0].mu + Z95 * priorNudo[0].sd)) - 44, 300, '$sd_{log}$ × ' + datos.sd_fuera,
+      { tam: 24, o: M.visible(t, T_NUDO30 + 1.0, 62.6), id: 'sd-doble', alto: 36 }));
+
+    // Rótulos del techo (salen antes de la cámara).
+    var finTecho = 67.45;
+    c.svg(D.parrafo(G.der - 12, G.arriba + 18, 600, '$f > f_{max}$: log-posterior $= -\\infty$', { tam: 26, ancla: 'end', o: M.visible(t, 63.0, finTecho), id: 'techo-inf', alto: 40 }));
+    c.svg(D.parrafo(G.der - 12, G.y(fMax) + 8, 640, '$f_{max}$ = ' + D.num(datos.techo, 2) + ' por persona-año en el ejemplo',
+      { tam: 24, ancla: 'end', o: M.visible(t, 63.2, finTecho), id: 'techo-valor', alto: 36 }));
+    c.svg(D.parrafo(G.der - 12, G.y(fMax) + 40, 640, 'por defecto, ' + datos.factor_techo + ' × la mayor csmr/$p$ del ancla: ' + D.num(datos.techo_defecto, 3),
+      { tam: 24, ancla: 'end', o: M.visible(t, 63.4, finTecho), id: 'techo-defecto', alto: 36, color: P.suave }));
+    // Rótulos del prior plano.
+    c.svg(D.parrafo(G.der - 12, G.y(fMax) + 8, 400, '$\\log f_{max}$', { tam: 26, ancla: 'end', o: M.visible(t, 69.8, 74.1), id: 'plano-arriba', alto: 40 }));
+    c.svg(D.parrafo(G.der - 12, G.y(fMin) - 44, 500, '$\\log f_{max} - \\log 1000$', { tam: 26, ancla: 'end', o: M.visible(t, 70.0, 74.1), id: 'plano-abajo', alto: 40 }));
+
+    // Columna derecha: csmr = f p, el prior por banda y L_emr (sale con la cámara).
+    var X = 1120, fin = 67.45;
+    c.svg(D.formula(TEX_CSMR, X, 300, { tam: 40, o: M.visible(t, 35.8, fin), id: 'f-csmr', palabras: 3, estilos: SUBRAYADO }));
+    c.svg(D.parrafo(X, 338, 700, 'csmr: muertes por la causa por persona-año de toda la población', { tam: 24, color: P.suave, o: M.visible(t, 36.4, fin), id: 'csmr-que', alto: 36 }));
+    c.svg(D.formula(TEX_DEAHI, X + 236, 300, { tam: 40, o: M.visible(t, 42.3, fin), id: 'f-deahi', palabras: 3, estilos: SUBRAYADO }));
+    c.svg(D.formula(TEX_MU, X, 420, { tam: 30, o: M.visible(t, 43.2, fin), id: 'f-mu', palabras: 7, estilos: SUBRAYADO, ancho: 704 }));
+    c.svg(D.formula(TEX_SD, X, 476, { tam: 30, o: M.visible(t, 43.6, fin), id: 'f-sd', palabras: 4 }));
+    var sdIgual = bandas.sd_log.every(function (v) { return Math.abs(v - bandas.sd_log[0]) < 1e-12; });
+    c.svg(D.parrafo(X, 512, 704, 'En el ejemplo, fracción aguda = ' + datos.fraccion_aguda + ' y factor_sd = ' + datos.factor_sd +
+      (sdIgual ? ': $sd_{log}$ = ' + D.num(bandas.sd_log[0], 3) + ' en todas las bandas.' : '.'),
+      { tam: 24, color: P.suave, o: M.visible(t, 44.2, fin), id: 'nota-ejemplo', alto: 70 }));
+    c.svg(D.formula(TEX_EMR, X, 620, { tam: 34, o: M.visible(t, 56.7, fin), id: 'f-emr', palabras: 6, estilos: SUBRAYADO }));
+    c.svg(D.parrafo(X, 664, 704, 'con la media posterior: $L_{emr}$ = ' + fmt(L_EMR, 2), { tam: 26, o: M.visible(t, 59.4, fin), id: 'lect-emr', alto: 40 }));
+    c.dato('l_emr', L_EMR);
+
+    // Tarjetas de los otros priors (después de la cámara).
+    var TARJ = [
+      { clave: 'plano', t0: 68.9, y: 296, texto: '$L_{emr} = 0$ y solo el techo: $\\log f$ uniforme entre $\\log f_{max} - \\log 1000$ y $\\log f_{max}$.' },
+      { clave: 'cero', t0: 74.2, y: 448, texto: '$f(a) = 0$: $\\theta$ es solo $\\log i$ y $dp/da = i\\,(1 - p) - r\\,p$, sin $L_{emr}$ ni techo.' },
+      { clave: 'tabla', t0: 76.6, y: 600, texto: '$\\mu_{log,k}$ y $sd_{log,k}$ del tramo del nudo en la tabla prior_mortalidad_exceso, bajo el techo.' },
+    ];
+    TARJ.forEach(function (tj, j) {
+      var o = M.visible(t, tj.t0, Infinity);
+      if (o <= 0) return;
+      var sig = TARJ[j + 1] ? TARJ[j + 1].t0 : Infinity;
+      var activa = t >= tj.t0 && t < sig;
+      c.svg(D.rect(X, tj.y, 704, 132, { relleno: P.superficie, borde: activa ? P.marca : P.rejilla, grosor: activa ? 3 : 2, radio: 12, o: o }));
+      c.svg(D.texto(X + 24, tj.y + 38, 'mortalidad_exceso.prior: ' + tj.clave, { fuente: 'mono', tam: 24, color: activa ? P.marca : P.suave, peso: 500, o: o, id: 'clave-' + tj.clave, palabras: 1 }));
+      c.svg(D.parrafo(X + 24, tj.y + 54, 656, tj.texto, { tam: 26, o: M.visible(t, tj.t0 + 0.2, Infinity), id: 'tarjeta-' + tj.clave, alto: 76 }));
+    });
+  }
+
+  function dibujar(t, c) {
+    c.defs(G1.recorte());
+    c.defs(G2.recorte());
+    c.svg(D.cabecera(6, 11, 'Los priors: suavidad y mortalidad en exceso', { funcion: 'dl_prior_emr()' }));
+    parteSuavidad(t, c, M.visible(t, -1, 35.0, { entrada: 0 }));
+    parteEmr(t, c);
+    c.svg(D.rotulo(t, NARRACION));
+    c.svg(D.pie(datos.fuente));
+  }
+
+  DL.escena({
+    id: '06-priors',
+    titulo: 'Los priors: suavidad y mortalidad en exceso',
+    duracion: 82.5, fps: 30,
+    marcas: {
+      inicio: 3.0, d2: 11.2, sigma_banda: 16.5, subir: 20.1, inclinar: 23.3, doblar: 28.5, sigma: 33.5,
+      csmr: 40.5, bandas: 47.5, nudos: 55.5, posterior: 61.5, techo: 66.5, plano: 72.5, alternativas: 79.0,
+    },
+    camaras: [CAMARA],
+    dibujar: dibujar,
+    auditoria: function (A) {
+      function igualesD2(e, ref, tol) {
+        if (!e.d2_dibujadas || e.d2_dibujadas.length !== ref.length) return 'dibuja ' + (e.d2_dibujadas || []).length + ' D2 de ' + ref.length;
+        for (var k = 0; k < ref.length; k++) {
+          if (!A.cerca(e.d2_dibujadas[k], ref[k], tol)) return 'D2_' + (k + 1) + ' dibujada ' + e.d2_dibujadas[k] + ' frente a ' + ref[k];
+        }
+        return true;
+      }
+      return [
+        A.en('d2', 'las D2 dibujadas son las segundas diferencias del log i exportado y las de R', function (e) {
+          var r = igualesD2(e, segundas(datos.log_i), 1e-15);
+          return r !== true ? r : igualesD2(e, datos.d2, 1e-12);
+        }),
+        A.en('sigma_banda', 'L_suavidad de la escena es la de R (σ = 0.5)', function (e) {
+          return A.cerca(e.l_suav, datos.l_suavidad, 1e-9) || 'L_suavidad ' + e.l_suav + ' frente a ' + datos.l_suavidad;
+        }),
+        A.en('subir', 'subir log i no cambia las D2 ni L_suavidad', function (e) {
+          if (!(e.deform.s > 0.99)) return 'la curva no está subida (u = ' + e.deform.s + ')';
+          if (A.cerca(e.log_i_dibujado[0], datos.log_i[0], 1e-6)) return 'log i dibujado sin subir';
+          var r = igualesD2(e, datos.d2, 1e-12);
+          return r !== true ? r : (A.cerca(e.l_suav, datos.l_suavidad, 1e-9) || 'L_suavidad cambia: ' + e.l_suav);
+        }),
+        A.en('inclinar', 'inclinar log i con el mismo paso por nudo no cambia las D2 ni L_suavidad', function (e) {
+          if (!(e.deform.p > 0.99)) return 'la curva no está inclinada (u = ' + e.deform.p + ')';
+          var r = igualesD2(e, datos.d2, 1e-12);
+          return r !== true ? r : (A.cerca(e.l_suav, datos.l_suavidad, 1e-9) || 'L_suavidad cambia: ' + e.l_suav);
+        }),
+        A.en('doblar', 'doblar en 60 cambia D2_2, D2_3 y D2_4 en +0.6, -1.2 y +0.6', function (e) {
+          var esperado = [0, DOBLAR, -2 * DOBLAR, DOBLAR, 0];
+          for (var k = 0; k < 5; k++) {
+            if (!A.cerca(e.d2_dibujadas[k] - datos.d2[k], esperado[k], 1e-12)) return 'D2_' + (k + 1) + ' cambia ' + (e.d2_dibujadas[k] - datos.d2[k]);
+          }
+          return true;
+        }),
+        A.en('sigma', 'σ llega a 1 y el costo de doblar baja con σ', function (e) {
+          return (A.cerca(e.sigma, 1, 1e-12) && COSTO_1 < COSTO_05) || 'σ = ' + e.sigma;
+        }),
+        A.en('nudos', 'el prior de cada nudo es el del paquete (.dl_ctx_emr), y el nudo 30 lleva sd × 2', function (e) {
+          if (e.nudos_prior.length !== nk) return 'dibuja ' + e.nudos_prior.length + ' nudos de ' + nk;
+          for (var j = 0; j < nk; j++) {
+            var x = e.nudos_prior[j], k = nudos.indexOf(x.nudo);
+            if (!A.cerca(x.mu, datos.nudo_mu_log[k], 1e-12) || !A.cerca(x.sd, datos.nudo_sd_log[k], 1e-12)) {
+              return 'nudo ' + x.nudo + ': mu ' + x.mu + ' sd ' + x.sd + ' frente a ' + datos.nudo_mu_log[k] + ', ' + datos.nudo_sd_log[k];
+            }
+          }
+          var p30 = priorNudo[0];
+          return (p30.fuera && A.cerca(p30.sd, 2 * bandas.sd_log[0], 1e-12)) || 'el nudo 30 no lleva sd × 2';
+        }),
+        A.en('posterior', 'L_emr calculada desde lo dibujado es la de R', function (e) {
+          if (!e.log_f_dibujado) return 'no dibuja la posterior';
+          return A.cerca(e.l_emr, datos.l_emr, 1e-9) || 'L_emr ' + e.l_emr + ' frente a ' + datos.l_emr;
+        }),
+        A.en('techo', 'el techo dibujado es el de los insumos (0.25)', function (e) {
+          return (e.techo === datos.techo && A.cerca(datos.techo, 0.25, 1e-15)) || 'techo ' + e.techo;
+        }),
+        A.en('plano', 'el piso del prior plano es f_max / 1000', function (e) {
+          return A.cerca(e.piso_plano, datos.techo / 1000, 1e-15) || 'piso ' + e.piso_plano;
+        }),
+      ];
+    },
+  });
+})();
+</script>
+</body>
+</html>
