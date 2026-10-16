@@ -1,0 +1,733 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>03 · Cómo se resuelve la ecuación · dismodlite</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="stylesheet" href="../../lib/escena.css">
+<script src="../../lib/contrato.js"></script>
+<script src="../../lib/movimiento.js"></script>
+<script src="../../lib/dibujo.js"></script>
+<script src="../../lib/modelo.js"></script>
+<script src="../../datos/03-rk4.js"></script>
+</head>
+<body>
+<script>
+// Escena 03: cómo se resuelve la ecuación (RK4). Guion: guion.md. Datos: datos/r/03-rk4.R (dl_edo_resolver()).
+(function () {
+  'use strict';
+  var D = DL.dib, M = DL.mov, P = D.paleta, E = M.EASE, MOD = DL.modelo;
+  var datos = DL_DATOS['03-rk4'];
+  var X = datos.exacto;
+  function num17(a) { return a.map(Number); }
+  // Las mallas y el paso con 17 cifras (el mismo double que en R).
+  var I_MEDIA = num17(X.i_media), F_MEDIA = num17(X.f_media), P_MALLA = num17(X.p_malla);
+  var NSUB = datos.nsub, H = datos.h, A0 = datos.edad_inicio;
+  var EDADES_MALLA = P_MALLA.map(function (_, k) { return datos.edades_media[2 * k]; });
+
+  // El paso n = 151 (base 1), de a = 60 a a + h = 60.2: j = 2n - 1 = 301 en la malla h/2 (base 1); base 0, 300.
+  var PASO = datos.paso;
+  var J0 = PASO.j - 1, N0 = PASO.n - 1;
+  // Las cuatro etapas, calculadas aquí con DL.modelo.pasoRk4 (las mismas operaciones que dl_edo_resolver()).
+  var ETAPA = MOD.pasoRk4(P_MALLA[N0], J0, I_MEDIA, F_MEDIA, datos.remision, NSUB);
+  var K = [ETAPA.k1, ETAPA.k2, ETAPA.k3, ETAPA.k4];
+  var KMEDIA = (ETAPA.k1 + 2 * ETAPA.k2 + 2 * ETAPA.k3 + ETAPA.k4) / 6;
+  var A_ = PASO.a, AM = PASO.a_medio, AF = PASO.a_fin;
+
+  var PRE = datos.precision, EST = datos.estabilidad;
+  var ERROR_MAX = Number(X.error_max);
+
+  // 8.5 × 10^-11: mantisa con una cifra decimal y exponente.
+  function cientifico(x) {
+    var e = Math.floor(Math.log10(x)), m = x / Math.pow(10, e);
+    if (Number(m.toFixed(1)) >= 10) { e += 1; m = x / Math.pow(10, e); }
+    return { m: m.toFixed(1), e: e, tex: m.toFixed(1) + ' \\times 10^{' + e + '}' };
+  }
+  var ERR = cientifico(ERROR_MAX);
+  // k h con k = i + r + f (1 - 2p) (aquí f = 0): 3.01 y 1.505. dl_insumos() comprueba otra cosa, (max r + techo de f) h,
+  // sin i: 3.00 y 1.5 (su mensaje lo dice).
+  var KH5 = (EST.i + EST.r + EST.f) / 5, KH10 = (EST.i + EST.r + EST.f) / 10;
+  function fmtKh(x) { return String(Number(x.toPrecision(4))); }
+  var LIM_RK4 = EST.limite_rk4.toFixed(3);
+
+  // ---- Narración: una línea por vez; cada una dura al menos 0,3 s por palabra + 0,5 s ----
+  var NARRACION = [
+    [0.4, 4.6, 'La ecuación de $p$ se integra con Runge-Kutta de orden 4 (RK4).'],
+    [4.9, 9.2, 'Desde $p(a_0) = 0$, avanza en pasos de $h = 1/n_{sub}$ = 0.2 años.'],
+    [9.5, 13.9, 'Veamos de cerca un solo paso, de $a$ = 60 a $a + h$.'],
+    [14.2, 19.0, 'Las tasas se toman de la malla $h/2$: en $a$, $a + h/2$ y $a + h$.'],
+    [19.3, 22.9, '$k_1$ es la pendiente en $a$, con $p_1 = p(a)$.'],
+    [23.2, 27.8, '$k_2$ y $k_3$, en $a + h/2$, con las predicciones $p_2$ y $p_3$.'],
+    [28.1, 31.7, '$k_4$, en $a + h$, con la predicción de paso entero $p_4$.'],
+    [32.0, 36.6, 'Con pesos 1, 2, 2 y 1, $p_1 + h \\cdot \\text{promedio}$ es el $p$ del paquete.'],
+    [39.0, 43.4, 'Cinco pasos por año: las edades enteras son uno de cada cinco puntos.'],
+    [43.7, 47.9, 'Con $i$, $f$ constantes, $r = 0$ y $p(a_0) = 0$, hay solución exacta.'],
+    [48.2, 52.0, 'Frente a ella, el error relativo máximo de RK4 es $' + ERR.tex + '$.'],
+    [52.3, 55.4, 'Muchísimo menor que la incertidumbre de cualquier estimación.'],
+    [55.7, 59.6, 'Linealizada, una perturbación de $p$ decae al ritmo $k = i + r + f\\,(1 - 2p)$.'],
+    [59.9, 64.0, 'RK4 es estable si $k\\,h < ' + LIM_RK4 + '$; dl_insumos() acota $(\\max r + \\text{techo de } f)\\,h$ a 2.5.'],
+    [64.3, 68.9, 'Con una remisión alta, $k\\,h$ = ' + fmtKh(KH5) + ' y $p$ se vuelve negativa.'],
+    [69.2, 73.4, 'Por eso dl_insumos() se detiene y pide más pasos por año.'],
+    [73.7, 80.0, 'Así resuelve dl_edo_resolver() la ecuación: cuatro pendientes por paso.'],
+  ];
+
+  // Movimientos de cámara: el zoom al paso de 60 a 60.2 y la salida a un año de pasos.
+  var CAM1 = [10.4, 12.9], CAM2 = [36.9, 39.0];
+
+  // ---- Fórmulas: cada tasa subrayada con su color; las pendientes, con el de la marca ----
+  function subrayado(color) {
+    return 'text-decoration:underline 4px ' + color + ';text-underline-offset:7px;text-decoration-skip-ink:none;';
+  }
+  var SUB = { ti: subrayado(P.i), tf: subrayado(P.f), tr: subrayado(P.suave), tk: subrayado(P.marca) };
+  var EC_P = '\\frac{dp}{da} = \\htmlClass{ti}{i}\\,(1 - p) - \\htmlClass{tr}{r}\\,p - \\htmlClass{tf}{f}\\,p\\,(1 - p)';
+  var ETAPAS_TEX = [
+    '\\htmlClass{tk}{k_1} = F(a,\\ p_1), \\quad p_1 = p(a)',
+    '\\htmlClass{tk}{k_2} = F(a + h/2,\\ p_2), \\quad p_2 = p_1 + \\tfrac{h}{2}\\,k_1',
+    '\\htmlClass{tk}{k_3} = F(a + h/2,\\ p_3), \\quad p_3 = p_1 + \\tfrac{h}{2}\\,k_2',
+    '\\htmlClass{tk}{k_4} = F(a + h,\\ p_4), \\quad p_4 = p_1 + h\\,k_3',
+  ];
+  var ETAPAS_T = [19.5, 23.4, 25.5, 28.3];   // entrada de cada etapa
+  var PASO_TEX = 'p(a + h) = p(a) + \\frac{h}{6}\\,(\\htmlClass{tk}{k_1} + 2\\htmlClass{tk}{k_2} + 2\\htmlClass{tk}{k_3} + \\htmlClass{tk}{k_4})';
+  var EXACTA_TEX = 'p(t) = \\frac{\\htmlClass{ti}{i}\\,(E - 1)}{\\htmlClass{ti}{i}\\,E - \\htmlClass{tf}{f}}';
+  var E_TEX = 'E = e^{(\\htmlClass{ti}{i} - \\htmlClass{tf}{f})\\,t}, \\quad t = a - a_0';
+  var K_TEX = 'k = \\htmlClass{ti}{i} + \\htmlClass{tr}{r} + \\htmlClass{tf}{f}\\,(1 - 2p)';
+  var LIM_TEX = '\\text{estable si } k\\,h < ' + LIM_RK4;
+
+  // ---- Ejes con dominio variable (para el zoom) ----
+  // Marcas «redondas» de un dominio [lo, hi]: paso 1, 2 o 5 por una potencia de 10, unas 4 o 5 marcas.
+  function pasoRedondo(ancho, n) {
+    var bruto = ancho / n, e = Math.pow(10, Math.floor(Math.log10(bruto))), r = bruto / e;
+    return (r < 1.5 ? 1 : (r < 3.5 ? 2 : (r < 7.5 ? 5 : 10))) * e;
+  }
+  function marcas(lo, hi, paso) {
+    var s = [], k0 = Math.ceil(lo / paso - 1e-9), k1 = Math.floor(hi / paso + 1e-9);
+    for (var k = k0; k <= k1; k++) s.push(Number((k * paso).toPrecision(12)));
+    return s;
+  }
+  function decimales(paso) { return Math.max(0, -Math.floor(Math.log10(paso) + 1e-9)); }
+  function pct(v, paso) { return (v * 100).toFixed(decimales(paso * 100)).replace('-', '−') + ' %'; }
+
+  // panel(r, xd, yd, op): r = {x, y, w, h} (área de datos), xd e yd dominios. op: o, oEtiq (las etiquetas de las
+  // marcas), xFmt, yFmt, xPaso, yPaso, sinX (sin etiquetas en x). Devuelve {x(v), y(v), svg, r}.
+  function panel(r, xd, yd, op) {
+    op = op || {};
+    function x(v) { return r.x + (v - xd[0]) / (xd[1] - xd[0]) * r.w; }
+    function y(v) { return r.y + r.h - (v - yd[0]) / (yd[1] - yd[0]) * r.h; }
+    var o = op.o === undefined ? 1 : op.o, oe = (op.oEtiq === undefined ? 1 : op.oEtiq) * o;
+    var oex = op.oEtiqX === undefined ? oe : op.oEtiqX * o;
+    var s = [];
+    if (o > 0.001) {
+      var yp = op.yPaso || pasoRedondo(yd[1] - yd[0], 4), xp = op.xPaso || pasoRedondo(xd[1] - xd[0], 5);
+      marcas(yd[0], yd[1], yp).forEach(function (v) {
+        s.push(D.linea(r.x, y(v), r.x + r.w, y(v), { color: P.rejilla, grosor: 1.5, o: o }));
+        s.push(D.texto(r.x - 14, y(v), (op.yFmt || String)(v, yp), { tam: D.tam.eje, color: P.suave, ancla: 'end', base: 'middle', o: oe }));
+      });
+      s.push(D.linea(r.x, r.y + r.h, r.x + r.w, r.y + r.h, { color: P.guia, grosor: 2, o: o }));
+      if (!op.sinX) {
+        marcas(xd[0], xd[1], xp).forEach(function (v) {
+          s.push(D.linea(x(v), r.y + r.h, x(v), r.y + r.h + 8, { color: P.guia, grosor: 2, o: o }));
+          s.push(D.texto(x(v), r.y + r.h + 36, (op.xFmt || String)(v, xp), { tam: D.tam.eje, color: P.suave, ancla: 'middle', o: oex }));
+        });
+      }
+    }
+    return { x: x, y: y, svg: s.join(''), r: r };
+  }
+  function recorte(id, r) {
+    return '<clipPath id="' + id + '"><rect x="' + (r.x - 6) + '" y="' + (r.y - 6) + '" width="' + (r.w + 12) + '" height="' + (r.h + 12) + '"/></clipPath>';
+  }
+  function recortado(id, s) { return '<g clip-path="url(#' + id + ')">' + s + '</g>'; }
+
+  // Zoom geométrico de un dominio a otro: el ancho se interpola en escala log y el valor foco pasa de su fracción
+  // en el primero a su fracción en el segundo.
+  function zoomDom(d0, d1, foco, u) {
+    var w0 = d0[1] - d0[0], w1 = d1[1] - d1[0];
+    var w = Math.exp(Math.log(w0) * (1 - u) + Math.log(w1) * u);
+    var phi = M.lerp((foco - d0[0]) / w0, (foco - d1[0]) / w1, u);
+    return [foco - phi * w, foco - phi * w + w];
+  }
+
+  // Los tres estados del gráfico de p: toda la edad, el paso (arriba, a la mitad del alto) y un año.
+  var GP = { x: 1010, y: 280, w: 790 };
+  var EST0 = { xd: [30, 99], yd: [0, 0.10], h: 520 };
+  var EST1 = { xd: [59.94, 60.26], yd: [0.0306, 0.0314], h: 220 };
+  var EST2 = { xd: [59.85, 61.15], yd: [0.0302, 0.0334], h: 520 };
+  var FOCO = [60.1, 0.03105];
+
+  function estadoP(t) {
+    var u1 = E.camara(M.tramo(t, CAM1[0], CAM1[1])), u2 = E.camara(M.tramo(t, CAM2[0], CAM2[1]));
+    if (u2 > 0) {
+      return { xd: zoomDom(EST1.xd, EST2.xd, FOCO[0], u2), yd: zoomDom(EST1.yd, EST2.yd, FOCO[1], u2), h: M.lerp(EST1.h, EST2.h, u2), u1: 1, u2: u2 };
+    }
+    return { xd: zoomDom(EST0.xd, EST1.xd, FOCO[0], u1), yd: zoomDom(EST0.yd, EST1.yd, FOCO[1], u1), h: M.lerp(EST0.h, EST1.h, u1), u1: u1, u2: 0 };
+  }
+  // Las etiquetas de las marcas se apagan durante el zoom (cambian de paso) y vuelven al final.
+  function oEtiquetas(t, cam) {
+    if (t < cam[0] || t > cam[1]) return 1;
+    var u = M.tramo(t, cam[0], cam[1]);
+    return Math.max(0, 1 - u / 0.15, (u - 0.85) / 0.15);
+  }
+
+  // Las edades del gráfico de p: se van cuando llega el eje compartido del panel de pendientes (14.2 s) y vuelven al
+  // final de la cámara 2.
+  function oEdades(t) {
+    if (t <= CAM1[1]) return 1;
+    if (t < CAM2[0]) return M.sale(t, 13.9, 0.24);
+    return M.tramo(t, CAM2[1] - 0.3, CAM2[1]);
+  }
+
+  // El panel de las pendientes (en ‰ de p por año), debajo del de p, con el mismo eje de edad.
+  var GK = { x: 1010, y: 590, w: 790, h: 200 };
+  var KDOM = [1.822e-3, 1.838e-3];
+
+  // ---- Piezas ----
+  function punto(x, y, op) {
+    op = op || {};
+    return D.circulo(x, y, op.r || 8, { relleno: op.hueco ? P.superficie : (op.relleno || P.p), borde: op.borde || P.superficie, grosor: op.grosor || 3, o: op.o });
+  }
+  // Segmento desde (a1, p1) con pendiente k hasta la edad a2, en el panel g.
+  function segmento(g, a1, p1, k, a2, op) {
+    return D.trazo([[g.x(a1), g.y(p1)], [g.x(a2), g.y(p1 + k * (a2 - a1))]], op);
+  }
+
+  function dibujar(t, c) {
+    var aten = 1 - 0.6 * M.entra(t, 73.8, 0.4, E.entrarSuave);   // el final: lo demás baja al 40 %
+    var acento = E.pop(M.tramo(t, 75.4, 75.8));
+    var fuera = M.sale(t, 74.7, 0.24);   // la ilustración de estabilidad sale; vuelve el año de pasos
+
+    c.svg(D.cabecera(3, 11, 'Cómo se resuelve la ecuación', { funcion: 'dl_edo_resolver()' }));
+
+    // ---- Columna izquierda: la ecuación (siempre), las etapas, el paso ----
+    c.svg(D.rect(120, 252, 660, 104, { borde: P.marca, grosor: 3, radio: 12, relleno: P.superficie }));
+    c.svg(D.formula(EC_P, 144, 304, { tam: 42, id: 'ec-p', palabras: 8, estilos: SUB }));
+    c.svg(D.parrafo(122, 372, 680, 'con $p(a_0) = 0$ en $a_0$ = 30 años', { tam: 26, color: P.suave, o: aten, id: 'cond-inicial', alto: 40 }));
+    c.svg(D.parrafo(122, 408, 680, '$h = 1/n_{sub}$ = 0.2 años ($n_{sub}$ = 5 pasos por año)',
+      { tam: 26, color: P.suave, o: M.visible(t, 5.45, Infinity) * aten, id: 'paso-h', alto: 40 }));
+
+    // Las cuatro etapas (19.5 a 36.7 s).
+    var oEt = M.visible(t, 19.3, 36.7);
+    if (oEt > 0) {
+      c.svg(D.parrafo(122, 462, 680, '$F(a, p)$: el lado derecho de $dp/da$ · pendientes en ‰ de $p$ por año',
+        { tam: 24, color: P.suave, o: oEt, id: 'etapas-titulo', alto: 36 }));
+      ETAPAS_T.forEach(function (t0, s) {
+        var o = Math.min(oEt, M.visible(t, t0, Infinity));
+        var y = 530 + 56 * s;
+        c.svg(D.formula(ETAPAS_TEX[s], 122, y, { tam: 30, o: o, id: 'etapa-' + (s + 1), palabras: 5, estilos: SUB, ancho: 560, alto: 56 }));
+        c.svg(D.texto(790, y + 10, D.num(1000 * K[s], 5), { fuente: 'mono', tam: 30, ancla: 'end', o: Math.min(oEt, M.visible(t, t0 + 1.5, Infinity)), id: 'k-valor-' + (s + 1) }));
+      });
+      if (t >= 31.0) c.dato('k_texto', ETAPAS_T.map(function (_, s) { return D.num(1000 * K[s], 5); }));
+    }
+
+    // El recuadro del paso, desde 32.6 s hasta el final, con el acento.
+    var oPaso = M.visible(t, 32.6, Infinity);
+    c.svg(D.rect(120, 762, 660, 100, { borde: P.marca, grosor: 3 + 3 * acento, radio: 12, relleno: P.superficie, o: oPaso }));
+    c.svg(D.formula(PASO_TEX, 140, 812, { tam: 33, o: oPaso, id: 'formula-paso', palabras: 8, estilos: SUB }));
+
+    // ---- Gráfico de p: toda la edad, el zoom al paso y un año ----
+    var oP = Math.max(M.visible(t, -1, 43.2), M.entra(t, 75.0, 0.4, E.entrarSuave));
+    var est = estadoP(t);
+    var rP = { x: GP.x, y: GP.y, w: GP.w, h: est.h };
+    var oe = Math.min(oEtiquetas(t, CAM1), oEtiquetas(t, CAM2));
+    var enPaso = t > 14.2 && t < CAM2[0] + 0.1;   // en el paso, las edades van en el panel de pendientes
+    var g = panel(rP, est.xd, est.yd, {
+      o: oP, oEtiq: oe, oEtiqX: oe * oEdades(t), sinX: enPaso,
+      yFmt: pct, xFmt: function (v, p) { return v.toFixed(decimales(p)); },
+    });
+    if (oP > 0) {
+      c.defs(recorte('rec-p', rP));
+      c.svg(g.svg);
+      c.svg(D.parrafo(GP.x - 14, GP.y - 50, 600, 'Prevalencia $p$', { tam: 24, color: P.suave, o: oP, id: 'p-ytitulo', alto: 40 }));
+      c.svg(D.texto(GP.x + GP.w, GP.y + est.h + 74, 'Edad (años)', { tam: 24, color: P.suave, ancla: 'end', o: oP * oe * oEdades(t), id: 'p-xtitulo' }));
+      c.svg(D.circulo(g.x(A0), g.y(0), 8, { relleno: P.p, borde: P.superficie, grosor: 3, o: oP * (t < CAM1[0] ? 1 : 0) }));
+
+      // La curva: los puntos de la malla h hasta la edad que va trazando (5.3 a 8.9 s, lineal en la edad).
+      var aMax = A0 + M.tramo(t, 5.3, 8.9) * (datos.edad_fin - A0);
+      // Durante el paso, lo posterior a a = 60 está «por calcular»: al 25 % (de 12.9 s hasta la cámara 2).
+      var fantasma = 1 - 0.75 * M.entra(t, 12.6, 0.4, E.entrarSuave) * (1 - M.entra(t, CAM2[0], 0.5, E.entrarSuave));
+      var antes = [], despues = [];
+      for (var k = 0; k < P_MALLA.length; k++) {
+        var a = EDADES_MALLA[k];
+        if (a > aMax) {
+          if (k > 0 && aMax > EDADES_MALLA[k - 1]) {
+            var w = (aMax - EDADES_MALLA[k - 1]) / H;
+            (aMax <= A_ ? antes : despues).push([g.x(aMax), g.y(P_MALLA[k - 1] + w * (P_MALLA[k] - P_MALLA[k - 1]))]);
+          }
+          break;
+        }
+        var pt = [g.x(a), g.y(P_MALLA[k])];
+        if (a <= A_) antes.push(pt);
+        if (a >= A_) despues.push(pt);
+      }
+      var curva = D.trazo(antes, { color: P.p, grosor: 4, o: oP }) + D.trazo(despues, { color: P.p, grosor: 4, o: oP * fantasma });
+      // Los puntos de la malla h, cuando se separan más de 8 px.
+      var sep = g.x(est.xd[0] + H) - g.x(est.xd[0]);
+      var oPts = M.limitar((sep - 8) / 16, 0, 1) * oP;
+      if (oPts > 0) {
+        for (var q = 0; q < P_MALLA.length && EDADES_MALLA[q] <= aMax; q++) {
+          if (EDADES_MALLA[q] < est.xd[0] - 0.3 || EDADES_MALLA[q] > est.xd[1] + 0.3) continue;
+          curva += punto(g.x(EDADES_MALLA[q]), g.y(P_MALLA[q]), { r: 6, grosor: 2, o: oPts * (EDADES_MALLA[q] > A_ ? fantasma : 1) });
+        }
+      }
+      c.svg(recortado('rec-p', curva));
+      if (t >= 8.9 && t < CAM1[0]) {
+        c.dato('curva_p', P_MALLA.slice());
+        c.dato('curva_px', antes.concat(despues.slice(1)));
+      }
+
+      // El recuadro alrededor de 60 antes del zoom.
+      var oCaja = M.visible(t, 9.8, CAM1[1] - 0.3, { salida: 0.3 });
+      if (oCaja > 0) {
+        var x0 = g.x(EST1.xd[0]), x1 = g.x(EST1.xd[1]);
+        var yb = g.y(EST1.yd[0]), yt = g.y(EST1.yd[1]);
+        c.svg(D.rect(x0 - 10, yt - 10, Math.max(20, x1 - x0 + 20), Math.max(20, yb - yt + 20), { borde: P.marca, grosor: 3, radio: 4, o: oCaja }));
+      }
+
+      // ---- El paso, en el panel de p (19.5 a 36.7 s) ----
+      var oC = M.visible(t, 19.3, 36.7);
+      if (oC > 0 && t < CAM2[0]) {
+        var s = [];
+        var p1 = ETAPA.p1, preds = [ETAPA.p2, ETAPA.p3, ETAPA.p4], fines = [AM, AM, AF];
+        // Cada etapa: la pendiente k_s se evalúa en su punto (un trazo corto, ±0.03 años); con ella se predice desde p1.
+        var donde = [[A_, p1], [AM, ETAPA.p2], [AM, ETAPA.p3], [AF, ETAPA.p4]];
+        var segPx = [], predPx = [];
+        ETAPAS_T.forEach(function (t0, e) {
+          var uG = M.entra(t, t0 + 0.2, 0.4, E.mover);
+          // Solo k4 lleva su trazo: las otras tres ya se ven como los segmentos de predicción.
+          if (uG > 0 && e === 3) {
+            var d = donde[e], ancho = 0.03 * uG;
+            s.push(segmento(g, d[0] - ancho, d[1] - K[e] * ancho, K[e], d[0] + ancho, { color: P.marca, grosor: 3, o: oC * M.sale(t, 32.3, 0.24) }));
+          }
+          if (e < 3) {
+            var uS = M.entra(t, t0 + 0.4, 0.6, E.mover);
+            if (uS > 0) {
+              var aS = A_ + (fines[e] - A_) * uS;
+              s.push(segmento(g, A_, p1, K[e], aS, { color: P.marca, grosor: 4, o: oC * (e === 2 ? 1 : 0.9) }));
+              segPx.push([[g.x(A_), g.y(p1)], [g.x(aS), g.y(p1 + K[e] * (aS - A_))]]);
+            }
+          }
+        });
+        var anillos = '';
+        ETAPAS_T.slice(0, 3).forEach(function (t0, e) {
+          var oA = oC * M.visible(t, t0 + 1.0, Infinity, { entrada: 0.2 });
+          anillos += e === 2 ? D.circulo(g.x(fines[e]), g.y(preds[e]), 15, { borde: P.marca, grosor: 3, o: oA })
+            : punto(g.x(fines[e]), g.y(preds[e]), { r: 7, hueco: true, borde: P.marca, grosor: 3, o: oA });
+          if (t >= 34.5) predPx.push([g.x(fines[e]), g.y(preds[e])]);
+        });
+        // El paso: de p1 con el promedio de las cuatro pendientes; el punto cae sobre el de dl_edo_resolver().
+        var uF = M.entra(t, 33.0, 0.6, E.mover);
+        if (uF > 0) s.push(segmento(g, A_, p1, KMEDIA, A_ + H * uF, { color: P.p, grosor: 5, o: oC }));
+        s.push(punto(g.x(A_), g.y(p1), { r: 9, o: oC }));
+        var oFin = M.visible(t, 33.6, Infinity, { entrada: 0.2 }) * oC;
+        var pFin = ETAPA.p_siguiente;
+        s.push(punto(g.x(AF), g.y(pFin), { r: 10, o: oFin }));
+        s.push(anillos);
+        c.svg(recortado('rec-p', s.join('')));
+        c.svg(D.parrafo(g.x(A_) - 66, g.y(p1) + 22, 50, '$p_1$', { tam: 26, o: oC * M.visible(t, 19.9, Infinity), id: 'et-p1', alto: 40 }));
+        var oEtF = M.visible(t, 34.0, Infinity) * oC;
+        c.svg(D.parrafo(1790, GP.y + EST1.h - 104, 420, '$p(a + h)$ = ' + (100 * pFin).toFixed(5) + ' %', { tam: 32, ancla: 'end', o: oEtF, id: 'et-pfin', alto: 44 }));
+        c.svg(D.texto(1790, GP.y + EST1.h - 22, 'dl_edo_resolver(), punto 152 de la malla h', { tam: 24, fuente: 'mono', color: P.suave, ancla: 'end', o: oEtF, id: 'et-pfin-fuente' }));
+        if (t >= 34.5) {
+          c.dato('p_fin', pFin);
+          c.dato('p_fin_px', [g.x(AF), g.y(pFin)]);
+          c.dato('p_fin_texto', (100 * pFin).toFixed(5));
+          c.dato('seg_px', segPx);
+          c.dato('pred_px', predPx);
+          c.dato('dom_p', [est.xd.slice(), est.yd.slice(), [rP.x, rP.y, rP.w, rP.h]]);
+        }
+      }
+
+      // El paso calculado se queda durante la cámara 2 y cede su lugar al arco 1.
+      if (t >= 36.7 && t < 40.0) {
+        var oAn = oP * M.sale(t, 39.3, 0.4);
+        c.svg(recortado('rec-p', segmento(g, A_, ETAPA.p1, KMEDIA, AF, { color: P.p, grosor: 5, o: oAn }) +
+          punto(g.x(A_), g.y(ETAPA.p1), { r: 9, o: oAn }) + punto(g.x(AF), g.y(ETAPA.p_siguiente), { r: 10, o: oAn })));
+      }
+
+      // ---- Un año: los puntos de la malla h, los cinco pasos y las edades enteras (39.0 a 43.2 s; vuelve al final) ----
+      if (t >= CAM2[1]) {
+        var s2 = [];
+        var kA = N0, kB = N0 + NSUB;   // 60 y 61 en la malla h (base 0)
+        for (var m = 0; m < NSUB; m++) {
+          var oa = M.escalonado(t, 39.3, m, M.ESCALONADO.fila, 0.4, E.entrarSuave) * oP;
+          if (oa <= 0) continue;
+          var xa = g.x(EDADES_MALLA[kA + m]), xb = g.x(EDADES_MALLA[kA + m + 1]);
+          var ya = g.y(P_MALLA[kA + m]), yb2 = g.y(P_MALLA[kA + m + 1]);
+          s2.push(D.flecha(xa + 8, ya - 16, xb - 8, yb2 - 16, { color: P.marca, grosor: 3, curva: 26, cabeza: 10, o: oa }));
+          s2.push(D.texto((xa + xb) / 2 - 10, (ya + yb2) / 2 - 50, String(m + 1), { tam: 24, fuente: 'mono', ancla: 'middle', o: oa, id: 'paso-n-' + (m + 1) }));
+        }
+        // Las marcas de la malla h/2 sobre el eje (cada 0.1 años).
+        var oMed = M.visible(t, 40.0, Infinity) * oP;
+        for (var jm = 0; jm < datos.edades_media.length; jm++) {
+          var am = datos.edades_media[jm];
+          if (am < est.xd[0] || am > est.xd[1]) continue;
+          s2.push(D.linea(g.x(am), rP.y + rP.h - 14, g.x(am), rP.y + rP.h, { color: P.suave, grosor: 2, o: oMed }));
+        }
+        // Las edades enteras: cada quinto punto de la malla h, en grande.
+        var oEnt = M.entra(t, 40.6, 0.4, E.pop);
+        var entPx = [];
+        [kA, kB].forEach(function (kk) {
+          if (oEnt > 0) s2.push(D.circulo(g.x(EDADES_MALLA[kk]), g.y(P_MALLA[kk]), 6 + 6 * oEnt, { relleno: P.p, borde: P.superficie, grosor: 3, o: oP }));
+          entPx.push([g.x(EDADES_MALLA[kk]), g.y(P_MALLA[kk])]);
+        });
+        c.svg(s2.join(''));
+        var oEtE = M.visible(t, 40.9, Infinity) * oP;
+        c.svg(D.texto(g.x(60) + 22, g.y(P_MALLA[kA]) + 40, 'edad 60', { tam: 26, o: oEtE, id: 'et-60' }));
+        c.svg(D.texto(g.x(61) - 22, g.y(P_MALLA[kB]) - 70, 'edad 61', { tam: 26, ancla: 'end', o: oEtE, id: 'et-61' }));
+        var oLey = M.visible(t, 39.6, Infinity) * oP;
+        c.svg(D.circulo(1512, 652, 6, { relleno: P.p, o: oLey }));
+        c.svg(D.linea(1512, 680, 1512, 696, { color: P.suave, grosor: 2, o: oLey }));
+        c.svg(D.circulo(1512, 722, 11, { relleno: P.p, o: oLey }));
+        c.svg(D.parrafo(1536, 636, 270, 'malla $h$ (0.2 años)\nmalla $h/2$ (0.1 años)\nedad entera', { tam: 24, color: P.suave, o: oLey, id: 'leyenda-mallas', alto: 110, interlineado: 1.45, palabras: 10 }));
+        if (t >= 42.0) {
+          c.dato('enteras_idx', [kA, kB]);
+          c.dato('enteras_px', entPx);
+          c.dato('dom_p2', [est.xd.slice(), est.yd.slice(), [rP.x, rP.y, rP.w, rP.h]]);
+        }
+      }
+    }
+
+    // ---- El panel de las pendientes (14.3 a 36.7 s) ----
+    var oK = M.visible(t, 14.3, 36.7);
+    if (oK > 0) {
+      var gk = panel(GK, EST1.xd, KDOM, { o: oK, yPaso: 0.005e-3, yFmt: function (v) { return (1000 * v).toFixed(3); }, sinX: true });
+      c.svg(gk.svg);
+      c.svg(D.parrafo(GK.x - 14, GK.y - 50, 800, 'Pendiente de $p$, en ‰ por año (el eje no empieza en 0)', { tam: 24, color: P.suave, o: oK, id: 'k-titulo', alto: 40 }));
+      // El eje de edad compartido y los puntos de la malla h/2 que usa el paso.
+      var ejes = [[A_, '$a$ = 60', PASO.j], [AM, '$a + h/2$', PASO.j + 1], [AF, '$a + h$ = 60.2', PASO.j + 2]];
+      var mallaPx = [];
+      ejes.forEach(function (e, s) {
+        var o = M.escalonado(t, 14.6, s, M.ESCALONADO.fila, 0.4, E.entrarSuave) * oK;
+        var xx = gk.x(e[0]);
+        c.svg(D.linea(xx, GP.y, xx, GP.y + EST1.h, { color: P.guia, grosor: 2, guiones: '6 6', o: o * (1 - M.entra(t, 32.6, 0.4, E.entrarSuave)) }));
+        c.svg(D.linea(xx, GK.y, xx, GK.y + GK.h, { color: P.guia, grosor: 2, guiones: '6 6', o: o * (1 - M.entra(t, 32.3, 0.4, E.entrarSuave)) }));
+        c.svg(D.parrafo(xx, GK.y + GK.h + 10, 240, e[1], { tam: 24, ancla: 'middle', o: o, id: 'eje-' + s, alto: 36 }));
+        c.svg(D.texto(xx, GK.y + GK.h + 70, 'punto ' + e[2], { tam: 22, fuente: 'mono', color: P.suave, ancla: 'middle', o: M.escalonado(t, 15.6, s, M.ESCALONADO.fila, 0.4, E.entrarSuave) * oK, id: 'malla-' + s, palabras: 2 }));
+        mallaPx.push([e[2], xx]);
+      });
+      c.svg(D.texto(GK.x - 14, GK.y + GK.h + 70, 'malla h/2:', { tam: 22, color: P.suave, ancla: 'end', o: M.visible(t, 15.4, Infinity) * oK, id: 'malla-titulo' }));
+      if (t >= 17.0) c.dato('malla_px', mallaPx);
+
+      // Las cuatro pendientes como puntos; k2 y k3 casi coinciden (k3, anillo; k2, lleno).
+      var lugar = [A_, AM, AM, AF];
+      var kPx = [];
+      var nombres = [['$k_1$', -18, 'end'], ['$k_2$', -20, 'end'], ['$k_3$', 20, 'start'], ['$k_4$', 20, 'start']];
+      var subir = [0, -30, -30, 0];
+      ETAPAS_T.forEach(function (t0, e) {
+        var o = M.entra(t, t0 + 1.2, 0.3, E.entrarSuave) * oK;
+        var px = [gk.x(lugar[e]), gk.y(K[e])];
+        kPx.push(px);
+        if (o <= 0) return;
+        c.svg(e === 2 ? D.circulo(px[0], px[1], 12, { borde: P.marca, grosor: 3, o: o }) : D.circulo(px[0], px[1], 8, { relleno: P.marca, borde: P.superficie, grosor: 2, o: o }));
+        var nb = nombres[e];
+        c.svg(D.parrafo(px[0] + nb[1], px[1] - 18 + subir[e], 50, nb[0], { tam: 26, ancla: nb[2], o: M.visible(t, t0 + 1.3, Infinity) * oK, id: 'k-nombre-' + (e + 1), alto: 36 }));
+      });
+      // El promedio con pesos 1, 2, 2, 1.
+      var uM = M.entra(t, 32.3, 0.6, E.mover) * 1;
+      if (uM > 0) {
+        var yM = gk.y(KMEDIA);
+        c.svg(D.linea(gk.x(A_), yM, gk.x(A_) + uM * (gk.x(AF) - gk.x(A_)), yM, { color: P.marca, grosor: 3, guiones: '10 7', o: oK }));
+        c.svg(D.parrafo(gk.x(AM) + 24, yM + 8, 380, '$(k_1 + 2k_2 + 2k_3 + k_4)/6$ = ' + D.num(1000 * KMEDIA, 5),
+          { tam: 24, o: M.visible(t, 32.7, Infinity) * oK, id: 'k-media', alto: 36 }));
+        if (t >= 34.5) { c.dato('k_media_px', [gk.x(A_), yM]); c.dato('k_media', KMEDIA); }
+      }
+      if (t >= 31.0) { c.dato('k_dibujadas', K.slice()); c.dato('k_px', kPx); }
+    }
+
+    // ---- Precisión: la solución exacta frente a RK4 (43.6 a 55.5 s) ----
+    var oX = M.visible(t, 43.45, 55.5);
+    if (oX > 0) {
+      c.svg(D.parrafo(122, 462, 680, 'Con $i$ y $f$ constantes y $r = 0$ (guía, sección 3):', { tam: 26, color: P.suave, o: Math.min(oX, M.visible(t, 44.0, Infinity)), id: 'exacta-titulo', alto: 40 }));
+      c.svg(D.formula(EXACTA_TEX, 122, 582, { tam: 36, display: true, o: Math.min(oX, M.visible(t, 44.3, Infinity)), id: 'exacta-p', palabras: 6, estilos: SUB, ancho: 660, alto: 110 }));
+      c.svg(D.formula(E_TEX, 122, 674, { tam: 32, o: Math.min(oX, M.visible(t, 44.7, Infinity)), id: 'exacta-e', palabras: 6, estilos: SUB, ancho: 660, alto: 60 }));
+      c.svg(D.parrafo(122, 708, 680, '$i$ = 0.002, $f$ = 0.05 por persona-año', { tam: 26, color: P.suave, o: Math.min(oX, M.visible(t, 45.1, Infinity)), id: 'exacta-valores', alto: 40 }));
+
+      var rX = { x: 1010, y: 280, w: 790, h: 520 };
+      var gx = panel(rX, [30, 99], [0, 0.04], { o: M.entra(t, 43.8, 0.4, E.entrarSuave) * oX, xPaso: 10, yPaso: 0.01, yFmt: pct });
+      c.defs(recorte('rec-x', rX));
+      c.svg(gx.svg);
+      c.svg(D.parrafo(rX.x - 14, rX.y - 50, 600, 'Prevalencia $p$', { tam: 24, color: P.suave, o: oX, id: 'x-ytitulo', alto: 40 }));
+      c.svg(D.texto(rX.x + rX.w, rX.y + rX.h + 74, 'Edad (años)', { tam: 24, color: P.suave, ancla: 'end', o: oX, id: 'x-xtitulo' }));
+      var uX = M.tramo(t, 44.4, 46.4);
+      var exPts = [];
+      for (var q2 = 0; q2 < PRE.t_fino.length; q2++) exPts.push([gx.x(A0 + PRE.t_fino[q2]), gx.y(PRE.exacta_fina[q2])]);
+      c.svg(recortado('rec-x', D.trazo(exPts, { color: P.suave, grosor: 3, progreso: uX, o: oX })));
+      var rkPx = [];
+      var sx = '';
+      for (var q3 = 0; q3 < PRE.edades.length; q3++) {
+        var o3 = M.entra(t, 48.4 + 1.2 * q3 / PRE.edades.length, 0.25, E.entrarSuave) * oX;
+        var pp = [gx.x(PRE.edades[q3]), gx.y(PRE.p[q3])];
+        rkPx.push(pp);
+        if (o3 > 0) sx += D.circulo(pp[0], pp[1], 5, { relleno: P.p, o: o3 });
+      }
+      c.svg(sx);
+      // Leyenda arriba a la izquierda (edades 30-55, p > 3 %, donde no pasa la curva).
+      var oLe = M.visible(t, 45.0, Infinity) * oX;
+      c.svg(D.linea(1040, 312, 1080, 312, { color: P.suave, grosor: 3, o: oLe }));
+      c.svg(D.texto(1094, 320, 'solución exacta', { tam: 24, o: oLe, id: 'ley-exacta' }));
+      var oLr = M.visible(t, 48.6, Infinity) * oX;
+      c.svg(D.circulo(1060, 352, 6, { relleno: P.p, o: oLr }));
+      c.svg(D.texto(1094, 360, 'RK4 con h = 0.2, dl_edo()', { tam: 24, o: oLr, id: 'ley-rk4' }));
+      // El error, abajo a la derecha (edades 70-99, p < 2 %).
+      var oErr = M.visible(t, 49.6, Infinity) * oX;
+      c.svg(D.rect(1380, 640, 400, 130, { borde: P.marca, grosor: 3, radio: 10, relleno: P.superficie, o: oErr }));
+      c.svg(D.texto(1404, 680, 'error relativo máximo, edades 30-99', { tam: 24, color: P.suave, o: oErr, id: 'err-titulo' }));
+      c.svg(D.formula(ERR.tex, 1404, 730, { tam: 44, o: oErr, id: 'err-valor', palabras: 1, ancho: 300, alto: 70 }));
+      if (t >= 50.5) {
+        c.dato('error_texto', ERR.tex);
+        c.dato('error_valor', ERROR_MAX);
+        c.dato('rk4_px', rkPx);
+        c.dato('rk4_p', PRE.p.slice());
+      }
+    }
+
+    // ---- Estabilidad (55.7 s al final) ----
+    var oS = M.visible(t, 55.9, Infinity);
+    var oS2 = M.visible(t, 56.2, Infinity) * fuera;
+    if (oS > 0) {
+      c.svg(D.formula(K_TEX, 122, 494, { tam: 38, o: oS * aten, id: 'k-lineal', palabras: 6, estilos: SUB, ancho: 660, alto: 70 }));
+      c.svg(D.formula(LIM_TEX, 122, 572, { tam: 38, o: M.visible(t, 60.2, Infinity) * aten, id: 'k-limite', palabras: 5, ancho: 660, alto: 70 }));
+      c.svg(D.parrafo(122, 612, 680, 'dl_insumos() exige $(\\max r + \\text{techo de } f)\\,h \\le ' + EST.limite_paquete.toFixed(1) + '$',
+        { tam: 26, color: P.suave, o: M.visible(t, 61.4, Infinity) * aten, id: 'k-paquete', alto: 40 }));
+      c.svg(D.texto(122, 700, 'avanzado: {nsub: 10}', { fuente: 'mono', tam: 28, o: M.visible(t, 70.0, Infinity) * aten, id: 'nsub-10' }));
+      if (t >= 63.0) c.dato('limite_texto', LIM_RK4);
+
+      var oG = oS2;
+      var rS = { x: 1010, y: 300, w: 790, h: 360 };
+      var yS = [-0.024, 0.006];
+      var gs = panel(rS, [0, EST.duracion], yS, { o: M.entra(t, 56.2, 0.4, E.entrarSuave) * fuera, xPaso: 0.2, yPaso: 0.005, yFmt: pct, xFmt: function (v) { return v.toFixed(1); } });
+      if (oG > 0) {
+        c.defs(recorte('rec-s', rS));
+        c.svg(gs.svg);
+        c.svg(D.parrafo(rS.x - 14, rS.y - 84, 800, 'Ilustración, valores inventados: $i$ = 0.05, $r$ = 15, $f$ = 0 por persona-año', { tam: 24, color: P.suave, o: M.visible(t, 56.6, Infinity) * fuera, id: 's-titulo', alto: 40 }));
+        c.svg(D.parrafo(rS.x - 14, rS.y - 46, 600, 'Prevalencia $p$', { tam: 24, color: P.suave, o: oG, id: 's-ytitulo', alto: 40 }));
+        c.svg(D.parrafo(rS.x + rS.w, rS.y + rS.h + 44, 600, '$t = a - a_0$ (años)', { tam: 24, color: P.suave, ancla: 'end', o: oG, id: 's-xtitulo', alto: 40 }));
+        var exS = [];
+        for (var q4 = 0; q4 < EST.t_fino.length; q4++) exS.push([gs.x(EST.t_fino[q4]), gs.y(EST.exacta_fina[q4])]);
+        c.svg(recortado('rec-s', D.trazo(exS, { color: P.suave, grosor: 3, progreso: M.tramo(t, 56.8, 58.8), o: oG })));
+        // Los pasos de RK4, uno por vez (lineal en el número de paso), con h = 0.2 y después con h = 0.1.
+        function serie(ps, ns, t0, t1, o) {
+          var nVis = Math.floor(M.tramo(t, t0, t1) * (ps.length - 1) + 1e-9) + 1;
+          var pts = [];
+          for (var q5 = 0; q5 < nVis; q5++) pts.push([gs.x(q5 / ns), gs.y(ps[q5])]);
+          var s5 = D.trazo(pts, { color: P.p, grosor: 3, o: o });
+          pts.forEach(function (pp) { s5 += D.circulo(pp[0], pp[1], 6, { relleno: P.p, borde: P.superficie, grosor: 2, o: o }); });
+          return { svg: s5, pts: pts, n: nVis };
+        }
+        var oInest = (1 - 0.6 * M.entra(t, 70.2, 0.4, E.entrarSuave)) * fuera;
+        var s5 = serie(EST.p_h5, 5, 65.4, 67.4, oInest);
+        c.svg(recortado('rec-s', s5.svg));
+        c.svg(D.texto(1560, 648, 'h = 0.2: k h = ' + fmtKh(KH5) + ' > ' + LIM_RK4, { tam: 30, ancla: 'end', o: M.visible(t, 66.8, Infinity) * oInest, id: 's-et-5' }));
+        var s10 = serie(EST.p_h10, 10, 70.4, 72.4, fuera);
+        if (t >= 70.4) c.svg(recortado('rec-s', s10.svg));
+        c.svg(D.texto(1780, 410, 'h = 0.1: k h = ' + fmtKh(KH10), { tam: 30, ancla: 'end', o: M.visible(t, 70.8, Infinity) * fuera, id: 's-et-10' }));
+        // Leyenda abajo a la izquierda (t < 0.5, p < -1 %, donde no pasa ninguna curva).
+        c.svg(D.linea(1040, 584, 1080, 584, { color: P.suave, grosor: 3, o: M.visible(t, 59.0, Infinity) * fuera }));
+        c.svg(D.texto(1094, 592, 'exacta', { tam: 24, o: M.visible(t, 59.0, Infinity) * fuera, id: 's-ley-exacta' }));
+        c.svg(D.circulo(1060, 624, 6, { relleno: P.p, o: M.visible(t, 65.4, Infinity) * fuera }));
+        c.svg(D.texto(1094, 632, 'RK4', { tam: 24, o: M.visible(t, 65.4, Infinity) * fuera, id: 's-ley-rk4' }));
+        if (t >= 67.5) { c.dato('inestable_p', EST.p_h5.slice(0, s5.n)); c.dato('inestable_px', s5.pts); c.dato('kh5_texto', fmtKh(KH5)); }
+        if (t >= 72.5) { c.dato('estable_p', EST.p_h10.slice(0, s10.n)); c.dato('kh10_texto', fmtKh(KH10)); }
+
+        // El mensaje real de dl_insumos() (.dl_chequear_paso_rk4) con esta remisión y n_sub = 5.
+        // Un extracto (los cortes, con «…»): dl_insumos() comprueba (max r + techo de f)/nsub, sin i.
+        var oMsg = M.visible(t, 69.3, Infinity) * fuera;
+        var msg = EST.mensaje;
+        var l1 = msg.slice(0, msg.indexOf(': (') + 1);
+        var l2 = msg.slice(msg.indexOf('(remisi'), msg.indexOf(' (el l')) + ' …';
+        var l3 = '… ' + msg.slice(msg.indexOf('Sube nsub'), msg.indexOf(') ', msg.indexOf('Sube nsub')) + 1) + ' …';
+        c.svg(D.rect(1010, 754, 790, 136, { borde: P.guia, grosor: 2, radio: 8, relleno: P.superficie, o: oMsg }));
+        c.svg(D.texto(1030, 782, 'dl_insumos() se detiene (extracto; usa r + techo de f, sin i):', { tam: 22, color: P.suave, o: oMsg, id: 'msg-cab' }));
+        [l1, l2, l3].forEach(function (l, s) {
+          c.svg(D.texto(1030, 816 + 32 * s, l, { fuente: 'mono', tam: 22, o: oMsg * M.visible(t, 69.45 + 0.15 * s, Infinity), id: 'msg-' + s, color: s === 0 ? P.tinta : P.suave }));
+        });
+        if (t >= 70.5) c.dato('mensaje_lineas', [l1, l2, l3]);
+      }
+    }
+
+    c.svg(D.rotulo(t, NARRACION));
+    c.svg(D.pie(datos.fuente));
+  }
+
+  DL.escena({
+    id: '03-rk4',
+    titulo: 'Cómo se resuelve la ecuación',
+    duracion: 80, fps: 30,
+    marcas: {
+      inicio: 2.0, curva: 9.1, zoom: 13.6, malla: 18.0, k1: 22.4, k2k3: 27.4, k4: 31.2, paso: 35.8, enteras: 42.6,
+      exacta: 47.4, error: 53.0, lineal: 59.0, limite: 63.4, inestable: 68.4, nsub10: 73.0, final: 78.0,
+    },
+    camaras: [CAM1, CAM2],
+    dibujar: dibujar,
+    auditoria: function (A) {
+      // Cada comprobación compara lo dibujado con algo independiente: R (lo exportado con 17 cifras o con 15),
+      // DL.modelo recalculado, o la posición que da el eje (recalculada con su fórmula, no con la del dibujo).
+      function ejeX(d, a) { return d[2][0] + (a - d[0][0]) / (d[0][1] - d[0][0]) * d[2][2]; }
+      function ejeY(d, p) { return d[2][1] + d[2][3] - (p - d[1][0]) / (d[1][1] - d[1][0]) * d[2][3]; }
+      var kR = X.k.map(Number);
+      return [
+        A.en('curva', 'la curva dibujada es p_malla de dl_edo_resolver() y sus edades enteras son dl_edo()$p', function (e) {
+          var pm = MOD.resolverEdo(I_MEDIA, F_MEDIA, 0, 0, NSUB);
+          for (var k = 0; k < pm.length; k++) if (e.curva_p[k] !== pm[k]) return 'punto ' + k + ' distinto de resolverEdo';
+          for (var a = 0; a < datos.p.length; a++) if (!A.cerca(e.curva_p[NSUB * a], datos.p[a], 1e-13)) return 'edad ' + datos.edades[a] + ' distinta de dl_edo()';
+          if (e.curva_px.length !== pm.length) return 'dibuja ' + e.curva_px.length + ' puntos de ' + pm.length;
+          for (var q = 0; q < pm.length; q++) {
+            var px = 1010 + (A0 + q * H - 30) / 69 * 790, py = 280 + 520 - pm[q] / 0.10 * 520;
+            if (Math.abs(e.curva_px[q][0] - px) > 0.01 || Math.abs(e.curva_px[q][1] - py) > 0.01) return 'punto ' + q + ' fuera de lugar';
+          }
+          return true;
+        }),
+        A.en('malla', 'el paso n = 151 usa los puntos 2n - 1, 2n y 2n + 1 de la malla h/2, en a, a + h/2 y a + h', function (e) {
+          var n = Math.round((60 - A0) / H) + 1;
+          var esperado = [2 * n - 1, 2 * n, 2 * n + 1];
+          for (var s = 0; s < 3; s++) {
+            if (e.malla_px[s][0] !== esperado[s]) return 'punto ' + e.malla_px[s][0] + ', se esperaba ' + esperado[s];
+            var edad = A0 + (esperado[s] - 1) * H / 2;   // malla h/2 de base 1
+            if (Math.abs(datos.edades_media[esperado[s] - 1] - edad) > 1e-9) return 'la malla h/2 no tiene ' + edad + ' en el punto ' + esperado[s];
+            var px = 1010 + (edad - 59.94) / 0.32 * 790;
+            if (Math.abs(e.malla_px[s][1] - px) > 0.01) return 'la marca del punto ' + esperado[s] + ' no está en la edad ' + edad;
+          }
+          return true;
+        }),
+        A.en('paso', 'las pendientes dibujadas son las de DL.modelo.pasoRk4 y las de R (<= 1e-14) y su texto las redondea', function (e) {
+          var js = MOD.pasoRk4(P_MALLA[N0], J0, I_MEDIA, F_MEDIA, 0, NSUB);
+          var kj = [js.k1, js.k2, js.k3, js.k4];
+          for (var s = 0; s < 4; s++) {
+            if (Math.abs(e.k_dibujadas[s] - kj[s]) > 1e-14) return 'k' + (s + 1) + ' distinta de pasoRk4';
+            if (Math.abs(e.k_dibujadas[s] - kR[s]) > 1e-14) return 'k' + (s + 1) + ' distinta de R: ' + e.k_dibujadas[s] + ' frente a ' + kR[s];
+            if (Math.abs(e.k_dibujadas[s] - PASO['k' + (s + 1)]) > 1e-14) return 'k' + (s + 1) + ' distinta de R (15 cifras)';
+            if (e.k_texto[s] !== (1000 * kR[s]).toFixed(5)) return 'texto de k' + (s + 1) + ' = ' + e.k_texto[s];
+          }
+          return true;
+        }),
+        A.en('paso', 'cada pendiente está en su edad (a, a + h/2, a + h) y su altura en el eje de pendientes', function (e) {
+          var edad = [60, 60.1, 60.1, 60.2];
+          for (var s = 0; s < 4; s++) {
+            var px = 1010 + (edad[s] - 59.94) / 0.32 * 790, py = 590 + 200 - (1000 * kR[s] - 1.822) / 0.016 * 200;
+            if (Math.abs(e.k_px[s][0] - px) > 0.01 || Math.abs(e.k_px[s][1] - py) > 0.01) return 'k' + (s + 1) + ' fuera de lugar';
+          }
+          var media = (kR[0] + 2 * kR[1] + 2 * kR[2] + kR[3]) / 6;
+          if (Math.abs(e.k_media - media) > 1e-15) return 'el promedio no es (k1 + 2k2 + 2k3 + k4)/6';
+          var pyM = 590 + 200 - (1000 * media - 1.822) / 0.016 * 200;
+          if (Math.abs(e.k_media_px[0] - (1010 + 0.06 / 0.32 * 790)) > 0.01) return 'la línea del promedio no empieza en a';
+          return Math.abs(e.k_media_px[1] - pyM) < 0.01 || 'la línea del promedio no está a su altura';
+        }),
+        A.en('paso', 'cada segmento de predicción sale de p1 con su pendiente: p2 = p1 + h/2 k1, p3 = p1 + h/2 k2, p4 = p1 + h k3', function (e) {
+          var d = e.dom_p, p1 = Number(X.p1), pred = X.p_pred.map(Number), fin = [60.1, 60.1, 60.2];
+          if (Math.abs(d[0][0] - 59.94) > 1e-9 || Math.abs(d[0][1] - 60.26) > 1e-9 || Math.abs(d[1][0] - 0.0306) > 1e-12 || Math.abs(d[1][1] - 0.0314) > 1e-12 || d[2][3] !== 220) return 'dominio ' + JSON.stringify(d);
+          for (var q = 0; q < 3; q++) {
+            if (Math.abs(e.pred_px[q][0] - ejeX(d, fin[q])) > 0.01 || Math.abs(e.pred_px[q][1] - ejeY(d, pred[q])) > 0.01) return 'la predicción p' + (q + 2) + ' fuera de lugar';
+          }
+          for (var s = 0; s < 3; s++) {
+            var sg = e.seg_px[s];
+            if (Math.abs(sg[0][0] - ejeX(d, 60)) > 0.01 || Math.abs(sg[0][1] - ejeY(d, p1)) > 0.01) return 'el segmento ' + (s + 1) + ' no sale de p1';
+            if (Math.abs(sg[1][0] - ejeX(d, fin[s])) > 0.01 || Math.abs(sg[1][1] - ejeY(d, pred[s])) > 0.01) return 'el segmento ' + (s + 1) + ' no llega a la predicción de R';
+          }
+          return true;
+        }),
+        A.en('paso', 'p después del paso es el p de dl_edo_resolver() en a + h (bit a bit), en su lugar del eje y en su texto', function (e) {
+          var pR = Number(X.p_paquete);
+          if (e.p_fin !== pR) return 'p(a + h) = ' + e.p_fin + ', R da ' + pR;
+          if (e.p_fin !== MOD.resolverEdo(I_MEDIA, F_MEDIA, 0, 0, NSUB)[N0 + 1]) return 'distinto de resolverEdo';
+          var d = e.dom_p;
+          if (Math.abs(e.p_fin_px[0] - ejeX(d, 60.2)) > 0.01 || Math.abs(e.p_fin_px[1] - ejeY(d, pR)) > 0.01) return 'el punto no está en (60.2, p)';
+          if (Math.abs(d[0][0] - 59.94) > 1e-9 || Math.abs(d[1][1] - 0.0314) > 1e-9) return 'el dominio no es el del paso: ' + JSON.stringify(d);
+          return e.p_fin_texto === (100 * pR).toFixed(5) || 'texto ' + e.p_fin_texto;
+        }),
+        A.en('enteras', 'las edades enteras son cada quinto punto de la malla h y coinciden con dl_edo()$p', function (e) {
+          var ix = e.enteras_idx, d = e.dom_p2;
+          // El dominio dibujado es el de un año (escrito aquí, no tomado del dibujo).
+          if (Math.abs(d[0][0] - 59.85) > 1e-9 || Math.abs(d[0][1] - 61.15) > 1e-9 || Math.abs(d[1][0] - 0.0302) > 1e-12 || Math.abs(d[1][1] - 0.0334) > 1e-12 || d[2][3] !== 520) return 'dominio ' + JSON.stringify(d);
+          for (var s = 0; s < 2; s++) {
+            var edad = 60 + s;
+            if (Math.abs(A0 + ix[s] * H - edad) > 1e-9) return 'el punto ' + ix[s] + ' no es la edad ' + edad;
+            var pE = datos.p[datos.edades.indexOf(edad)];
+            if (!A.cerca(P_MALLA[ix[s]], pE, 1e-13)) return 'p(' + edad + ') distinta de dl_edo()';
+            if (Math.abs(e.enteras_px[s][0] - ejeX(d, edad)) > 0.01 || Math.abs(e.enteras_px[s][1] - ejeY(d, pE)) > 0.01) return 'la edad ' + edad + ' fuera de lugar';
+          }
+          return true;
+        }),
+        A.en('error', 'el error relativo máximo escrito es el de R (chunk «precision») y el que se recalcula con DL.modelo', function (e) {
+          var i = PRE.i, f = PRE.f;
+          var s = MOD.edo([Math.log(i), Math.log(i)], [Math.log(f), Math.log(f)], [30, 95], { edad_inicio: 30 });
+          var peor = 0;
+          for (var k = 0; k < s.p.length; k++) {
+            var ex = MOD.prevalenciaExacta(i, f, s.edades[k] - 30);
+            peor = Math.max(peor, Math.abs(s.p[k] - ex) / Math.max(ex, 1e-12));
+          }
+          if (Math.abs(peor - e.error_valor) > 1e-3 * e.error_valor) return 'recalculado ' + peor + ' frente a ' + e.error_valor;
+          var m = Number(e.error_texto.split(' ')[0]), ex10 = Number(e.error_texto.match(/\{(-?\d+)\}/)[1]);
+          if (Math.abs(m * Math.pow(10, ex10) - e.error_valor) > 0.051 * Math.pow(10, ex10)) return 'texto ' + e.error_texto;
+          for (var q = 0; q < s.p.length; q++) {
+            if (!A.cerca(e.rk4_p[q], s.p[q], 1e-13)) return 'el punto RK4 de la edad ' + s.edades[q] + ' no es el de dl_edo()';
+            var py = 280 + 520 - s.p[q] / 0.04 * 520, px = 1010 + (s.edades[q] - 30) / 69 * 790;
+            if (Math.abs(e.rk4_px[q][1] - py) > 0.01 || Math.abs(e.rk4_px[q][0] - px) > 0.01) return 'el punto RK4 de la edad ' + s.edades[q] + ' fuera de lugar';
+          }
+          return true;
+        }),
+        A.en('exacta', 'las curvas exactas (R) son las fórmulas: la de la guía (DL.modelo.prevalenciaExacta) y i/k (1 - e^-kt)', function () {
+          for (var q = 0; q < PRE.t_fino.length; q++) {
+            if (!A.cerca(PRE.exacta_fina[q], MOD.prevalenciaExacta(PRE.i, PRE.f, PRE.t_fino[q]), 1e-12)) return 'precisión, t = ' + PRE.t_fino[q];
+          }
+          var k = EST.i + EST.r;
+          for (var q2 = 0; q2 < EST.t_fino.length; q2++) {
+            if (!A.cerca(EST.exacta_fina[q2], EST.i / k * (1 - Math.exp(-k * EST.t_fino[q2])), 1e-12)) return 'estabilidad, t = ' + EST.t_fino[q2];
+          }
+          return true;
+        }),
+        A.en('limite', 'el límite 2.785 es la raíz de R(z) = 1 + z + z²/2 + z³/6 + z⁴/24 = 1 en el eje negativo', function (e) {
+          var z = -Number(e.limite_texto);
+          var R = function (z) { return 1 + z + z * z / 2 + z * z * z / 6 + z * z * z * z / 24; };
+          // Con tres decimales, R(-2.785) < 1 < R(-2.786): el límite cae entre ellos.
+          return (R(z) < 1 && R(z - 0.001) > 1) || 'R(' + z + ') = ' + R(z);
+        }),
+        A.en('inestable', 'con h = 0.2 los pasos son los de dl_edo_resolver() (nsub = 5), se recalculan con resolverEdo y dan p < 0; k h = (i + r + f)/5', function (e) {
+          var m = EST.p_h5.length;
+          var nm = 2 * (m - 1) + 1;
+          var js = MOD.resolverEdo(Array(nm).fill(EST.i), Array(nm).fill(EST.f), EST.r, 0, 5);
+          for (var k = 0; k < e.inestable_p.length; k++) {
+            if (Math.abs(e.inestable_p[k] - js[k]) > 1e-15) return 'paso ' + k + ' distinto de resolverEdo';
+            var py = 300 + 360 - (e.inestable_p[k] + 0.024) / 0.030 * 360;
+            if (Math.abs(e.inestable_px[k][1] - py) > 0.01 || Math.abs(e.inestable_px[k][0] - (1010 + k * 0.2 / 1.2 * 790)) > 0.01) return 'paso ' + k + ' fuera de lugar';
+          }
+          if (!(Math.min.apply(null, e.inestable_p) < 0)) return 'no se vuelve negativa';
+          // k h escrito = (i + r + f (1 - 2p)) h con p = 0; el número del paquete (en su mensaje) es el mismo sin i.
+          var kh = Number(e.kh5_texto);
+          if (Math.abs(kh - (0.05 + 15) * 0.2) > 1e-9 || !(kh > EST.limite_rk4)) return 'k h = ' + e.kh5_texto;
+          var paquete = Number(EST.mensaje.match(/= (\d+\.\d+) >/)[1]);
+          return Math.abs(kh - EST.i * 0.2 - paquete) < 0.005 || 'k h - i h = ' + (kh - EST.i * 0.2) + ', el paquete dice ' + paquete;
+        }),
+        A.en('nsub10', 'con nsub = 10 (k h = 1.51) RK4 sigue a la exacta, y el mensaje es el de dl_insumos()', function (e) {
+          var k = EST.i + EST.r, peor = 0;
+          for (var q = 0; q < e.estable_p.length; q++) {
+            var ex = EST.i / k * (1 - Math.exp(-k * q / 10));
+            peor = Math.max(peor, Math.abs(e.estable_p[q] - ex));
+          }
+          // Con k h = 1.5 el primer paso se aparta algo (R(-1.5) = 0.273 frente a e^-1.5 = 0.223); luego converge.
+          if (peor > 0.1 * EST.i / k) return 'se aparta de la exacta en ' + peor;
+          var ult = e.estable_p.length - 1, exU = EST.i / k * (1 - Math.exp(-k * ult / 10));
+          if (Math.abs(e.estable_p[ult] - exU) > 1e-6 * exU) return 'no converge a la exacta';
+          if (Math.abs(Number(e.kh10_texto) - 1.505) > 1e-9) return 'k h = ' + e.kh10_texto;
+          if (Math.abs(Number(e.kh10_texto) - EST.i / 10 - EST.kh10_insumos) > 1e-9) return 'no cuadra con lo que comprueba dl_insumos()';
+          var nm = 2 * (e.estable_p.length - 1) + 1, js = MOD.resolverEdo(Array(nm).fill(EST.i), Array(nm).fill(EST.f), EST.r, 0, 10);
+          for (var q2 = 0; q2 < e.estable_p.length; q2++) if (Math.abs(js[q2] - e.estable_p[q2]) > 1e-15) return 'paso ' + q2 + ' (h = 0.1) distinto de resolverEdo';
+          // El extracto: cada línea, sin los «…» que marcan los cortes, está en el mensaje y en orden; los cortes van marcados.
+          var desde = 0;
+          for (var s = 0; s < 3; s++) {
+            var l = e.mensaje_lineas[s].replace(/^… /, '').replace(/ …$/, '');
+            var k2 = EST.mensaje.indexOf(l, desde);
+            if (k2 < 0 || l.length < 20) return 'línea ' + s + ' no está en el mensaje';
+            var cortaAntes = k2 > desde + 1, cortaDespues = s < 2 ? EST.mensaje.indexOf(e.mensaje_lineas[s + 1].replace(/^… /, '').replace(/ …$/, '')) > k2 + l.length + 1 : k2 + l.length < EST.mensaje.length;
+            if (cortaAntes && !/^… /.test(e.mensaje_lineas[s])) return 'corte sin marcar antes de la línea ' + s;
+            if (cortaDespues && !/ …$/.test(e.mensaje_lineas[s])) return 'corte sin marcar después de la línea ' + s;
+            desde = k2 + l.length;
+          }
+          return EST.kh10_insumos <= EST.limite_paquete || 'dl_insumos() tampoco acepta nsub = 10';
+        }),
+      ];
+    },
+  });
+})();
+</script>
+</body>
+</html>
