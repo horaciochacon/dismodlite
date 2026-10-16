@@ -48,7 +48,7 @@ TOMAS (segundos):
 0.4-5.2    narración 0. Las 12 cajas del ancla entran escalonadas desde 0.8 s.
 5.5-10.0   narración 1. La banda 65-69 se marca (borde de la marca, 3 px); las demás bajan al 35 %. A la derecha,
            la lupa: una regla vertical con lower_b, val_b y upper_b y sus valores.
-10.0-11.0  CÁMARA: el eje y pasa a escala logarítmica (1 % a 25 %); la regla de la lupa también. En log, las 12
+10.0-11.0  CÁMARA: el eje y pasa a escala logarítmica (0.007 a 0.25); la regla de la lupa también. En log, las 12
            cajas miden lo mismo (σ_log = 0.15 en las 12 bandas del ejemplo).
 11.1-16.8  narración 2. La campana normal (en log) se traza junto a la regla, con ±1.96 σ_log; debajo,
            σ_log,b = (log upper_b − log lower_b) / 3.92 y su cuenta con los números de la banda.
@@ -66,7 +66,8 @@ TOMAS (segundos):
 47.1-52.0  narración 9. Σ/λ se subraya con la marca; al lado, λ = 1 peso entero, λ = 0.5 la mitad.
 52.3-58.1  narración 10. El doble conteo; nada nuevo entra.
 58.1-58.4  la fórmula y la matriz se van; el gráfico vuelve al 100 %.
-58.4-63.3  narración 11. Las cajas verdes del IC 95 % del ajuste (λ = 1, ρ = 0.5) crecen dentro de las del ancla;
+58.4-63.3  narración 11. Las cajas verdes del IC 95 % del ajuste (λ = 1, ρ = 0.5) crecen sobre las del ancla;
+           las rayas (medias) caen dentro de las cajas del ancla;
            rótulo de estado arriba a la derecha del gráfico.
 63.6-69.1  narración 12. Las cajas pasan a los ajustes cortos λ = 1 con ρ = 0, 0.5 y 0.9 (64.0, 65.8, 67.6 s); a
            la derecha, una barra de ancho medio del IC por ρ (λ = 1) entra con cada paso.

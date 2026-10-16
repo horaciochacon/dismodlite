@@ -29,16 +29,16 @@
   var NARRACION = [
     [0.4, 5.2, 'El ancla es una estimación publicada de la prevalencia, banda por banda de edad.'],
     [5.5, 10.0, 'Cada banda $b$ trae su valor $val_b$ y su intervalo del 95 %.'],
-    [11.1, 16.8, 'En escala log, el intervalo es el de una normal: su ancho entre 3.92 da $\\sigma_{log,b}$.'],
-    [17.2, 22.6, 'El modelo da su prevalencia en cada banda, $q_b$: el promedio ponderado de la escena 04.'],
-    [22.9, 26.4, 'Los dos se comparan en logaritmos: $z_b = \\log q_b - \\log val_b$.'],
+    [11.1, 17.0, 'En escala log, el intervalo se lee como el de una normal: su ancho entre 3.92 da $\\sigma_{log,b}$.'],
+    [17.3, 22.7, 'El modelo da su prevalencia en cada banda, $q_b$: el promedio de $p$ ponderado por la población.'],
+    [23.0, 26.4, 'Los dos se comparan en logaritmos: $z_b = \\log q_b - \\log val_b$.'],
     [26.7, 30.4, 'Todas las bandas entran juntas, en una normal multivariada.'],
     [30.7, 35.6, 'Una estimación publicada no tiene errores independientes entre edades: $R$ los correlaciona.'],
     [35.9, 41.4, 'Con $\\rho = 0.5$, la correlación a una, dos y tres bandas es 0.5, 0.25 y 0.125.'],
-    [41.7, 46.8, 'La distancia se cuenta en bandas, no en años: 95+ es una sola banda.'],
-    [47.1, 52.3, '$\\lambda$ multiplica la precisión del ancla: con $\\lambda = 0.5$ cuenta como la mitad de la información.'],
-    [52.6, 58.1, 'Se baja cuando los datos locales ya estaban en la referencia, para no contarlos dos veces.'],
-    [58.4, 63.3, 'El ajuste: la prevalencia de cada banda queda dentro de los intervalos del ancla.'],
+    [41.7, 46.8, 'La distancia se cuenta en bandas, no en años: 90-94 y 95+ están a una banda.'],
+    [47.1, 52.2, '$\\lambda$ multiplica la precisión del ancla: con $\\lambda = 0.5$ cuenta como la mitad de la información.'],
+    [52.5, 58.1, 'Se baja si los datos que entran al ajuste ya estaban en la referencia: no cuentan dos veces.'],
+    [58.4, 63.3, 'El ajuste: la media de cada banda cae dentro del intervalo del ancla.'],
     [63.6, 69.1, 'Con $\\rho = 0$ las bandas cuentan como independientes y el intervalo se estrecha; con 0.9, se abre.'],
     [69.4, 77.0, 'Con $\\lambda = 0.5$ el ancla pesa la mitad, y el intervalo se ensancha.'],
   ];
@@ -64,13 +64,13 @@
       var ol = (1 - u) * o, yy = gy(v, u);
       if (ol <= 0.01) return;
       s.push(D.linea(GX, yy, GX + GW, yy, { color: P.rejilla, grosor: 1.5, o: ol }));
-      s.push(D.texto(GX - 14, yy, Math.round(v * 100) + ' %', { tam: 22, color: P.suave, ancla: 'end', base: 'middle', o: ol }));
+      s.push(D.texto(GX - 14, yy, D.num(v, 2), { tam: 22, color: P.suave, ancla: 'end', base: 'middle', o: ol }));
     });
     [0.01, 0.02, 0.05, 0.10, 0.20].forEach(function (v) {
       var ol = u * o, yy = gy(v, u);
       if (ol <= 0.01) return;
       s.push(D.linea(GX, yy, GX + GW, yy, { color: P.rejilla, grosor: 1.5, o: ol }));
-      s.push(D.texto(GX - 14, yy, Math.round(v * 100) + ' %', { tam: 22, color: P.suave, ancla: 'end', base: 'middle', o: ol }));
+      s.push(D.texto(GX - 14, yy, v < 0.1 ? D.num(v, 2) : D.num(v, 1), { tam: 22, color: P.suave, ancla: 'end', base: 'middle', o: ol }));
     });
     s.push(D.linea(GX, GY + GH, GX + GW, GY + GH, { color: P.guia, grosor: 2, o: o }));
     [40, 50, 60, 70, 80, 90, 97.5].forEach(function (a) {
@@ -78,7 +78,7 @@
       s.push(D.texto(gx(a), GY + GH + 36, a === 97.5 ? '95+' : String(a), { tam: 22, color: P.suave, ancla: 'middle', o: o }));
     });
     s.push(D.texto(GX + GW, GY + GH + 74, 'Edad (años)', { tam: 24, color: P.suave, ancla: 'end', id: 'x-titulo', o: o }));
-    s.push(D.texto(GX - 14, GY - 26, u < 0.5 ? 'Prevalencia, hombres' : 'Prevalencia, hombres (escala log)',
+    s.push(D.texto(GX - 14, GY - 26, u < 0.5 ? 'Prevalencia (proporción), hombres' : 'Prevalencia (proporción), hombres, escala log',
       { tam: 24, color: P.suave, id: u < 0.5 ? 'y-titulo' : 'y-titulo-log', o: o }));
     return s.join('');
   }
@@ -156,7 +156,8 @@
       var gq = M.entra(t, 17.6, 0.4, E.entrarSuave);
       s.push(D.linea(LU.x - 6, yQ, LU.x + LU.w + 6, yQ, { color: P.p, grosor: 4, extremo: 'butt', o: gq }));
       s.push(D.parrafo(LU.x + LU.w + 175, yQ - 4, 200, '$q_b$ = ' + D.num(qK, 4), { tam: 24, alto: 40, o: M.visible(t, 18.4, Infinity), id: 'lupa-q' }));
-      s.push(D.linea(LU.x + LU.w + 30, yQ + 13, LU.x + LU.w + 170, yQ + 13, { color: P.guia, grosor: 1.5, o: gq }));
+      var zq = (Math.log(qK) - Math.log(A.val[K])) / sigmaK;
+      s.push(D.linea(LU.x + LU.w + 10 + 150 * Math.exp(-zq * zq / 2) + 8, yQ + 13, LU.x + LU.w + 170, yQ + 13, { color: P.guia, grosor: 1.5, o: gq }));
     }
     if (t >= 23.0) {
       var gz = M.entra(t, 23.0, 0.4, E.entrarSuave);
@@ -164,6 +165,7 @@
       s.push(D.linea(xz, yV, xz, yV + (yQ - yV) * gz, { color: P.marca, grosor: 4, extremo: 'butt' }));
       s.push(D.linea(xz - 6, yV, xz + 6, yV, { color: P.marca, grosor: 3, o: gz }));
       s.push(D.linea(xz - 6, yQ, xz + 6, yQ, { color: P.marca, grosor: 3, o: gz }));
+      s.push(D.parrafo(xz + 12, (yV + yQ) / 2 - 18, 60, '$z_b$', { tam: 24, alto: 36, o: M.visible(t, 23.3, Infinity), id: 'lupa-z' }));
     }
     return D.grupo(s, { o: o });
   }
@@ -176,7 +178,7 @@
   var EC_SIGMA = '\\sigma_{log,b} = (\\log \\text{upper}_b - \\log \\text{lower}_b) / 3.92';
   var EC_SIGMA_N = '= (\\log ' + D.num(A.upper[K], 4) + ' - \\log ' + D.num(A.lower[K], 4) + ') / 3.92 = ' + D.num(sigmaK, 3);
   var EC_Z = 'z_b = \\log \\htmlClass{tq}{q_b} - \\log val_b';
-  var EC_Z_N = '= \\log ' + D.num(qK, 4) + ' - \\log ' + D.num(A.val[K], 4) + ' = ' + '{' + D.num(zK, 3) + '}';
+  var EC_Z_N = '= \\log ' + D.num(qK, 4) + ' - \\log ' + D.num(A.val[K], 4) + ' = ' + '{' + D.num(zK, 3) + '}' + '\\quad \\text{(media posterior de } q_b\\text{)}';
   function ecL(subrayar) {
     return 'L_{ancla} = \\log MVN(z;\\ 0,\\ ' + (subrayar ? '\\htmlClass{lam}{\\Sigma / \\lambda}' : '\\Sigma / \\lambda') + ')';
   }
@@ -226,7 +228,7 @@
       [[K90, K95], [K95, K90]].forEach(function (bc) {
         s.push(D.rect(MX.x + bc[1] * MX.paso - 2, MX.y + bc[0] * MX.paso - 2, MX.celda + 4, MX.celda + 4, { borde: P.tinta, grosor: 3, o: oB }));
       });
-      s.push(D.parrafo(LX, 716, 236, '90-94 y 95+: a una banda, aunque 95+ abarque 30 años', { tam: 24, alto: 140, o: M.visible(t, 42.4, Infinity), id: 'nota-bandas' }));
+      s.push(D.parrafo(LX, 716, 236, '90-94 y 95+: a una banda, aunque 95+ sea abierta', { tam: 24, alto: 140, o: M.visible(t, 42.4, Infinity), id: 'nota-bandas' }));
     }
     return D.grupo(s, { o: o });
   }
@@ -265,8 +267,8 @@
   function barras(t, actual, c) {
     var s = [], o = M.visible(t, 63.7, Infinity);
     if (o <= 0) return '';
-    s.push(D.parrafo(1110, 278, 714, 'Ancho del IC 95 % de $q_b$, promedio de las 12 bandas', { tam: 28, peso: 600, alto: 44, o: o, id: 'barras-titulo' }));
-    s.push(D.texto(1110, 360, '(superior − inferior) / valor · ajustes cortos, como dl_sensibilidad()', { tam: 22, color: P.suave, o: M.visible(t, 64.6, Infinity), id: 'barras-nota' }));
+    s.push(D.parrafo(1110, 278, 714, 'Ancho relativo del IC 95 % de $q_b$, promedio de las 12 bandas', { tam: 28, peso: 600, alto: 44, o: o, id: 'barras-titulo' }));
+    s.push(D.texto(1110, 360, '(superior − inferior) / valor · cadenas de dl_sensibilidad(): 2 × 6000, 200 simulaciones', { tam: 22, color: P.suave, o: M.visible(t, 64.6, Infinity), id: 'barras-nota' }));
     var dibujadas = {};
     BX.filas.forEach(function (r, j) {
       var yc = BX.y0 + j * BX.dy;
@@ -341,7 +343,8 @@
     var oLey = M.visible(t, 17.9, Infinity) * oG, oLeyQ = M.visible(t, 18.05, Infinity) * oG;
     if (oLey > 0) {
       var oIC = M.visible(t, 59.0, Infinity) * oG;
-      c.svg(D.rect(214, 310, 480, 96 + 44 * oIC, { relleno: P.fondo, o: oLey }));   // tapa la rejilla detrás de la leyenda
+      c.svg(D.rect(214, 310, 480, 96, { relleno: P.fondo, o: oLey }));   // tapa la rejilla detrás de la leyenda
+      c.svg(D.rect(214, 406, 230, 44, { relleno: P.fondo, o: oIC }));    // sin tapar las cajas de 70-79
       c.svg(D.rect(224, 318, 30, 34, { relleno: P.superficie, borde: P.tinta, grosor: 2, o: oLey }));
       c.svg(D.linea(224, 335, 254, 335, { color: P.tinta, grosor: 3, extremo: 'butt', o: oLey }));
       c.svg(D.parrafo(268, 318, 420, 'ancla: $val_b$ e intervalo del 95 %', { tam: 24, alto: 40, o: oLey, id: 'ley-ancla' }));

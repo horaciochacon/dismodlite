@@ -38,8 +38,8 @@ exportar <- function(ctx) {
   l_paquete <- dismodlite:::.dl_lp_mvn_ar1(z, ancla$sigma_log, U, lambda)
 
   list(
-    fuente = paste0("Ejemplo sintético (causa 9100), hombres · ajuste: 4 cadenas × 4000 iteraciones · ",
-                    "sensibilidad: 2 × 6000, como dl_sensibilidad()"),
+    fuente = paste0("Ejemplo sintético (causa 9100), hombres · ajuste: 4 × 4000 iteraciones (2000 de calentamiento), ",
+                    ajuste$simulaciones, " simulaciones · sensibilidad: 2 × 6000 (3000), 200 simulaciones"),
     sexo = sexo, lambda = lambda, rho = rho, ancho_ic95_en_sd = dismodlite:::.DL_ANCHO_IC95_EN_SD,
     ancla = list(age_group_id = ancla$age_group_id, age_start = ancla$age_start, age_end = ancla$age_end,
                  val = ancla$val, lower = ancla$lower, upper = ancla$upper, sigma_log = ancla$sigma_log),
