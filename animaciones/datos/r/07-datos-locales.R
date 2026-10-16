@@ -89,6 +89,15 @@ exportar <- function(ctx) {
   ancla <- insumos_datos$prior_gbd[measure_id == 5 & sex_id == sexo]
   data.table::setorder(ancla, age_start)
   rhat <- function(aj) max(aj$mcmc$rhat)
+  # L_ancla en la media posterior de theta con lambda = 1 y con lambda = 0.5 (.dl_lp_mvn_ar1 del paquete), y la forma
+  # cuadrática z' Sigma^-1 z: la escena comprueba con ellos que lambda divide a Sigma.
+  ba <- cx$ancla
+  z <- log(ns$.dl_q_intervalos(sol$p, cx$pesos_ancla)) - log(ba$bandas$val)
+  u <- backsolve(ba$chol_R, z / ba$bandas$sigma_log, transpose = TRUE)
+  ancla_lp <- list(n = length(z), quad = sum(u * u),
+                   l1 = ns$.dl_lp_mvn_ar1(z, ba$bandas$sigma_log, ba$chol_R, 1),
+                   l05 = ns$.dl_lp_mvn_ar1(z, ba$bandas$sigma_log, ba$chol_R, 0.5))
+  stopifnot(abs(ancla_lp$l05 - comp[["ancla"]]) < 1e-9)
 
   list(
     fuente = paste0("Ejemplo sintético del paquete (causa 9100), hombres de Perú, 2023: dl_ajustar() sin datos y con ",
@@ -113,7 +122,7 @@ exportar <- function(ctx) {
     sin_datos = est_ancla, con_datos = est_datos, estudios = estudios,
     ancla = list(inicio = ancla$age_start, fin = ancla$age_end, val = ancla$val, inferior = ancla$lower,
                  superior = ancla$upper),
-    lambda = list(sin_datos = 1, con_datos = 0.5),
+    lambda = list(sin_datos = 1, con_datos = 0.5), ancla_lp = ancla_lp,
     mcmc = list(sin_datos = list(cadenas = 4, iteraciones = 4000, calentamiento = 2000, rhat_max = rhat(ajuste_ancla)),
                 con_datos = list(cadenas = 4, iteraciones = 8000, calentamiento = 4000, rhat_max = rhat(ajuste_datos)))
   )

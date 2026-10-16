@@ -475,7 +475,7 @@
     sl.push(D.parrafo(lx + 56, ly + 130, 420, '$q_d$ del estudio de 80 y más', { tam: 24, o: oL5, id: 'ley-q80', alto: 40 }));
     sl.push(D.rect(lx, ly + 180, 40, 24, { relleno: P.p, o: 0.2 * oL4 }));
     sl.push(D.linea(lx, ly + 192, lx + 40, ly + 192, { color: P.p, grosor: 4, o: oL4 }));
-    sl.push(D.parrafo(lx + 56, ly + 180, 420, 'con datos ($\\lambda = 0.5$) e IC 95 %', { tam: 24, o: oL4, id: 'ley-con', alto: 40 }));
+    sl.push(D.parrafo(lx + 56, ly + 180, 420, 'con datos ($\\lambda = 0.5$): media y su 95 %', { tam: 24, o: oL4, id: 'ley-con', alto: 40 }));
     s.push(sl.join(''));
     // La tabla de lectura: q_d del estudio de 80+ (con el héroe) y el ancho del intervalo en 80 años (al final).
     var tx = lx, ty = 580, c1 = tx + 340, c2 = tx + 374;
@@ -487,10 +487,10 @@
     s.push(D.texto(c1, ty + 88, pct(Q80.sin, 1) + ' %', { fuente: 'mono', tam: 26, ancla: 'end', o: oT1b, id: 'tab-q-sin' }));
     s.push(D.texto(c2 + 70, ty + 88, pct(Q80.con, 1) + ' %', { fuente: 'mono', tam: 26, ancla: 'end', o: oT1b, id: 'tab-q-con' }));
     s.push(D.texto(tx + 20, ty + 120, 'estudio: ' + DBI.x + '/' + DBI.n + ' = ' + pct(Q80.obs, 2) + ' %', { tam: 22, color: P.suave, o: oT1c, id: 'tab-obs' }));
-    s.push(D.texto(tx + 20, ty + 172, 'IC 95 %, 80 años', { tam: 26, peso: 600, o: oT2, id: 'tab-ic' }));
+    s.push(D.texto(tx + 20, ty + 172, 'Ancho, 80 años', { tam: 26, peso: 600, o: oT2, id: 'tab-ic' }));
     s.push(D.texto(c1, ty + 172, pct(ANCHO.sin, 1), { fuente: 'mono', tam: 26, ancla: 'end', o: oT2b, id: 'tab-ic-sin' }));
     s.push(D.texto(c2 + 70, ty + 172, pct(ANCHO.con, 1), { fuente: 'mono', tam: 26, ancla: 'end', o: M.visible(r, 11.56, Infinity), id: 'tab-ic-con' }));
-    s.push(D.texto(tx + 20, ty + 206, 'ancho, en puntos porcentuales', { tam: 22, color: P.suave, o: M.visible(r, 11.62, Infinity), id: 'tab-ic-unidad' }));
+    s.push(D.texto(tx + 20, ty + 206, 'intervalo del 95 %, en puntos porcentuales', { tam: 22, color: P.suave, o: M.visible(r, 11.62, Infinity), id: 'tab-ic-unidad' }));
     if (oT1 > 0) { c.dato('q80_sin', Q80.sin); c.dato('q80_con', Q80.con); c.dato('q80_dibujado', pct(Q80.con, 1)); }
     // Los dos intervalos en 80 años, lado a lado.
     if (r >= 10.4) {
@@ -586,7 +586,13 @@
           if (!A.cerca(e.L_datos_js, datos.L_componentes.datos, 1e-9)) return 'suma ' + e.L_datos_js + ' frente a ' + datos.L_componentes.datos;
           return A.cerca(datos.L_componentes.datos, datos.L_datos, 1e-12) || 'L_datos exportado distinto';
         }),
-        A.en('lambda', 'el ajuste con datos usa lambda = 0.5', function (e) { return e.lambda_con_datos === 0.5 || 'lambda ' + e.lambda_con_datos; }),
+        A.en('lambda', 'Sigma / lambda: L_ancla con lambda = 0.5 recalculado desde lambda = 1 es el de .dl_lp_mvn_ar1() (1e-9)', function (e) {
+          if (e.lambda_con_datos !== 0.5) return 'lambda ' + e.lambda_con_datos;
+          var a = datos.ancla_lp, lam = e.lambda_con_datos, l2pi = Math.log(2 * Math.PI);
+          var logdet = -2 * a.l1 - a.quad - a.n * l2pi;   // de L(1) = -1/2 (quad + logdet + n log 2 pi)
+          var l = -0.5 * (lam * a.quad + logdet - a.n * Math.log(lam) + a.n * l2pi);
+          return A.cerca(l, a.l05, 1e-9) || 'L_ancla(0.5) ' + l + ' frente a ' + a.l05;
+        }),
         A.en('final', 'los anchos en 80 años son los de dl_estimaciones() y el de con datos es menor', function (e) {
           // Las barras dibujadas, medidas en px con la escala del eje (480 px = 24 puntos), frente al ancho del paquete.
           var pxPorPunto = 480 / 0.24;

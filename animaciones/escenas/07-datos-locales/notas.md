@@ -61,6 +61,17 @@
 9. «altura en q_d: exp(ℓ_d)» va a 26 px, sin superíndice.
 10. Las escalas de los tres paneles quedan parejas (tope a la misma altura).
 
+**Hallazgos recurrentes que mandó la sesión coordinadora** (de las revisiones de las escenas 04, 05, 06 y 10), y
+cómo los apliqué:
+- «IC» se leía como intervalo de confianza: la leyenda y la tabla dicen ahora «intervalo del 95 %» y «media».
+- La comprobación de λ era una constante (λ = 0.5 frente a 0.5) y no podía fallar. Ahora recalcula en JS
+  L_ancla(λ = 0.5) a partir de L_ancla(λ = 1) y de la forma cuadrática z' Σ⁻¹ z. Compara el resultado con el valor de
+  `.dl_lp_mvn_ar1()` a 1e-9, y así prueba que λ divide a Σ.
+- Las demás observaciones ya se cumplían:
+  - el ejemplo numérico va rotulado «en la media posterior»;
+  - las unidades llevan denominador;
+  - «sin datos en el ajuste» nunca se presenta como validación.
+
 **Lo que encontré yo, antes de la revisión**:
 
 - El cuadro 0 salía vacío salvo la cabecera: la primera toma entraba con un fundido desde t = 0. Lo vio la hoja de
@@ -70,6 +81,8 @@
 - Al fusionar la rama base (narración a 42 px en una línea), todas las frases caben.
 
 Las comprobaciones de la escena miden lo dibujado contra algo independiente:
+
+- L_ancla con λ = 0.5 se recalcula desde λ = 1 y se compara con el del paquete;
 
 - cada ℓ_d se recalcula en JS con la fórmula de la guía y se compara con el del paquete;
 - la suma se compara con `.dl_lp_componentes()`;
@@ -109,6 +122,6 @@ Los dos avisos son bloques que entran como una sola cosa: el título y los ejes 
 
 ## (d) Tiempos
 
-- Render completo (2535 cuadros, MP4 y hoja): 3 min 28 s en el contenedor.
+- Render completo (2535 cuadros, MP4 y hoja): 3 min 30 s en el contenedor.
 - Auditoría: unos 15 s.
 - `Rscript datos/exportar.R 07-datos-locales`: unos 100 s (los dos ajustes).
