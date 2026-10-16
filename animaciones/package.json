@@ -1,0 +1,14 @@
+{
+  "name": "dismodlite-animaciones",
+  "private": true,
+  "description": "Animaciones metodológicas de dismodlite: cada cuadro es una función pura del tiempo.",
+  "type": "module",
+  "scripts": {
+    "render": "node herramientas/render.mjs",
+    "auditar": "node herramientas/auditar.mjs",
+    "probar": "node --test pruebas/"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}

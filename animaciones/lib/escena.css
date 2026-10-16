@@ -1,0 +1,11 @@
+/* Estilo común de las escenas. El escenario mide ancho x alto; en la vista previa se escala para caber en la ventana. */
+html, body { margin: 0; padding: 0; background: #F5F7F6; overflow: hidden; }
+#escenario { position: relative; transform-origin: 0 0; }
+#lienzo { display: block; text-rendering: geometricPrecision; }
+#contador {
+  position: absolute; right: 16px; bottom: 10px; padding: 2px 8px; border-radius: 4px;
+  font: 500 18px "IBM Plex Mono", ui-monospace, monospace; color: #55645F; background: rgba(255, 255, 255, 0.88);
+}
+/* KaTeX: el tamaño lo fija cada fórmula (op.tam); sin el 1.21em de KaTeX. */
+.katex { font-size: 1em; text-rendering: geometricPrecision; }
+.katex .cancel-pad { padding: 0 0.1em; }

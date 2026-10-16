@@ -16,3 +16,4 @@
 ^vignettes/\.gitignore$
 ^vignettes/_quarto\.ya?ml$
 ^\.superpowers$
+^animaciones$
