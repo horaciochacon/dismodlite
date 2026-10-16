@@ -58,15 +58,18 @@ TOMAS (segundos):
 40.1-45.4 tarjeta derecha: «casos y muestra → conteos»: la binomial, y 0.9 s después la Poisson (el ejemplo no
           trae conteos de incidencia ni de mortalidad, y la tarjeta lo dice).
 45.7-50.6 su gráfico: ℓ(q) del estudio de 80 años y más (70 de 800), su máximo en x/n y q_d; los números.
-50.9-55.5 la franja de la suma: L_datos = Σ_d ℓ_d con su valor y las constantes que se omiten. Sale la toma.
-55.8-65.9 doble conteo: log posterior(θ) = L_suavidad + L_emr + L_ancla + L_datos (L_ancla subrayada); la tarjeta
+50.9-55.7 la franja de la suma: L_datos = Σ_d ℓ_d, los 12 datos de los hombres en la media posterior de θ; la
+          narración nombra las dos constantes que se omiten (log C(n,x) y -log x!). Sale la toma.
+56.0-65.9 doble conteo: log posterior(θ) = L_suavidad + L_emr + L_ancla + L_datos (L_ancla subrayada); la tarjeta
           YAML «ancla: peso: 1» pasa a «peso: 0.5» (60.6 s, recuadro de la marca); L_ancla = log MVN(z; 0, Σ/λ); las
-          dos lecturas de λ, una por vez. Sale la toma.
+          dos lecturas de λ, una por vez (la de λ = 1 baja al 40 % cuando entra la de 0.5). Sale la toma.
 66.2-70.9 la prevalencia de los hombres por edad: ejes, cajas del ancla, la media sin datos (trazo de 1.6 s, punteada)
           y su banda del 95 %; entran los tres estudios y el q_d del estudio de 80 y más.
-71.2-76.4 héroe: la banda, la media y el q_d de 80+ pasan de sin datos a con datos (1.4 s, EASE.mover); quedan
-          punteados el intervalo y el q_d sin datos; la tabla de lectura entra con la fila de q_d.
-76.7-84.5 la guía en 80 años, los dos intervalos lado a lado y la fila del ancho en puntos porcentuales; se sostiene.
+71.2-76.6 héroe: la banda, la media (cruce de punteada a sólida) y el q_d de 80+ pasan de sin datos a con datos
+          (1.4 s, EASE.mover); 0.3 s antes entran, punteados, la media, el intervalo y el q_d sin datos; la tabla de
+          lectura entra con la fila de q_d (escalonada 60 ms). La narración dice «aun con λ = 0.5»: λ = 0.5 ensancharía.
+76.9-84.5 la guía en 80 años; los dos intervalos («sin», «con») a la izquierda de la guía, sobre un recuadro; la
+          tabla se estira (0.5 s, EASE.mover) con la fila del ancho en puntos porcentuales; se sostiene.
 
 PROHIBIDO: degradados morados o azules, brillos, destellos, partículas decorativas, todo apareciendo a la vez,
 aparecer-y-subir en cada elemento, todo centrado, texto que se mueve mientras se lee, 3D, sombras, emojis, números
@@ -80,4 +83,13 @@ de 70-79 (log-normal) y del estudio de 80+ (binomial), recalculados en JS con la
 a L_datos de .dl_lp_componentes() a 1e-9; los anchos del intervalo en 80 años dibujados son los de dl_estimaciones()
 y el de con datos es menor; el q_d de cada estudio de prevalencia (promedio por población de p en su intervalo,
 simulación por simulación) queda más cerca de su x/n con datos que sin datos; la caja vacía en «vacio».
+
+REVISIÓN ADVERSARIAL (metodólogo y diseñador, en paralelo; ver notas.md): corrigió «los datos solo validan» (las
+filas nacionales quedan fuera; validan las subnacionales), «se omiten las constantes» (solo log C(n,x) y -log x!),
+«esa densidad» (es la normal de log x), la falta de aviso de que q_d y ℓ_d están en la media posterior de θ del ajuste
+con datos, «con λ = 0.5 se estrecha» (es por los datos, aun con λ = 0.5), las unidades por persona-año, los valores
+por defecto en el YAML; y en el movimiento, las barras de 80 años que se rompían, la media sin datos que
+desaparecía, el salto de punteada a sólida a mitad del héroe, las dos lecturas de λ a la vez, la franja de la suma
+fuera de la escena, la leyenda que mostraba lo que aún no había, la caja excluida delatada desde el cuadro 0 y las
+escalas desparejas de los paneles.
 ```

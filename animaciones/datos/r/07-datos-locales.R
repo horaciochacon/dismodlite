@@ -61,8 +61,8 @@ exportar <- function(ctx) {
     ruta = ifelse(d$ruta == ns$.DL_RUTA_LOGNORMAL, "lognormal", "binomial"),
     val = d$val, se = d$se, s_log = d$s_log, eta = d$eta, x = d$x, n = d$n_ef,
     obs = ifelse(is.na(d$val), d$x / d$n_ef, d$val),
-    inf95 = ifelse(is.na(d$val), NA_real_, d$val * exp(-1.96 * d$s_log)),
-    sup95 = ifelse(is.na(d$val), NA_real_, d$val * exp(1.96 * d$s_log)),
+    inf95 = ifelse(is.na(d$val), NA_real_, (d$val + d$eta) * exp(-1.96 * d$s_log) - d$eta),
+    sup95 = ifelse(is.na(d$val), NA_real_, (d$val + d$eta) * exp(1.96 * d$s_log) - d$eta),
     q = q, l = l)
   datos_h <- datos_h[order(match(datos_h$medida, c("prevalencia", "incidencia", "mortalidad")), datos_h$inicio), ]
 

@@ -25,25 +25,25 @@
   // ---- Narración: cada línea dura al menos 0,3 s por palabra + 0,5 s ----
   var NARRACION = [
     [0.4, 5.3, 'La tabla datos del ejemplo trae ' + datos.n_nacionales + ' filas nacionales de 2023, de tres medidas.'],
-    [5.6, 11.6, 'Por defecto, datos_en_ajuste está vacío: los datos solo validan; el ajuste usa el ancla y los priors.'],
-    [11.9, 17.1, 'Al listar medidas, entran las filas nacionales del año que se estima, sin las excluidas.'],
+    [5.6, 11.6, 'Por defecto, datos_en_ajuste está vacío: el ajuste usa solo el ancla y los priors.'],
+    [11.9, 17.1, 'Al listar medidas, entran las filas nacionales del año, de esas medidas y sin excluir.'],
     [17.4, 21.1, 'Las covariables no entran aquí: solo mueven las estimaciones subnacionales.'],
     [21.4, 26.2, 'Cada dato se compara con el modelo promediado en su intervalo de edad: $q_d$.'],
     [26.5, 31.1, '$p$ para la prevalencia, $i(1-p)$ para la incidencia y $p\\,f$ para la mortalidad.'],
     [31.4, 35.3, 'Un dato con valor y error estándar entra con una log-normal.'],
-    [35.6, 39.8, 'Su $\\ell_d$ es el logaritmo de esa densidad en $q_d$.'],
+    [35.6, 39.8, 'Su $\\ell_d$: el logaritmo de la densidad normal de $\\log x$ en $\\log q_d$.'],
     [40.1, 45.4, 'Con casos y muestra: binomial para la prevalencia, Poisson para la incidencia y la mortalidad.'],
     [45.7, 50.6, 'El estudio de 80 años y más: 70 casos entre 800, frente a $q_d$.'],
-    [50.9, 55.5, '$L_{datos}$ suma los $\\ell_d$; se omiten las constantes que no dependen de $\\theta$.'],
-    [55.8, 60.1, 'Si estos datos ya informaron la estimación de referencia, contarían dos veces.'],
-    [60.4, 65.6, 'Por eso se baja el peso del ancla: con $\\lambda = 0.5$ cuenta como la mitad.'],
+    [50.9, 55.7, '$L_{datos}$ suma los $\\ell_d$; se omiten $\\log\\binom{n}{x}$ y $-\\log x!$, que no dependen de $\\theta$.'],
+    [56.0, 60.3, 'Si estos datos ya informaron la estimación de referencia, contarían dos veces.'],
+    [60.6, 65.8, 'Por eso se baja el peso del ancla: con $\\lambda = 0.5$ cuenta como la mitad.'],
     [66.4, 70.9, 'Sin datos en el ajuste, la prevalencia de los hombres sigue al ancla.'],
-    [71.2, 76.4, 'Con los datos y $\\lambda = 0.5$, baja hacia el estudio y el intervalo se estrecha.'],
-    [76.7, 84.5, null],   // la frase final se arma con los anchos del intervalo (abajo)
+    [71.2, 76.6, 'Con los datos, aun con $\\lambda = 0.5$, baja hacia el estudio y el intervalo se estrecha.'],
+    [76.9, 84.5, null],   // la frase final se arma con los anchos del intervalo (abajo)
   ];
 
   // ---- Tomas: cada una sale entera en 0,24 s ----
-  var TOMA = { filas: [0, 21.1], q: [21.4, 31.1], verosimilitud: [31.4, 55.5], lambda: [55.8, 65.9], payoff: [66.2, Infinity] };
+  var TOMA = { filas: [0, 21.1], q: [21.4, 31.1], verosimilitud: [31.4, 55.7], lambda: [55.8, 65.9], payoff: [66.2, Infinity] };
   function enToma(t, nombre, t0) {
     var r = TOMA[nombre];
     // La primera toma ya está en el cuadro 0 (composición terminada): entra sin fundido.
@@ -66,7 +66,7 @@
   var F_SUMA = 'L_{datos} = \\sum_d \\ell_d';
   var F_ANCLA = 'L_{ancla} = \\log MVN(z;\\ 0,\\ \\Sigma / \\htmlClass{lam}{\\lambda})';
   var F_POSTERIOR = '\\log \\text{posterior}(\\theta) = L_{suavidad} + L_{emr} + \\htmlClass{lam}{L_{ancla}} + L_{datos} \\; (+\\ \\text{constantes})';
-  var ESTILO_LAMBDA = { lam: 'text-decoration:underline 4px ' + P.marca + ';text-underline-offset:7px;' };
+  var ESTILO_LAMBDA = { lam: 'text-decoration:underline 4px ' + P.marca + ';text-underline-offset:7px;text-decoration-skip-ink:none;' };
 
   // =====================================================================================================
   // Toma 1: qué filas entran
@@ -103,7 +103,7 @@
     s.push(D.texto(x + 30, y + 48, '# config/9100.yaml', { fuente: 'mono', tam: 24, color: P.suave, o: o, id: 'yaml-archivo' }));
     s.push(D.texto(x + 30, y + 92, 'anio: 2023', Object.assign({ o: o, id: 'yaml-anio' }, mono)));
     var oVacio = Math.min(o, M.visible(t, 0, 12.0, { entrada: 0 }));
-    s.push(D.texto(x + 30, y + 138, 'datos_en_ajuste: []', Object.assign({ o: oVacio, id: 'yaml-vacio' }, mono)));
+    s.push(D.texto(x + 30, y + 138, 'datos_en_ajuste: []  # por defecto', Object.assign({ o: oVacio, id: 'yaml-vacio' }, mono)));
     var oClave = Math.min(o, M.visible(t, 12.2, Infinity));
     s.push(D.texto(x + 30, y + 138, 'datos_en_ajuste:', Object.assign({ o: oClave, id: 'yaml-clave' }, mono)));
     ['prevalencia', 'incidencia', 'mortalidad'].forEach(function (m, k) {
@@ -133,12 +133,12 @@
     });
     // El dato excluido: contorno punteado; se tacha cuando la lista ya entró.
     var ex = EXCLUIDA;
-    s.push(D.rect(ex.x, ex.y, REJ.cajaW, REJ.cajaH, { relleno: P.superficie, borde: P.suave, grosor: 2, radio: 6, guiones: '5 4', o: o }));
-    s.push(D.texto(ex.x + REJ.cajaW / 2, ex.y + 30, edadTxt(ex.f.inicio, ex.f.fin), { fuente: 'mono', tam: 22, ancla: 'middle', color: P.suave, o: o }));
+    s.push(D.rect(ex.x, ex.y, REJ.cajaW, REJ.cajaH, { relleno: P.superficie, borde: P.suave, grosor: 2, radio: 6, guiones: t >= 14.7 ? '5 4' : null, o: o }));
+    s.push(D.texto(ex.x + REJ.cajaW / 2, ex.y + 30, edadTxt(ex.f.inicio, ex.f.fin), { fuente: 'mono', tam: 22, ancla: 'middle', color: t >= 14.7 ? P.suave : P.tinta, o: o }));
     var uT = M.entra(t, 14.7, 0.3, E.mover);
     if (uT > 0) s.push(D.trazo([[ex.x + 4, ex.y + REJ.cajaH - 4], [ex.x + REJ.cajaW - 4, ex.y + 4]], { color: P.tinta, grosor: 3, progreso: uT, o: o }));
     var yNota = REJ.y + 2 * REJ.grupo + 2 * REJ.fila + 22;
-    s.push(D.texto(REJ.xCajas, yNota, edadTxt(ex.f.inicio, ex.f.fin) + ', mujeres: excluida (' + ex.f.motivo + ')',
+    s.push(D.texto(REJ.x, yNota, edadTxt(ex.f.inicio, ex.f.fin) + ', mujeres: valor y error estándar; excluida (' + ex.f.motivo + ')',
       { tam: 22, color: P.suave, o: Math.min(o, M.visible(t, 15.0, Infinity)), id: 'nota-excluida' }));
     // Las subnacionales: fuera del ajuste nacional.
     var ySub = 716;
@@ -166,11 +166,11 @@
   // =====================================================================================================
   var PANELES = [
     { medida: 'prevalencia', titulo: 'prevalencia · $q_d$ de $p$', color: P.p, curva: datos.curva_p, esc: 100, unidad: '%',
-      yDom: [0, 0.14], yTicks: [0, 0.04, 0.08, 0.12], t0: 21.6 },
-    { medida: 'incidencia', titulo: 'incidencia · $q_d$ de $i(1-p)$', color: P.i, curva: datos.curva_ipop, esc: 1000, unidad: 'por 1000',
+      yDom: [0, 0.16], yTicks: [0, 0.04, 0.08, 0.12, 0.16], t0: 21.6 },
+    { medida: 'incidencia', titulo: 'incidencia · $q_d$ de $i(1-p)$', color: P.i, curva: datos.curva_ipop, esc: 1000, unidad: 'por 1000 personas-año',
       yDom: [0, 0.012], yTicks: [0, 0.004, 0.008, 0.012], t0: 26.8 },
-    { medida: 'mortalidad', titulo: 'mortalidad · $q_d$ de $p\\,f$', color: P.f, curva: datos.curva_pf, esc: 1000, unidad: 'por 1000',
-      yDom: [0, 0.010], yTicks: [0, 0.004, 0.008], t0: 28.0 },
+    { medida: 'mortalidad', titulo: 'mortalidad · $q_d$ de $p\\,f$', color: P.f, curva: datos.curva_pf, esc: 1000, unidad: 'por 1000 personas-año',
+      yDom: [0, 0.012], yTicks: [0, 0.004, 0.008, 0.012], t0: 28.0 },
   ];
   PANELES.forEach(function (pn, k) {
     pn.G = D.ejes({
@@ -230,9 +230,10 @@
     var y = 838, s = [];
     s.push(D.linea(186, y - 8, 226, y - 8, { color: P.tinta, grosor: 2, o: ol }));
     s.push(D.circulo(206, y - 8, 7, { relleno: P.superficie, borde: P.tinta, grosor: 3, o: ol }));
-    s.push(D.texto(240, y, 'dato, sobre su intervalo de edad (bigote: 95 % de su log-normal)', { tam: 22, color: P.suave, o: ol, id: 'ley-dato' }));
-    [P.p, P.i, P.f].forEach(function (col, k) { s.push(D.linea(930 + 16 * k, y - 8, 942 + 16 * k, y - 8, { color: col, grosor: 6, o: ol, extremo: 'butt' })); });
-    s.push(D.parrafo(984, y - 24, 860, '$q_d$: el modelo promediado en el intervalo, con la población de cada edad', { tam: 22, color: P.suave, o: ol, id: 'ley-q', alto: 40 }));
+    s.push(D.texto(240, y, 'dato, sobre su intervalo de edad (bigote, si trae error: 95 % de su log-normal)', { tam: 22, color: P.suave, o: ol, id: 'ley-dato' }));
+    [P.p, P.i, P.f].forEach(function (col, k) { s.push(D.linea(990 + 16 * k, y - 8, 1002 + 16 * k, y - 8, { color: col, grosor: 6, o: Math.min(ol, M.visible(t, [24.6, 27.4, 28.6][k], Infinity)), extremo: 'butt' })); });
+    s.push(D.parrafo(1044, y - 24, 780, '$q_d$: el modelo promediado en el intervalo, ponderado por la población', { tam: 22, color: P.suave, o: ol, id: 'ley-q', alto: 40 }));
+    s.push(D.parrafo(186, y + 14, 1640, 'Hombres; curvas y $q_d$ en la media posterior de $\\theta$ del ajuste con datos ($\\lambda = 0.5$).', { tam: 22, color: P.suave, o: Math.min(o, M.visible(t, 25.0, Infinity)), id: 'ley-theta', alto: 36 }));
     return s.join('');
   }
 
@@ -251,21 +252,21 @@
 
   // La densidad de la log-normal del dato en escala log, sobre x (por 1000) en escala log.
   var GLN = D.ejes({
-    x: 190, y: 600, ancho: 660, alto: 130, id: 'lognormal', xLog: true,
+    x: 190, y: 590, ancho: 660, alto: 120, id: 'lognormal', xLog: true,
     xDom: [2.8, 10], yDom: [0, 2.3], xTicks: [3, 4, 5, 6, 8, 10], yTicks: [],
-    xTitulo: 'incidencia de 70 a 79 años (por 1000, escala log)',
+    xTitulo: 'incidencia de 70 a 79 años (por 1000 personas-año, escala log)',
   });
   var GBI = D.ejes({
-    x: 1090, y: 600, ancho: 660, alto: 130, id: 'binomial',
+    x: 1090, y: 590, ancho: 660, alto: 120, id: 'binomial',
     xDom: [6, 12.5], yDom: [-244, -236.5], xTicks: [6, 7, 8, 9, 10, 11, 12], yTicks: [],
-    xFormato: function (v) { return v + ' %'; }, xTitulo: '$q_d$ (prevalencia de 80 años y más)',
+    xFormato: function (v) { return v + ' %'; }, xTitulo: '$\\ell_d$ según $q_d$, prevalencia de 80 años y más (eje vertical recortado)',
   });
 
   function tarjetaLognormal(t, o, c) {
     var s = [];
     var oc = Math.min(o, M.entra(t, 31.6, 0.4, E.entrarSuave));
     if (oc <= 0) return '';
-    s.push(tarjeta(96, 256, 840, 560, oc));
+    s.push(tarjeta(96, 256, 840, 540, oc));
     s.push(D.texto(130, 304, 'Valor y error estándar → log-normal', { fuente: 'titulo', tam: 32, peso: 600, o: oc, id: 'tit-lognormal' }));
     s.push(D.formula(F_LOGNORMAL, 130, 362, { tam: 32, o: Math.min(o, M.visible(t, 31.9, Infinity)), id: 'f-lognormal', palabras: 6, ancho: 790, alto: 70 }));
     s.push(D.formula(F_SLOG, 130, 420, { tam: 30, o: Math.min(o, M.visible(t, 32.5, Infinity)), id: 'f-slog', palabras: 3, ancho: 400, alto: 60 }));
@@ -291,10 +292,10 @@
       }
       var on = Math.min(o, M.visible(t, 37.4, Infinity));
       var l = lLognormal(DLN.q, DLN.val, DLN.s_log, DLN.eta);
-      s.push(D.parrafo(GLN.x(q) - 250, GLN.y(dens(q)) - 6, 230, 'altura en $q_d$: $e^{\\ell_d}$', { tam: 24, color: P.suave, ancla: 'start', o: Math.min(o, M.visible(t, 37.9, Infinity)), id: 'eti-altura', alto: 36 }));
-      s.push(D.parrafo(130, 498, 790, '$val_d$ = ' + porMil(DLN.val) + ', $se_d$ = ' + porMil(DLN.se) + ' por 1000 → $s_{log,d}$ = ' + D.num(DLN.se / (DLN.val + DLN.eta), 2),
+      s.push(D.parrafo(GLN.x(q) - 300, GLN.y(dens(q)) - 6, 280, 'altura en $q_d$: $\\exp(\\ell_d)$', { tam: 26, color: P.suave, ancla: 'start', o: Math.min(o, M.visible(t, 37.9, Infinity)), id: 'eti-altura', alto: 36 }));
+      s.push(D.parrafo(130, 498, 790, '$val_d$ = ' + porMil(DLN.val) + ', $se_d$ = ' + porMil(DLN.se) + ' por 1000 personas-año → $s_{log,d}$ = ' + D.num(DLN.se / (DLN.val + DLN.eta), 2),
         { tam: 26, o: on, id: 'num-lognormal-1', alto: 40 }));
-      s.push(D.parrafo(130, 538, 790, '$q_d$ = ' + porMil(DLN.q) + ' por 1000 → $\\ell_d$ = ' + D.num(l, 3),
+      s.push(D.parrafo(130, 538, 790, '$q_d$ = ' + porMil(DLN.q) + ' por 1000 personas-año → $\\ell_d$ = ' + D.num(l, 3),
         { tam: 26, o: Math.min(o, M.visible(t, 37.6, Infinity)), id: 'num-lognormal-2', alto: 40 }));
       if (t >= 37.4) {
         c.dato('l_lognormal_js', l);
@@ -309,7 +310,7 @@
     var s = [];
     var oc = Math.min(o, M.entra(t, 40.2, 0.4, E.entrarSuave));
     if (oc <= 0) return '';
-    s.push(tarjeta(984, 256, 840, 560, oc));
+    s.push(tarjeta(984, 256, 840, 540, oc));
     s.push(D.texto(1018, 304, 'Casos y muestra → conteos', { fuente: 'titulo', tam: 32, peso: 600, o: oc, id: 'tit-conteos' }));
     var ob = Math.min(o, M.visible(t, 40.5, Infinity));
     s.push(D.formula(F_BINOMIAL, 1018, 352, { tam: 30, o: ob, id: 'f-binomial', palabras: 5, ancho: 560, alto: 56 }));
@@ -341,7 +342,7 @@
         { tam: 26, o: on, id: 'num-binomial-1', alto: 40 }));
       s.push(D.parrafo(1018, 538, 790, '$q_d$ = ' + pct(DBI.q) + ' % → $\\ell_d$ = ' + signo(l, 2),
         { tam: 26, o: Math.min(o, M.visible(t, 47.7, Infinity)), id: 'num-binomial-2', alto: 40 }));
-      s.push(D.parrafo(GBI.der - 300, GBI.arriba - 34, 300, '$\\ell_d$ en función de $q_d$', { tam: 22, color: P.suave, o: Math.min(o, M.visible(t, 46.2, Infinity)), id: 'eti-ell', alto: 36 }));
+      // (la etiqueta del eje vertical va en el título del eje x)
       if (t >= 47.5) {
         c.dato('l_binomial_js', l);
         c.dato('l_binomial_dibujado', signo(l, 2));
@@ -355,9 +356,9 @@
     if (os <= 0) return '';
     var suma = datos.datos.reduce(function (a, d) { return a + d.l; }, 0);
     c.dato('L_datos_js', suma);
-    return D.rect(96, 836, 1728, 64, { relleno: P.superficie, borde: P.marca, grosor: 3, radio: 10, o: os }) +
-      D.formula(F_SUMA + ' = ' + signo(suma, 2).replace('−', '-'), 130, 868, { tam: 30, o: os, id: 'f-suma', palabras: 4, ancho: 520, alto: 60 }) +
-      D.parrafo(660, 852, 1150, 'los ' + datos.datos.length + ' datos de los hombres; sin $\\log\\binom{n}{x}$ ni $-\\log x!$',
+    return D.rect(96, 816, 1728, 64, { relleno: P.superficie, borde: P.marca, grosor: 3, radio: 10, o: os }) +
+      D.formula(F_SUMA + ' = ' + signo(suma, 2).replace('−', '-'), 130, 848, { tam: 30, o: os, id: 'f-suma', palabras: 4, ancho: 520, alto: 60 }) +
+      D.parrafo(520, 832, 1290, 'los ' + datos.datos.length + ' datos de los hombres, en la media posterior de $\\theta$',
         { tam: 24, color: P.suave, o: os, id: 'nota-suma', alto: 44 });
   }
 
@@ -368,24 +369,24 @@
     var o = enToma(t, 'lambda', 56.0);
     if (o <= 0) return '';
     var s = [];
-    var x = 96, y = 400, op = o;
+    var x = 96, y = 450, op = o;
     o = enToma(t, 'lambda', 56.4);
-    s.push(D.formula(F_POSTERIOR, 96, 300, { tam: 36, color: P.suave, o: op, id: 'f-posterior', palabras: 7, estilos: ESTILO_LAMBDA, ancho: 1500, alto: 80 }));
+    s.push(D.formula(F_POSTERIOR, 96, 340, { tam: 36, color: P.suave, o: op, id: 'f-posterior', palabras: 7, estilos: ESTILO_LAMBDA, ancho: 1500, alto: 80 }));
     s.push(tarjeta(x, y, 560, 236, o));
     s.push(D.texto(x + 30, y + 48, '# config/9100.yaml', { fuente: 'mono', tam: 24, color: P.suave, o: o, id: 'yaml2-archivo' }));
     s.push(D.texto(x + 30, y + 98, 'ancla:', { fuente: 'mono', tam: 26, o: o, id: 'yaml2-ancla' }));
     var o1 = Math.min(o, M.visible(t, 56.4, 60.6, { entrada: 0.4 }));
     var o2 = Math.min(o, M.visible(t, 60.8, Infinity));
-    s.push(D.texto(x + 30, y + 144, '\u00a0\u00a0peso: 1', { fuente: 'mono', tam: 26, o: o1, id: 'yaml2-peso1' }));
+    s.push(D.texto(x + 30, y + 144, '\u00a0\u00a0peso: 1  # por defecto', { fuente: 'mono', tam: 26, o: o1, id: 'yaml2-peso1' }));
     s.push(D.texto(x + 30, y + 144, '\u00a0\u00a0peso: 0.5', { fuente: 'mono', tam: 26, o: o2, id: 'yaml2-peso05' }));
     s.push(D.texto(x + 30, y + 196, 'datos_en_ajuste: [prevalencia, …]', { fuente: 'mono', tam: 22, color: P.suave, o: o, id: 'yaml2-datos' }));
     var om = M.entra(t, 60.7, 0.4, E.entrarSuave);
     if (om > 0) s.push(D.rect(x + 14, y + 114, 260, 46, { borde: P.marca, grosor: 3, radio: 8, o: om * o }));
     // La fórmula del ancla, con λ subrayada.
-    s.push(D.formula(F_ANCLA, 760, 470, { tam: 46, o: Math.min(o, M.visible(t, 57.0, Infinity)), id: 'f-ancla', palabras: 5, estilos: ESTILO_LAMBDA, ancho: 1000, alto: 100 }));
-    s.push(D.parrafo(760, 540, 1060, '$\\lambda = 1$: el ancla pesa con su propia incertidumbre.',
-      { tam: 30, o: Math.min(o, M.visible(t, 57.7, Infinity)), id: 'lambda-1', alto: 50 }));
-    s.push(D.parrafo(760, 600, 1060, '$\\lambda = 0.5$: pesa como si su varianza fuera el doble; los datos locales tienen más voz.',
+    s.push(D.formula(F_ANCLA, 760, 520, { tam: 46, o: Math.min(o, M.visible(t, 57.0, Infinity)), id: 'f-ancla', palabras: 5, estilos: ESTILO_LAMBDA, ancho: 1000, alto: 100 }));
+    s.push(D.parrafo(760, 590, 1060, '$\\lambda = 1$: el ancla pesa con su propia incertidumbre.',
+      { tam: 30, o: Math.min(o, M.visible(t, 57.7, Infinity)) * (1 - 0.6 * M.entra(t, 60.8, 0.3, E.entrarSuave)), id: 'lambda-1', alto: 50 }));
+    s.push(D.parrafo(760, 650, 1060, '$\\lambda = 0.5$: pesa como si su varianza fuera el doble; los datos locales tienen más voz.',
       { tam: 30, o: Math.min(o, M.visible(t, 60.8, Infinity)), id: 'lambda-05', alto: 90 }));
     c.dato('lambda_con_datos', datos.lambda.con_datos);
     return s.join('');
@@ -405,7 +406,7 @@
     sin: datos.sin_datos.superior[k80] - datos.sin_datos.inferior[k80],
     con: datos.con_datos.superior[k80] - datos.con_datos.inferior[k80],
   };
-  NARRACION[NARRACION.length - 1][2] = 'A los 80 años, el intervalo del 95 % pasa de ' + pct(ANCHO.sin, 1) + ' a ' + pct(ANCHO.con, 1) + ' puntos porcentuales.';
+  NARRACION[NARRACION.length - 1][2] = 'A los 80 años, el ancho del intervalo del 95 % pasa de ' + pct(ANCHO.sin, 1) + ' a ' + pct(ANCHO.con, 1) + ' puntos porcentuales.';
 
   function mezcla(a, b, u) { return a.map(function (x, k) { return x + (b[k] - x) * u; }); }
 
@@ -438,13 +439,15 @@
     var oB = M.entra(r, 2.5, 0.6, E.entrarSuave);
     if (oB > 0) s.push(GP.banda(edades, inf, sup, { relleno: P.p, o: 0.2 * oB }));
     // Tras el cambio, el intervalo sin datos queda como contorno punteado.
-    var oG = M.entra(r, 5.7, 0.6, E.entrarSuave);
+    var oG = M.entra(r, 4.7, 0.25, E.entrarSuave);
     if (oG > 0) {
       s.push(GP.curva(edades, datos.sin_datos.inferior, { color: P.p, grosor: 2, guiones: '8 6', o: 0.8 * oG }));
       s.push(GP.curva(edades, datos.sin_datos.superior, { color: P.p, grosor: 2, guiones: '8 6', o: 0.8 * oG }));
+      s.push(GP.curva(edades, datos.sin_datos.media, { color: P.p, grosor: 3, guiones: '12 8', o: 0.6 * oG }));
     }
     var n = 1 + Math.round(u * (edades.length - 1));
-    if (u > 0) s.push(GP.curva(edades.slice(0, n), media.slice(0, n), { color: P.p, grosor: 4, guiones: uM > 0.5 ? null : '12 8' }));
+    if (u > 0 && uM < 1) s.push(GP.curva(edades.slice(0, n), media.slice(0, n), { color: P.p, grosor: 4, guiones: '12 8', o: 1 - uM }));
+    if (uM > 0) s.push(GP.curva(edades, media, { color: P.p, grosor: 4, o: uM }));
     // Los estudios de prevalencia (x/n), en tinta.
     ESTUDIOS.forEach(function (d, k) {
       var od = M.entra(r, 3.1 + 0.12 * k, 0.3, E.entrarSuave);
@@ -463,8 +466,8 @@
       oL5 = M.visible(r, 3.6, Infinity), oL4 = M.visible(r, 6.3, Infinity);
     sl.push(D.rect(lx, ly - 18, 40, 22, { relleno: P.rejilla, borde: P.guia, grosor: 1.5, o: oL1 }));
     sl.push(D.texto(lx + 56, ly, 'ancla (intervalo del 95 %)', { tam: 24, o: oL1, id: 'ley-ancla' }));
-    sl.push(D.linea(lx, ly + 42, lx + 40, ly + 42, { color: P.p, grosor: 4, guiones: '12 8', o: oL2 }));
-    sl.push(D.parrafo(lx + 56, ly + 30, 420, 'sin datos en el ajuste ($\\lambda = 1$)', { tam: 24, o: oL2, id: 'ley-sin', alto: 40 }));
+    sl.push(D.linea(lx, ly + 42, lx + 40, ly + 42, { color: P.p, grosor: 3, guiones: '12 8', o: oL2 }));
+    sl.push(D.parrafo(lx + 56, ly + 30, 420, 'sin datos ($\\lambda = 1$): punteado', { tam: 24, o: oL2, id: 'ley-sin', alto: 40 }));
     sl.push(D.linea(lx, ly + 92, lx + 40, ly + 92, { color: P.tinta, grosor: 2, o: oL3 }));
     sl.push(D.circulo(lx + 20, ly + 92, 7, { relleno: P.superficie, borde: P.tinta, grosor: 3, o: oL3 }));
     sl.push(D.parrafo(lx + 56, ly + 80, 420, 'estudio de prevalencia, $x/n$', { tam: 24, o: oL3, id: 'ley-estudio', alto: 40 }));
@@ -477,17 +480,17 @@
     // La tabla de lectura: q_d del estudio de 80+ (con el héroe) y el ancho del intervalo en 80 años (al final).
     var tx = lx, ty = 580, c1 = tx + 340, c2 = tx + 374;
     var oT1 = M.visible(r, 6.6, Infinity), oT1b = M.visible(r, 6.9, Infinity), oT1c = M.visible(r, 7.2, Infinity), oT2 = M.visible(r, 11.2, Infinity), oT2b = M.visible(r, 11.5, Infinity);
-    s.push(D.rect(tx, ty, 464, 230, { relleno: P.superficie, borde: P.marca, grosor: 3, radio: 10, o: oT1 }));
-    s.push(D.texto(c1, ty + 40, 'sin datos', { tam: 22, color: P.suave, ancla: 'end', o: oT1, id: 'tab-sin' }));
-    s.push(D.texto(c2 + 70, ty + 40, 'con datos', { tam: 22, color: P.suave, ancla: 'end', o: oT1, id: 'tab-con' }));
-    s.push(D.parrafo(tx + 20, ty + 58, 220, '$q_d$, 80 y más', { tam: 26, peso: 600, o: oT1, id: 'tab-q', alto: 40 }));
+    s.push(D.rect(tx, ty, 464, 130 + 100 * M.entra(r, 10.9, 0.5, E.mover), { relleno: P.superficie, borde: P.marca, grosor: 3, radio: 10, o: oT1 }));
+    s.push(D.texto(c1, ty + 40, 'sin datos', { tam: 22, color: P.suave, ancla: 'end', o: M.visible(r, 6.6, Infinity), id: 'tab-sin' }));
+    s.push(D.texto(c2 + 70, ty + 40, 'con datos', { tam: 22, color: P.suave, ancla: 'end', o: M.visible(r, 6.66, Infinity), id: 'tab-con' }));
+    s.push(D.parrafo(tx + 20, ty + 58, 220, '$q_d$ medio, 80 y más', { tam: 26, peso: 600, o: M.visible(r, 6.72, Infinity), id: 'tab-q', alto: 40 }));
     s.push(D.texto(c1, ty + 88, pct(Q80.sin, 1) + ' %', { fuente: 'mono', tam: 26, ancla: 'end', o: oT1b, id: 'tab-q-sin' }));
     s.push(D.texto(c2 + 70, ty + 88, pct(Q80.con, 1) + ' %', { fuente: 'mono', tam: 26, ancla: 'end', o: oT1b, id: 'tab-q-con' }));
     s.push(D.texto(tx + 20, ty + 120, 'estudio: ' + DBI.x + '/' + DBI.n + ' = ' + pct(Q80.obs, 2) + ' %', { tam: 22, color: P.suave, o: oT1c, id: 'tab-obs' }));
     s.push(D.texto(tx + 20, ty + 172, 'IC 95 %, 80 años', { tam: 26, peso: 600, o: oT2, id: 'tab-ic' }));
     s.push(D.texto(c1, ty + 172, pct(ANCHO.sin, 1), { fuente: 'mono', tam: 26, ancla: 'end', o: oT2b, id: 'tab-ic-sin' }));
-    s.push(D.texto(c2 + 70, ty + 172, pct(ANCHO.con, 1), { fuente: 'mono', tam: 26, ancla: 'end', o: oT2b, id: 'tab-ic-con' }));
-    s.push(D.texto(tx + 20, ty + 206, 'ancho, en puntos porcentuales', { tam: 22, color: P.suave, o: oT2b, id: 'tab-ic-unidad' }));
+    s.push(D.texto(c2 + 70, ty + 172, pct(ANCHO.con, 1), { fuente: 'mono', tam: 26, ancla: 'end', o: M.visible(r, 11.56, Infinity), id: 'tab-ic-con' }));
+    s.push(D.texto(tx + 20, ty + 206, 'ancho, en puntos porcentuales', { tam: 22, color: P.suave, o: M.visible(r, 11.62, Infinity), id: 'tab-ic-unidad' }));
     if (oT1 > 0) { c.dato('q80_sin', Q80.sin); c.dato('q80_con', Q80.con); c.dato('q80_dibujado', pct(Q80.con, 1)); }
     // Los dos intervalos en 80 años, lado a lado.
     if (r >= 10.4) {
@@ -495,13 +498,16 @@
       var x80 = GP.x(80);
       s.push(D.linea(x80, GP.arriba, x80, GP.abajo, { color: P.guia, grosor: 2, guiones: '6 6', o: og }));
       var ub = M.entra(r, 10.7, 0.5, E.mover);
-      [['sin', datos.sin_datos, -18, '7 5'], ['con', datos.con_datos, 18, null]].forEach(function (z) {
+      var ySup = GP.y(datos.sin_datos.superior[k80]), yInf = GP.y(datos.sin_datos.inferior[k80]);
+      s.push(D.rect(x80 - 88, ySup - 40, 84, yInf - ySup + 52, { relleno: P.fondo, borde: P.guia, grosor: 1, radio: 6, o: 0.95 * ub }));
+      [['sin', datos.sin_datos, -66, '7 5'], ['con', datos.con_datos, -26, null]].forEach(function (z) {
         var lo = z[1].inferior[k80], hi = z[1].superior[k80], ym = (GP.y(lo) + GP.y(hi)) / 2;
         var h = (GP.y(lo) - GP.y(hi)) * ub, xb = x80 + z[2];
-        s.push(D.rect(xb - 14, ym - h / 2 - 4, 28, h + 8, { relleno: P.fondo, o: ub }));
         s.push(D.linea(xb, ym - h / 2, xb, ym + h / 2, { color: P.p, grosor: 6, guiones: z[3], extremo: 'butt' }));
+        c.dato('barra_' + z[0] + '_px', h);
         s.push(D.linea(xb - 9, ym - h / 2, xb + 9, ym - h / 2, { color: P.p, grosor: 3, o: ub }));
         s.push(D.linea(xb - 9, ym + h / 2, xb + 9, ym + h / 2, { color: P.p, grosor: 3, o: ub }));
+        s.push(D.texto(xb, ySup - 16, z[0], { tam: 22, color: P.suave, ancla: 'middle', o: ub }));
       });
       c.dato('ancho_sin', ANCHO.sin);
       c.dato('ancho_con', ANCHO.con);
@@ -534,7 +540,7 @@
     c.svg(tomaPayoff(t, c));
 
     c.svg(D.rotulo(t, NARRACION));
-    c.svg(D.pie(datos.fuente + ' (4 cadenas de ' + datos.mcmc.sin_datos.iteraciones + ' y de ' + datos.mcmc.con_datos.iteraciones + ' iteraciones)'));
+    c.svg(D.pie(datos.fuente + ' (4 cadenas; ' + datos.mcmc.sin_datos.iteraciones + ' y ' + datos.mcmc.con_datos.iteraciones + ' iteraciones, la mitad de calentamiento)'));
   }
 
   DL.escena({
@@ -582,8 +588,10 @@
         }),
         A.en('lambda', 'el ajuste con datos usa lambda = 0.5', function (e) { return e.lambda_con_datos === 0.5 || 'lambda ' + e.lambda_con_datos; }),
         A.en('final', 'los anchos en 80 años son los de dl_estimaciones() y el de con datos es menor', function (e) {
-          if (!A.cerca(e.ancho_sin, datos.sin_datos.superior[k80] - datos.sin_datos.inferior[k80], 1e-12)) return 'ancho sin datos ' + e.ancho_sin;
-          if (!A.cerca(e.ancho_con, datos.con_datos.superior[k80] - datos.con_datos.inferior[k80], 1e-12)) return 'ancho con datos ' + e.ancho_con;
+          // Las barras dibujadas, medidas en px con la escala del eje (480 px = 24 puntos), frente al ancho del paquete.
+          var pxPorPunto = 480 / 0.24;
+          if (Math.abs(e.barra_sin_px - pxPorPunto * (datos.sin_datos.superior[k80] - datos.sin_datos.inferior[k80])) > 0.5) return 'barra sin datos ' + e.barra_sin_px + ' px';
+          if (Math.abs(e.barra_con_px - pxPorPunto * (datos.con_datos.superior[k80] - datos.con_datos.inferior[k80])) > 0.5) return 'barra con datos ' + e.barra_con_px + ' px';
           return e.ancho_con < e.ancho_sin || 'el intervalo no se estrecha';
         }),
         A.en('final', 'la media dibujada es la del ajuste con datos y el q_d de cada estudio se acerca a su x/n', function (e) {
