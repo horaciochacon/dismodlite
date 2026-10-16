@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>04 · De las edades simples a las bandas · dismodlite</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="stylesheet" href="../../lib/escena.css">
+<script src="../../lib/contrato.js"></script>
+<script src="../../lib/movimiento.js"></script>
+<script src="../../lib/dibujo.js"></script>
+<script src="../../datos/04-bandas.js"></script>
+</head>
+<body>
+<script>
+// Escena 04: de las edades simples a las bandas. Guion: guion.md. Datos: datos/r/04-bandas.R (R/bandas.R del paquete).
+(function () {
+  'use strict';
+  var D = DL.dib, M = DL.mov, P = D.paleta, E = M.EASE;
+  var datos = DL_DATOS['04-bandas'];
+  var edades = datos.edades;
+  var n = edades.length;
+  var A_FIN = 100;   // el eje de edades termina en 100: la banda abierta 95+ se dibuja con sus edades 95 a 99
+
+  // ---- Narración: cada línea dura al menos 0,3 s por palabra + 0,5 s ----
+  var NARRACION = [
+    [0.4, 5.9, 'El modelo da la prevalencia $p$ en cada edad simple $a$, de 30 a 99 años.'],
+    [6.2, 10.9, 'El ancla y los datos locales vienen, en cambio, por bandas de edad.'],
+    [12.3, 17.7, 'Para compararlos, se promedia $p$ en cada banda con pesos de población.'],
+    [17.9, 24.4, '$N_{b(a)}$: población de la banda fina que contiene la edad $a$; cada caja la reparte entre sus edades.'],
+    [24.7, 31.0, '$n_{b(a)}$: edades del modelo en toda la banda, no solo en $A$; cinco, también en 95 y más.'],
+    [31.3, 38.3, 'Caso 1: la banda del ancla [40, 45) cabe en una sola banda fina; sus cinco edades pesan igual.'],
+    [38.6, 43.6, 'En el ajuste, su promedio $q$ se compara con el ancla; aquí, su media posterior.'],
+    [43.9, 50.6, 'Caso 2: un dato de [50, 65) cruza tres quinquenios; $n_b$ se cancela y cada edad pesa según $N_b$.'],
+    [50.9, 57.6, 'Caso 3: si la tabla de población trae 80 y más en una sola banda, esa banda tiene 20 edades.'],
+    [57.9, 64.6, null],   // se arma con los pesos que calcula la escena (abajo, después de peso80)
+    [64.9, 72.0, 'Lo mismo vale para la incidencia y la mortalidad por la causa: solo cambia $x(a)$.'],
+  ];
+
+  // ---- Los pesos w_a, recalculados aquí con la regla de R/bandas.R (la auditoría los compara con el paquete) ----
+  // n_b: edades de la malla en la banda b (de toda la malla, no solo del intervalo); m_a = N_b(a) / n_b(a);
+  // w_a = m_a / suma de m_a' en A.
+  function bandaDe(a, bnd) {
+    for (var k = 0; k < bnd.inicio.length; k++) if (bnd.inicio[k] <= a && a < bnd.fin[k]) return k;
+    return -1;
+  }
+  function pesos(inicio, fin, bnd) {
+    var nb = bnd.inicio.map(function () { return 0; });
+    edades.forEach(function (a) { var b = bandaDe(a, bnd); if (b >= 0) nb[b]++; });
+    var idx = [], m = [], bs = [];
+    edades.forEach(function (a, k) {
+      if (a < inicio || a >= fin) return;
+      var b = bandaDe(a, bnd);
+      idx.push(k); bs.push(b); m.push(bnd.N[b] / nb[b]);
+    });
+    var suma = m.reduce(function (s, x) { return s + x; }, 0);
+    return { idx: idx, banda: bs, nb: nb, w: m.map(function (x) { return x / suma; }) };
+  }
+  function promedio(x, pw) {
+    var q = 0;
+    for (var k = 0; k < pw.idx.length; k++) q += pw.w[k] * x[pw.idx[k]];
+    return q;
+  }
+  var C1 = datos.casos[0], C2 = datos.casos[1], C3 = datos.casos[2];
+  var CASOS = [
+    { r: C1, bnd: datos.bandas, pw: pesos(C1.inicio, C1.fin, datos.bandas) },
+    { r: C2, bnd: datos.bandas, pw: pesos(C2.inicio, C2.fin, datos.bandas) },
+    { r: C3, bnd: datos.bandas80, pw: pesos(C3.inicio, C3.fin, datos.bandas80) },
+  ];
+  CASOS.forEach(function (c) { c.q = promedio(datos.p, c.pw); });
+  var c3 = CASOS[2];
+  var k80 = datos.bandas80.inicio.indexOf(80);
+  var peso80 = 0, peso80Sin = 0;
+  c3.pw.banda.forEach(function (b, k) { if (b === k80) { peso80 += c3.pw.w[k]; peso80Sin += C3.w_sin_n[k]; } });
+  var sumaN3 = datos.bandas80.N.slice(datos.bandas80.inicio.indexOf(60)).reduce(function (s, x) { return s + x; }, 0);
+  NARRACION[9][2] = 'En 60 y más, cada banda cuenta por su población: 80+ pesa ' + D.num(peso80, 3) + ', no ' + D.num(peso80Sin, 3) + '.';
+
+  // Tiempos de cada caso: [entra la tarjeta, se dibuja q, sale].
+  var T_CASO = [[31.7, 38.8, 43.9], [44.3, 47.8, 50.9], [58.3, 61.6, 64.9]];
+  // El intervalo A en cada momento: del caso 1 al 2 se desliza (EASE.mover, 0.75 s); al caso 3 pasa mientras el velo
+  // está oculto (de 50.9 a 58.1 s la toma es la fusión de 80+ en la tabla de población, sin velo).
+  function intervalo(t) {
+    var ini = C1.inicio, fin = C1.fin;
+    var u2 = M.entra(t, 44.1, M.seg(M.MS.heroe), E.mover), u3 = M.entra(t, 55.0, M.seg(M.MS.heroe), E.mover);
+    ini = M.lerp(M.lerp(ini, C2.inicio, u2), C3.inicio, u3);
+    fin = M.lerp(M.lerp(fin, C2.fin, u2), A_FIN, u3);
+    return [ini, fin];
+  }
+
+  // ---- Las fórmulas (guía «El modelo», sección 4) ----
+  var F_Q = '\\displaystyle q = \\sum_{a \\in A} w_a\\, \\htmlClass{xa}{x(a)}';   // x(a) se subraya en el final
+  var F_A = 'A = \\{a \\text{ entera} : \\text{inicio} \\le a < \\text{fin}\\}';
+  var F_W = '\\displaystyle w_a = \\frac{N_{b(a)} / n_{b(a)}}{\\sum_{a\' \\in A} N_{b(a\')} / n_{b(a\')}}';
+  var SUBRAYADO = {
+    ti: 'text-decoration:underline 4px ' + P.i + ';text-underline-offset:7px;text-decoration-skip-ink:none;',
+    tf: 'text-decoration:underline 4px ' + P.f + ';text-underline-offset:7px;text-decoration-skip-ink:none;',
+    tp: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;text-decoration-skip-ink:none;',
+  };
+
+  // ---- Geometría ----
+  var COL = 1250;                       // columna derecha: fórmulas y tarjeta
+  var POB = { x: 200, y: 610, ancho: 950, alto: 200 };
+  var LEYENDA = [430, 520];             // ancho del fondo de cada renglón de la leyenda (medido sobre el texto)
+  // La lupa del caso 1: [40, 45) x [0.006, 0.020] ampliado en el hueco que deja la leyenda (sin escala propia: los
+  // números van en la lectura de arriba).
+  var LUPA = { x: 440, y: 298, ancho: 260, alto: 124, pMin: 0.006, pMax: 0.020 };
+
+  // Dos cámaras: el ancho deja sitio a las fórmulas (cam) y el alto, al panel de población (camH).
+  function ejesP(cam, camH) {
+    return D.ejes({
+      x: 200, y: M.lerp(300, 280, camH), ancho: M.lerp(1560, 950, cam), alto: M.lerp(500, 220, camH), id: 'p',
+      xDom: [30, A_FIN], yDom: [0, 0.22],
+      xTicks: [30, 40, 50, 60, 70, 80, 90, 100], yTicks: [0, 0.05, 0.10, 0.15, 0.20],
+      yFormato: function (v) { return D.num(v, 2); },
+      yTitulo: 'Prevalencia $p$',
+    });
+  }
+  var G2 = D.ejes({
+    x: POB.x, y: POB.y, ancho: POB.ancho, alto: POB.alto, id: 'pob',
+    xDom: [30, A_FIN], yDom: [0, 260000],
+    xTicks: [30, 40, 50, 60, 70, 80, 90, 100], yTicks: [0, 100000, 200000],
+    yFormato: function (v) { return D.miles(v); },
+    xTitulo: 'Edad (años)', yTitulo: 'Población por edad del modelo, $N_b / n_b$',
+  });
+
+  // ---- Piezas ----
+
+  // Las cajas del ancla: caja hueca de lower a upper y raya en val (tinta). La banda abierta se dibuja en [95, 100).
+  function ancla(G, t, foco) {
+    var s = [];
+    var A = datos.ancla;
+    for (var k = 0; k < A.inicio.length; k++) {
+      var o = M.escalonado(t, 6.1, k, M.ESCALONADO.item, 0.4, E.entrarSuave);
+      if (o <= 0) continue;
+      var dim = foco(k);
+      var x0 = G.x(A.inicio[k]) + 2, x1 = G.x(Math.min(A.fin[k], A_FIN)) - 2;
+      s.push(D.rect(x0, G.y(A.upper[k]), x1 - x0, G.y(A.lower[k]) - G.y(A.upper[k]), { borde: P.tinta, grosor: 2, o: o * dim }));
+      s.push(D.linea(x0, G.y(A.val[k]), x1, G.y(A.val[k]), { color: P.tinta, grosor: 3, extremo: 'butt', o: o * dim }));
+    }
+    return s.join('');
+  }
+
+  var selO = 0;   // opacidad del velo de A en el cuadro (la fija dibujar)
+
+  // Las edades del modelo: una raya por edad entera, colgada bajo el eje de la población (n_b = rayas bajo cada caja).
+  // Bajo el eje y no sobre las cajas, para que no tapen las cajas bajas (95+ mide 4 px; 80+ fundida, 16 px).
+  function rayas(o) {
+    var s = [];
+    for (var k = 0; k < n; k++) s.push(D.linea(G2.x(edades[k]), G2.abajo + 2, G2.x(edades[k]), G2.abajo + 16, { color: P.tinta, grosor: 3, extremo: 'butt' }));
+    return D.grupo(s, { o: o });
+  }
+
+  // La lupa del caso 1: la caja del ancla 40-44, los cinco puntos de A, el segmento q (ancho, verde) y la raya val
+  // (fina, tinta) encima, en [40, 45) x [0.006, 0.020]; arriba, la lectura con cuatro cifras significativas (con
+  // cuatro decimales, val y q se imprimían iguales y parecían iguales por construcción).
+  function lupa(t, G, T, caso, oS, c) {
+    var L = LUPA, An = datos.ancla, ka = An.inicio.indexOf(caso.r.inicio);
+    var lx = function (a) { return L.x + 16 + (a - caso.r.inicio) / (caso.r.fin - caso.r.inicio) * (L.ancho - 32); };
+    var ly = function (v) { return L.y + L.alto - (v - L.pMin) / (L.pMax - L.pMin) * L.alto; };
+    var oL = oS * M.entra(t, T[1] + 0.2, 0.4, E.entrarSuave);
+    var oCmp = oS * M.entra(t, T[1] + 0.7, 0.4, E.entrarSuave);
+    var s = [];
+    // La región ampliada en el gráfico y la guía a la lupa.
+    var x0 = G.x(caso.r.inicio), x1 = G.x(caso.r.fin);
+    s.push(D.rect(x0, G.y(L.pMax), x1 - x0, G.y(L.pMin) - G.y(L.pMax), { borde: P.guia, grosor: 1.5 }));
+    s.push(D.linea(x1, G.y(L.pMax), L.x, L.y + L.alto, { color: P.guia, grosor: 1.5 }));
+    s.push(D.rect(L.x, L.y, L.ancho, L.alto, { relleno: P.superficie, borde: P.guia, grosor: 2 }));
+    s.push(D.rect(lx(An.inicio[ka]), ly(An.upper[ka]), lx(An.fin[ka]) - lx(An.inicio[ka]), ly(An.lower[ka]) - ly(An.upper[ka]), { borde: P.tinta, grosor: 2 }));
+    caso.pw.idx.forEach(function (ia) { s.push(D.circulo(lx(edades[ia]), ly(datos.p[ia]), 7, { relleno: P.p })); });
+    var uq = M.entra(t, T[1] + 0.5, 0.5, E.mover);
+    s.push(D.linea(lx(caso.r.inicio), ly(caso.q), lx(caso.r.inicio) + (lx(caso.r.fin) - lx(caso.r.inicio)) * uq, ly(caso.q), { color: P.p, grosor: 8, extremo: 'butt' }));
+    s.push(D.linea(lx(An.inicio[ka]), ly(An.val[ka]), lx(An.fin[ka]), ly(An.val[ka]), { color: P.tinta, grosor: 2, extremo: 'butt' }));
+    var out = D.grupo(s, { o: oL });
+    out += D.texto(L.x, L.y - 12, 'ancla ' + D.sig(An.val[ka], 4) + '  ·  q ' + D.sig(caso.q, 4), { fuente: 'mono', tam: 24, o: oCmp, id: 'cmp-1' });
+    if (oL > 0) c.dato('lupa', { ka: ka, val: An.val[ka], y_q: ly(caso.q), y_val: ly(An.val[ka]), L: L });
+    return out;
+  }
+
+  // La tarjeta de un caso: título, barras w_a, sus valores y el promedio q.
+  var TITULOS = [
+    '**Caso 1** · la banda del ancla [40, 45)\n$A = \\{40, \\dots, 44\\}$, una banda fina: cinco pesos iguales',
+    '**Caso 2** · un dato de [50, 65)\ntres quinquenios: $n_b$ se cancela, $w_a \\propto N_{b(a)}$',
+    '**Caso 3** · un dato de 60 y más, [60, 125)\n$A = \\{60, \\dots, 99\\}$; 80+: 20 edades del modelo',
+  ];
+  var BARRAS = { x: 1300, y: 680, ancho: 510, alto: 110 };
+  function tarjeta(t, k, c) {
+    var T = T_CASO[k], caso = CASOS[k];
+    var o = M.visible(t, T[0], T[2] - 0.24);
+    if (o <= 0) return '';
+    var s = [];
+    s.push(D.parrafo(COL, 556, 574, TITULOS[k], { tam: 26, o: o, id: 'tarjeta-' + k, alto: 80 }));
+    var w = caso.pw.w, sin = k === 2 ? C3.w_sin_n : null;
+    var maximo = Math.max.apply(null, w.concat(sin || [])) * (sin ? 1.25 : 1.08);
+    var paso = BARRAS.ancho / w.length, ancho = paso * 0.72;
+    var base = BARRAS.y + BARRAS.alto;
+    s.push(D.linea(BARRAS.x - 6, base, BARRAS.x + BARRAS.ancho + 6, base, { color: P.guia, grosor: 2, o: o }));
+    for (var j = 0; j < w.length; j++) {
+      var u = M.escalonado(t, T[0] + 0.3, j, w.length > 20 ? 12 : M.ESCALONADO.letra, 0.5, E.entrarSuave);
+      var x = BARRAS.x + j * paso + (paso - ancho) / 2;
+      var h = BARRAS.alto * w[j] / maximo * u;
+      s.push(D.rect(x, base - h, ancho, h, { relleno: P.marca, o: o }));
+    }
+    // Caso 3: los pesos sin dividir por n_b, como un escalón punteado sobre todas las barras.
+    if (sin) {
+      var esc = [];
+      for (var js = 0; js < sin.length; js++) {
+        var ys = base - BARRAS.alto * sin[js] / maximo;
+        esc.push([BARRAS.x + js * paso, ys], [BARRAS.x + (js + 1) * paso, ys]);
+      }
+      // Un recorte del color del fondo debajo (no es una sombra) para que el escalón se lea sobre las barras.
+      var oEsc = o * M.entra(t, T[0] + 1.2, 0.4, E.entrarSuave);
+      s.push(D.trazo(esc, { color: P.fondo, grosor: 6, o: oEsc }));
+      s.push(D.trazo(esc, { color: P.tinta, grosor: 2.5, guiones: '8 5', o: oEsc }));
+    }
+    // Edades de los extremos (y del corte en 80, en el caso 3).
+    var marcas = [0, w.length - 1];
+    if (k === 2) marcas.splice(1, 0, caso.pw.banda.indexOf(k80));
+    marcas.forEach(function (j) {
+      s.push(D.texto(BARRAS.x + j * paso + paso / 2, base + 30, String(edades[caso.pw.idx[j]]), { fuente: 'mono', tam: 22, color: P.suave, ancla: 'middle', o: o }));
+    });
+    s.push(D.formula('w_a', BARRAS.x - 54, BARRAS.y + 14, { tam: 26, color: P.suave, ancho: 44, alto: 40, o: o }));
+    // Valores: uno por banda fina (casos 1 y 2); en el caso 3, cuánto pesa 80+ en total, bien y sin dividir por n_b.
+    var oV = M.visible(t, T[0] + 1.0, T[2] - 0.24);
+    if (k < 2) {
+      var vistas = {}, nv = 0;
+      caso.pw.banda.forEach(function (b, j) {
+        if (vistas[b] !== undefined) return;
+        var js = caso.pw.banda.reduce(function (acc, bb, jj) { if (bb === b) acc.push(jj); return acc; }, []);
+        vistas[b] = true;
+        var oVb = M.visible(t, T[0] + 1.0 + 0.2 * nv++, T[2] - 0.24);
+        var xc = BARRAS.x + (js[0] + js[js.length - 1] + 1) * paso / 2;
+        s.push(D.texto(xc, base - BARRAS.alto * w[js[0]] / maximo - 12, D.num(w[js[0]], 3), { fuente: 'mono', tam: 22, ancla: 'middle', o: oVb, id: 'w-' + k + '-' + b }));
+      });
+    } else {
+      s.push(D.parrafo(BARRAS.x + BARRAS.ancho, BARRAS.y - 30, 300, '80+ pesa ' + D.num(peso80, 3), { tam: 30, ancla: 'end', o: oV, id: 'peso80', alto: 40 }));
+      s.push(D.parrafo(BARRAS.x + BARRAS.ancho, BARRAS.y + 12, 360, 'sin dividir por $n_b$: ' + D.num(peso80Sin, 3), { tam: 26, color: P.suave, ancla: 'end', o: M.visible(t, T[0] + 1.4, T[2] - 0.24), id: 'peso80-sin', alto: 36 }));
+    }
+    // El promedio.
+    var oQ = M.visible(t, T[1] + 0.3, T[2] - 0.24);
+    s.push(D.formula('\\displaystyle q = \\sum_{a \\in A} w_a\\, p(a) = ' + D.sig(caso.q, 4), COL, 866, { tam: 32, o: oQ, id: 'q-' + k, palabras: 4, ancho: 574, alto: 90 }));
+    if (oQ > 0) { c.dato('q_' + (k + 1), caso.q); }
+    if (o > 0) { c.dato('caso', k + 1); }
+    return s.join('');
+  }
+
+  // La tabla de medidas: x(a) y su promedio en 60 y más.
+  function tablaMedidas(t, c) {
+    var o = M.visible(t, 65.1, Infinity);
+    if (o <= 0) return '';
+    var pw = c3.pw;
+    var filas = [
+      ['prevalencia', '\\htmlClass{tp}{p}', promedio(datos.p, pw), 'p'],
+      ['incidencia', '\\htmlClass{ti}{i}\\,(1 - \\htmlClass{tp}{p})', promedio(datos.ipop, pw), 'ipop'],
+      ['mortalidad por la causa', '\\htmlClass{tp}{p}\\,\\htmlClass{tf}{f}', promedio(datos.pf, pw), 'pf'],
+    ];
+    var s = [];
+    var oh = function (j) { return M.escalonado(t, 65.1, j, M.ESCALONADO.fila, 0.4, E.entrarSuave); };
+    s.push(D.texto(COL, 576, 'medida', { tam: 22, color: P.suave, o: oh(0), id: 'tm-h1' }));
+    s.push(D.parrafo(COL + 270, 554, 120, '$x(a)$', { tam: 22, color: P.suave, o: oh(1), id: 'tm-h2', alto: 34 }));
+    s.push(D.parrafo(COL + 574, 554, 300, '$q$ en [60, 125), con 80+ junta', { tam: 22, color: P.suave, ancla: 'end', o: oh(2), id: 'tm-h3', alto: 34 }));
+    s.push(D.linea(COL, 592, COL + 574, 592, { color: P.rejilla, grosor: 2, o: o }));
+    filas.forEach(function (f, k) {
+      var celda = function (j) { return M.entra(t, 65.6 + 0.42 * k + 0.12 * j, 0.4, E.entrarSuave) * o; };
+      var y = 644 + k * 62;
+      s.push(D.texto(COL, y, f[0], { tam: 26, o: celda(0), id: 'tm-n' + k }));
+      s.push(D.formula(f[1], COL + 270, y - 9, { tam: 30, o: celda(1), id: 'tm-x' + k, palabras: 1, ancho: 180, alto: 56, estilos: SUBRAYADO }));
+      s.push(D.texto(COL + 574, y, D.sig(f[2], 4), { fuente: 'mono', tam: 26, ancla: 'end', o: celda(2), id: 'tm-q' + k }));
+      c.dato('tabla_' + f[3], f[2]);
+    });
+    s.push(D.parrafo(COL, 826, 574, 'incidencia y mortalidad: con denominador en **toda** la población, como GBD (aquí por persona-año)',
+      { tam: 22, color: P.suave, o: M.visible(t, 67.2, Infinity), id: 'tm-nota', alto: 70 }));
+    return s.join('');
+  }
+
+  function dibujar(t, c) {
+    var cam = E.camara(M.tramo(t, 11.1, 12.1)), camH = E.camara(M.tramo(t, 17.3, 18.2));
+    var G = ejesP(cam, camH);
+    c.defs(G.recorte());
+    // El promedio por bandas corre en el ajuste (la verosimilitud del ancla y de los datos, R/verosimilitud.R) y en
+    // las tablas de salida; dl_insumos() solo arma las bandas finas de la población (bandas_pobl).
+    c.svg(D.cabecera(4, 11, 'De las edades simples a las bandas', { funcion: 'dl_ajustar()' }));
+    c.svg(G.svg());
+    // «Edad (años)» del gráfico grande, desde el cuadro 0: se va antes de la segunda cámara (el panel de población
+    // trae el suyo); en la primera se corre con el eje (cámara declarada).
+    c.svg(D.texto(G.der, G.abajo + 74, 'Edad (años)', { tam: 24, color: P.suave, ancla: 'end', o: M.visible(t, 0, 17.0, { entrada: 0 }), id: 'edad-p' }));
+
+    // El intervalo A y los casos. El velo sale con la tarjeta del caso 2 y vuelve en 58.1 s sobre 60 y más: entre
+    // tanto la toma es la fusión de 80+ en la tabla de población. Se queda con la tabla de medidas.
+    var sel = intervalo(t);
+    selO = Math.max(M.visible(t, 31.5, T_CASO[1][2] - 0.24), M.visible(t, 58.1, Infinity));
+    var oPanFin = 1 - 0.6 * M.entra(t, 65.6, 0.5, E.entrarSuave);   // al final, el panel de población baja al 40 %
+
+    // Velo de A sobre los dos paneles; borde izquierdo cerrado (continuo) y derecho abierto (punteado).
+    if (selO > 0) {
+      var xa = G.x(sel[0]), xb = G.x(sel[1]);
+      [[G.arriba, G.abajo, 1], [G2.arriba, G2.abajo, oPanFin]].forEach(function (r) {
+        c.svg(D.rect(xa, r[0], xb - xa, r[1] - r[0], { relleno: P.marca, o: 0.08 * selO * r[2] }));
+        c.svg(D.linea(xa, r[0], xa, r[1], { color: P.marca, grosor: 2, o: selO * r[2] }));
+        c.svg(D.linea(xb, r[0], xb, r[1], { color: P.marca, grosor: 2, guiones: '6 6', o: selO * r[2] }));
+      });
+      c.svg(D.formula('A', (xa + xb) / 2, G.arriba + 22, { tam: 30, ancla: 'middle', ancho: 60, alto: 44, o: selO, id: 'A', seguir: true, palabras: 1 }));
+      c.dato('A', sel.slice());
+    }
+
+    // El ancla: tras el caso 1, solo la banda que se compara queda al 100 %.
+    var focoAncla = function (k) {
+      var es40 = datos.ancla.inicio[k] === 40;
+      return 1 - 0.65 * M.entra(t, es40 ? 43.9 : 39.0, 0.4, E.entrarSuave);
+    };
+    c.svg(ancla(G, t, focoAncla));
+
+    // Los puntos de p: se encienden de 30 a 99 a ritmo constante (0.6 a 2.8 s).
+    var aHasta = 30 + M.tramo(t, 0.6, 2.8) * (99 - 30);
+    var pts = [];
+    var dibujados = 0, pxPuntos = [];
+    for (var k = 0; k < n; k++) {
+      if (t < 0.6 || edades[k] > aHasta + 1e-9) break;
+      // Rampa de un año en cada borde de A: con A quieto, igual a «dentro» para las edades enteras.
+      var uIn = selO > 0 ? M.limitar(Math.min(edades[k] - sel[0] + 1, sel[1] - edades[k]), 0, 1) : 0;
+      var xk = G.x(edades[k]), yk = G.y(datos.p[k]);
+      pts.push(D.circulo(xk, yk, M.lerp(4.5, 6, uIn * selO), { relleno: P.p, o: 1 - 0.6 * selO * (1 - uIn) }));
+      pxPuntos.push([xk, yk]);
+      dibujados++;
+    }
+    // Antes del barrido, la curva ya se adivina al 20 % (el cuadro 0 dice de qué trata la escena).
+    if (t < 2.8) for (var g = dibujados; g < n; g++) pts.push(D.circulo(G.x(edades[g]), G.y(datos.p[g]), 4.5, { relleno: P.p, o: 0.2 }));
+    c.svg(pts);
+    c.dato('puntos', dibujados);
+    // Para la auditoría: dónde quedó cada punto encendido, para leerlo de vuelta del eje (píxel -> edad, p).
+    c.dato('px_puntos', pxPuntos);
+    c.dato('eje', { izq: G.izq, ancho: G.ancho, arriba: G.arriba, alto: G.alto });
+
+    // Leyenda del gráfico de p: sale antes de que entre el velo de A (31.5 s); un fondo por renglón, del ancho del
+    // texto, para separarlo de la rejilla.
+    var oL1 = M.visible(t, 1.0, 31.0), oL2 = M.visible(t, 6.4, 31.0);
+    c.svg(D.rect(G.izq + 14, G.arriba + 6, LEYENDA[0], 32, { relleno: P.fondo, o: oL1 }));
+    c.svg(D.rect(G.izq + 14, G.arriba + 40, LEYENDA[1], 32, { relleno: P.fondo, o: oL2 }));
+    c.svg(D.circulo(G.izq + 30, G.arriba + 22, 6, { relleno: P.p, o: oL1 }));
+    c.svg(D.parrafo(G.izq + 46, G.arriba + 6, 520, '$p(a)$, media posterior en la edad exacta $a$', { tam: 22, color: P.suave, o: oL1, id: 'ley-p', alto: 34 }));
+    c.svg(D.rect(G.izq + 22, G.arriba + 46, 16, 22, { borde: P.tinta, grosor: 2, o: oL2 }));
+    c.svg(D.parrafo(G.izq + 46, G.arriba + 40, 620, 'ancla: val e intervalo del 95 %, por banda $[\\text{inicio}, \\text{fin})$', { tam: 22, color: P.suave, o: oL2, id: 'ley-ancla', alto: 34 }));
+
+    // El segmento q de cada caso, sobre su intervalo.
+    for (var j = 0; j < 3; j++) {
+      var T = T_CASO[j], caso = CASOS[j];
+      var oS = M.visible(t, T[1], j === 2 ? Infinity : T[2] - 0.24);   // el q de 60 y más se queda con la tabla
+      if (oS <= 0) continue;
+      var uq = M.entra(t, T[1], 0.5, E.mover);
+      var x0 = G.x(caso.r.inicio), x1 = G.x(Math.min(caso.r.fin, A_FIN));
+      c.svg(D.linea(x0, G.y(caso.q), x0 + (x1 - x0) * uq, G.y(caso.q), { color: P.p, grosor: 5, extremo: 'butt', o: oS }));
+      if (j === 0) c.svg(lupa(t, G, T, caso, oS, c));
+      c.svg(D.formula('q', x0 + 12, G.y(caso.q) - 26, { tam: 28, o: oS * M.entra(t, T[1] + 0.4, 0.3, E.entrarSuave), id: 'q-et-' + j, palabras: 1, ancho: 40, alto: 40 }));
+    }
+
+    // Las fórmulas, a la derecha (una por vez, 0.7 s entre ellas).
+    // En el final («solo cambia x(a)»), x(a) se subraya en la marca y A y w_a bajan al 40 %.
+    var oF = [M.visible(t, 12.5, Infinity), M.visible(t, 13.2, Infinity), M.visible(t, 13.9, Infinity)];
+    var uX = M.entra(t, 65.1, 0.4, E.entrarSuave), bajaF = 1 - 0.6 * uX;
+    c.svg(D.formula(F_Q, COL, 296, { tam: 36, o: oF[0], id: 'f-q', palabras: 4, ancho: 574, alto: 80,
+      estilos: { xa: 'text-decoration:underline 4px rgba(14,107,98,' + uX.toFixed(3) + ');text-underline-offset:7px;text-decoration-skip-ink:none;' } }));
+    c.svg(D.formula(F_A, COL, 368, { tam: 30, o: oF[1] * bajaF, id: 'f-A', palabras: 6, ancho: 574, alto: 60 }));
+    c.svg(D.formula(F_W, COL, 466, { tam: 34, o: oF[2] * bajaF, id: 'f-w', palabras: 6, ancho: 574, alto: 120 }));
+    c.dato('subrayado_xa', uX);
+
+    // El panel de población (desde 17.9 s).
+    var oP = M.entra(t, 18.3, 0.4, E.entrarSuave);
+    if (oP > 0) {
+      // Al final, el panel de población baja al 40 %: lo que queda es la tabla.
+      var pan = [];
+      pan.push(G2.svg({ o: oP }));
+      var u80 = M.entra(t, 52.2, M.seg(M.MS.heroe), E.mover);
+      var oFuera = selO > 0 ? 1 - 0.65 * selO : 1;
+      pan.push(poblacionCajas(t, sel, u80, oFuera));
+      pan.push(rayas(M.entra(t, 24.9, 0.4, E.entrarSuave)));
+      // n_b = 5 y la banda abierta.
+      var oNb = M.visible(t, 25.3, 31.3);
+      pan.push(D.parrafo(G2.der, G2.arriba - 6, 560, '$n_{b(a)} = 5$ edades del modelo en cada banda\n(todas, no solo las de $A$)', { tam: 24, ancla: 'end', o: oNb, id: 'nb', alto: 70 }));
+      var o95 = M.visible(t, 26.4, 31.3);
+      var x95 = G2.x(97.5), y95 = G2.y(datos.bandas.N[datos.bandas.N.length - 1] / 5);
+      pan.push(D.linea(x95, y95 - 8, x95, y95 - 70, { color: P.marca, grosor: 2, o: o95 }));
+      pan.push(D.parrafo(x95 - 12, y95 - 100, 300, '95 y más (abierta):\nedades 95 a 99', { tam: 22, ancla: 'end', o: o95, id: 'b95', alto: 64 }));
+      // Caso 3: 80+ fundida y el fantasma de su alto como si tuviera 5 edades (N_80+ / 5, cuatro veces por edad).
+      if (u80 > 0) {
+        var N80 = datos.bandas80.N[k80];
+        var oG = M.visible(t, 53.2, 64.9);
+        var yG = G2.y(N80 / 5), yB = G2.y(N80 / 20);
+        pan.push(D.rect(G2.x(80), yG, G2.x(A_FIN) - G2.x(80), yB - yG, { borde: P.suave, grosor: 2, guiones: '6 5', o: oG }));
+        if (oG > 0) c.dato('fantasma', { yG: yG, yB: yB, abajo: G2.abajo, alto: G2.alto });
+        pan.push(D.parrafo(G2.x(80) + 8, yG - 66, 360, 'como si tuviera 5 edades:\n×4 por edad (20 frente a 5)', { tam: 22, color: P.suave, o: oG, id: 'fantasma', alto: 64 }));
+        pan.push(D.parrafo(G2.x(A_FIN) - 8, yB - 36, 200, '80+ · $n_b = 20$', { tam: 22, ancla: 'end', o: M.visible(t, 52.9, Infinity), id: 'b80', alto: 34 }));
+        c.dato('n80', pesos(30, A_FIN, datos.bandas80).nb[k80]);
+      }
+      c.svg(D.grupo(pan, { o: oPanFin }));
+    }
+
+    // La tarjeta de cada caso y, al final, la tabla de medidas.
+    for (var kc = 0; kc < 3; kc++) c.svg(tarjeta(t, kc, c));
+    c.svg(tablaMedidas(t, c));
+
+    c.svg(D.rotulo(t, NARRACION));
+    c.svg(D.pie(datos.fuente));
+  }
+
+  // Cajas de población (envoltura con el velo de A).
+  function poblacionCajas(t, sel, u80, oFuera) {
+    var s = [];
+    var B = datos.bandas;
+    var nb = pesos(30, A_FIN, B).nb;
+    var n80 = datos.bandas80.N[k80] / pesos(30, A_FIN, datos.bandas80).nb[k80];
+    var ys = [];
+    for (var k = 0; k < B.inicio.length; k++) {
+      var o = M.escalonado(t, 18.5, k, M.ESCALONADO.item, 0.5, E.entrarSuave);
+      if (o <= 0) continue;
+      var alto = B.N[k] / nb[k];
+      if (B.inicio[k] >= 80) alto = M.lerp(alto, n80, u80);
+      var x0 = G2.x(B.inicio[k]), x1 = G2.x(Math.min(B.fin[k], A_FIN));
+      var y = G2.y(alto * o);
+      ys.push(y);
+      s.push(D.rect(x0, y, x1 - x0, G2.abajo - y, { relleno: P.superficie }));
+      var a0 = Math.max(x0, G2.x(sel[0])), a1 = Math.min(x1, G2.x(sel[1]));
+      if (selO > 0 && a1 > a0) s.push(D.rect(a0, y, a1 - a0, G2.abajo - y, { relleno: P.marca, o: 0.22 * selO }));
+      var oB = (selO > 0 && !(a1 > a0)) ? oFuera : 1;
+      s.push(D.linea(x0, y, x1, y, { color: P.suave, grosor: 2, extremo: 'butt', o: oB }));
+      // La fusión de 80+ es la toma: su borde superior pasa a tinta de 3 px, para que se vea llegar a N_80+ / 20.
+      if (B.inicio[k] >= 80 && u80 > 0) s.push(D.linea(x0, y, x1, y, { color: P.tinta, grosor: 3, extremo: 'butt', o: u80 }));
+      var interno = B.inicio[k] > 80 ? 1 - u80 : 1;
+      s.push(D.linea(x0, y, x0, G2.abajo, { color: P.suave, grosor: 2, extremo: 'butt', o: interno * oB }));
+      if (k === B.inicio.length - 1) s.push(D.linea(x1, y, x1, G2.abajo, { color: P.suave, grosor: 2, extremo: 'butt', o: oB }));
+    }
+    // Para la auditoría: el borde superior dibujado de cada caja, que se lee de vuelta del eje (píxel -> personas).
+    if (DL.__c) DL.__c.dato('cajas_y', { ys: ys, abajo: G2.abajo, alto: G2.alto });
+    return s.join('');
+  }
+
+  // ---- Auditoría ----
+  function maxDif(a, b) {
+    if (a.length !== b.length) return Infinity;
+    var d = 0;
+    for (var k = 0; k < a.length; k++) d = Math.max(d, Math.abs(a[k] - b[k]));
+    return d;
+  }
+  function sumar(v) { return v.reduce(function (s, x) { return s + x; }, 0); }
+  // Lo dibujado, leído de vuelta de los ejes (píxel -> unidades).
+  function leerPuntos(e) {
+    return e.px_puntos.map(function (xy) {
+      return { edad: 30 + (A_FIN - 30) * (xy[0] - e.eje.izq) / e.eje.ancho, p: 0.22 * (e.eje.arriba + e.eje.alto - xy[1]) / e.eje.alto };
+    });
+  }
+  function personas(y, ref) { return 260000 * (ref.abajo - y) / ref.alto; }
+  function chequeoCaso(A, k, extra) {
+    var caso = CASOS[k];
+    return function (e) {
+      if (e.caso !== k + 1) return 'la tarjeta visible es la del caso ' + e.caso;
+      // El velo dibujado está sobre el intervalo del caso (la banda abierta, hasta el fin del eje).
+      if (!e.A || Math.abs(e.A[0] - caso.r.inicio) > 1e-9 || Math.abs(e.A[1] - Math.min(caso.r.fin, A_FIN)) > 1e-9) {
+        return 'velo A en [' + (e.A || []).join(', ') + ')';
+      }
+      var edadesA = caso.pw.idx.map(function (j) { return edades[j]; });
+      if (maxDif(edadesA, caso.r.edades) !== 0) return 'A no son las edades del paquete';
+      var dw = maxDif(caso.pw.w, caso.r.w);
+      if (dw > 1e-12) return 'pesos distintos de .dl_pesos_intervalo(): ' + dw;
+      if (!A.cerca(sumar(caso.pw.w), 1, 1e-12)) return 'los pesos suman ' + sumar(caso.pw.w);
+      var q = e['q_' + (k + 1)];
+      if (!A.cerca(q, caso.r.q_p, 1e-12)) return 'q ' + q + ' frente a .dl_q_intervalos() ' + caso.r.q_p;
+      if (!A.cerca(q, caso.r.q_sim, 1e-12)) return 'q ' + q + ' frente a la media de .dl_agregar_bandas() ' + caso.r.q_sim;
+      return extra ? extra(e) : true;
+    };
+  }
+
+  DL.escena({
+    id: '04-bandas',
+    titulo: 'De las edades simples a las bandas',
+    duracion: 72, fps: 30,
+    marcas: {
+      puntos: 4.5, ancla: 9.5, formula: 16.5, poblacion: 23.0, n_b: 29.5, caso1: 36.5, q1: 42.5, caso2: 49.5,
+      fusion: 56.5, caso3: 63.5, medidas: 70.5,
+    },
+    camaras: [[11.1, 12.1], [17.3, 18.2]],
+    dibujar: dibujar,
+    auditoria: function (A) {
+      return [
+        A.en('puntos', 'los 70 puntos dibujados, leídos del eje, son las edades 30 a 99 y la media posterior: con los pesos del paquete dan sus q', function (e) {
+          if (e.puntos !== 99 - datos.edad_inicio + 1) return 'dibuja ' + e.puntos + ' puntos';
+          var L = leerPuntos(e);
+          for (var k = 0; k < L.length; k++) if (Math.abs(L[k].edad - (datos.edad_inicio + k)) > 1e-9) return 'el punto ' + k + ' está en la edad ' + L[k].edad;
+          if (Math.abs(L[0].p) > 1e-12) return 'p(a0) leído del eje = ' + L[0].p;
+          // q con los pesos de .dl_pesos_intervalo() (R) sobre la p leída de lo dibujado, frente a .dl_q_intervalos().
+          for (var j = 0; j < 3; j++) {
+            var C = datos.casos[j], q = 0;
+            for (var i = 0; i < C.edades.length; i++) q += C.w[i] * L[C.edades[i] - datos.edad_inicio].p;
+            if (!A.cerca(q, C.q_p, 1e-9)) return 'caso ' + (j + 1) + ': q de los puntos dibujados ' + q + ' frente a ' + C.q_p;
+          }
+          return true;
+        }),
+        A.en('poblacion', 'cada caja dibujada, leída del eje, mide N_b / n_b, con n_b = 5 en toda la malla (también 95+)', function (e) {
+          var B = datos.bandas, nb = pesos(30, A_FIN, B).nb;
+          if (nb.some(function (x) { return x !== 5; })) return 'n_b = ' + nb.join(', ');
+          var leidos = e.cajas_y.ys.map(function (y) { return personas(y, e.cajas_y); });
+          var d = maxDif(leidos.map(function (v, k) { return v / B.N[k]; }), B.N.map(function () { return 1 / 5; }));
+          return d < 1e-9 || 'cajas dibujadas distintas de N_b / 5: ' + leidos.join(', ');
+        }),
+        A.en('fusion', '80-84 ... 95+ fundidas: cajas en N_80+ / 20 (n_b = 20); el fantasma, en N_80+ / 5 (como si tuviera 5 edades): 4 veces', function (e) {
+          var N80 = datos.bandas80.N[k80];
+          if (e.n80 !== 20) return 'n_b de 80+ = ' + e.n80;
+          var al = e.cajas_y.ys.slice(datos.bandas.inicio.indexOf(80)).map(function (y) { return personas(y, e.cajas_y); });
+          if (al.length !== 4 || maxDif(al.map(function (v) { return v / N80; }), [1, 1, 1, 1].map(function (x) { return x / 20; })) > 1e-9) return 'cajas 80+: ' + al.join(', ');
+          if (!e.fantasma) return 'no se dibuja el fantasma';
+          var base = personas(e.fantasma.yB, e.fantasma), techo = personas(e.fantasma.yG, e.fantasma);
+          if (!A.cerca(base, N80 / 20, 1e-9)) return 'el fantasma arranca en ' + base;
+          return A.cerca(techo, 4 * base, 1e-9) || 'fantasma en ' + techo + ', no 4 x ' + base;
+        }),
+        A.en('q1', 'caso 1: velo en [40, 45), pesos iguales, q igual al del paquete (y al de .dl_q_bandas() en 40-44); la lupa compara con el ancla de esa banda', chequeoCaso(A, 0, function (e) {
+          var w = CASOS[0].pw.w;
+          if (maxDif(w, w.map(function () { return 1 / w.length; })) > 1e-15) return 'pesos no iguales';
+          if (!A.cerca(e.q_1, C1.q_bandas_ancla, 1e-12)) return 'q frente a .dl_q_bandas(): ' + C1.q_bandas_ancla;
+          var Lu = e.lupa, An = datos.ancla;
+          if (!Lu || An.inicio[Lu.ka] !== C1.inicio || An.fin[Lu.ka] !== C1.fin) return 'la lupa no muestra el ancla de [40, 45)';
+          var leer = function (y) { return Lu.L.pMin + (Lu.L.y + Lu.L.alto - y) / Lu.L.alto * (Lu.L.pMax - Lu.L.pMin); };
+          if (!A.cerca(leer(Lu.y_q), C1.q_p, 1e-12)) return 'q en la lupa ' + leer(Lu.y_q);
+          return A.cerca(leer(Lu.y_val), An.val[Lu.ka], 1e-12) || 'val en la lupa ' + leer(Lu.y_val);
+        })),
+        A.en('caso2', 'caso 2: velo en [50, 65), w_a proporcional a N_b y q igual al del paquete', chequeoCaso(A, 1, function () {
+          var pw = CASOS[1].pw, B = datos.bandas;
+          var suma = sumar(pw.banda.map(function (b) { return B.N[b]; }));
+          var d = maxDif(pw.w, pw.banda.map(function (b) { return B.N[b] / suma; }));
+          return d < 1e-15 || 'w_a frente a N_b / suma N_b: ' + d;
+        })),
+        A.en('caso3', 'caso 3: velo en [60, 125) (hasta 99), 80+ tiene 20 edades, pesa N_80+ / suma N_b y q igual al del paquete', chequeoCaso(A, 2, function (e) {
+          if (e.n80 !== 20) return 'n_b de 80+ = ' + e.n80;
+          if (!A.cerca(peso80, datos.bandas80.N[k80] / sumaN3, 1e-12)) return '80+ pesa ' + peso80;
+          var Nq = sumar(datos.bandas80.N.slice(datos.bandas80.inicio.indexOf(60), k80));
+          var esperado = 20 * datos.bandas80.N[k80] / (5 * Nq + 20 * datos.bandas80.N[k80]);
+          return A.cerca(peso80Sin, esperado, 1e-12) || 'sin dividir: ' + peso80Sin + ' frente a ' + esperado;
+        })),
+        A.en('medidas', 'la tabla: q de p, i(1 - p) y p f iguales a los del paquete en 60 y más; x(a) subrayada', function (e) {
+          if (!(e.subrayado_xa >= 1)) return 'x(a) no está subrayada';
+          if (!A.cerca(e.tabla_p, C3.q_p, 1e-12)) return 'p: ' + e.tabla_p + ' frente a ' + C3.q_p;
+          if (!A.cerca(e.tabla_ipop, C3.q_ipop, 1e-12) || !A.cerca(e.tabla_ipop, C3.q_sim_ipop, 1e-12)) return 'i(1 - p): ' + e.tabla_ipop;
+          return (A.cerca(e.tabla_pf, C3.q_pf, 1e-12) && A.cerca(e.tabla_pf, C3.q_sim_pf, 1e-12)) || 'p f: ' + e.tabla_pf;
+        }),
+      ];
+    },
+  });
+})();
+</script>
+</body>
+</html>

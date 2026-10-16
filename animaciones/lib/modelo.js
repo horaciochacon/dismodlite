@@ -90,57 +90,307 @@
   var LP_NOMBRES = ['suavidad', 'emr', 'ancla', 'datos', 'total', 'datos_prev_estudio', 'datos_incidencia',
     'datos_csmr'];
 
-  // ---- Utilidades numéricas ------------------------------------------------------------------------------------
+  // ---- Funciones elementales correctamente redondeadas -----------------------------------------------------------
+  // expCR(x) y logCR(x) devuelven el double más cercano a exp(x) y log(x) (empates al par), calculados solo con + - * /
+  // de IEEE 754, que JavaScript fija exactamente. Por qué no Math.exp y Math.log: el estándar de JavaScript deja su
+  // precisión a cada motor; en V8, Math.exp difiere de exp() de glibc (la libm de R en Linux) en ~10 % de los
+  // argumentos y Math.log en ~1.5 % (un millón de argumentos al azar en los rangos del modelo), y esa diferencia del
+  // último bit basta para que un theta a un ulp del techo de la EMR quede dentro en R y fuera en JavaScript. glibc
+  // redondea correctamente salvo en ~0.07 % (exp) y ~0.02 % (log) de los casos, así que expCR y logCR coinciden con R
+  // en el resto, y dan lo mismo en cualquier navegador. log1p sigue siendo Math.log1p: la de V8 y la de glibc vienen de
+  // fdlibm y coinciden en el 99.9 % de los casos, más que la correctamente redondeada (92 %).
+  //
+  // Método (Ziv). exp: x = k ln2/128 + r, |r| <= ln2/256; exp(x) = 2^(k div 128) 2^(j/128) (1 + r + q(r)), con
+  // 2^(j/128) en doble-doble (tabla de 128) y el producto principal exacto (Dekker). log: x = 2^e m, m en [1/raíz 2,
+  // raíz 2); log x = e ln2 - log c_j + log1p(m c_j - 1), con c_j ~ 1/(1 + j/128) y m c_j - 1 exacto. Un camino rápido
+  // en double y doble-doble (error relativo < 2^-66) da el resultado salvo que el valor caiga a menos de esa cota de
+  // un punto medio entre dos doubles; entonces (uno de cada ~10^4 argumentos) se recalcula en doble-doble con error
+  // ~2^-100. Las tablas se calculan al cargar. Probadas contra Python decimal (60 cifras) en 600 000 argumentos: cero
+  // diferencias.
 
-  // sum() de R: acumula en long double. Aquí, suma compensada de Neumaier (el resultado es la suma exacta
-  // redondeada a double salvo casos excepcionales, igual que el long double de R). Con algún término no finito, la
-  // suma simple (Inf, -Inf o NaN, como en R).
-  function suma(x) {
-    var s = 0, c = 0, simple = 0;
-    for (var k = 0; k < x.length; k++) {
-      var v = x[k];
-      simple += v;
-      var t = s + v;
-      if (Math.abs(s) >= Math.abs(v)) c += (s - t) + v; else c += (v - t) + s;
-      s = t;
-    }
-    if (!isFinite(simple)) return simple;
-    return s + c;
+  var SPLIT = 134217729;   // 2^27 + 1: partición de Veltkamp del producto exacto de Dekker
+
+  // POT2[m + 1074] = 2^m exacto, m = -1074..1023
+  var POT2 = new Float64Array(2098);
+  (function () {
+    var v = 1, m;
+    for (m = 0; m <= 1023; m++) { POT2[m + 1074] = v; v *= 2; }
+    for (v = 1, m = 0; m >= -1074; m--) { POT2[m + 1074] = v; v *= 0.5; }
+  })();
+
+  // Producto exacto a * b = p + e (Dekker, con la partición de Veltkamp; sin FMA). Devuelve [p, e].
+  function productoExacto(a, b) {
+    var p = a * b, c = SPLIT * a, ah = c - (c - a), al = a - ah;
+    c = SPLIT * b;
+    var bh = c - (c - b), bl = b - bh;
+    return [p, ((ah * bh - p) + ah * bl + al * bh) + al * bl];
   }
 
-  // mean() de R para un vector double (src/main/summary.c): s = sum / n en long double y una pasada de corrección,
-  // s + sum(x - s) / n.
+  // Doble-doble: un número es [hi, lo] con hi el double más cercano a hi + lo.
+  function ddSuma(ah, al, bh, bl) {
+    var s = ah + bh, bb = s - ah, e = (ah - (s - bb)) + (bh - bb);
+    var t = al + bl; bb = t - al;
+    var f = (al - (t - bb)) + (bl - bb);
+    e += t;
+    var h = s + e;
+    e = e - (h - s); e += f; s = h + e;
+    return [s, e - (s - h)];
+  }
+  function ddProducto(ah, al, bh, bl) {
+    var pe = productoExacto(ah, bh), e = pe[1] + (ah * bl + al * bh), s = pe[0] + e;
+    return [s, e - (s - pe[0])];
+  }
+  function ddEntre(ah, al, bh, bl) {
+    var q1 = ah / bh, p = ddProducto(q1, 0, bh, bl), r = ddSuma(ah, al, -p[0], -p[1]);
+    var q2 = r[0] / bh;
+    p = ddProducto(q2, 0, bh, bl); r = ddSuma(r[0], r[1], -p[0], -p[1]);
+    var s = ddSuma(q1, 0, q2, 0);
+    return ddSuma(s[0], s[1], r[0] / bh, 0);
+  }
+
+  // ln2/128 en tres partes (k EXP_L1 y k EXP_L2 exactos para |k| < 2^19) y ln 2 en tres (e LN2_HI exacto para
+  // |e| < 2^11); de Python decimal con 80 cifras.
+  var EXP_INV = 184.6649652337873, EXP_L1 = 0.005415212347998022, EXP_L2 = 1.2655086083012853e-13,
+    EXP_L3 = 3.1258479278239995e-24;
+  var LN2_HI = 0.6931471805598903, LN2_MID = 5.497923018708371e-14, LN2_LO = 1.94704509238075e-31;
+  var COTA_RAPIDA = 1.4e-20;   // ~2^-66: cota holgada del error relativo de los caminos rápidos
+
+  // 1/n! (n = 0..30) en doble-doble
+  var FACT_HI = new Float64Array(31), FACT_LO = new Float64Array(31);
+  (function () {
+    var h = 1, l = 0;
+    FACT_HI[0] = 1;
+    for (var n = 1; n <= 30; n++) { var q = ddEntre(h, l, n, 0); h = q[0]; l = q[1]; FACT_HI[n] = h; FACT_LO[n] = l; }
+  })();
+
+  // exp(r) - 1 en doble-doble, Taylor de grado g por Horner
+  function expm1DD(rh, rl, g) {
+    var h = FACT_HI[g], l = FACT_LO[g];
+    for (var n = g - 1; n >= 1; n--) {
+      var p = ddProducto(h, l, rh, rl), s = ddSuma(p[0], p[1], FACT_HI[n], FACT_LO[n]);
+      h = s[0]; l = s[1];
+    }
+    return ddProducto(h, l, rh, rl);
+  }
+
+  // T[j] = 2^(j/128), j = 0..127, en doble-doble: 1 + expm1(j ln2/128) con Taylor de grado 30
+  var EXP_T_HI = new Float64Array(128), EXP_T_LO = new Float64Array(128);
+  (function () {
+    for (var j = 0; j < 128; j++) {
+      var r = ddSuma(j * EXP_L1, 0, j * EXP_L2, j * EXP_L3), p = expm1DD(r[0], r[1], 30), t = ddSuma(1, 0, p[0], p[1]);
+      EXP_T_HI[j] = t[0]; EXP_T_LO[j] = t[1];
+    }
+  })();
+
+  // (yh + yl) 2^m redondeado a double; yh + yl normalizado, en [0.99, 2.01) (lo que dan expCR y expLenta). Si el
+  // resultado puede quedar bajo 2^-1022 (subnormal), se redondea directamente en la rejilla de 2^-1074 (un solo
+  // redondeo; escalar un double ya redondeado redondearía dos veces).
+  function escalar2(yh, yl, m) {
+    if (m > -1022 || (m === -1022 && yh >= 1)) {
+      if (m <= 1023) return (yh + yl) * POT2[m + 1074];
+      return ((yh + yl) * 2) * POT2[m - 1 + 1074];
+    }
+    var a = yh * POT2[m + 2148], b = yl * POT2[m + 2148];   // (yh + yl) 2^(m + 1074): escalas exactas
+    var f = Math.floor(a), fr = (a - f) + b, n = f;
+    if (fr > 0.5 || (fr === 0.5 && f % 2 !== 0)) n = f + 1;
+    else if (fr < -0.5 || (fr === -0.5 && f % 2 !== 0)) n = f - 1;
+    return n * 4.9406564584124654e-324;
+  }
+
+  function expLenta(x, k, j, m) {
+    var r1 = x - k * EXP_L1, s = ddSuma(r1, 0, -k * EXP_L2, -k * EXP_L3);
+    var p = expm1DD(s[0], s[1], 12), t = ddProducto(EXP_T_HI[j], EXP_T_LO[j], p[0], p[1]);
+    var y = ddSuma(EXP_T_HI[j], EXP_T_LO[j], t[0], t[1]);
+    return escalar2(y[0], y[1], m);
+  }
+
+  var C3 = 1 / 6, C4 = 1 / 24, C5 = 1 / 120, C6 = 1 / 720, C7 = 1 / 5040;
+
+  // exp(x) correctamente redondeada (la exp() de R; ver la cabecera de esta sección).
+  function expCR(x) {
+    if (!(x > -746 && x < 709.79)) {
+      if (x !== x) return x;
+      return x > 0 ? Infinity : 0;
+    }
+    if (x < 5.551115123125783e-17 && x > -5.551115123125783e-17) return 1;   // |x| < 2^-54
+    var k = Math.round(x * EXP_INV), j = k & 127, m = (k - j) / 128;
+    // r = x - k ln2/128 = rh + rl (x - k EXP_L1 y k EXP_L2 exactos)
+    var r1 = x - k * EXP_L1, p2 = k * EXP_L2, rh = r1 - p2, bb = rh - r1;
+    var rl = ((r1 - (rh - bb)) + (-p2 - bb)) - k * EXP_L3;
+    // exp(r) = 1 + rh + u,  u = rl + q(rh) + rl rh,  q(r) = r^2/2 + ... + r^7/7!
+    var u = rl + (rh * rh * (0.5 + rh * (C3 + rh * (C4 + rh * (C5 + rh * (C6 + rh * C7))))) + rl * rh);
+    var th = EXP_T_HI[j], tl = EXP_T_LO[j];
+    var p = th * rh, c = SPLIT * th, ah = c - (c - th), al = th - ah;   // th rh = p + pe exacto
+    c = SPLIT * rh;
+    var bh = c - (c - rh), bl = rh - bh, pe = ((ah * bh - p) + ah * bl + al * bh) + al * bl;
+    var s1 = th + p;
+    bb = s1 - th;
+    var lo = ((th - (s1 - bb)) + (p - bb)) + (pe + (th * u + tl * (1 + rh + u)));
+    var yh = s1 + lo, yl = lo - (yh - s1), d = yh * COTA_RAPIDA;
+    if (yh + (yl + d) !== yh + (yl - d) || m <= -1022) return expLenta(x, k, j, m);
+    return escalar2(yh, yl, m);
+  }
+
+  // log(a) en doble-doble para a en [0.6, 1.5]: 2 atanh(s), s = (a - 1)/(a + 1), serie hasta s^51
+  function logDD(ah, al) {
+    var num = ddSuma(ah, al, -1, 0), den = ddSuma(ah, al, 1, 0), s = ddEntre(num[0], num[1], den[0], den[1]);
+    var s2 = ddProducto(s[0], s[1], s[0], s[1]), h = 0, l = 0;
+    for (var n = 51; n >= 1; n -= 2) {
+      var inv = ddEntre(1, 0, n, 0), t = ddProducto(h, l, s2[0], s2[1]), u = ddSuma(t[0], t[1], inv[0], inv[1]);
+      h = u[0]; l = u[1];
+    }
+    var r = ddProducto(h, l, s[0], s[1]);
+    return [2 * r[0], 2 * r[1]];
+  }
+
+  // c_j = RN(1 / (1 + j/128)) y -log(c_j) en doble-doble, j = -38..54 (posición j + 38)
+  var LOG_J0 = 38, LOG_C = new Float64Array(93), LOG_L_HI = new Float64Array(93), LOG_L_LO = new Float64Array(93);
+  // (-1)^(n+1) / n en doble-doble, n = 1..19: coeficientes de log1p
+  var LOG1P_HI = new Float64Array(20), LOG1P_LO = new Float64Array(20);
+  (function () {
+    for (var j = -LOG_J0; j < 93 - LOG_J0; j++) {
+      var c = 1 / (1 + j / 128), L = logDD(c, 0);
+      LOG_C[j + LOG_J0] = c; LOG_L_HI[j + LOG_J0] = -L[0]; LOG_L_LO[j + LOG_J0] = -L[1];
+    }
+    for (var n = 1; n < 20; n++) {
+      var q = ddEntre(1, 0, n, 0), sg = n % 2 ? 1 : -1;
+      LOG1P_HI[n] = sg * q[0]; LOG1P_LO[n] = sg * q[1];
+    }
+  })();
+
+  function logLento(e, zh, zl, jj) {
+    var h = LOG1P_HI[16], l = LOG1P_LO[16];
+    for (var n = 15; n >= 1; n--) {
+      var p = ddProducto(h, l, zh, zl), s = ddSuma(p[0], p[1], LOG1P_HI[n], LOG1P_LO[n]);
+      h = s[0]; l = s[1];
+    }
+    var lz = ddProducto(h, l, zh, zl), em = productoExacto(e, LN2_MID);
+    var a = ddSuma(e * LN2_HI, 0, em[0], em[1] + e * LN2_LO);
+    var b = ddSuma(a[0], a[1], LOG_L_HI[jj], LOG_L_LO[jj]), y = ddSuma(b[0], b[1], lz[0], lz[1]);
+    return y[0] + y[1];
+  }
+
+  var D3 = 1 / 3, D5 = 1 / 5, D6 = 1 / 6, D7 = 1 / 7, D9 = 1 / 9, D10 = 1 / 10, D11 = 1 / 11;
+
+  // log(x) correctamente redondeado (el log() de R: -Inf en 0, NaN si x < 0; ver la cabecera de esta sección).
+  function logCR(x) {
+    if (!(x > 0 && x < Infinity)) {
+      if (x === 0) return -Infinity;
+      return x === Infinity ? x : NaN;
+    }
+    if (x === 1) return 0;
+    var e = 0;
+    if (x < 2.2250738585072014e-308) { x *= 18014398509481984; e = -54; }   // subnormal: x 2^54
+    // exponente: Math.log2 da la estimación y las potencias exactas la corrigen (el resultado no depende del motor)
+    var ex = Math.floor(Math.log2(x));
+    if (ex > 1023) ex = 1023;
+    if (ex < -1022) ex = -1022;
+    while (POT2[ex + 1074] > x) ex--;
+    while (ex < 1023 && POT2[ex + 1075] <= x) ex++;
+    var mm = x * POT2[1074 - ex];   // en [1, 2), exacto
+    e += ex;
+    if (mm > 1.4142135623730951) { mm *= 0.5; e += 1; }
+    var jj = Math.round((mm - 1) * 128) + LOG_J0, c = LOG_C[jj];
+    // z = mm c - 1 = zh + zl exacto
+    var p = mm * c, t = SPLIT * mm, ah = t - (t - mm), al = mm - ah;
+    t = SPLIT * c;
+    var bh = t - (t - c), bl = c - bh, pe = ((ah * bh - p) + ah * bl + al * bh) + al * bl;
+    var z0 = p - 1, zh = z0 + pe, bb = zh - z0, zl = (z0 - (zh - bb)) + (pe - bb);
+    // zh^2 = sq + sqe exacto; log1p(z) = zh - zh^2/2 + zh^3 (1/3 - zh/4 + ...) + zl (1 - zh)
+    var sq = zh * zh;
+    t = SPLIT * zh; ah = t - (t - zh); al = zh - ah;
+    var sqe = ((ah * ah - sq) + 2 * ah * al) + al * al;
+    var poli = zh * sq * (D3 - zh * (0.25 - zh * (D5 - zh * (D6 - zh * (D7 - zh * (0.125 - zh * (D9 - zh * (D10 - zh * D11))))))));
+    var chico = (e * LN2_MID + LOG_L_LO[jj]) + (zl * (1 - zh) - 0.5 * sqe + poli);
+    // términos grandes sumados sin error: e LN2_HI + (-log c_j) + zh - zh^2/2
+    var a1 = e * LN2_HI, b1 = LOG_L_HI[jj], s = a1 + b1;
+    bb = s - a1;
+    var er = (a1 - (s - bb)) + (b1 - bb), s2 = s + zh;
+    bb = s2 - s; er += (s - (s2 - bb)) + (zh - bb);
+    var mitad = -0.5 * sq, s3 = s2 + mitad;
+    bb = s3 - s2; er += (s2 - (s3 - bb)) + (mitad - bb);
+    var lo = er + chico, yh = s3 + lo, yl = lo - (yh - s3), d = Math.abs(yh) * COTA_RAPIDA;
+    if (yh + (yl + d) !== yh + (yl - d)) return logLento(e, zh, zl, jj);
+    return yh;
+  }
+
+  // ---- Sumas y medias como las de R ------------------------------------------------------------------------------
+  // sum(), mean(), colMeans(), rowMeans(), var() y cov() de R acumulan en long double (64 bits de mantisa) y
+  // redondean a double una vez al final: salvo empates excepcionales, dan el double más cercano al valor exacto. Aquí
+  // se acumula en doble-doble y se redondea una vez; sumar en double término a término daría otro double en una
+  // fracción apreciable de los casos.
+
+  // Suma en doble-doble (TwoSum de Knuth en cascada): [hi, lo] con hi + lo la suma exacta salvo ~n 2^-106 relativo
+  // y hi el double más cercano. Con algún término no finito, [la suma simple, 0] (Inf, -Inf o NaN, como en R).
+  function sumaDD(x) {
+    var s = 0, e = 0;
+    for (var k = 0; k < x.length; k++) {
+      var v = x[k], t = s + v, bb = t - s;
+      e += (s - (t - bb)) + (v - bb);
+      s = t;
+    }
+    if (!isFinite(s)) return [s, 0];
+    var hi = s + e;
+    return [hi, e - (hi - s)];
+  }
+
+  // sum() de R.
+  function suma(x) { return sumaDD(x)[0]; }
+
+  // (hi + lo) / n redondeado una vez: el cociente en double y una corrección con su resto exacto.
+  function cocienteDD(hi, lo, n) {
+    var q = hi / n;
+    if (!isFinite(q) || hi === 0) return q;
+    var pe = productoExacto(q, n);
+    return q + (((hi - pe[0]) - pe[1]) + lo) / n;
+  }
+
+  // mean() de R (src/main/summary.c), colMeans() y rowMeans(), y la media de data.table: la media exacta
+  // redondeada a double. Vacío: NaN.
   function media(x) {
     var n = x.length;
     if (!n) return NaN;
-    var s = suma(x) / n;
-    if (!isFinite(s)) return s;
-    var dif = new Array(n);
-    for (var k = 0; k < n; k++) dif[k] = x[k] - s;
-    return s + suma(dif) / n;
+    var s = sumaDD(x);
+    return isFinite(s[0]) ? cocienteDD(s[0], s[1], n) : s[0] / n;
   }
 
-  // var() de R para un vector (stats::var -> cov.c): media con corrección y sum((x - media)^2) / (n - 1).
-  // Con n < 2, NaN (NA en R).
+  // sum_k (xa_k - ma)(xb_k - mb) en doble-doble, como la acumula cov.c de R: cada diferencia exacta (TwoSum), su
+  // producto en doble-doble y la suma en doble-doble.
+  function sumaProductosCentrados(xa, ma, xb, mb) {
+    var s = 0, e = 0;
+    for (var k = 0; k < xa.length; k++) {
+      var ah = xa[k] - ma, bb = ah - xa[k], al = (xa[k] - (ah - bb)) + (-ma - bb);
+      var bh = xb[k] - mb;
+      bb = bh - xb[k];
+      var bl = (xb[k] - (bh - bb)) + (-mb - bb);
+      var pe = productoExacto(ah, bh), v = pe[0], t = s + v;
+      bb = t - s;
+      e += ((s - (t - bb)) + (v - bb)) + (pe[1] + (ah * bl + al * bh));
+      s = t;
+    }
+    if (!isFinite(s)) return [s, 0];
+    var hi = s + e;
+    return [hi, e - (hi - s)];
+  }
+
+  // var() de R para un vector (stats::var, src/library/stats/src/cov.c): sum((x - media)^2) / (n - 1), con la media
+  // de mean() y la suma acumulada como en cov.c. Con n < 2, NaN (NA en R).
   function varianza(x) {
     var n = x.length;
     if (n < 2) return NaN;
-    var m = media(x);
-    var cuad = new Array(n);
-    for (var k = 0; k < n; k++) cuad[k] = (x[k] - m) * (x[k] - m);
-    return suma(cuad) / (n - 1);
+    var m = media(x), s = sumaProductosCentrados(x, m, x, m);
+    return isFinite(s[0]) ? cocienteDD(s[0], s[1], n - 1) : s[0] / (n - 1);
   }
 
-  // stats::cov(matriz): covarianza de las columnas de una matriz dada como arreglo de filas. Devuelve d x d.
+  // stats::cov(matriz): covarianza de las columnas de una matriz dada como arreglo de filas (cov.c, como var()).
+  // Devuelve d x d.
   function covarianza(filas) {
-    var n = filas.length, d = filas[0].length, medias = new Array(d), C = [];
-    for (var a = 0; a < d; a++) medias[a] = media(columna(filas, a));
-    for (a = 0; a < d; a++) C.push(new Array(d));
+    var n = filas.length, d = filas[0].length, cols = new Array(d), medias = new Array(d), C = [];
+    for (var a = 0; a < d; a++) { cols[a] = columna(filas, a); medias[a] = media(cols[a]); C.push(new Array(d)); }
     for (a = 0; a < d; a++)
       for (var b = 0; b <= a; b++) {
-        var prod = new Array(n);
-        for (var k = 0; k < n; k++) prod[k] = (filas[k][a] - medias[a]) * (filas[k][b] - medias[b]);
-        C[a][b] = C[b][a] = suma(prod) / (n - 1);
+        var s = sumaProductosCentrados(cols[a], medias[a], cols[b], medias[b]);
+        C[a][b] = C[b][a] = isFinite(s[0]) ? cocienteDD(s[0], s[1], n - 1) : s[0] / (n - 1);
       }
     return C;
   }
@@ -163,7 +413,7 @@
     if (!isFinite(z)) return -Infinity;
     z = Math.abs(z);
     if (z >= 2 * Math.sqrt(Number.MAX_VALUE)) return -Infinity;
-    return -(LN_SQRT_2PI + 0.5 * z * z + Math.log(sigma));
+    return -(LN_SQRT_2PI + 0.5 * z * z + logCR(sigma));
   }
 
   // findInterval(x, v) de R (v creciente): cuántos elementos de v son <= x (0 si ninguno); NaN si x es NaN.
@@ -380,9 +630,9 @@
       throw new Error('`log_i_nudos` y `log_f_nudos` deben traer un valor por nudo (' + nudos.length + ' nudos)');
     var edades_media = edadesMedia(edad_inicio, edad_fin, nsub);
     var W = matrizW(nudos, edades_media);
-    var i_media = mapa(productoW(W, log_i_nudos), Math.exp);
+    var i_media = mapa(productoW(W, log_i_nudos), expCR);
     var f_media = log_f_nudos == null ? mapa(edades_media, function () { return 0; })
-      : mapa(productoW(W, log_f_nudos), Math.exp);
+      : mapa(productoW(W, log_f_nudos), expCR);
     var r_media = remisionEn(opciones.remision, edades_media);
     var p_malla = resolverEdo(i_media, f_media, r_media, p0, nsub);
     var anuales = aEdadesEnteras(p_malla, i_media, f_media, idxAnualMalla(edad_fin - edad_inicio, nsub),
@@ -398,7 +648,7 @@
   //   p(t) = i (E - 1) / (i E - f),  E = exp((i - f) t),  t = a - a0.  Con i = f, el límite i t / (1 + i t).
   function prevalenciaExacta(i, f, t) {
     if (i === f) return i * t / (1 + i * t);
-    var E = Math.exp((i - f) * t);
+    var E = expCR((i - f) * t);
     return i * (E - 1) / (i * E - f);
   }
 
@@ -474,15 +724,7 @@
 
   // sd en escala log que implica un intervalo del 95 %: (log superior - log inferior) / 3.92 (columna sigma_log de
   // R/insumos.R; también sd_T de R/betas.R con T = log).
-  function sigmaLog(inferior, superior) { return (Math.log(superior) - Math.log(inferior)) / ANCHO_IC95_EN_SD; }
-
-  // Producto exacto a * b = p + e (Dekker, con la partición de Veltkamp; sin FMA).
-  function productoExacto(a, b) {
-    var p = a * b, c = 134217729 * a, ah = c - (c - a), al = a - ah;
-    c = 134217729 * b;
-    var bh = c - (c - b), bl = b - bh;
-    return [p, ((ah * bh - p) + ah * bl + al * bh) + al * bl];
-  }
+  function sigmaLog(inferior, superior) { return (logCR(superior) - logCR(inferior)) / ANCHO_IC95_EN_SD; }
 
   // x^k de R con k entero >= 0 (R_POW de arithmetic.c): x * x si k = 2, 1 si k = 0 o x = 1 y, si no, powl(x, k) en
   // long double redondeado a double. powl se imita con aritmética doble-doble (error ~k 2^-106): el resultado es el
@@ -574,8 +816,8 @@
   function logMvn(z, Sigma) {
     var U = cholesky(Sigma), u = resolverTranspuesta(U, z), n = z.length;
     var quad = suma(mapa(u, function (v) { return v * v; }));
-    var logdet = 2 * suma(mapa(U, function (fila, b) { return Math.log(fila[b]); }));
-    return -0.5 * (quad + logdet + n * Math.log(2 * Math.PI));
+    var logdet = 2 * suma(mapa(U, function (fila, b) { return logCR(fila[b]); }));
+    return -0.5 * (quad + logdet + n * logCR(2 * Math.PI));
   }
 
   // log MVN(z; 0, Sigma / lambda), Sigma = diag(sigma_log) R diag(sigma_log), R = U'U (U = chol_R):
@@ -585,9 +827,9 @@
     var n = z.length;
     var u = resolverTranspuesta(chol_R, mapa(z, function (v, b) { return v / sigma_log[b]; }));
     var quad = suma(mapa(u, function (v) { return v * v; }));
-    var logdet = 2 * suma(mapa(chol_R, function (fila, b) { return Math.log(fila[b]); })) +
-      2 * suma(mapa(sigma_log, Math.log));
-    return -0.5 * (lambda * quad + logdet - n * Math.log(lambda) + n * Math.log(2 * Math.PI));
+    var logdet = 2 * suma(mapa(chol_R, function (fila, b) { return logCR(fila[b]); })) +
+      2 * suma(mapa(sigma_log, logCR));
+    return -0.5 * (lambda * quad + logdet - n * logCR(lambda) + n * logCR(2 * Math.PI));
   }
 
   // ---- Prior de la EMR (R/emr.R) ---------------------------------------------------------------------------------
@@ -598,7 +840,7 @@
   function priorEmrBanda(csmr, prev, sigma_log_csmr, sigma_log_prev, fraccion_aguda, factor_sd) {
     if (fraccion_aguda == null) fraccion_aguda = 0;
     if (factor_sd == null) factor_sd = 1;
-    return { mu_log: Math.log(csmr) + Math.log1p(-fraccion_aguda) - Math.log(prev),
+    return { mu_log: logCR(csmr) + Math.log1p(-fraccion_aguda) - logCR(prev),
       sd_log: factor_sd * Math.sqrt(sigma_log_prev * sigma_log_prev + sigma_log_csmr * sigma_log_csmr) };
   }
 
@@ -606,7 +848,7 @@
   // (rama «derivado»).
   function techoEmr(mu_log, k_techo) {
     if (k_techo == null) k_techo = EMR_TECHO_K;
-    var emr_max = Math.max.apply(null, mapa(mu_log, Math.exp));
+    var emr_max = Math.max.apply(null, mapa(mu_log, expCR));
     if (!isFinite(emr_max) || emr_max <= 0) throw new Error('no se puede derivar el techo de la mortalidad en exceso');
     return { cota: [0, k_techo * emr_max], emr_max_ancla: emr_max, k: k_techo };
   }
@@ -638,7 +880,7 @@
   // partida); sin término en la log-posterior. Gemela: .dl_emr_plano().
   function emrPlano(nudos, cota) {
     var c = [Math.max(cota[0], cota[1] / EMR_PLANO_RANGO), cota[1]];
-    return { mu_log: mapa(nudos, function () { return Math.log(c[1]) - EMR_PLANO_INICIO_BAJO_TECHO; }),
+    return { mu_log: mapa(nudos, function () { return logCR(c[1]) - EMR_PLANO_INICIO_BAJO_TECHO; }),
       sd_log: mapa(nudos, function () { return NaN; }), cota: c, plano: true, cero: false };
   }
 
@@ -650,7 +892,7 @@
   // TRUE si algún f = exp(log f) de los nudos cae fuera de [cota[0], cota[1]]. Gemela: .dl_f_fuera_de_cota().
   function fFueraDeCota(log_f_nudos, cota) {
     for (var k = 0; k < log_f_nudos.length; k++) {
-      var f = Math.exp(log_f_nudos[k]);
+      var f = expCR(log_f_nudos[k]);
       if (f < cota[0] || f > cota[1]) return true;
     }
     return false;
@@ -688,7 +930,7 @@
   // -Infinity si algún q no es finito o es <= 0 (el control de .dl_lp_componentes()). Gemela: .dl_lp_ancla().
   function lpAncla(q_ancla, ancla) {
     for (var b = 0; b < q_ancla.length; b++) if (!isFinite(q_ancla[b]) || q_ancla[b] <= 0) return -Infinity;
-    var z = mapa(q_ancla, function (q, b) { return Math.log(q) - Math.log(ancla.val[b]); });
+    var z = mapa(q_ancla, function (q, b) { return logCR(q) - logCR(ancla.val[b]); });
     return lpMvnAr1(z, ancla.sigma_log, ancla.chol_R, ancla.lambda);
   }
 
@@ -696,9 +938,9 @@
   //   log-normal  log N(log(q + eta); log(val + eta), s_log)
   //   binomial    x log q + (n - x) log(1 - q)          (sin lchoose(n, x))
   //   Poisson     x log(n q) - n q                      (sin -lgamma(x + 1))
-  function lpLognormal(q, val, s_log, eta) { return dnormLog(Math.log(q + eta), Math.log(val + eta), s_log); }
-  function lpBinomial(q, x, n) { return x * Math.log(q) + (n - x) * Math.log1p(-q); }
-  function lpPoisson(q, x, n) { return x * Math.log(n * q) - n * q; }
+  function lpLognormal(q, val, s_log, eta) { return dnormLog(logCR(q + eta), logCR(val + eta), s_log); }
+  function lpBinomial(q, x, n) { return x * logCR(q) + (n - x) * Math.log1p(-q); }
+  function lpPoisson(q, x, n) { return x * logCR(n * q) - n * q; }
 
   // L_datos por tipo: {datos_prev_estudio, datos_incidencia, datos_csmr}, con la solución sol = {p, i, f} anual y
   // los datos del contexto preparado (ctx.datos_por_tipo). Algún q no finito o <= 0 deja el tipo en -Infinity.
@@ -816,12 +1058,12 @@
     ctx = prepararCtx(ctx);
     var truncado = 0;
     if (techo_f != null) {
-      var lt = Math.log(techo_f);
+      var lt = logCR(techo_f);
       if (log_f_media.some(function (v) { return v > lt; })) {
         truncado = 1; log_f_media = mapa(log_f_media, function (v) { return Math.min(v, lt); });
       }
     }
-    var i_media = mapa(log_i_media, Math.exp), f_media = mapa(log_f_media, Math.exp);
+    var i_media = mapa(log_i_media, expCR), f_media = mapa(log_f_media, expCR);
     var p_malla = resolverEdo(i_media, f_media, ctx.r_media, 0, ctx.nsub);
     var an = aEdadesEnteras(p_malla, i_media, f_media, ctx.idx_anual_malla, ctx.idx_anual_media);
     return { p: an.p, i: an.i, f: an.f, truncado: truncado, i_media: i_media, f_media: f_media, p_malla: p_malla };
@@ -873,7 +1115,7 @@
     var K = ctx.nudos.length, theta = [];
     for (var k = 0; k < K; k++) theta.push(LOG_I_INICIAL);
     if (ctx.emr.cero) return theta;
-    var tope = Math.log(ctx.emr.cota[1]) - MARGEN_LOG_F_INICIAL;
+    var tope = logCR(ctx.emr.cota[1]) - MARGEN_LOG_F_INICIAL;
     for (k = 0; k < K; k++) theta.push(Math.min(ctx.emr.mu_log[k], tope));
     return theta;
   }
@@ -960,7 +1202,7 @@
   function escalaInicial(d) { return MH_ESCALA_OPTIMA / Math.sqrt(d); }
 
   // Paso de Robbins-Monro al cerrar la ventana k: s exp((a - 0.28) / sqrt(k)). Gemela: .dl_mh_escala_adaptada().
-  function escalaAdaptada(escala, aceptacion, k) { return escala * Math.exp((aceptacion - MH_ACEPTACION_OBJETIVO) / Math.sqrt(k)); }
+  function escalaAdaptada(escala, aceptacion, k) { return escala * expCR((aceptacion - MH_ACEPTACION_OBJETIVO) / Math.sqrt(k)); }
 
   // Forma de la propuesta: L triangular inferior con L L' = Cov + 1e-8 I (filas = iteraciones del calentamiento,
   // columnas = parámetros del bloque). Gemela: .dl_mh_forma_propuesta().
@@ -990,7 +1232,7 @@
 
   // Regla de aceptación: log u < lp(theta') - lp(theta) (u uniforme en (0, 1) que da la escena). Una propuesta con
   // lp = -Infinity siempre se rechaza.
-  function aceptaMh(lp_propuesta, lp_actual, u) { return Math.log(u) < lp_propuesta - lp_actual; }
+  function aceptaMh(lp_propuesta, lp_actual, u) { return logCR(u) < lp_propuesta - lp_actual; }
 
   // Semilla derivada de (semilla, cadena): (s 1000 + c + desplazamiento) mod (2^31 - 1). Gemela:
   // .dl_semilla_derivada().
@@ -1070,8 +1312,8 @@
 
   // T(x) de una covariable: 'log', 'logit' (log(x / (1 - x))) o 'lineal'. Gemela: .dl_transformar().
   function transformar(x, tipo) {
-    if (tipo === 'log') return Math.log(x);
-    if (tipo === 'logit') return Math.log(x / (1 - x));
+    if (tipo === 'log') return logCR(x);
+    if (tipo === 'logit') return logCR(x / (1 - x));
     if (tipo === 'lineal') return x;
     throw new Error('transformación desconocida «' + tipo + '»');
   }
