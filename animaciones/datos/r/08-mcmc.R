@@ -138,7 +138,7 @@ exportar <- function(ctx) {
 
   redondear <- function(x, d = 5) round(x, d)
   list(
-    fuente = "Datos sintéticos del ejemplo (causa 9100), hombres; dl_ajustar() con las opciones de producción, semilla 1",
+    fuente = "Datos sintéticos del ejemplo (causa 9100), sin datos locales en el ajuste; hombres; dl_ajustar() de producción, semilla 1",
     sexo = sx,
     opciones = list(simulaciones = op$draws, cadenas = op$chains, iteraciones = T_tot, calentamiento = T_cal,
                     adelgazamiento = thin, ventana = dl$.DL_MH_VENTANA, objetivo = dl$.DL_MH_ACEPTACION_OBJETIVO,
@@ -168,8 +168,11 @@ exportar <- function(ctx) {
                              bloque = A(ajuste$aceptacion[sex_id == sx]$bloque),
                              tasa = A(ajuste$aceptacion[sex_id == sx]$tasa)),
     mcmc = list(parametro = A(m1$parametro), rhat = A(m1$rhat), ess = A(m1$ess)),
-    mcmc_todos = list(rhat_max = max(ajuste$mcmc$rhat), ess_min = min(ajuste$mcmc$ess),
-                      n_parametros = nrow(ajuste$mcmc)),
+    # todos los parámetros de los dos sexos: la auditoría saca de aquí el máximo de R-hat y el mínimo de ESS
+    mcmc_todos = list(sex_id = A(ajuste$mcmc$sex_id), parametro = A(ajuste$mcmc$parametro),
+                      rhat = A(ajuste$mcmc$rhat), ess = A(ajuste$mcmc$ess),
+                      rhat_max = max(ajuste$mcmc$rhat), ess_min = min(ajuste$mcmc$ess),
+                      n_parametros = nrow(ajuste$mcmc), datos_locales_en_ajuste = nrow(b$datos[location_level == 0L])),
     simulaciones = list(theta = lapply(seq_len(5), function(k) A(unname(ajuste$draws_par[["1"]][k, ]))),
                         edades = A(edades), p = lapply(p_sims, function(v) A(signif(v, 7)))),
     estimacion = list(edad = A(est$edad), media = A(est$media), inferior = A(est$inferior),
