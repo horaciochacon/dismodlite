@@ -80,6 +80,11 @@ Además, por el aviso de la sesión coordinadora: fusión de la base (narración
 `skip-ink`, y comprobaciones de la auditoría contra fuentes independientes del dibujo (el orden de las llamadas en el
 código y de los mensajes, el lado del umbral en cada compuerta, la tabla de ubicaciones, la configuración, el eje).
 
+Por los hallazgos recurrentes de las revisiones de las escenas 04, 05, 06 y 10 (aviso de la sesión coordinadora):
+«no pasa» lleva «lo esperable con cadenas cortas»; la validación dice «sin datos locales en el ajuste, se espera que
+pase»; los AVD van «por 100 000 personas»; los valores se rotulan «media» y sus cuantiles 2.5/97.5, «intervalo del
+95 %».
+
 ## (b) Cambios que sugeriría a la biblioteca compartida
 
 - **`DL.dib.escala(x0, x1, y, dominio, marcas, formato)`**: un eje horizontal suelto (sin área de datos), para

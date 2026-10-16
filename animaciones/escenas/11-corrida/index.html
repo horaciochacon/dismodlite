@@ -354,6 +354,7 @@
     var oV = v(t, TN.salta + 0.1, t1);
     s.push(cruz(PX + 4, 768, 22, oV));
     s.push(D.texto(PX + 44, 778, 'no pasa', { tam: 30, peso: 600, o: oV, id: 'c1-veredicto' }));
+    s.push(D.texto(PX + 180, 778, 'lo esperable con cadenas cortas', { tam: 24, color: P.suave, o: v(t, TN.salta + 0.45, t1), id: 'c1-esperable' }));
     s.push(D.texto(PX + 44, 826, 'validacion.gates.force: ' + String(CG.force), { tam: 24, fuente: 'mono', color: P.suave, o: v(t, TN.salta + 0.3, t1), id: 'c1-force' }));
     c.svg(s);
     if (t >= t0 + 2.5) {
@@ -449,6 +450,8 @@
     s.push(check(PX + 2, 640, 24, ov));
     s.push(D.texto(PX + 44, 650, 'pasa: compuerta 2', { tam: 30, peso: 600, o: ov, id: 'val-pasa' }));
     s.push(D.texto(PX + 44, 698, 'ni rapido ni forzar la saltan', { tam: 24, color: P.suave, o: v(t, t2 + 0.6, t1), id: 'val-nunca' }));
+    // Sin datos locales en el ajuste, que el ajuste reproduzca el ancla es lo esperable: no es una validación externa.
+    s.push(D.texto(PX, 830, 'sin datos locales en el ajuste, se espera que pase', { tam: 24, color: P.suave, o: v(t, t0 + 1.55, t1), id: 'val-sin' }));
     s.push(D.texto(PX, 780, 'también valida la incidencia implícita y la amplitud subnacional', { tam: 24, color: P.suave, o: v(t, t0 + 1.4, t1), id: 'val-mas' }));
     c.svg(s);
     if (t >= t0 + 1.2) { c.dato('err_texto', errTxt); c.dato('x_err', X.x(CG.err_ancla * u)); c.dato('x_max', X.x(CG.err_maximo)); }
@@ -503,10 +506,10 @@
     var A = datos.celdas.avd;
     var s = [encabezado(t, t0, t1, 'Años vividos con discapacidad', 'dl_avd()', { id: 'avd' })];
     s.push(D.formula(EC_AVD, PX, 450, { tam: 44, o: v(t, t0 + 0.3, t1), id: 'avd-ec', palabras: 6, estilos: SUB_P, ancho: 940, alto: 110 }));
-    s.push(D.texto(PX, 590, 'mujeres de 70 a 74 años, nacional', { tam: 24, color: P.suave, o: v(t, t0 + 0.6, t1), id: 'avd-et' }));
-    var val = D.num(A.val, 1) + ' por 100 000';
+    s.push(D.texto(PX, 590, 'media nacional, mujeres 70–74', { tam: 24, color: P.suave, o: v(t, t0 + 0.6, t1), id: 'avd-et' }));
+    var val = D.num(A.val, 1) + ' por 100 000 personas';
     s.push(D.texto(PX, 646, val, { tam: 40, fuente: 'mono', o: v(t, t0 + 0.72, t1), id: 'avd-val' }));
-    var ic = 'intervalo ' + D.num(A.lower, 1) + ' a ' + D.num(A.upper, 1);
+    var ic = 'intervalo del 95 %: ' + D.num(A.lower, 1) + '–' + D.num(A.upper, 1);
     s.push(D.texto(PX, 692, ic, { tam: 24, color: P.suave, o: v(t, t0 + 0.84, t1), id: 'avd-ic' }));
     c.svg(s);
     c.dato('avd_texto', val);
@@ -603,11 +606,11 @@
       if (o > 0) filas.push(f.rows);
     });
     s.push(D.texto(PX, 580, CP.ubicaciones + ' ubicaciones, ' + CP.sexos + ' sexos, ' + CP.bandas + ' bandas', { tam: 26, o: v(t, t0 + 0.62, t1), id: 'res-dim' }));
-    s.push(D.texto(PX, 654, 'prevalencia nacional, mujeres 70–74', { tam: 24, color: P.suave, o: v(t, t0 + 0.85, t1), id: 'res-et' }));
+    s.push(D.texto(PX, 654, 'prevalencia, media nacional, mujeres 70–74', { tam: 24, color: P.suave, o: v(t, t0 + 0.85, t1), id: 'res-et' }));
     var val = pct(CP.val);
     s.push(D.circulo(PX + 10, 698, 9, { relleno: P.p, o: v(t, t0 + 1.0, t1) }));
     s.push(D.texto(PX + 32, 712, val, { tam: 40, fuente: 'mono', o: v(t, t0 + 1.0, t1), id: 'res-val' }));
-    s.push(D.texto(PX + 32, 756, 'intervalo ' + D.num(100 * CP.lower, 2) + '–' + pct(CP.upper), { tam: 24, color: P.suave, o: v(t, t0 + 1.15, t1), id: 'res-ic' }));
+    s.push(D.texto(PX + 32, 756, 'intervalo del 95 %: ' + D.num(100 * CP.lower, 2) + '–' + D.num(100 * CP.upper, 2), { tam: 24, color: P.suave, o: v(t, t0 + 1.15, t1), id: 'res-ic' }));
     c.svg(s);
     c.dato('res_filas', filas);
     c.dato('res_val', val);
