@@ -176,7 +176,7 @@
 
   // ---- Fórmulas ----
   var SUB = {
-    tq: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;',
+    tq: 'text-decoration:underline 4px ' + P.p + ';text-underline-offset:7px;text-decoration-skip-ink:none;',
     lam: 'box-shadow: inset 0 -5px 0 ' + P.marca + ';',
   };
   var EC_SIGMA = '\\sigma_{log,b} = (\\log \\text{upper}_b - \\log \\text{lower}_b) / 3.92';
@@ -338,7 +338,11 @@
       var raya = M.escalonado(t, 17.6, j, M.ESCALONADO.item, 0.4, E.entrarSuave);
       c.svg(cajaModelo(j, u, st.est, raya, eIC, oG));
     }
-    if (t >= 17.6) c.dato('q_dibujada', st.est.val.slice());
+    if (t >= 17.6) {
+      // Para la auditoría: la raya q_b de cada banda en px y las marcas 0.05 y 0.1 del eje, tal como se rotulan.
+      c.dato('q_px', st.est.val.map(function (v) { return gy(v, u); }));
+      c.dato('marcas_px', [gy(0.05, u), gy(0.1, u)]);
+    }
     if (eIC > 0) {
       c.dato('ic_dibujado', { lower: st.est.lower.slice(), upper: st.est.upper.slice(), val: st.est.val.slice() });
       c.dato('estado', st.w === undefined ? ESTADOS[st.k][2] : null);
@@ -422,8 +426,12 @@
         Au.en('z', 'z_b de la lupa = log q_b − log val_b del ajuste del ejemplo', function (e) {
           return Au.cerca(e.z_lupa, datos.z[K], 1e-12) || 'z dibujada ' + e.z_lupa + ' frente a ' + datos.z[K];
         }),
-        Au.en('q', 'las rayas q_b son la media posterior del ajuste del ejemplo', function (e) {
-          for (var k = 0; k < nb; k++) if (e.q_dibujada[k] !== datos.ajuste.val[k]) return 'banda ' + A.age_start[k];
+        Au.en('q', 'cada raya q_b cae, contra las marcas rotuladas 0.05 y 0.1 del eje log, donde dice la media posterior del paquete', function (e) {
+          var y05 = e.marcas_px[0], y10 = e.marcas_px[1];
+          for (var k = 0; k < nb; k++) {
+            var leido = 0.05 * Math.pow(2, (e.q_px[k] - y05) / (y10 - y05));   // el valor que se lee en el eje
+            if (Math.abs(leido / datos.ajuste.val[k] - 1) > 1e-9) return 'banda ' + A.age_start[k] + ': se lee ' + leido;
+          }
           return true;
         }),
         Au.en('mvn', 'L_ancla con la matriz densa de la guía = .dl_lp_mvn_ar1() del paquete', function () {

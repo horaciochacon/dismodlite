@@ -73,6 +73,17 @@ No apliqué dos hallazgos:
 Al aplicar los cambios, tres narraciones quedaron cortas para su número de palabras. Se acortaron sin perder el
 contenido: la de q_b, la de bandas y años, y la del doble conteo.
 
+**Después de la fusión con la base (commit 8098d7d, narración a 42 px en una línea):** las 14 narraciones caben en
+una línea y la auditoría sigue en orden. Con las lecciones de la revisión de la escena 01:
+
+- La comprobación «q», que comparaba lo dibujado con el mismo arreglo del que se dibujaba y no podía fallar, ahora
+  lee cada raya q_b contra las marcas rotuladas 0.05 y 0.1 del eje log y la compara con la media del paquete.
+- El subrayado de q_b lleva `text-decoration-skip-ink:none`.
+- Ninguna transformación de ecuaciones se anima más allá de sustituir números en σ_log,b y z_b: no hay cancelaciones
+  ni pasos algebraicos que revisar.
+- La comprobación «ajuste» tiene una parte tautológica (el IC dibujado es el exportado). Su parte que sí puede fallar
+  es que la media de cada banda caiga en el intervalo del ancla.
+
 ## (b) Cambios que sugiero a la biblioteca común
 
 - **`D.ejes` con una mezcla lineal ↔ log** (`op.yMezcla(u)`), con fundido escalonado de las marcas, para un cambio de
@@ -117,6 +128,6 @@ Las 9 comprobaciones de la escena:
 
 ## (d) Tiempos
 
-- Render completo (2250 cuadros, MP4 y hoja): 2 min 36 s.
+- Render completo (2250 cuadros, MP4 y hoja): 2 min 35 s (tras la fusión; 2 min 36 s antes).
 - Datos (`Rscript datos/exportar.R 05-ancla`, con el ajuste de producción y los seis ajustes cortos): 2 min 4 s.
 - Auditoría: unos 40 s.
