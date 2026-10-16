@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>08 · El muestreo: Metropolis-Hastings adaptativo · dismodlite</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=block">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<link rel="stylesheet" href="../../lib/escena.css">
+<script src="../../lib/contrato.js"></script>
+<script src="../../lib/movimiento.js"></script>
+<script src="../../lib/dibujo.js"></script>
+<script src="../../lib/modelo.js"></script>
+<script src="../../datos/08-mcmc.js"></script>
+</head>
+<body>
+<script>
+// Escena 08: el muestreo, Metropolis-Hastings adaptativo por bloques. Guion: guion.md. Datos: datos/r/08-mcmc.R
+// (dl_ajustar() con las opciones de producción; la cadena 1, con una copia instrumentada de dl_mh()).
+(function () {
+  'use strict';
+  var D = DL.dib, M = DL.mov, P = D.paleta, E = M.EASE, MOD = DL.modelo;
+  var datos = DL_DATOS['08-mcmc'];
+  var op = datos.opciones, c1 = datos.cadena1, K = datos.nudos.length;
+  var J = datos.plano.j;                     // los dos nudos de log i del plano (índices de theta, base 0)
+  var CTX = MOD.prepararCtx(datos.ctx);
+
+  // ---- Narración: una línea por vez; cada una dura al menos 0,3 s por palabra + 0,5 s ----
+  var NARRACION = [
+    [0.4, 4.6, 'La posterior de $\\theta$ se recorre, por sexo, con Metropolis-Hastings adaptativo.'],
+    [4.9, 9.6, 'Dos bloques: $\\log i$ en los 7 nudos y $\\log f$ en los 7 nudos.'],
+    [9.9, 15.2, 'La cadena 1, vista en dos de los 7 nudos de $\\log i$: 50 y 60 años.'],
+    [15.5, 20.3, 'Cada iteración propone mover cada bloque, por turno, con $z$ normal estándar.'],
+    [20.6, 25.9, 'Se acepta con esta probabilidad; si no, $\\theta$ se queda donde estaba.'],
+    [26.3, 31.4, 'Con $u \\sim U(0, 1)$: se acepta si $\\log u < \\log \\text{post}(\\theta\') - \\log \\text{post}(\\theta)$.'],
+    [31.7, 35.4, 'Con la escala inicial, $s_b = 2.38/\\sqrt{7}$, casi todo se rechaza.'],
+    [35.7, 40.4, 'La décima sube la log-posterior; una propuesta así siempre se acepta.'],
+    [40.9, 45.4, 'Calentamiento: cada 100 iteraciones, $s_b$ se corrige hacia una aceptación de 0.28.'],
+    [45.9, 50.9, 'A la mitad del calentamiento, $L_b$ toma la forma de la covarianza recorrida.'],
+    [51.2, 56.1, 'Después, $s_b$ y $L_b$ quedan fijos y se guarda una iteración de cada 10.'],
+    [56.5, 61.8, 'Cuatro cadenas: R-hat compara la varianza entre sus mitades y dentro de ellas.'],
+    [62.1, 66.0, 'ESS: cuántas simulaciones independientes darían la misma precisión para la media.'],
+    [66.3, 71.4, 'Producción exige R-hat < 1.01 y ESS ≥ 400 en todos los parámetros: se cumple.'],
+    [71.8, 76.4, 'Con cada $\\theta$ guardado se resuelve la ecuación: sale una curva de $p$.'],
+    [76.7, 81.3, 'Se toman 1000 de los 16 000 $\\theta$ guardados, equiespaciados: las simulaciones.'],
+    [81.6, 87.0, 'La estimación es su media; el intervalo del 95 %, sus percentiles 2.5 y 97.5.'],
+  ];
+
+  // ---- Tiempos de las tomas ----
+  var T_PLANO = 10.15;                          // entra el plano de dos nudos
+  var T_IT = { 1: 26.4 };                      // la propuesta de cada iteración en detalle
+  for (var it = 2; it <= 9; it++) T_IT[it] = 31.6 + (it - 2) * 0.5;   // 2 por segundo, lineal
+  T_IT[10] = 35.6;
+  var T_SALE_FORMULAS = 40.6;
+  var CAL = [41.2, 51.2];                      // iteraciones 10 -> 10 000 (calentamiento), lineales
+  var CAM = [45.5, 46.1];                      // cámara: el plano se acerca a la cadena, antes de la forma L_b
+  var MUE = [52.3, 55.8];                      // las 4000 simulaciones guardadas de la cadena 1, lineales
+  var T_SALE_PLANO = 56.3;
+  var TRAZA = [56.5, 59.5];                    // las trazas de las cuatro cadenas, lineales en la simulación
+  var T_SALE_TRAZA = 71.4;
+  var SIM1 = [72.3, 73.1];                     // la primera simulación de p, sola
+  var SIMS = [74.0, 78.0];                     // las 1000 simulaciones de p, lineales
+  var T_BANDA = 81.9;
+
+  // Iteración del calentamiento en el tiempo t (10 en CAL[0], 10 000 en CAL[1]).
+  function iterCal(t) { return Math.round(M.lerp(10, op.calentamiento, M.tramo(t, CAL[0], CAL[1]))); }
+  var T_FORMA = M.lerp(CAL[0], CAL[1], (op.calentamiento / 2 - 10) / (op.calentamiento - 10));   // it = T_cal / 2
+
+  // ---- Las propuestas anotadas de la cadena 1 (bloque 1, log i) ----
+  var DET = {};
+  c1.detalle.forEach(function (r) { if (r.bloque === 1) DET[r.it] = r; });
+  function lpNum(x) { return x === null ? -Infinity : x; }   // R escribe -Inf como null
+  function firmado(x) { return (x >= 0 ? '+' : '−') + D.num(Math.abs(x), 2); }
+
+  // ---- La tira de theta ----
+  var TIRA = { x0: 214, ancho: 76, paso: 84, filas: [282, 360], alto: 58 };
+  function celdaX(k) { return TIRA.x0 + k * TIRA.paso; }
+  function subrayado(color) {
+    return 'text-decoration:underline 4px ' + color + ';text-underline-offset:7px;text-decoration-skip-ink:none;';
+  }
+  var SUB = { ti: subrayado(P.i), tf: subrayado(P.f) };
+
+  function tira(t, o) {
+    var s = [];
+    s.push(D.parrafo(96, 236, 600, '$\\theta$ de los hombres (sexo 1)', { tam: 24, color: P.suave, o: o, id: 'tira-titulo', alto: 36 }));
+    var marcaPlano = M.entra(t, T_PLANO + 0.4, 0.3, E.entrarSuave);
+    [['\\htmlClass{ti}{\\log i}', 'fila-i'], ['\\htmlClass{tf}{\\log f}', 'fila-f']].forEach(function (f, r) {
+      var y = TIRA.filas[r];
+      s.push(D.formula(f[0], 96, y + TIRA.alto / 2, { tam: 34, o: o, id: f[1], palabras: 1, estilos: SUB, ancho: 110, alto: 60 }));
+      for (var k = 0; k < K; k++) {
+        var plano = r === 0 && (k === J[0] || k === J[1]);
+        s.push(D.rect(celdaX(k), y, TIRA.ancho, TIRA.alto, { relleno: P.superficie, borde: plano && marcaPlano > 0 ? P.marca : P.guia,
+          grosor: plano ? 2 + 2 * marcaPlano : 2, radio: 8, o: o }));
+        s.push(D.texto(celdaX(k) + TIRA.ancho / 2, y + 38, String(datos.nudos[k]), { tam: 24, fuente: 'mono', color: P.tinta, ancla: 'middle', o: o }));
+      }
+    });
+    // Las llaves de los bloques, a la derecha de cada fila.
+    [[5.3, 'bloque 1'], [7.2, 'bloque 2']].forEach(function (b, r) {
+      var ob = M.visible(t, b[0], Infinity) * o;
+      if (ob <= 0) return;
+      var y = TIRA.filas[r], xb = celdaX(K - 1) + TIRA.ancho + 16;
+      var u = M.entra(t, b[0], 0.45, E.mover);
+      s.push(D.linea(xb, y + TIRA.alto / 2 - (TIRA.alto / 2) * u, xb, y + TIRA.alto / 2 + (TIRA.alto / 2) * u, { color: P.marca, grosor: 3, o: o }));
+      s.push(D.texto(xb + 16, y + 38, b[1], { tam: 26, color: P.tinta, o: ob, id: 'bloque-' + (r + 1) }));
+    });
+    s.push(D.texto(celdaX(0), TIRA.filas[1] + TIRA.alto + 30, 'edad del nudo (años)', { tam: 22, color: P.suave, o: Math.min(o, M.visible(t, 0, T_SALE_FORMULAS, { entrada: 0 })), id: 'tira-nota' }));
+    return s.join('');
+  }
+
+  // ---- Las fórmulas ----
+  var F_PROP = '\\theta\' = \\theta + s_b\\, L_b\\, z, \\qquad z \\sim N(0, I)';
+  var F_ACEP = '\\min\\left(1,\\ e^{\\log \\text{post}(\\theta\') - \\log \\text{post}(\\theta)}\\right)';
+
+  // ---- El plano de dos nudos, con su cámara ----
+  var DOM_LEJOS = { x: [-8.2, -3], y: [-9.5, -4.3] }, DOM_CERCA = { x: [-7.3, -5.3], y: [-6.9, -4.9] };
+  var PL = { x: 1230, y: 290, ancho: 520, alto: 520 };
+  function plano(t) {
+    var u = E.camara(M.tramo(t, CAM[0], CAM[1]));
+    var xd = [M.lerp(DOM_LEJOS.x[0], DOM_CERCA.x[0], u), M.lerp(DOM_LEJOS.x[1], DOM_CERCA.x[1], u)];
+    var yd = [M.lerp(DOM_LEJOS.y[0], DOM_CERCA.y[0], u), M.lerp(DOM_LEJOS.y[1], DOM_CERCA.y[1], u)];
+    var paso = u < 0.5 ? 1 : 0.5;
+    var tk = function (d) { var v = []; for (var x = Math.ceil(d[0] / paso) * paso; x <= d[1] + 1e-9; x += paso) v.push(Math.round(x * 10) / 10); return v; };
+    return D.ejes({ x: PL.x, y: PL.y, ancho: PL.ancho, alto: PL.alto, id: 'plano', xDom: xd, yDom: yd,
+      xTicks: tk(xd), yTicks: tk(yd), xFormato: fmtEje, yFormato: fmtEje,
+      xTitulo: '$\\log i$ a los 50 años', yTitulo: '$\\log i$ a los 60 años' });
+  }
+  function fmtEje(v) { return (v < 0 ? '−' : '') + (Math.abs(v) % 1 ? Math.abs(v).toFixed(1) : String(Math.abs(v))); }
+
+  // Escala s_b del bloque 1 vigente en la iteración it (la de la ventana que se cerró antes) y la forma L_b.
+  function escalaEn(it) {
+    var k = Math.floor((Math.min(it, op.calentamiento)) / op.ventana);
+    return k === 0 ? MOD.escalaInicial(datos.d_bloque[0]) : c1.ventanas.escala_1[k - 1];
+  }
+  // Covarianza de la propuesta proyectada en los dos nudos: s_b^2 (L_b L_b')[J, J] (con L_b = I antes de T_cal / 2).
+  function covPropuesta(it) {
+    var s = escalaEn(it), S;
+    if (it < op.calentamiento / 2) S = [[1, 0], [0, 1]];
+    else {
+      var L = c1.L1, LL = function (a, b) { var v = 0; for (var q = 0; q < K; q++) v += L[a][q] * L[b][q]; return v; };
+      S = [[LL(J[0], J[0]), LL(J[0], J[1])], [LL(J[1], J[0]), LL(J[1], J[1])]];
+    }
+    return [[s * s * S[0][0], s * s * S[0][1]], [s * s * S[1][0], s * s * S[1][1]]];
+  }
+  // Elipse de una desviación de una normal de covarianza C centrada en (cx, cy), en coordenadas del plano.
+  function elipse(G, cx, cy, C) {
+    var a = Math.sqrt(C[0][0]), b = C[1][0] / a, cc = Math.sqrt(Math.max(C[1][1] - b * b, 0)), pts = [];
+    for (var k = 0; k <= 72; k++) {
+      var ang = 2 * Math.PI * k / 72, ex = Math.cos(ang), ey = Math.sin(ang);
+      pts.push([G.x(cx + a * ex), G.y(cy + b * ex + cc * ey)]);
+    }
+    return pts;
+  }
+
+  // Posición de la cadena 1 en el plano en el tiempo t (antes del muestreo).
+  function posicion(t) {
+    var ini = [c1.inicio[J[0]], c1.inicio[J[1]]];
+    if (t < CAL[0]) {
+      var d10 = DET[10];
+      var u = M.entra(t, T_IT[10] + 1.7, 0.5, E.mover);
+      return [M.lerp(ini[0], d10.theta_prop[J[0]], u), M.lerp(ini[1], d10.theta_prop[J[1]], u)];
+    }
+    var itc = iterCal(t);
+    return [c1.recorrido_x[itc - 1], c1.recorrido_y[itc - 1]];
+  }
+
+  function dibujarPlano(t, c) {
+    var o = M.visible(t, T_PLANO, T_SALE_PLANO);
+    if (o <= 0) return;
+    var G = plano(t), s = [];
+    c.defs(G.recorte());
+    s.push(G.svg());
+    var clip = function (x) { return '<g clip-path="url(#' + G.idRecorte + ')">' + x + '</g>'; };
+    var ini = [c1.inicio[J[0]], c1.inicio[J[1]]];
+
+    // La propuesta de cada iteración en detalle: hueca, unida al punto actual; se traza en 0.45 s y, rechazada, baja.
+    var props = [];
+    if (t < T_SALE_FORMULAS + 0.3) {
+      var salen = 1 - M.entra(t, T_SALE_FORMULAS, 0.24, E.salir);
+      for (var it = 1; it <= 10; it++) {
+        if (t < T_IT[it]) continue;
+        var r = DET[it], rapido = it >= 2 && it <= 9;
+        var tDec = T_IT[it] + (rapido ? 0.25 : 1.5);
+        var u = M.entra(t, T_IT[it], rapido ? 0.2 : 0.45, E.mover);
+        var px = [G.x(r.theta_prop[J[0]]), G.y(r.theta_prop[J[1]])], p0 = [G.x(r.theta[J[0]]), G.y(r.theta[J[1]])];
+        // Rechazada: baja al 25 % (al 12 % cuando ya pasaron otras); aceptada: el punto viaja hasta ella.
+        var baja = r.aceptada ? 1 : 1 - 0.75 * M.entra(t, tDec, 0.3, E.entrarSuave) - 0.13 * M.entra(t, T_IT[10], 0.3);
+        if (it === 10) baja = 1 - M.entra(t, T_IT[10] + 2.2, 0.3);
+        baja *= salen;
+        s.push(clip(D.linea(p0[0], p0[1], M.lerp(p0[0], px[0], u), M.lerp(p0[1], px[1], u), { color: P.suave, grosor: 2, guiones: '6 6', o: baja })));
+        if (u > 0.95) s.push(clip(D.circulo(px[0], px[1], r.aceptada ? 12 : 9, { borde: r.aceptada ? P.marca : P.suave, grosor: r.aceptada ? 4 : 3, relleno: P.superficie, o: baja })));
+        props.push({ it: it, px: px });
+      }
+      c.dato('propuestas_px', props);
+    }
+
+    // El calentamiento: el recorrido de las últimas 300 iteraciones y la elipse de la propuesta.
+    var itc = t >= CAL[0] ? iterCal(t) : 10;
+    if (t >= CAL[0] && t < MUE[0]) {
+      var desde = Math.max(10, itc - 300), rec = [];
+      for (var k = desde; k <= itc; k++) rec.push([G.x(c1.recorrido_x[k - 1]), G.y(c1.recorrido_y[k - 1])]);
+      s.push(clip(D.trazo(rec, { color: P.suave, grosor: 2, o: 0.6 })));
+    }
+    // Las simulaciones guardadas de la cadena 1, estampadas a ritmo constante.
+    var nG = Math.floor(datos.cadenas[0].x.length * M.tramo(t, MUE[0], MUE[1]));
+    if (nG > 0) {
+      var ch = datos.cadenas[0], pts = '';
+      for (var g = 0; g < nG; g++) pts += 'M' + G.x(ch.x[g]).toFixed(1) + ' ' + G.y(ch.y[g]).toFixed(1) + 'h0';
+      s.push(clip('<path d="' + pts + '" stroke="' + P.tinta + '" stroke-width="5" stroke-linecap="round" opacity="0.28"/>'));
+      c.dato('guardadas_dibujadas', nG);
+    }
+    var pos = nG > 0 ? [datos.cadenas[0].x[nG - 1], datos.cadenas[0].y[nG - 1]] : posicion(t);
+    if (t >= T_PLANO + 0.8) {
+      // La elipse de una desviación de la propuesta, desde que empieza el calentamiento.
+      if (t >= CAL[0] - 0.2) {
+        var itE = nG > 0 ? op.iteraciones : itc;
+        var C = covPropuesta(itE);
+        var oE = M.entra(t, CAL[0] - 0.2, 0.4, E.entrarSuave) * (nG > 0 ? 0.5 : 1);
+        s.push(clip(D.trazo(elipse(G, pos[0], pos[1], C), { color: P.tinta, grosor: 3, guiones: '6 5', o: oE })));
+        c.dato('elipse_cov', C);
+        c.dato('elipse_it', itE);
+      }
+      s.push(clip(D.circulo(G.x(pos[0]), G.y(pos[1]), 9, { relleno: P.tinta, borde: P.superficie, grosor: 2.5 })));
+      c.dato('pos', pos);
+    }
+    // Etiqueta del punto inicial (se va al empezar el calentamiento).
+    var oIni = M.visible(t, T_PLANO + 0.8, T_IT[2]);
+    if (oIni > 0) {
+      s.push(D.parrafo(G.x(ini[0]) - 22, G.y(ini[1]) + 14, 330, 'inicio de la cadena 1', { tam: 24, color: P.suave, ancla: 'end', o: oIni, id: 'et-inicio', alto: 40 }));
+      c.dato('inicio_px', [G.x(ini[0]), G.y(ini[1])]);
+    }
+    // La elipse se rotula al empezar el calentamiento; la forma L_b, en la iteración 5000.
+    s.push(D.texto(PL.x + PL.ancho - 12, PL.y + 76, 'una desviación de la propuesta, proyectada', { tam: 24, color: P.suave, ancla: 'end',
+      o: M.visible(t, CAL[0] + 0.2, MUE[0] - 0.3), id: 'et-elipse' }));
+    s.push(D.parrafo(PL.x + 16, PL.y + PL.alto - 76, 500, '$L_b L_b\'$: la covarianza de $\\theta_b$ en las iteraciones 1 a 5000', { tam: 22, color: P.tinta,
+      o: M.visible(t, T_FORMA, MUE[0] - 0.3), id: 'et-forma', alto: 70 }));
+    // Contador de la fase (cambia con las iteraciones: sin id, no es un texto que se lea quieto).
+    var fase = '';
+    if (t >= CAL[0] && t < MUE[0]) fase = 'iteración ' + D.miles(itc) + ' / ' + D.miles(op.calentamiento);
+    else if (nG > 0) fase = 'guardadas ' + D.miles(nG) + ' / ' + D.miles(datos.cadenas[0].x.length);
+    if (fase) s.push(D.texto(PL.x + 16, PL.y + 40, fase, { tam: 28, fuente: 'mono', color: P.tinta }));
+    c.dato('plano_dom', { x: [G.x(-6), G.x(-5)], y: [G.y(-6), G.y(-5)] });
+    c.svg(D.grupo(s, { o: o }));
+  }
+
+  // ---- La lectura de una iteración (columna izquierda, abajo) ----
+  function lectura(t, c) {
+    var s = [], y0 = 744;
+    function bloqueLectura(it, t0, t1, idp) {
+      var r = DET[it], delta = r.lp_prop - r.lp_actual, lu = Math.log(r.u);
+      var o1 = M.visible(t, t0, t1), o2 = M.visible(t, t0 + 0.5, t1), o3 = M.visible(t, t0 + 1.0, t1);
+      if (o1 <= 0) return;
+      s.push(D.texto(96, y0, 'iteración ' + it + ' · bloque 1', { tam: 26, color: P.suave, o: o1, id: idp + '-a' }));
+      s.push(D.formula('\\log \\text{post}(\\theta\') - \\log \\text{post}(\\theta) = ' + firmado(delta).replace('−', '-'), 96, y0 + 48,
+        { tam: 30, o: o2, id: idp + '-b', palabras: 1, ancho: 800, alto: 56 }));
+      s.push(D.parrafo(96, y0 + 78, 800, '$\\log u = ' + firmado(lu).replace('−', '-') + '$ → ' + (r.aceptada ? '**se acepta**' : '**se rechaza**'),
+        { tam: 30, o: o3, id: idp + '-c', alto: 50 }));
+      c.dato(idp, { it: it, delta: delta, log_u: lu, aceptada: r.aceptada, texto_delta: firmado(delta), texto_log_u: firmado(lu) });
+    }
+    bloqueLectura(1, T_IT[1] + 0.5, 31.4, 'lectura-1');
+    // Iteraciones 2-9: un contador (cambia 2 veces por segundo; sin id).
+    if (t >= T_IT[2] && t < T_IT[10] + 0.1) {
+      var vistas = 0;
+      for (var it = 2; it <= 9; it++) if (t >= T_IT[it] + 0.25) vistas++;
+      var oc = M.visible(t, T_IT[2], T_IT[10] - 0.1);
+      s.push(D.texto(96, y0, 'iteraciones 2 a 9', { tam: 26, color: P.suave, o: oc, id: 'lectura-2a9' }));
+      s.push(D.texto(96, y0 + 60, 'rechazadas: ' + vistas, { tam: 30, fuente: 'mono', color: P.tinta, o: oc }));
+      var rech = [];
+      for (it = 2; it <= 9; it++) if (t >= T_IT[it] + 0.25) rech.push({ it: it, aceptada: DET[it].aceptada });
+      c.dato('rechazos_dibujados', rech);
+    }
+    bloqueLectura(10, T_IT[10] + 0.4, T_SALE_FORMULAS, 'lectura-10');
+    return s.join('');
+  }
+
+  // ---- Los gráficos de la adaptación (columna izquierda, en el calentamiento) ----
+  var GA = D.ejes({ x: 200, y: 496, ancho: 660, alto: 124, id: 'acep', xDom: [0, 100], yDom: [0, 1],
+    yTicks: [0, 0.5, 1], yFormato: function (v) { return D.num(v, 1); } });
+  var GB = D.ejes({ x: 200, y: 712, ancho: 660, alto: 128, id: 'escala', xDom: [0, 100], yDom: [0, 1],
+    xTicks: [0, 25, 50, 75, 100], yTicks: [0, 0.5, 1], yFormato: function (v) { return D.num(v, 1); } });
+
+  function adaptacion(t, c) {
+    var o = M.visible(t, 40.8, 56.1);
+    if (o <= 0) return '';
+    var s = [], v = c1.ventanas;
+    var kVis = t < CAL[0] ? 0 : Math.floor(Math.min(iterCal(t), op.calentamiento) / op.ventana);
+    s.push(GA.svg(), GB.svg({ o: M.visible(t, 41.4, Infinity) }));
+    s.push(D.parrafo(200, 448, 660, 'aceptación en cada ventana $k$ de 100 iteraciones, $a_b$', { tam: 24, color: P.suave, id: 'titulo-acep', alto: 36, o: M.visible(t, 41.0, CAL[1]) }));
+    s.push(D.parrafo(200, 660, 700, 'escala: $s_b \\leftarrow s_b \\exp((a_b - 0.28)/\\sqrt{k})$ al cerrar la ventana $k$', { tam: 24, color: P.suave, id: 'titulo-escala', alto: 44, o: M.visible(t, 41.55, Infinity) }));
+    // La meta: 0.28.
+    s.push(D.linea(GA.izq, GA.y(op.objetivo), GA.der, GA.y(op.objetivo), { color: P.marca, grosor: 2.5, guiones: '8 6', o: M.visible(t, 41.3, Infinity) }));
+    s.push(D.texto(GA.der + 12, GA.y(op.objetivo) + 8, '0.28', { tam: 24, fuente: 'mono', color: P.marca, id: 'meta', o: M.visible(t, 41.3, Infinity) }));
+    // Puntos de aceptación y líneas de la escala, ventana a ventana.
+    var pa1 = '', pa2 = '', l1 = [[GB.x(0), GB.y(MOD.escalaInicial(datos.d_bloque[0]))]], l2 = [[GB.x(0), GB.y(MOD.escalaInicial(datos.d_bloque[1]))]];
+    for (var k = 1; k <= kVis; k++) {
+      pa1 += 'M' + GA.x(k).toFixed(1) + ' ' + GA.y(v.aceptacion_1[k - 1]).toFixed(1) + 'h0';
+      pa2 += 'M' + GA.x(k).toFixed(1) + ' ' + GA.y(v.aceptacion_2[k - 1]).toFixed(1) + 'h0';
+      l1.push([GB.x(k), GB.y(v.escala_1[k - 1])]);
+      l2.push([GB.x(k), GB.y(v.escala_2[k - 1])]);
+    }
+    if (kVis > 0) {
+      s.push('<path d="' + pa2 + '" stroke="' + P.f + '" stroke-width="7" stroke-linecap="round"/>');
+      s.push('<path d="' + pa1 + '" stroke="' + P.i + '" stroke-width="7" stroke-linecap="round"/>');
+    }
+    s.push(D.trazo(l2, { color: P.f, grosor: 3 }), D.trazo(l1, { color: P.i, grosor: 3 }));
+    // Etiquetas directas de las escalas al final de la línea.
+    var oE = M.visible(t, CAL[1] + 0.15, Infinity), oE2 = M.visible(t, CAL[1] + 0.3, Infinity);
+    var ult = 100;   // las etiquetas entran al final del calentamiento, junto al último valor
+    // La de valor mayor arriba; separadas al menos 34 px.
+    var y1 = GB.y(v.escala_1[ult - 1]), y2 = GB.y(v.escala_2[ult - 1]), medio = (y1 + y2) / 2, sep = Math.max(Math.abs(y1 - y2), 34) / 2;
+    if (y1 <= y2) { y1 = medio - sep; y2 = medio + sep; } else { y1 = medio + sep; y2 = medio - sep; }
+    s.push(D.parrafo(GB.der + 10, y1 - 18, 120, '$\\log i$', { tam: 24, o: oE, id: 'et-s1', alto: 36 }));
+    s.push(D.parrafo(GB.der + 10, y2 - 18, 120, '$\\log f$', { tam: 24, o: oE2, id: 'et-s2', alto: 36 }));
+    // La forma: k = 50 (iteración 5000), una sola vez.
+    var oF = M.visible(t, T_FORMA, Infinity);
+    if (oF > 0) {
+      s.push(D.linea(GA.x(50), GA.arriba - 6, GA.x(50), GA.abajo, { color: P.marca, grosor: 2, guiones: '4 6', o: oF }));
+      s.push(D.linea(GB.x(50), GB.arriba, GB.x(50), GB.abajo, { color: P.marca, grosor: 2, guiones: '4 6', o: oF }));
+      s.push(D.parrafo(GB.x(50) + 8, GB.arriba - 2, 160, 'forma $L_b$', { tam: 24, color: P.tinta, o: oF, id: 'et-k50', alto: 34 }));
+    }
+    // Después del calentamiento: la aceptación de la cadena 1 con s_b y L_b fijos (40 000 iteraciones).
+    var ac = datos.aceptacion_ajuste, a1 = ac.tasa[0], a2 = ac.tasa[1];
+    // Al terminar el calentamiento, el título cede su lugar a la aceptación de la cadena 1 con s_b y L_b fijos.
+    s.push(D.parrafo(200, 448, 740, 'después del calentamiento, la cadena 1 acepta ' + D.num(a1, 2) + ' ($\\log i$) y ' + D.num(a2, 2) + ' ($\\log f$)',
+      { tam: 24, color: P.tinta, alto: 36, o: M.visible(t, CAL[1] + 0.3, Infinity), id: 'acep-final' }));
+    if (t >= CAL[1] + 0.2) c.dato('acep_final_dibujada', [Number(D.num(a1, 2)), Number(D.num(a2, 2))]);
+    c.dato('ventanas_dibujadas', kVis);
+    c.dato('acep_px', kVis ? [GA.y(v.aceptacion_1[kVis - 1]), GA.y(0), GA.y(1)] : null);
+    c.dato('escala_px', l1);
+    return D.grupo(s, { o: o });
+  }
+
+  // ---- Las trazas de las cuatro cadenas ----
+  var TONOS = [P.tinta, P.suave, '#8A9893', P.guia];
+  var GT = D.ejes({ x: 200, y: 300, ancho: 1360, alto: 290, id: 'traza', xDom: [0, 4000], yDom: [-7.2, -5.4],
+    xTicks: [0, 1000, 2000, 3000, 4000], yTicks: [-7, -6.5, -6, -5.5], yFormato: fmtEje,
+    xFormato: function (v) { return D.miles(v); }, xTitulo: 'simulación guardada de cada cadena', yTitulo: '$\\log i$ a los 50 años' });
+  var RHAT = MOD.rhat(datos.cadenas.map(function (ch) { return ch.x; }))[0];
+  var ESS = MOD.ess(datos.cadenas.map(function (ch) { return ch.x; }), 200)[0];
+
+  function trazas(t, c) {
+    var o = M.visible(t, 56.2, T_SALE_TRAZA);
+    if (o <= 0) return '';
+    var s = [GT.svg()];
+    var n = Math.floor(4000 * M.tramo(t, TRAZA[0], TRAZA[1]));
+    for (var q = 3; q >= 0; q--) {
+      var ch = datos.cadenas[q].x, pts = [];
+      for (var j = 0; j < n; j++) pts.push([GT.x(j + 1), GT.y(ch[j])]);
+      if (pts.length > 1) s.push('<g clip-path="url(#' + GT.idRecorte + ')">' + D.trazo(pts, { color: TONOS[q], grosor: 1.0, o: 0.7 }) + '</g>');
+    }
+    c.defs(GT.recorte());
+    // Etiquetas directas: un tramo del tono de cada cadena y su nombre, a la derecha.
+    for (q = 0; q < 4; q++) {
+      var oL = M.visible(t, TRAZA[1] - 0.2 + 0.15 * q, Infinity);
+      var yl = 330 + q * 40;
+      s.push(D.linea(GT.der + 30, yl, GT.der + 66, yl, { color: TONOS[q], grosor: 4, o: oL }));
+      s.push(D.texto(GT.der + 78, yl + 8, 'cadena ' + (q + 1), { tam: 24, color: P.tinta, o: oL, id: 'et-cadena-' + (q + 1) }));
+    }
+    // Las mitades del R-hat partido.
+    var oM = M.visible(t, 60.0, Infinity);
+    var uM = M.entra(t, 60.0, 0.45, E.mover);
+    s.push(D.linea(GT.x(2000), GT.abajo, GT.x(2000), GT.abajo - (GT.abajo - GT.arriba + 10) * uM, { color: P.marca, grosor: 3, guiones: '8 6', o: oM }));
+    s.push(D.texto(GT.x(1000), GT.arriba - 14, 'primera mitad', { tam: 24, color: P.suave, ancla: 'middle', o: M.visible(t, 60.3, Infinity), id: 'mitad-1' }));
+    s.push(D.texto(GT.x(3000), GT.arriba - 14, 'segunda mitad', { tam: 24, color: P.suave, ancla: 'middle', o: M.visible(t, 60.3, Infinity), id: 'mitad-2' }));
+    // R-hat, ESS y las compuertas.
+    var oR = M.visible(t, 61.0, Infinity), oS = M.visible(t, 62.4, Infinity), oC = M.visible(t, 66.6, Infinity);
+    s.push(D.texto(200, 750, 'R-hat partido', { tam: 24, color: P.suave, o: M.visible(t, 60.85, Infinity), id: 'rhat-et' }));
+    s.push(D.texto(200, 808, D.num(RHAT, 3), { tam: 48, fuente: 'mono', peso: 500, o: oR, id: 'rhat-val' }));
+    s.push(D.texto(500, 750, 'ESS', { tam: 24, color: P.suave, o: oS, id: 'ess-et' }));
+    s.push(D.texto(500, 808, D.miles(ESS), { tam: 48, fuente: 'mono', peso: 500, o: oS, id: 'ess-val' }));
+    s.push(D.parrafo(200, 830, 660, 'de $\\log i$ a los 50 años: 4 cadenas × 4000 simulaciones', { tam: 22, color: P.suave, o: M.visible(t, 61.3, Infinity), id: 'rhat-nota', alto: 36 }));
+    var mt = datos.mcmc_todos;
+    s.push(D.rect(900, 712, 660, 160, { relleno: P.superficie, borde: P.marca, grosor: 3, radio: 12, o: oC }));
+    s.push(D.texto(928, 750, 'los ' + mt.n_parametros + ' parámetros (dos sexos)', { tam: 24, color: P.suave, o: M.visible(t, 66.45, Infinity), id: 'comp-et' }));
+    s.push(D.texto(928, 800, 'R-hat máximo ' + D.num(mt.rhat_max, 3) + ' < 1.01', { tam: 32, fuente: 'mono', o: M.visible(t, 66.6, Infinity), id: 'comp-rhat' }));
+    s.push(D.texto(928, 848, 'ESS mínimo ' + D.miles(mt.ess_min) + ' ≥ 400', { tam: 32, fuente: 'mono', o: M.visible(t, 66.75, Infinity), id: 'comp-ess' }));
+    c.dato('trazas_n', n);
+    c.dato('rhat_dibujado', D.num(RHAT, 3));
+    c.dato('ess_dibujado', D.miles(ESS));
+    c.dato('compuertas_dibujadas', { rhat: D.num(mt.rhat_max, 3), ess: D.miles(mt.ess_min) });
+    return D.grupo(s, { o: o });
+  }
+
+  // ---- Las simulaciones de p y la estimación ----
+  var GP = D.ejes({ x: 200, y: 290, ancho: 1060, alto: 520, id: 'p', xDom: [30, 99], yDom: [0, 0.28],
+    xTicks: [30, 40, 50, 60, 70, 80, 90, 99], yTicks: [0, 0.05, 0.10, 0.15, 0.20, 0.25],
+    yFormato: function (v) { return Math.round(v * 100) + ' %'; }, xTitulo: 'Edad (años)', yTitulo: 'Prevalencia $p$, hombres' });
+  var edadesP = datos.simulaciones.edades;
+  var CAMINOS = datos.simulaciones.p.map(function (v) {
+    var s = '';
+    for (var k = 0; k < v.length; k++) s += (k ? 'L' : 'M') + GP.x(edadesP[k]).toFixed(1) + ' ' + GP.y(v[k]).toFixed(1);
+    return s;
+  });
+  var PUNTOS1 = GP.puntos(edadesP, datos.simulaciones.p[0]);
+  var est = datos.estimacion, k80 = est.edad.indexOf(80);
+
+  function simulaciones(t, c) {
+    var o = M.visible(t, 71.65, Infinity);
+    if (o <= 0) return '';
+    var s = [GP.svg()];
+    c.defs(GP.recorte());
+    var n = Math.floor(CAMINOS.length * M.tramo(t, SIMS[0], SIMS[1]));
+    var oS = 0.07 - 0.058 * M.entra(t, T_BANDA, 0.6, E.entrarSuave);
+    var g = '';
+    // La primera simulación, sola: un θ guardado da una curva de p.
+    var u1 = M.tramo(t, SIM1[0], SIM1[1]);
+    if (u1 > 0) {
+      var o1 = M.lerp(1, oS, M.entra(t, SIMS[0], 0.5, E.entrarSuave));
+      g += D.trazo(PUNTOS1, { color: P.p, grosor: 3, progreso: u1, o: o1 });
+      c.dato('sim1_px', PUNTOS1);
+    }
+    for (var k = 1; k < n; k++) g += '<path d="' + CAMINOS[k] + '" fill="none" stroke="' + P.p + '" stroke-width="1.5" opacity="' + oS.toFixed(3) + '"/>';
+    s.push('<g clip-path="url(#' + GP.idRecorte + ')">' + g + '</g>');
+    var oB = M.entra(t, T_BANDA, 0.5, E.entrarSuave);
+    if (oB > 0) s.push(GP.banda(est.edad, est.inferior, est.superior, { relleno: P.p, o: 0.28 * oB }));
+    if (t >= T_BANDA + 0.6) {
+      var uM = M.tramo(t, T_BANDA + 0.6, T_BANDA + 1.8);   // lineal en la edad
+      var nM = Math.max(2, Math.round(uM * (est.edad.length - 1)) + 1);
+      s.push(GP.curva(est.edad.slice(0, nM), est.media.slice(0, nM), { color: P.superficie, grosor: 6.5 }));
+      s.push(GP.curva(est.edad.slice(0, nM), est.media.slice(0, nM), { color: P.p, grosor: 5 }));
+    }
+    // Leyenda directa y la lectura a los 80 años.
+    var xl = 1320;
+    s.push(D.linea(xl, 330, xl + 44, 330, { color: P.p, grosor: 3, o: M.visible(t, SIM1[1], Infinity) }));
+    s.push(D.texto(xl + 58, 338, 'una simulación (1 de 1000)', { tam: 24, color: P.tinta, o: M.visible(t, SIM1[1], Infinity), id: 'ley-sim' }));
+    s.push(D.linea(xl, 380, xl + 44, 380, { color: P.p, grosor: 5, o: oB }));
+    s.push(D.texto(xl + 58, 388, 'media', { tam: 24, color: P.tinta, o: M.visible(t, T_BANDA + 0.6, Infinity), id: 'ley-media' }));
+    s.push(D.rect(xl, 418, 44, 22, { relleno: P.p, o: 0.28 * oB }));
+    s.push(D.texto(xl + 58, 438, 'percentiles 2.5 y 97.5', { tam: 24, color: P.tinta, o: M.visible(t, T_BANDA, Infinity), id: 'ley-banda' }));
+    var o80 = M.visible(t, 84.0, Infinity);
+    if (o80 > 0) {
+      var x80 = GP.x(80), yM = GP.y(est.media[k80]);
+      s.push(D.linea(x80, GP.abajo, x80, GP.y(est.superior[k80]) - 10, { color: P.marca, grosor: 2.5, guiones: '6 6', o: o80 }));
+      s.push(D.linea(x80 - 6, GP.y(est.inferior[k80]), x80 + 6, GP.y(est.inferior[k80]), { color: P.marca, grosor: 3, o: o80 }));
+      s.push(D.linea(x80 - 6, GP.y(est.superior[k80]), x80 + 6, GP.y(est.superior[k80]), { color: P.marca, grosor: 3, o: o80 }));
+      s.push(D.linea(x80 + 12, yM, xl - 12, 580, { color: P.suave, grosor: 1.5, o: o80 }));
+      s.push(D.circulo(x80, yM, 8, { relleno: P.p, borde: P.superficie, grosor: 2.5, o: o80 }));
+      s.push(D.texto(xl, 540, 'a los 80 años', { tam: 26, color: P.suave, o: M.visible(t, 83.85, Infinity), id: 'a80-et' }));
+      s.push(D.texto(xl, 596, D.num(100 * est.media[k80], 1) + ' %', { tam: 44, fuente: 'mono', peso: 500, o: o80, id: 'a80-media' }));
+      s.push(D.texto(xl, 642, 'intervalo del 95 %: ' + D.num(100 * est.inferior[k80], 1) + '–' + D.num(100 * est.superior[k80], 1) + ' %', { tam: 26, color: P.tinta, o: M.visible(t, 84.15, Infinity), id: 'a80-ic' }));
+      c.dato('a80', { media: D.num(100 * est.media[k80], 1), inferior: D.num(100 * est.inferior[k80], 1), superior: D.num(100 * est.superior[k80], 1) });
+    }
+    c.dato('sims_dibujadas', n);
+    if (oB > 0) c.dato('banda', { edad: est.edad, inferior: est.inferior, superior: est.superior, media: est.media,
+      px_inf: GP.puntos(est.edad, est.inferior), px_sup: GP.puntos(est.edad, est.superior) });
+    return D.grupo(s, { o: o });
+  }
+
+  function dibujar(t, c) {
+    c.svg(D.cabecera(8, 11, 'El muestreo y las simulaciones', { funcion: 'dl_ajustar()' }));
+    c.svg(tira(t, M.visible(t, 0, 55.9, { entrada: 0 })));
+
+    // Fórmulas (hasta T_SALE_FORMULAS).
+    var oP = M.visible(t, 15.7, T_SALE_FORMULAS), oA = M.visible(t, 20.8, T_SALE_FORMULAS);
+    c.svg(D.texto(96, 482, 'propuesta', { tam: 24, color: P.suave, o: oP, id: 'et-prop' }));
+    c.svg(D.formula(F_PROP, 96, 530, { tam: 40, o: oP, id: 'f-prop', palabras: 4, ancho: 800, alto: 80 }));
+    c.svg(D.texto(96, 594, 'probabilidad de aceptar', { tam: 24, color: P.suave, o: oA, id: 'et-acep' }));
+    c.svg(D.formula(F_ACEP, 96, 650, { tam: 44, o: oA, id: 'f-acep', palabras: 3, ancho: 800, alto: 80 }));
+    if (t < T_SALE_FORMULAS + 0.3) c.svg(lectura(t, c));
+
+    dibujarPlano(t, c);
+    c.svg(adaptacion(t, c));
+    c.svg(trazas(t, c));
+    c.svg(simulaciones(t, c));
+
+    c.svg(D.rotulo(t, NARRACION));
+    c.svg(D.pie(datos.fuente));
+  }
+
+  DL.escena({
+    id: '08-mcmc',
+    titulo: 'El muestreo y las simulaciones',
+    duracion: 90, fps: 30,
+    marcas: {
+      tira: 2.0, bloques: 8.5, plano: 14.5, propuesta: 19.5, aceptacion: 25.0, iter1: 30.5, rechazos: 35.45,
+      iter10: 39.5, calentamiento: 44.0, forma: 48.5, muestreo: 56.0, trazas: 61.5, ess: 65.0, compuertas: 70.5,
+      simulacion1: 75.0, simulaciones: 80.8, estimacion: 86.0, final: 89.0,
+    },
+    camaras: [CAM],
+    dibujar: dibujar,
+    auditoria: function (A) {
+      var ALL = c1.detalle;
+      function cuantil(x, p) {   // tipo 7, el de stats::quantile()
+        var v = x.slice().sort(function (a, b) { return a - b; }), h = (v.length - 1) * p, lo = Math.floor(h);
+        return lo + 1 < v.length ? v[lo] + (h - lo) * (v[lo + 1] - v[lo]) : v[lo];
+      }
+      // Una propuesta anotada contra la matemática del paquete en JS: lp recalculada, θ' recalculada y la decisión.
+      function comprobarPropuesta(r) {
+        var lpA = MOD.logPosterior(r.theta, CTX), lpP = MOD.logPosterior(r.theta_prop, CTX);
+        if (Math.abs(lpA - r.lp_actual) > 1e-8) return 'it ' + r.it + ': lp(θ) recalculada ' + lpA + ' ≠ ' + r.lp_actual;
+        var lpR = lpNum(r.lp_prop);
+        if (!(lpP === lpR || Math.abs(lpP - lpR) < 1e-8)) return 'it ' + r.it + ': lp(θ\') recalculada ' + lpP + ' ≠ ' + lpR;
+        var idx = r.bloque === 1 ? [0, 1, 2, 3, 4, 5, 6] : [7, 8, 9, 10, 11, 12, 13];
+        var prop = MOD.propuestaMh(r.theta, idx, r.escala, null, r.z);   // L_b = I antes de T_cal / 2
+        for (var q = 0; q < prop.length; q++) if (Math.abs(prop[q] - r.theta_prop[q]) > 1e-12) return 'it ' + r.it + ': θ\' no es θ + s_b z';
+        if (MOD.aceptaMh(lpP, lpA, r.u) !== r.aceptada) return 'it ' + r.it + ': la decisión no sigue log u < Δ';
+        return true;
+      }
+      return [
+        A.en('iter1', 'la iteración 1 dibujada: lp(θ) y lp(θ\') recalculadas con DL.modelo, θ\' = θ + s_b z, decisión log u < Δ, y lo escrito', function (e) {
+          var r = DET[1], ok = comprobarPropuesta(r);
+          if (ok !== true) return ok;
+          var d = MOD.logPosterior(r.theta_prop, CTX) - MOD.logPosterior(r.theta, CTX);
+          if (e['lectura-1'].texto_delta !== firmado(d)) return 'Δ escrita ' + e['lectura-1'].texto_delta + ', recalculada ' + firmado(d);
+          if (e['lectura-1'].texto_log_u !== firmado(Math.log(r.u))) return 'log u mal escrita';
+          if (A.cerca(r.escala, MOD.escalaInicial(7), 1e-15) !== true) return 's_b de la iteración 1 no es 2.38/√7';
+          var px = e.propuestas_px[0].px;
+          return (Math.abs(px[0] - (1230 + (r.theta_prop[J[0]] + 8.2) / 5.2 * 520)) < 0.01 &&
+                  Math.abs(px[1] - (290 + 520 - (r.theta_prop[J[1]] + 9.5) / 5.2 * 520)) < 0.01) || 'la propuesta no está en su lugar del plano';
+        }),
+        A.en('rechazos', 'iteraciones 2 a 9: las ocho dibujadas como rechazadas se rechazan al recalcular', function (e) {
+          if (e.rechazos_dibujados.length !== 8) return 'se dibujan ' + e.rechazos_dibujados.length;
+          for (var k = 0; k < 8; k++) {
+            var r = DET[e.rechazos_dibujados[k].it], ok = comprobarPropuesta(r);
+            if (ok !== true) return ok;
+            if (r.aceptada) return 'la ' + r.it + ' se aceptó';
+          }
+          return true;
+        }),
+        A.en('iter10', 'la iteración 10: Δ > 0, se acepta, y el punto llega a θ\'', function (e) {
+          var r = DET[10], ok = comprobarPropuesta(r);
+          if (ok !== true) return ok;
+          if (!(r.lp_prop - r.lp_actual > 0 && r.aceptada)) return 'Δ = ' + (r.lp_prop - r.lp_actual);
+          return (A.cerca(e.pos[0], r.theta_prop[J[0]], 1e-12) === true && A.cerca(e.pos[1], r.theta_prop[J[1]], 1e-12) === true) || 'el punto no está en θ\'';
+        }),
+        A.en('iter10', 'la cadena anotada es coherente: θ siguiente = θ\' si se aceptó, θ si no (iteraciones 1 a 40, los dos bloques)', function () {
+          for (var k = 0; k + 1 < ALL.length; k++) {
+            var r = ALL[k], sig = ALL[k + 1], esperado = r.aceptada ? r.theta_prop : r.theta;
+            for (var q = 0; q < esperado.length; q++) if (esperado[q] !== sig.theta[q]) return 'se rompe en la iteración ' + sig.it;
+            var lpE = r.aceptada ? r.lp_prop : r.lp_actual;
+            if (lpE !== sig.lp_actual) return 'lp actual se rompe en ' + sig.it;
+          }
+          return true;
+        }),
+        A.en('calentamiento', 'cada escala dibujada = la recursión de Robbins-Monro desde 2.38/√7 con las aceptaciones de cada ventana', function (e) {
+          var v = c1.ventanas, s1 = MOD.escalaInicial(7), s2 = MOD.escalaInicial(7);
+          for (var k = 1; k <= 100; k++) {
+            s1 = MOD.escalaAdaptada(s1, v.aceptacion_1[k - 1], k); s2 = MOD.escalaAdaptada(s2, v.aceptacion_2[k - 1], k);
+            if (Math.abs(s1 - v.escala_1[k - 1]) > 1e-12 || Math.abs(s2 - v.escala_2[k - 1]) > 1e-12) return 'ventana ' + k;
+          }
+          if (Math.abs(s1 - c1.escala_final[0]) > 1e-12) return 'la escala final no es la de R';
+          for (k = 0; k < e.escala_px.length; k++) {
+            var val = k === 0 ? MOD.escalaInicial(7) : v.escala_1[k - 1];
+            if (Math.abs(e.escala_px[k][1] - (712 + 128 - val * 128)) > 0.01) return 'escala de la ventana ' + k + ' fuera de lugar';
+          }
+          return e.ventanas_dibujadas > 10 || 'solo ' + e.ventanas_dibujadas + ' ventanas';
+        }),
+        A.en('calentamiento', 'la aceptación de cada ventana del bloque 1 = las aceptadas anotadas de esa ventana / 100, y el último punto está a esa altura', function (e) {
+          var v = c1.ventanas, kv = e.ventanas_dibujadas, nk = 0;
+          for (var it0 = (kv - 1) * 100; it0 < kv * 100; it0++) nk += c1.acept_bloque1[it0];
+          if (Math.abs(e.acep_px[0] - (496 + 124 - nk / 100 * 124)) > 0.01) return 'el punto de la ventana ' + kv + ' no está en ' + nk + ' / 100';
+          for (var k = 1; k <= 100; k++) {
+            var n = 0;
+            for (var it = (k - 1) * 100; it < k * 100; it++) n += c1.acept_bloque1[it];
+            if (Math.abs(n / 100 - v.aceptacion_1[k - 1]) > 1e-12) return 'ventana ' + k + ': ' + n + ' frente a ' + v.aceptacion_1[k - 1];
+          }
+          return true;
+        }),
+        A.en('forma', 'la elipse dibujada es s_b² (L_b L_b\') y L_b L_b\' es la covarianza del recorrido 1-5000 (+1e-8)', function (e) {
+          var n = op.calentamiento / 2, xs = c1.recorrido_x.slice(0, n), ys = c1.recorrido_y.slice(0, n);
+          var cov = MOD.covarianza(xs.map(function (x, k) { return [x, ys[k]]; }));
+          // s_b vigente, rehecha con la recursión de Robbins-Monro hasta la última ventana cerrada (no con escalaEn).
+          var s = MOD.escalaInicial(7), kc = Math.floor(e.elipse_it / 100);
+          for (var k = 1; k <= kc; k++) s = MOD.escalaAdaptada(s, c1.ventanas.aceptacion_1[k - 1], k);
+          if (!(e.elipse_it >= n)) return 'la elipse aún no tiene la forma (it ' + e.elipse_it + ')';
+          var pares = [[0, 0], [0, 1], [1, 1]];
+          for (var q = 0; q < 3; q++) {
+            var a = pares[q][0], b = pares[q][1], dib = e.elipse_cov[a][b] / (s * s), ref = cov[a][b] + (a === b ? 1e-8 : 0);
+            if (Math.abs(dib - ref) > 2e-3 * Math.abs(cov[a][a])) return 'Cov[' + a + ',' + b + ']: ' + dib + ' frente a ' + ref;
+          }
+          return true;
+        }),
+        A.en('muestreo', 'se estampan (50 000 - 10 000) / 10 = 4000 simulaciones; la aceptación escrita es la de dl_ajustar() y la de la cadena instrumentada', function (e) {
+          if (e.guardadas_dibujadas !== (op.iteraciones - op.calentamiento) / op.adelgazamiento) return 'se dibujan ' + e.guardadas_dibujadas;
+          var a = datos.aceptacion_ajuste;
+          if (a.cadena[0] !== 1 || a.bloque[0] !== 1 || a.bloque[1] !== 2) return 'tabla de aceptación inesperada';
+          if (a.tasa[0] !== c1.aceptacion_final[0] || a.tasa[1] !== c1.aceptacion_final[1]) return 'la cadena instrumentada no acepta lo mismo';
+          return (e.acep_final_dibujada[0] === Math.round(a.tasa[0] * 100) / 100 && e.acep_final_dibujada[1] === Math.round(a.tasa[1] * 100) / 100) || 'escrito ' + e.acep_final_dibujada;
+        }),
+        A.en('trazas', 'R-hat escrito = DL.modelo.rhat de las 4 cadenas exportadas = dl_rhat() de R', function (e) {
+          var j = datos.mcmc.parametro.indexOf('logi_50');
+          if (Math.abs(RHAT - datos.mcmc.rhat[j]) > 1e-10) return 'JS ' + RHAT + ' frente a R ' + datos.mcmc.rhat[j];
+          return (e.rhat_dibujado === D.num(datos.mcmc.rhat[j], 3) && e.trazas_n === 4000) || 'escrito ' + e.rhat_dibujado;
+        }),
+        A.en('ess', 'ESS escrito = DL.modelo.ess de las 4 cadenas exportadas = dl_ess() de R', function (e) {
+          var j = datos.mcmc.parametro.indexOf('logi_50');
+          if (Math.abs(ESS - datos.mcmc.ess[j]) > 1e-6) return 'JS ' + ESS + ' frente a R ' + datos.mcmc.ess[j];
+          return e.ess_dibujado === D.miles(datos.mcmc.ess[j]) || 'escrito ' + e.ess_dibujado;
+        }),
+        A.en('compuertas', 'las compuertas escritas son el máximo de R-hat y el mínimo de ESS de dl_ajustar(), y se cumplen', function (e) {
+          // Desde la tabla mcmc de dl_ajustar() de los dos sexos (28 filas), no desde los extremos exportados.
+          var mt = datos.mcmc_todos, rmax = Math.max.apply(null, mt.rhat), emin = Math.min.apply(null, mt.ess);
+          if (mt.rhat.length !== 28 || mt.sex_id.filter(function (x) { return x === 2; }).length !== 14) return 'faltan parámetros';
+          for (var j = 0; j < 14; j++) if (mt.rhat[j] !== datos.mcmc.rhat[j] || mt.ess[j] !== datos.mcmc.ess[j]) return 'el sexo 1 no coincide';
+          if (!(rmax < 1.01 && emin >= 400)) return 'no se cumplen';
+          return (e.compuertas_dibujadas.rhat === D.num(rmax, 3) && e.compuertas_dibujadas.ess === D.miles(emin)) || 'mal escritas';
+        }),
+        A.en('simulacion1', 'la primera curva dibujada es p de DL.modelo.edoCtx(θ de la simulación 1), en su lugar del eje', function (e) {
+          var sol = MOD.edoCtx(datos.simulaciones.theta[0], CTX);
+          for (var a = 0; a < sol.p.length; a++) {
+            var py = 290 + 520 - sol.p[a] / 0.28 * 520, px = 200 + (edadesP[a] - 30) / 69 * 1060;
+            if (Math.abs(e.sim1_px[a][1] - py) > 0.01 || Math.abs(e.sim1_px[a][0] - px) > 0.01) return 'edad ' + edadesP[a];
+          }
+          return true;
+        }),
+        A.en('simulaciones', 'cada curva de p es la ecuación resuelta con su θ guardado (DL.modelo.edoCtx, 5 simulaciones)', function (e) {
+          for (var k = 0; k < datos.simulaciones.theta.length; k++) {
+            var sol = MOD.edoCtx(datos.simulaciones.theta[k], CTX), p = datos.simulaciones.p[k];
+            for (var a = 0; a < p.length; a++) if (Math.abs(sol.p[a] - p[a]) > 1e-6 * Math.max(p[a], 1e-3)) return 'simulación ' + (k + 1) + ', edad ' + edadesP[a];
+          }
+          return e.sims_dibujadas > 900 || 'solo ' + e.sims_dibujadas;
+        }),
+        A.en('estimacion', 'la media y la banda dibujadas = la media y los percentiles 2.5 y 97.5 de las 1000 simulaciones = dl_estimaciones()', function (e) {
+          var b = e.banda, sims = datos.simulaciones.p;
+          if (sims.length !== op.simulaciones) return sims.length + ' simulaciones';
+          for (var a = 0; a < edadesP.length; a++) {
+            var col = sims.map(function (v) { return v[a]; });
+            var m = MOD.media(col), lo = cuantil(col, 0.025), hi = cuantil(col, 0.975), tol = 1e-6 * Math.max(m, 1e-4);
+            if (Math.abs(m - b.media[a]) > tol || Math.abs(lo - b.inferior[a]) > tol || Math.abs(hi - b.superior[a]) > tol) return 'edad ' + edadesP[a];
+            if (Math.abs(b.px_inf[a][1] - (290 + 520 - b.inferior[a] / 0.28 * 520)) > 0.01) return 'banda fuera de lugar en ' + edadesP[a];
+          }
+          return true;
+        }),
+        A.en('final', 'a los 80 años se escribe la media y el intervalo de dl_estimaciones()', function (e) {
+          var a = edadesP.indexOf(80), col = datos.simulaciones.p.map(function (v) { return v[a]; });
+          var esp = { media: D.num(100 * MOD.media(col), 1), inferior: D.num(100 * cuantil(col, 0.025), 1), superior: D.num(100 * cuantil(col, 0.975), 1) };
+          return (e.a80.media === esp.media && e.a80.inferior === esp.inferior && e.a80.superior === esp.superior) || 'escrito ' + JSON.stringify(e.a80) + ', recalculado ' + JSON.stringify(esp);
+        }),
+      ];
+    },
+  });
+})();
+</script>
+</body>
+</html>
