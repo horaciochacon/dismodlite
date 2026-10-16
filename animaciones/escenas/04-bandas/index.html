@@ -26,15 +26,15 @@
   // ---- Narración: cada línea dura al menos 0,3 s por palabra + 0,5 s ----
   var NARRACION = [
     [0.4, 5.9, 'El modelo da la prevalencia $p$ en cada edad simple $a$, de 30 a 99 años.'],
-    [6.2, 10.9, 'La estimación de referencia, el ancla, viene en cambio por bandas de edad.'],
-    [12.3, 17.7, 'Para compararlas, se promedia $p$ en cada banda con pesos de población.'],
-    [17.9, 24.4, '$N_{b(a)}$ es la población de la banda fina de la tabla de población que contiene la edad $a$.'],
-    [24.7, 31.0, '$n_{b(a)}$ es el número de edades del modelo en esa banda: cinco, también en 95 y más.'],
+    [6.2, 10.9, 'El ancla y los datos locales vienen, en cambio, por bandas de edad.'],
+    [12.3, 17.7, 'Para compararlos, se promedia $p$ en cada banda con pesos de población.'],
+    [17.9, 24.4, '$N_{b(a)}$: población de la banda fina que contiene la edad $a$; cada caja la reparte entre sus edades.'],
+    [24.7, 31.0, '$n_{b(a)}$: edades del modelo en toda la banda, no solo en $A$; cinco, también en 95 y más.'],
     [31.3, 38.3, 'Caso 1: la banda del ancla [40, 45) cabe en una sola banda fina; sus cinco edades pesan igual.'],
-    [38.6, 43.6, 'Su promedio $q$ es lo que se compara con el ancla de esa banda.'],
-    [43.9, 50.6, 'Caso 2: de 50 a 65 años cruza tres quinquenios; $n_b$ se cancela y cada edad pesa según $N_b$.'],
-    [50.9, 57.6, 'Caso 3: si la tabla trae 80 y más como una sola banda, esa banda tiene 20 edades del modelo.'],
-    [57.9, 64.6, 'En 60 y más, 80+ cuenta por su población, no por ella × sus 20 edades.'],
+    [38.6, 43.6, 'En el ajuste, su promedio $q$ se compara con el ancla; aquí, su media posterior.'],
+    [43.9, 50.6, 'Caso 2: un dato de [50, 65) cruza tres quinquenios; $n_b$ se cancela y cada edad pesa según $N_b$.'],
+    [50.9, 57.6, 'Caso 3: si la tabla de población trae 80 y más en una sola banda, esa banda tiene 20 edades.'],
+    [57.9, 64.6, null],   // se arma con los pesos que calcula la escena (abajo, después de peso80)
     [64.9, 72.0, 'Lo mismo vale para la incidencia y la mortalidad por la causa: solo cambia $x(a)$.'],
   ];
 
@@ -74,20 +74,22 @@
   var peso80 = 0, peso80Sin = 0;
   c3.pw.banda.forEach(function (b, k) { if (b === k80) { peso80 += c3.pw.w[k]; peso80Sin += C3.w_sin_n[k]; } });
   var sumaN3 = datos.bandas80.N.slice(datos.bandas80.inicio.indexOf(60)).reduce(function (s, x) { return s + x; }, 0);
+  NARRACION[9][2] = 'En 60 y más, cada banda cuenta por su población: 80+ pesa ' + D.num(peso80, 3) + ', no ' + D.num(peso80Sin, 3) + '.';
 
   // Tiempos de cada caso: [entra la tarjeta, se dibuja q, sale].
   var T_CASO = [[31.7, 38.8, 43.9], [44.3, 47.8, 50.9], [58.3, 61.6, 64.9]];
-  // El intervalo A en cada momento: se desliza de un caso al siguiente (EASE.mover, 0.75 s).
+  // El intervalo A en cada momento: del caso 1 al 2 se desliza (EASE.mover, 0.75 s); al caso 3 pasa mientras el velo
+  // está oculto (de 50.9 a 58.1 s la toma es la fusión de 80+ en la tabla de población, sin velo).
   function intervalo(t) {
     var ini = C1.inicio, fin = C1.fin;
-    var u2 = M.entra(t, 44.1, M.seg(M.MS.heroe), E.mover), u3 = M.entra(t, 58.1, M.seg(M.MS.heroe), E.mover);
+    var u2 = M.entra(t, 44.1, M.seg(M.MS.heroe), E.mover), u3 = M.entra(t, 55.0, M.seg(M.MS.heroe), E.mover);
     ini = M.lerp(M.lerp(ini, C2.inicio, u2), C3.inicio, u3);
     fin = M.lerp(M.lerp(fin, C2.fin, u2), A_FIN, u3);
     return [ini, fin];
   }
 
   // ---- Las fórmulas (guía «El modelo», sección 4) ----
-  var F_Q = '\\displaystyle q = \\sum_{a \\in A} w_a\\, x(a)';
+  var F_Q = '\\displaystyle q = \\sum_{a \\in A} w_a\\, \\htmlClass{xa}{x(a)}';   // x(a) se subraya en el final
   var F_A = 'A = \\{a \\text{ entera} : \\text{inicio} \\le a < \\text{fin}\\}';
   var F_W = '\\displaystyle w_a = \\frac{N_{b(a)} / n_{b(a)}}{\\sum_{a\' \\in A} N_{b(a\')} / n_{b(a\')}}';
   var SUBRAYADO = {
@@ -100,9 +102,10 @@
   var COL = 1250;                       // columna derecha: fórmulas y tarjeta
   var POB = { x: 200, y: 610, ancho: 950, alto: 200 };
 
-  function ejesP(cam) {
+  // Dos cámaras: el ancho deja sitio a las fórmulas (cam) y el alto, al panel de población (camH).
+  function ejesP(cam, camH) {
     return D.ejes({
-      x: 200, y: M.lerp(300, 280, cam), ancho: M.lerp(1560, 950, cam), alto: M.lerp(500, 220, cam), id: 'p',
+      x: 200, y: M.lerp(300, 280, camH), ancho: M.lerp(1560, 950, cam), alto: M.lerp(500, 220, camH), id: 'p',
       xDom: [30, A_FIN], yDom: [0, 0.22],
       xTicks: [30, 40, 50, 60, 70, 80, 90, 100], yTicks: [0, 0.05, 0.10, 0.15, 0.20],
       yFormato: function (v) { return D.num(v, 2); },
@@ -114,7 +117,7 @@
     xDom: [30, A_FIN], yDom: [0, 260000],
     xTicks: [30, 40, 50, 60, 70, 80, 90, 100], yTicks: [0, 100000, 200000],
     yFormato: function (v) { return D.miles(v); },
-    xTitulo: 'Edad (años)', yTitulo: 'Población por año de edad, $N_b / n_b$',
+    xTitulo: 'Edad (años)', yTitulo: 'Población por edad del modelo, $N_b / n_b$',
   });
 
   // ---- Piezas ----
@@ -136,18 +139,19 @@
 
   var selO = 0;   // opacidad del velo de A en el cuadro (la fija dibujar)
 
-  // Las edades del modelo: una raya por edad entera en la base de la población (n_b = rayas por caja).
+  // Las edades del modelo: una raya por edad entera, colgada bajo el eje de la población (n_b = rayas bajo cada caja).
+  // Bajo el eje y no sobre las cajas, para que no tapen las cajas bajas (95+ mide 4 px; 80+ fundida, 16 px).
   function rayas(o) {
     var s = [];
-    for (var k = 0; k < n; k++) s.push(D.linea(G2.x(edades[k]), G2.abajo - 18, G2.x(edades[k]), G2.abajo, { color: P.tinta, grosor: 3, extremo: 'butt' }));
+    for (var k = 0; k < n; k++) s.push(D.linea(G2.x(edades[k]), G2.abajo + 2, G2.x(edades[k]), G2.abajo + 16, { color: P.tinta, grosor: 3, extremo: 'butt' }));
     return D.grupo(s, { o: o });
   }
 
   // La tarjeta de un caso: título, barras w_a, sus valores y el promedio q.
   var TITULOS = [
-    '**Caso 1** · la banda del ancla [40, 45)\nuna sola banda fina: cinco pesos iguales',
-    '**Caso 2** · el intervalo [50, 65)\ntres quinquenios: $n_b$ se cancela, $w_a \\propto N_{b(a)}$',
-    '**Caso 3** · 60 y más, [60, 125)\nquinquenios y 80+ (20 edades del modelo)',
+    '**Caso 1** · la banda del ancla [40, 45)\n$A = \\{40, \\dots, 44\\}$, una banda fina: cinco pesos iguales',
+    '**Caso 2** · un dato de [50, 65)\ntres quinquenios: $n_b$ se cancela, $w_a \\propto N_{b(a)}$',
+    '**Caso 3** · un dato de 60 y más, [60, 125)\n$A = \\{60, \\dots, 99\\}$ (la malla acaba en 99); 80+: 20 edades',
   ];
   var BARRAS = { x: 1300, y: 680, ancho: 510, alto: 110 };
   function tarjeta(t, k, c) {
@@ -174,7 +178,10 @@
         var ys = base - BARRAS.alto * sin[js] / maximo;
         esc.push([BARRAS.x + js * paso, ys], [BARRAS.x + (js + 1) * paso, ys]);
       }
-      s.push(D.trazo(esc, { color: P.tinta, grosor: 2.5, guiones: '8 5', o: o * M.entra(t, T[0] + 1.2, 0.4, E.entrarSuave) }));
+      // Un recorte del color del fondo debajo (no es una sombra) para que el escalón se lea sobre las barras.
+      var oEsc = o * M.entra(t, T[0] + 1.2, 0.4, E.entrarSuave);
+      s.push(D.trazo(esc, { color: P.fondo, grosor: 6, o: oEsc }));
+      s.push(D.trazo(esc, { color: P.tinta, grosor: 2.5, guiones: '8 5', o: oEsc }));
     }
     // Edades de los extremos (y del corte en 80, en el caso 3).
     var marcas = [0, w.length - 1];
@@ -196,12 +203,12 @@
         s.push(D.texto(xc, base - BARRAS.alto * w[js[0]] / maximo - 12, D.num(w[js[0]], 3), { fuente: 'mono', tam: 22, ancla: 'middle', o: oVb, id: 'w-' + k + '-' + b }));
       });
     } else {
-      s.push(D.parrafo(BARRAS.x + BARRAS.ancho, BARRAS.y - 22, 300, '80+ pesa ' + D.num(peso80, 3), { tam: 24, ancla: 'end', o: oV, id: 'peso80', alto: 34 }));
-      s.push(D.parrafo(BARRAS.x + BARRAS.ancho, BARRAS.y + 10, 330, 'sin dividir por $n_b$: ' + D.num(peso80Sin, 3), { tam: 22, color: P.suave, ancla: 'end', o: M.visible(t, T[0] + 1.4, T[2] - 0.24), id: 'peso80-sin', alto: 34 }));
+      s.push(D.parrafo(BARRAS.x + BARRAS.ancho, BARRAS.y - 30, 300, '80+ pesa ' + D.num(peso80, 3), { tam: 30, ancla: 'end', o: oV, id: 'peso80', alto: 40 }));
+      s.push(D.parrafo(BARRAS.x + BARRAS.ancho, BARRAS.y + 12, 360, 'sin dividir por $n_b$: ' + D.num(peso80Sin, 3), { tam: 26, color: P.suave, ancla: 'end', o: M.visible(t, T[0] + 1.4, T[2] - 0.24), id: 'peso80-sin', alto: 36 }));
     }
     // El promedio.
     var oQ = M.visible(t, T[1] + 0.3, T[2] - 0.24);
-    s.push(D.formula('\\displaystyle q = \\sum_{a \\in A} w_a\\, p(a) = ' + D.num(caso.q, 4), COL, 866, { tam: 32, o: oQ, id: 'q-' + k, palabras: 4, ancho: 574, alto: 90 }));
+    s.push(D.formula('\\displaystyle q = \\sum_{a \\in A} w_a\\, p(a) = ' + D.sig(caso.q, 4), COL, 866, { tam: 32, o: oQ, id: 'q-' + k, palabras: 4, ancho: 574, alto: 90 }));
     if (oQ > 0) { c.dato('q_' + (k + 1), caso.q); }
     if (o > 0) { c.dato('caso', k + 1); }
     return s.join('');
@@ -221,14 +228,14 @@
     var oh = function (j) { return M.escalonado(t, 65.1, j, M.ESCALONADO.fila, 0.4, E.entrarSuave); };
     s.push(D.texto(COL, 576, 'medida', { tam: 22, color: P.suave, o: oh(0), id: 'tm-h1' }));
     s.push(D.parrafo(COL + 270, 554, 120, '$x(a)$', { tam: 22, color: P.suave, o: oh(1), id: 'tm-h2', alto: 34 }));
-    s.push(D.parrafo(COL + 574, 554, 300, '$q$ en [60, 125), caso 3', { tam: 22, color: P.suave, ancla: 'end', o: oh(2), id: 'tm-h3', alto: 34 }));
+    s.push(D.parrafo(COL + 574, 554, 300, '$q$ en [60, 125), con 80+ junta', { tam: 22, color: P.suave, ancla: 'end', o: oh(2), id: 'tm-h3', alto: 34 }));
     s.push(D.linea(COL, 592, COL + 574, 592, { color: P.rejilla, grosor: 2, o: o }));
     filas.forEach(function (f, k) {
       var celda = function (j) { return M.entra(t, 65.6 + 0.42 * k + 0.12 * j, 0.4, E.entrarSuave) * o; };
       var y = 644 + k * 62;
       s.push(D.texto(COL, y, f[0], { tam: 26, o: celda(0), id: 'tm-n' + k }));
       s.push(D.formula(f[1], COL + 270, y - 9, { tam: 30, o: celda(1), id: 'tm-x' + k, palabras: 1, ancho: 180, alto: 56, estilos: SUBRAYADO }));
-      s.push(D.texto(COL + 574, y, D.sig(f[2], 3), { fuente: 'mono', tam: 26, ancla: 'end', o: celda(2), id: 'tm-q' + k }));
+      s.push(D.texto(COL + 574, y, D.sig(f[2], 4), { fuente: 'mono', tam: 26, ancla: 'end', o: celda(2), id: 'tm-q' + k }));
       c.dato('tabla_' + f[3], f[2]);
     });
     s.push(D.parrafo(COL, 826, 574, 'incidencia y mortalidad: con denominador en **toda** la población, como GBD (aquí por persona-año)',
