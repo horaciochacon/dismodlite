@@ -9,7 +9,7 @@
 //                imagen al volver a él
 //   cuadro 0     el primer cuadro es una composición terminada: el título se lee desde el cuadro 0
 //   lectura      cada texto legible (data-lee) queda quieto mientras se lee y dura al menos 0,3 s por palabra + 0,5 s
-//   márgenes     ningún texto visible se sale del cuadro (8 px)
+//   márgenes     ningún texto visible se sale del cuadro (8 px), y la narración cabe en una línea
 //   choques      dos textos legibles no se tapan (AVISO)
 //   simultáneos  no entran tres o más textos a la vez (AVISO: una sola cosa principal por momento)
 //   escena       las comprobaciones numéricas que declara la escena (auditoria), por ejemplo que la curva dibujada
@@ -75,6 +75,7 @@ function medirTextos(paso) {
       const r = el.getBoundingClientRect();
       fila.push({
         id: el.getAttribute('data-lee'), palabras: Number(el.getAttribute('data-palabras') || 0),
+        tam: parseFloat(getComputedStyle(el).fontSize) || 0,
         seguir: el.hasAttribute('data-seguir'), o: opacidad(el),
         x: r.left, y: r.top, w: r.width, h: r.height,
       });
@@ -133,6 +134,7 @@ function analizarLectura(cuadros, E, paso) {
   }
   // Márgenes, choques y entradas simultáneas.
   const choques = new Map();
+  const envueltos = new Set();
   const entradas = [];
   let antes = new Set();
   for (const { i, textos } of cuadros) {
@@ -142,6 +144,10 @@ function analizarLectura(cuadros, E, paso) {
         fallas.push(`«${x.id}» se sale del cuadro en el cuadro ${i} (${Math.round(x.x)}, ${Math.round(x.y)}, ${Math.round(x.w)} x ${Math.round(x.h)})`);
       }
       if (x.o >= 0.5) ahora.add(x.id);
+      if (x.id.startsWith('rotulo-') && x.o > 0.05 && x.tam > 0 && x.h > 1.8 * x.tam && !envueltos.has(x.id)) {
+        envueltos.add(x.id);
+        fallas.push(`«${x.id}» ocupa más de una línea en el cuadro ${i}: la narración va en una sola línea (acórtala)`);
+      }
     }
     const nuevos = [...ahora].filter((id) => !antes.has(id));
     if (nuevos.length) entradas.push({ i, ids: nuevos });
