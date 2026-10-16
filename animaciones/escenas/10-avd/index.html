@@ -40,7 +40,7 @@
     [35.0, 39.7, '…así que se dividen por su suma: en cada simulación suman 1.'],
     [40.0, 45.9, 'Con sus pesos sorteados, cada simulación tiene su propio peso medio por caso; aquí, las ' + datos.n_sim + '.'],
     [46.2, 52.1, 'En una banda $b$, cada simulación multiplica su prevalencia, su peso medio por caso y $\\mathrm{COMO}_b$.'],
-    [52.4, 59.8, '$\\mathrm{COMO}_b$ calibra al ancla: su AVD dividido por el que daría la tabla con su prevalencia.'],
+    [52.9, 59.8, '$\\mathrm{COMO}_b$ calibra al ancla: su AVD dividido por el que daría la tabla con su prevalencia.'],
     [60.1, 66.9, 'Absorbe la comorbilidad y el patrón por edad de la severidad, que la tabla no tiene: puede superar 1.'],
     [67.2, 73.4, 'Al reemplazarlo, la tabla se cancela en el valor central: los AVD siguen a los del ancla.'],
     [73.7, 80.0, 'La tabla pesa en la incertidumbre. Sin $\\mathrm{COMO}_b$, los AVD quedarían por encima del ancla.'],
@@ -52,7 +52,7 @@
   // Foco: los términos fuera de foco bajan al 30 %. foco = { p, s, c } en [0, 1] (1 = en foco).
   function focoEcuacion(t) {
     var sev = M.entra(t, 6.3, 0.4, E.entrarSuave) * (1 - M.entra(t, 46.0, 0.4, E.entrarSuave));
-    var como = M.entra(t, 52.4, 0.4, E.entrarSuave) * (1 - M.entra(t, 67.0, 0.4, E.entrarSuave));
+    var como = M.entra(t, 52.9, 0.4, E.entrarSuave) * (1 - M.entra(t, 67.0, 0.4, E.entrarSuave));
     return { p: 1 - 0.7 * Math.max(sev, como), s: 1 - 0.7 * como, c: 1 - 0.7 * sev };
   }
 
@@ -70,7 +70,7 @@
     s.push(D.formula('\\mathrm{DW}_e', TAB.dw, 404, { tam: 30, ancla: 'end', ancho: 200, alto: 50, o: oCab, id: 'tab-dw', palabras: 1 }));
     s.push(D.linea(TAB.x, 428, TAB.dw, 428, { color: P.guia, grosor: 2, o: oCab }));
     for (var e = 0; e < est.length; e++) {
-      var oe = M.escalonado(t, 7.1, e, 300, 0.4, E.entrarSuave);
+      var oe = M.escalonado(t, 7.1, e, M.ESCALONADO.fila, 0.4, E.entrarSuave);
       var y = filaY(e);
       var f = [];
       f.push(D.texto(TAB.nombre, y, est[e].nombre, { tam: 26, id: 'tab-nombre-' + e }));
@@ -84,7 +84,7 @@
     }
     // La fila leve se recuadra mientras se explica su Beta.
     var oLeve = M.visible(t, 18.7, 28.9);
-    s.push(D.rect(TAB.x - 12, filaY(1) - 32, TAB.dw - TAB.x + 24, 70, { borde: P.marca, grosor: 3, radio: 8, o: oLeve }));
+    s.push(D.rect(TAB.pi - 200, filaY(1) - 32, 212, 70, { borde: P.marca, grosor: 3, radio: 8, o: oLeve }));
     // El peso medio por caso con los valores centrales.
     var oSum = M.visible(t, 13.4, Infinity);
     s.push(D.rect(TAB.x - 12, 682, 560, 72, { borde: P.marca, grosor: 3, radio: 10, o: oSum }));
@@ -141,7 +141,7 @@
   }
 
   // ---- Las barras apiladas de pi_{k,e} (tomas 4 y 5, derecha) ----
-  var BAR = { x0: 1060, paso: 104, ancho: 60, base: 760, unidad: 300 };
+  var BAR = { x0: 1060, paso: 104, ancho: 60, base: 760, unidad: 270 };
   function sumar(v) { var s = 0; for (var e = 0; e < v.length; e++) s += v[e]; return s; }
   function panelBarras(t, o) {
     if (o <= 0) return '';
@@ -241,7 +241,7 @@
       s.push(D.formula(x[0], x[1], LED.cab, { tam: 28, ancla: x[2], ancho: 320, alto: 50, o: oc, id: 'led-cab-' + j, palabras: 1,
         estilos: { tq: SUB_P } }));
     });
-    s.push(D.texto(LED.cien, LED.cab + 8, 'por 100 000', { tam: 24, color: P.suave, ancla: 'end', o: oc, id: 'led-cab-cien' }));
+    s.push(D.texto(LED.cien, LED.cab + 8, 'por 100 000', { tam: 26, color: P.suave, ancla: 'end', o: oc, id: 'led-cab-cien' }));
     s.push(D.linea(96, LED.cab + 26, LED.cien, LED.cab + 26, { color: P.guia, grosor: 2, o: oc }));
     var filas = [];
     for (var r = 0; r < FILAS; r++) {
@@ -263,7 +263,7 @@
       filas.push({ p: p, suma: sk, como: cm, avd: avd, avd_paquete: ej.avd_k[r] });
     }
     // La columna COMO_b se recuadra mientras se explica el factor.
-    s.push(D.rect(LED.c - 120, LED.cab - 28, 136, 54 + FILAS * LED.fila, { borde: P.marca, grosor: 3, radio: 8, o: M.visible(t, 52.6, 66.9) }));
+    s.push(D.rect(LED.c - 120, LED.cab - 28, 136, 54 + FILAS * LED.fila, { borde: P.marca, grosor: 3, radio: 8, o: M.visible(t, 53.0, 66.9) }));
     if (t >= 48.5) c_dato('libro', filas);
     return s;
   }
@@ -271,7 +271,7 @@
   // ---- COMO_b (toma 7) y la consecuencia (toma 8), abajo ----
   function medio(j) { return B.inicio[j] + 2.5; }
   var EJE_BANDAS = { x: 1100, y: 660, ancho: 680, alto: 190, xDom: [38, 100], xTicks: [40, 50, 60, 70, 80, 90] };
-  var GC = D.ejes({ x: EJE_BANDAS.x, y: EJE_BANDAS.y, ancho: EJE_BANDAS.ancho, alto: EJE_BANDAS.alto, id: 'como',
+  var GC = D.ejes({ x: EJE_BANDAS.x, y: 690, ancho: EJE_BANDAS.ancho, alto: 160, id: 'como',
     xDom: EJE_BANDAS.xDom, yDom: [0.6, 1.1], xTicks: EJE_BANDAS.xTicks, yTicks: [0.6, 0.8, 1.0],
     yFormato: function (v) { return num(v, 1); } });
   var GA = D.ejes({ x: EJE_BANDAS.x, y: 440, ancho: EJE_BANDAS.ancho, alto: 390, id: 'avd',
@@ -282,14 +282,14 @@
     var s = [];
     s.push(D.texto(GC.izq - 14, GC.arriba - 30, 'Factor por banda de edad (años), mujeres', { tam: 22, color: P.suave, id: 'como-titulo' }));
     s.push(GC.svg());
-    var o1 = M.entra(t, 53.4, 0.4, E.entrarSuave);
+    var o1 = M.entra(t, 55.8, 0.4, E.entrarSuave);
     s.push(D.linea(GC.izq, GC.y(1), GC.der, GC.y(1), { color: P.marca, grosor: 2.5, guiones: '8 7', o: o1 }));
     var pts = [];
     for (var j = 0; j < B.como.length; j++) pts.push([GC.x(medio(j)), GC.y(B.como[j])]);
-    var u = M.entra(t, 53.6, 1.2, E.mover);
+    var u = M.entra(t, 56.0, 1.2, E.mover);
     s.push(D.trazo(pts, { color: P.tinta, grosor: 2, progreso: u }));
     for (var j2 = 0; j2 < pts.length; j2++) {
-      var oj = M.escalonado(t, 53.6, j2, 90, 0.3, E.entrarSuave);
+      var oj = M.escalonado(t, 56.0, j2, 90, 0.3, E.entrarSuave);
       s.push(D.circulo(pts[j2][0], pts[j2][1], j2 === jb ? 8 : 6, { relleno: j2 === jb ? P.marca : P.tinta, borde: P.fondo, grosor: 2, o: oj }));
     }
     var minimo = Math.min.apply(null, B.como), maximo = Math.max.apply(null, B.como);
@@ -302,14 +302,15 @@
   function panelAvd(t, o) {
     if (o <= 0) return '';
     var s = [];
-    var oLey = M.entra(t, 67.9, 0.4, E.entrarSuave);
+    var oLey = M.entra(t, 69.2, 0.4, E.entrarSuave);
     s.push(D.texto(GA.izq - 14, GA.arriba - 30, 'AVD por 100 000:', { tam: 22, color: P.suave, o: oLey, id: 'avd-titulo' }));
     // Leyenda: caja del ancla, punto del modelo y círculo hueco sin COMO.
     var ly = GA.arriba - 37;
-    s.push(D.rect(1268, ly - 8, 16, 16, { borde: P.tinta, grosor: 2.5, o: oLey }));
+    s.push(D.linea(1269, ly - 7, 1283, ly + 7, { color: P.tinta, grosor: 2.5, o: oLey }));
+    s.push(D.linea(1269, ly + 7, 1283, ly - 7, { color: P.tinta, grosor: 2.5, o: oLey }));
     s.push(D.texto(1292, GA.arriba - 30, 'ancla', { tam: 22, o: oLey, id: 'avd-ley-ancla' }));
-    var oMod = M.entra(t, 68.6, 0.4, E.entrarSuave);
-    s.push(D.circulo(1374, ly, 5, { relleno: P.tinta, o: oMod }));
+    var oMod = M.entra(t, 70.4, 0.4, E.entrarSuave);
+    s.push(D.circulo(1374, ly, 6, { relleno: P.tinta, o: oMod }));
     s.push(D.texto(1388, GA.arriba - 30, 'modelo (IC 95 %)', { tam: 22, o: oMod, id: 'avd-ley-modelo' }));
     var oSin = M.entra(t, 74.0, 0.4, E.entrarSuave);
     s.push(D.circulo(1576, ly, 6, { borde: P.suave, grosor: 2.5, o: oSin }));
@@ -318,13 +319,15 @@
     var puntos = [];
     for (var j = 0; j < B.avd_media.length; j++) {
       var x = GA.x(medio(j));
-      var oj = M.escalonado(t, 68.0, j, M.ESCALONADO.item, 0.3, E.entrarSuave);
-      s.push(D.rect(x - 8, GA.y(1e5 * B.avd_ancla[j]) - 8, 16, 16, { borde: P.tinta, grosor: 2.5, o: oj }));
-      var om = M.escalonado(t, 68.6, j, M.ESCALONADO.item, 0.3, E.entrarSuave);
+      var oj = M.escalonado(t, 69.4, j, M.ESCALONADO.item, 0.3, E.entrarSuave);
+      var ya = GA.y(1e5 * B.avd_ancla[j]);
+      s.push(D.linea(x - 9, ya - 9, x + 9, ya + 9, { color: P.tinta, grosor: 2.5, o: oj }));
+      s.push(D.linea(x - 9, ya + 9, x + 9, ya - 9, { color: P.tinta, grosor: 2.5, o: oj }));
+      var om = M.escalonado(t, 70.4, j, M.ESCALONADO.item, 0.3, E.entrarSuave);
       s.push(D.linea(x, GA.y(1e5 * B.avd_inferior[j]), x, GA.y(1e5 * B.avd_superior[j]), { color: P.tinta, grosor: 2, o: om }));
-      s.push(D.circulo(x, GA.y(1e5 * B.avd_media[j]), 5, { relleno: P.tinta, o: om }));
+      s.push(D.circulo(x, GA.y(1e5 * B.avd_media[j]), 6, { relleno: P.tinta, o: om }));
       var os = M.escalonado(t, 74.0, j, M.ESCALONADO.item, 0.3, E.entrarSuave);
-      s.push(D.circulo(x, GA.y(1e5 * B.avd_sin_factor[j]), 6, { borde: P.suave, grosor: 2.5, o: os }));
+      s.push(D.circulo(x, GA.y(1e5 * B.avd_sin_factor[j]), 6, { relleno: P.fondo, borde: P.suave, grosor: 2.5, o: os }));
       puntos.push({ media: B.avd_media[j], ancla: B.avd_ancla[j], sin: B.avd_sin_factor[j] });
     }
     if (t >= 75) c_dato('avd', puntos);
@@ -365,15 +368,15 @@
     var cuenta = B.avd_ancla[jb] / (B.p_ancla[jb] * datos.suma_central);
     c.svg(D.formula('\\text{70-74:}\\ \\dfrac{' + num(B.avd_ancla[jb], 6) + '}{' + num(B.p_ancla[jb], 4) + ' \\times ' +
       num(datos.suma_central, 4) + '} = ' + num(cuenta, 3), 96, 812,
-      { tam: 30, o: M.visible(t, 54.0, 66.9), ancho: 900, alto: 90, id: 'como-cuenta', palabras: 6 }));
+      { tam: 30, o: M.visible(t, 54.2, 66.9), ancho: 900, alto: 90, id: 'como-cuenta', palabras: 6 }));
     if (t >= 55 && t < 67) c.dato('como_cuenta', { cuenta: cuenta, paquete: B.como[jb] });
     var oSus = M.visible(t, 67.3, Infinity);
-    c.svg(D.formula('\\mathrm{AVD}_{k,b} = \\mathrm{AVD}^{ancla}_b\\, \\dfrac{\\htmlClass{tq}{p_{k,b}}}{p^{ancla}_b}\\, \\dfrac{\\sum_e \\pi_{k,e} \\mathrm{DW}_{k,e}}{\\sum_e \\pi_e\\, \\mathrm{DW}_e}', 96, 560,
+    c.svg(D.formula('\\mathrm{AVD}_{k,b} = \\mathrm{AVD}^{ancla}_b\\, \\dfrac{\\htmlClass{tq}{p_{k,b}}}{p^{ancla}_b}\\, \\dfrac{\\sum_e \\pi_{k,e} \\mathrm{DW}_{k,e}}{\\sum_e \\pi_e\\, \\mathrm{DW}_e}', 96, 600,
       { tam: 36, o: oSus, ancho: 900, alto: 120, id: 'sustitucion', palabras: 8, estilos: { tq: SUB_P } }));
     var cociente = 0;
     for (var k = 0; k < datos.suma_k.length; k++) cociente += datos.suma_k[k];
     cociente /= datos.suma_k.length * datos.suma_central;
-    c.svg(D.texto(96, 680, 'el último cociente vale ' + num(cociente, 3) + ' en promedio', { tam: 24, color: P.suave,
+    c.svg(D.texto(96, 730, 'el último cociente vale ' + num(cociente, 3) + ' en promedio', { tam: 24, color: P.suave,
       o: M.visible(t, 68.4, Infinity), id: 'cociente' }));
     if (t >= 69) {
       var sus = [];
@@ -382,8 +385,8 @@
       }
       c.dato('sustitucion', sus);
     }
-    c.svg(panelComo(t, M.visible(t, 53.0, 66.9)));
-    c.svg(panelAvd(t, M.visible(t, 67.4, Infinity)));
+    c.svg(panelComo(t, M.visible(t, 55.4, 66.9)));
+    c.svg(panelAvd(t, M.visible(t, 69.0, Infinity)));
 
     c.svg(D.rotulo(t, NARRACION));
     c.svg(D.pie(datos.fuente));
